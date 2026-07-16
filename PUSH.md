@@ -39,6 +39,10 @@ cd /d D:\L2Raptus
 py tools\export_release_web.py
 ```
 
-Then in `D:\SoulForge-web`: add, commit, push. Re-export wipes the folder — keep `.git` by exporting to a temp path and copying files, or re-init after export with `--init-git` only on first run.
+Скрипт пересобирает дерево, но **сохраняет** `.git`. Дальше в `D:\SoulForge-web`:
 
-Note: `export_release_web.py` currently **deletes** the output directory. To update an existing git repo without losing history, export to a temp folder and sync files (or enhance the script later).
+```bat
+git add -A
+git commit -m "Release sync"
+git push
+```
