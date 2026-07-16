@@ -1,0 +1,4 @@
+home_bg.png — официальный wallpaper Lineage II: Interlude (NCsoft).
+Источник: archive/game-assets/ivory-heroes/gallery/wallpapers/gallery_0798_interlude_wallpaper_*.png
+
+После замены — поднять HOME_BG_VER в src/01-constants.js и ?v= в styles/main.css.

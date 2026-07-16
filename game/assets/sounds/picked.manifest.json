@@ -1,0 +1,198 @@
+{
+  "pack": "C:\\Users\\admin\\Downloads\\NevesOma_il_sounds",
+  "files": {
+    "ui/click.wav": {
+      "source": "InterfaceSound/Sound/click_01.wav",
+      "opts": {
+        "peak": 0.95
+      },
+      "seconds": 0.19,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ui/open.wav": {
+      "source": "InterfaceSound/Sound/inventory_open_01.wav",
+      "opts": {
+        "peak": 0.9
+      },
+      "seconds": 0.72,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ui/coin.wav": {
+      "source": "ItemSound/Sound/Pickup.wav",
+      "opts": {
+        "peak": 1.0,
+        "trim": true
+      },
+      "seconds": 0.05,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/enchant_charge.wav": {
+      "source": "ItemSound2/Sound/smelting_loding.wav",
+      "opts": {
+        "peak": 0.88,
+        "max_sec": 2.0
+      },
+      "seconds": 2.0,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/enchant_success.wav": {
+      "source": "ItemSound3/Sound/sys_enchant_success.wav",
+      "opts": {
+        "peak": 0.95
+      },
+      "seconds": 1.73,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/enchant_fail.wav": {
+      "source": "ItemSound3/Sound/sys_break.wav",
+      "opts": {
+        "peak": 0.92
+      },
+      "seconds": 0.51,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/jackpot.wav": {
+      "source": "ItemSound/Sound/quest_jackpot.wav",
+      "opts": {
+        "peak": 0.9,
+        "max_sec": 4.5
+      },
+      "seconds": 4.5,
+      "rate": 22050,
+      "channels": 2
+    },
+    "sfx/treasure.wav": {
+      "source": "ItemSound/Sound/quest_itemget.wav",
+      "opts": {
+        "peak": 0.92
+      },
+      "seconds": 1.83,
+      "rate": 22050,
+      "channels": 2
+    },
+    "sfx/mine_hit.wav": {
+      "source": "ItemSound/Sound/armor_leather_4.wav",
+      "opts": {
+        "peak": 0.6,
+        "max_sec": 0.26,
+        "lowpass_hz": 3200,
+        "fade_ms": 40
+      },
+      "seconds": 0.26,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/mine_hit_2.wav": {
+      "source": "ItemSound/Sound/armor_wood_1.wav",
+      "opts": {
+        "peak": 0.56,
+        "max_sec": 0.28,
+        "lowpass_hz": 2600,
+        "fade_ms": 45
+      },
+      "seconds": 0.28,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/mine_hit_3.wav": {
+      "source": "ItemSound/Sound/armor_leather_2.wav",
+      "opts": {
+        "peak": 0.58,
+        "max_sec": 0.3,
+        "lowpass_hz": 3000,
+        "fade_ms": 40
+      },
+      "seconds": 0.3,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/mine_kill.wav": {
+      "source": "ItemSound/Sound/armor_leather_3.wav",
+      "opts": {
+        "peak": 0.52,
+        "max_sec": 0.36,
+        "lowpass_hz": 2400,
+        "fade_ms": 55
+      },
+      "seconds": 0.36,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/quest.wav": {
+      "source": "InterfaceSound/Sound/quest_accept_01.wav",
+      "opts": {
+        "peak": 0.9,
+        "max_sec": 1.2
+      },
+      "seconds": 1.2,
+      "rate": 22050,
+      "channels": 2
+    },
+    "sfx/levelup.wav": {
+      "source": "SkillSound/Sound/levelup.wav",
+      "opts": {
+        "peak": 0.88,
+        "max_sec": 3.0
+      },
+      "seconds": 3.0,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/menu.wav": {
+      "source": "AmbSound2/Sound/jura_01.wav",
+      "opts": {
+        "peak": 0.55,
+        "loop_fade_ms": 80
+      },
+      "seconds": 5.46,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/mine.wav": {
+      "source": "AmbSound2/Sound/Lava_Bubble_Loop_01.wav",
+      "opts": {
+        "peak": 0.5,
+        "loop_fade_ms": 60
+      },
+      "seconds": 3.56,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/indoor.wav": {
+      "source": "AmbSound2/Sound/wind_light_loop_1.wav",
+      "opts": {
+        "peak": 0.45,
+        "loop_fade_ms": 80
+      },
+      "seconds": 5.2,
+      "rate": 22050,
+      "channels": 2
+    },
+    "dwarf/M.wav": {
+      "source": "ChrSound/Sound/MDwarf_Death.wav",
+      "opts": {
+        "peak": 0.95,
+        "max_sec": 1.4
+      },
+      "seconds": 1.4,
+      "rate": 22050,
+      "channels": 1
+    },
+    "dwarf/F.wav": {
+      "source": "ChrSound/Sound/FDwarf_Death.wav",
+      "opts": {
+        "peak": 0.95,
+        "max_sec": 1.2
+      },
+      "seconds": 1.2,
+      "rate": 22050,
+      "channels": 1
+    }
+  }
+}

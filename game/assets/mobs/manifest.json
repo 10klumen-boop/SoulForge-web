@@ -1,0 +1,134 @@
+{
+  "dre-vanul": {
+    "slug": "dre-vanul",
+    "w": 552,
+    "h": 480,
+    "sheetW": 512
+  },
+  "giant-spider": {
+    "slug": "giant-spider",
+    "w": 835,
+    "h": 480,
+    "sheetW": 512
+  },
+  "goblin": {
+    "slug": "goblin",
+    "w": 254,
+    "h": 480,
+    "sheetW": 508
+  },
+  "goblin-grave-robber": {
+    "slug": "goblin-grave-robber",
+    "w": 284,
+    "h": 480,
+    "sheetW": 512
+  },
+  "kasha-wolf": {
+    "slug": "kasha-wolf",
+    "w": 894,
+    "h": 480,
+    "sheetW": 512
+  },
+  "lirein": {
+    "slug": "lirein",
+    "w": 180,
+    "h": 480,
+    "sheetW": 360
+  },
+  "misy-skeleton": {
+    "slug": "misy-skeleton",
+    "w": 519,
+    "h": 480,
+    "sheetW": 512
+  },
+  "monster-eye": {
+    "slug": "monster-eye",
+    "w": 592,
+    "h": 480,
+    "sheetW": 512
+  },
+  "poison-spider": {
+    "slug": "poison-spider",
+    "w": 837,
+    "h": 480,
+    "sheetW": 512
+  },
+  "prarie-keltir": {
+    "slug": "prarie-keltir",
+    "w": 656,
+    "h": 480,
+    "sheetW": 512
+  },
+  "relic-werewolf": {
+    "slug": "relic-werewolf",
+    "w": 344,
+    "h": 480,
+    "sheetW": 512
+  },
+  "salamander": {
+    "slug": "salamander",
+    "w": 884,
+    "h": 480,
+    "sheetW": 512
+  },
+  "silent-horror": {
+    "slug": "silent-horror",
+    "w": 540,
+    "h": 480,
+    "sheetW": 512
+  },
+  "skeleton": {
+    "slug": "skeleton",
+    "w": 322,
+    "h": 480,
+    "sheetW": 512
+  },
+  "skeleton-archer": {
+    "slug": "skeleton-archer",
+    "w": 326,
+    "h": 480,
+    "sheetW": 512
+  },
+  "stone-giant": {
+    "slug": "stone-giant",
+    "w": 510,
+    "h": 480,
+    "sheetW": 512
+  },
+  "tunath-orc-marksman": {
+    "slug": "tunath-orc-marksman",
+    "w": 382,
+    "h": 480,
+    "sheetW": 512
+  },
+  "tunath-orc-warrior": {
+    "slug": "tunath-orc-warrior",
+    "w": 432,
+    "h": 480,
+    "sheetW": 512
+  },
+  "undine": {
+    "slug": "undine",
+    "w": 478,
+    "h": 480,
+    "sheetW": 512
+  },
+  "vampire-bat": {
+    "slug": "vampire-bat",
+    "w": 842,
+    "h": 480,
+    "sheetW": 512
+  },
+  "wererat": {
+    "slug": "wererat",
+    "w": 566,
+    "h": 480,
+    "sheetW": 512
+  },
+  "young-keltir": {
+    "slug": "young-keltir",
+    "w": 529,
+    "h": 480,
+    "sheetW": 512
+  }
+}

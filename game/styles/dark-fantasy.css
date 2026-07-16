@@ -1,0 +1,691 @@
+/* ===== Dark Fantasy UI Theme =====
+   Мрачное камень/железо, кроваво-красные акценты, пепельный текст.
+   Подключается после main.css. */
+
+:root {
+  --bg: #070605;
+  --panel: #111010;
+  --panel2: #181614;
+  --slot: #0a0908;
+  --edge: #2e2c2a;
+  --edge2: #3c3834;
+  --gold: #8a7c70;
+  --gold-soft: #c8bcb0;
+  --gold-deep: #5a5048;
+  --accent: #8a2828;
+  --accent-soft: #a83838;
+  --accent-bright: #c84848;
+  --accent-glow: rgba(138, 40, 40, 0.28);
+  --txt: #d8d0c6;
+  --txt-dim: #9a9288;
+  --green: #5a9060;
+  --red: #c05050;
+  --blue: #5a7888;
+  --purple: #706080;
+  --iron: #323030;
+  --ash: #b8b0a6;
+  --blood: #8a2020;
+  --cursor-l2: url("../assets/ui/cursor_l2.png") 5 3, auto;
+}
+
+body {
+  background:
+    radial-gradient(1100px 640px at 50% -8%, rgba(40, 24, 24, 0.35) 0%, transparent 58%),
+    radial-gradient(800px 500px at 88% 108%, rgba(20, 16, 14, 0.6) 0%, transparent 55%),
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0) 0 20px, rgba(255, 255, 255, 0.008) 20px 21px),
+    var(--bg);
+}
+
+/* —— Shell & log —— */
+.game-log-body {
+  background: linear-gradient(180deg, #141210, #0a0908);
+  border: 1px solid var(--edge2);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.game-log-tab {
+  background: linear-gradient(180deg, #1a1816, #100e0c);
+  border-color: var(--edge2);
+  color: var(--ash);
+}
+.game-log-tab:hover { border-color: var(--accent-soft); color: #d0c8c0; }
+.game-log-head {
+  background: linear-gradient(180deg, #1a1816, #100e0c);
+  border-bottom-color: var(--edge);
+}
+.game-log-title { color: var(--ash); letter-spacing: 0.08em; font-weight: 600; }
+.game-log-clear:hover,
+.game-log-collapse:hover,
+.log-filter:hover { border-color: var(--accent-soft); color: #c8b8b0; }
+.log-filter.on {
+  border-color: var(--accent);
+  color: #d0c0b8;
+  background: rgba(138, 40, 40, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(138, 40, 40, 0.18);
+}
+.log-line.kind-system { border-left-color: var(--accent-soft); color: #c0a8a0; }
+.log-line.kind-gold { border-left-color: var(--gold); }
+
+/* —— Topbar —— */
+.brand .l2 {
+  color: #c0b4a8;
+  text-shadow: 0 0 12px rgba(138, 40, 40, 0.2);
+}
+.wallet {
+  background: linear-gradient(180deg, #1a1816, #100e0c);
+  border: 1px solid var(--edge2);
+}
+.wallet .coin { color: #b8a898; }
+.iconbtn,
+.back,
+.sett-toggle {
+  background: linear-gradient(180deg, #242220, #161412);
+  border-color: var(--edge2);
+  color: var(--ash);
+}
+.iconbtn:hover,
+.back:hover,
+.sett-toggle:hover,
+.sett-toggle.on { border-color: var(--accent-soft); color: #d0c8c0; }
+.settings-pop {
+  background: linear-gradient(180deg, #1c1a18, #100e0c);
+  border: 1px solid var(--edge2);
+}
+
+/* —— Card shell —— */
+.card {
+  background:
+    linear-gradient(180deg, #161412, #0e0c0a),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 8px, rgba(255, 255, 255, 0.006) 8px 9px);
+  border: 1px solid var(--edge2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.card::before { border-color: rgba(80, 72, 68, 0.35); }
+
+/* —— Hero —— */
+.hero-panel {
+  border: 1px solid var(--edge2);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.65),
+    0 14px 36px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+.hero-scrim {
+  background:
+    radial-gradient(ellipse 85% 90% at 50% 38%, rgba(4,3,2,.35), rgba(4,3,2,.78) 72%),
+    linear-gradient(180deg, rgba(4,3,2,.45) 0%, rgba(4,3,2,.92) 100%);
+}
+.hero-vignette {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 18%, rgba(80, 32, 32, 0.15), transparent 55%),
+    linear-gradient(180deg, rgba(6, 4, 4, 0.65) 0%, rgba(6, 4, 4, 0.88) 48%, rgba(4, 3, 2, 0.96) 100%);
+}
+.hero-glow {
+  background: radial-gradient(ellipse 50% 40% at 50% 0%, rgba(120, 40, 32, 0.18), transparent 70%);
+  mix-blend-mode: normal;
+}
+.hero-embers span {
+  background: #a84830;
+  box-shadow: 0 0 6px rgba(168, 72, 48, 0.6);
+}
+.hero-panel::before,
+.hero-panel::after { border-color: rgba(100, 88, 80, 0.45); }
+.hero-brand-mark {
+  border-color: rgba(80, 72, 68, 0.55);
+  color: rgba(120, 108, 96, 0.65);
+  background: rgba(0, 0, 0, 0.45);
+}
+.hero-eyebrow { color: rgba(160, 148, 136, 0.75); }
+.hero h1 {
+  color: #c8b8a8;
+  text-shadow:
+    0 0 20px rgba(138, 40, 40, 0.25),
+    0 2px 0 #1a1410,
+    0 3px 8px rgba(0, 0, 0, 0.9);
+  animation: none;
+}
+.hero-sub { color: rgba(140, 128, 116, 0.8); }
+.hero-rule { color: rgba(100, 92, 84, 0.5); }
+.hero-rule::before,
+.hero-rule::after { background: linear-gradient(90deg, transparent, rgba(100, 92, 84, 0.4), transparent); }
+.hero-rule span { color: rgba(120, 108, 96, 0.65); }
+.hero-step {
+  border: 1px solid rgba(58, 52, 48, 0.95);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(18, 16, 14, 0.95), rgba(8, 6, 5, 0.92));
+}
+.hero-step-mine { border-top-color: rgba(74, 120, 80, 0.55); }
+.hero-step-ench { border-top-color: rgba(74, 104, 120, 0.55); }
+.hero-step-gold { border-top-color: rgba(138, 40, 40, 0.55); }
+.hero-step:hover { border-color: var(--accent-soft); }
+.hero-step-t { color: var(--ash); font-family: inherit; text-transform: uppercase; font-size: 12px; letter-spacing: 0.04em; font-weight: 600; }
+.hero-cycle-track {
+  background: linear-gradient(90deg, rgba(74, 120, 80, 0.35), rgba(74, 104, 120, 0.45) 50%, rgba(138, 40, 40, 0.5));
+  opacity: 0.55;
+}
+
+/* —— Menu tiles —— */
+.tile {
+  background: linear-gradient(180deg, #1a1816, #121010);
+  border: 1px solid var(--edge2);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+.tile:hover {
+  border-color: var(--accent-soft);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 12px var(--accent-glow);
+}
+.tile .tname { color: var(--ash); font-family: inherit; text-transform: uppercase; font-size: 13px; letter-spacing: 0.04em; font-weight: 600; }
+#avatarTile:hover .tile-ico,
+#questTile:hover .tile-ico,
+#invTile:hover .tile-ico,
+#shopTile:hover .tile-ico,
+#achTile:hover .tile-ico { filter: drop-shadow(0 4px 10px rgba(138, 40, 40, 0.25)) brightness(1.08); }
+
+/* —— Panels —— */
+.panel-head {
+  background: linear-gradient(180deg, rgba(24, 22, 20, 0.98), rgba(12, 10, 9, 0.99));
+  border-bottom: 1px solid var(--edge2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+.panel-head-ornate {
+  border-bottom-color: rgba(138, 40, 40, 0.25);
+  background: linear-gradient(180deg, rgba(28, 24, 22, 0.98), rgba(10, 8, 7, 0.99));
+}
+.panel-head h2 { color: var(--ash); text-shadow: none; font-family: var(--font-display); text-transform: none; font-size: 17px; letter-spacing: 0.02em; font-weight: 600; }
+
+/* —— Buttons —— */
+.btn-primary {
+  background: linear-gradient(180deg, #a83838, #6a2020);
+  color: #f0e0d8;
+  border: 1px solid #8a3030;
+  box-shadow: 0 6px 18px var(--accent-glow);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #b84848, #7a2828);
+  filter: none;
+}
+.btn-ghost:hover { border-color: var(--accent-soft); color: #d0c8c0; }
+.gf:hover { color: var(--ash); }
+.gf.sel {
+  border-color: var(--accent);
+  color: #d0c0b8;
+  background: rgba(138, 40, 40, 0.1);
+}
+.search:focus { border-color: var(--accent-soft); }
+.wrow:hover { background: rgba(138, 40, 40, 0.06); }
+.scroll-opt:hover,
+.scroll-opt.sel { border-color: var(--accent-soft); }
+.scroll-opt.sel { background: rgba(138, 40, 40, 0.08); box-shadow: inset 0 0 0 1px rgba(138, 40, 40, 0.2); }
+.odds b { color: var(--ash); }
+.verdict.neutral { color: var(--ash); }
+
+/* —— Modals & story —— */
+.modal-box,
+.story-box,
+.ach-modal-box,
+.ach-reward-box,
+.avatar-setup-box,
+.avatar-equip-box {
+  background: linear-gradient(180deg, #1a1816, #0c0a08);
+  border: 1px solid var(--edge2);
+  border-radius: 4px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.modal-head,
+.story-title,
+.ach-modal-title { color: var(--ash); font-family: inherit; }
+.story-title { color: #c0b0a8; text-shadow: 0 0 16px rgba(138, 40, 40, 0.15); }
+.story-eyebrow,
+.story-chapter { color: var(--txt-dim); }
+.story-ok.btn-primary { border-radius: 3px; }
+.story-mechanic { border-color: rgba(138, 40, 40, 0.25); background: rgba(0, 0, 0, 0.25); }
+.story-mechanic-k { color: var(--accent-soft); }
+.story-backdrop {
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(24, 16, 16, 0.94), rgba(0, 0, 0, 0.92));
+}
+
+/* —— Farm hub —— */
+.farm-hub-head { color: var(--ash); }
+.farm-zone-chip {
+  background: linear-gradient(180deg, #161412, #100e0c);
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+}
+.farm-zone-chip.sel,
+.farm-zone-chip:hover { border-color: var(--accent-soft); }
+.farm-zone-chip.sel { background: rgba(138, 40, 40, 0.08); }
+.mine-banner {
+  border: 1px solid var(--edge2);
+  border-radius: 4px;
+  background: linear-gradient(100deg, rgba(40, 24, 24, 0.2), rgba(16, 14, 12, 0.4));
+}
+.mine-banner:hover {
+  border-color: var(--accent-soft);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 10px var(--accent-glow);
+}
+.mine-banner .mb-t { color: var(--ash); }
+.mine-banner .mb-go { color: var(--accent-soft); }
+
+/* —— Story arc —— */
+.story-arc-bar { margin: 0 22px 10px; }
+.story-arc-btn {
+  border: 1px solid var(--edge2);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #161412, #100e0c);
+}
+.story-arc-btn:hover { border-color: var(--accent-soft); }
+.story-arc-main { color: var(--ash); }
+.story-arc-dot.done { background: rgba(74, 120, 80, 0.35); border-color: rgba(74, 120, 80, 0.5); }
+.story-arc-dot.open { border-color: var(--accent-soft); background: rgba(138, 40, 40, 0.15); }
+
+/* —— Quest journal —— */
+.qj-chapter {
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: rgba(8, 6, 4, 0.55);
+}
+.qj-chapter.current {
+  border-color: rgba(138, 40, 40, 0.4);
+  box-shadow: 0 0 0 1px rgba(138, 40, 40, 0.1);
+}
+.qj-chapter-titles b { color: var(--ash); }
+.qj-chapter-badge { color: var(--accent-soft); }
+.qj-step-n { color: var(--accent-soft); }
+.qj-step.current { background: rgba(138, 40, 40, 0.08); }
+.qj-status.active { color: var(--ash); }
+
+/* —— Achievements —— */
+.ach-card {
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(20, 18, 16, 0.9), rgba(10, 8, 6, 0.85));
+}
+.ach-card.unlocked {
+  border-color: rgba(138, 40, 40, 0.35);
+  background: linear-gradient(135deg, rgba(60, 24, 24, 0.12), rgba(20, 18, 16, 0.9));
+}
+.ach-title { color: var(--ash); }
+.best-tag { color: var(--accent-soft); }
+.g-A { color: #c8a878; background: rgba(120, 88, 48, 0.12); border-color: rgba(120, 88, 48, 0.35); }
+
+/* —— Avatar —— */
+.avatar-card,
+.avatar-hub-btn {
+  border: 1px solid var(--edge2);
+  background: linear-gradient(180deg, #161412, #100e0c);
+}
+.avatar-name { color: var(--ash); }
+.avatar-rank,
+.avatar-farm-row b { color: var(--accent-soft); }
+.avatar-xp-bar { background: linear-gradient(90deg, #5a1818, #a83838); }
+
+/* —— Mine HUD —— */
+.mine-hud .mh b { color: var(--ash); }
+.mine-quest-hud {
+  border: 1px solid var(--edge);
+  background: rgba(12, 10, 8, 0.75);
+}
+.mine-quest-npc { color: var(--accent-soft); }
+
+/* —— Enchant —— */
+.stage {
+  background: radial-gradient(420px 420px at 50% 40%, rgba(60, 24, 24, 0.15), transparent 70%), #0a0806;
+}
+.atk .box .num { color: var(--ash); }
+.control { border-left-color: var(--edge); }
+
+/* —— Toast —— */
+.toast {
+  background: #181614;
+  border: 1px solid var(--accent);
+  color: #d0c0b8;
+  border-radius: 3px;
+}
+
+/* —— Corner panels —— */
+.corner-fab {
+  background: linear-gradient(180deg, #242220, #161412);
+  border: 1px solid var(--edge2);
+  color: var(--txt-dim);
+}
+.corner-fab:hover,
+.corner-fab[aria-expanded="true"] {
+  border-color: var(--accent-soft);
+  color: var(--ash);
+  background: linear-gradient(180deg, #2a2420, #1a1614);
+}
+.corner-panel {
+  border: 1px solid var(--edge2);
+  background: linear-gradient(180deg, #1a1816, #100e0c);
+}
+
+/* —— Inventory —— */
+.inv-bar { color: var(--ash); font-family: inherit; border-bottom-color: var(--edge); }
+.inv-equipped { border-color: rgba(138, 40, 40, 0.2); }
+.inv-equipped-head b { color: var(--ash); }
+.inv-slot.dragover { outline-color: var(--accent-soft); border-color: var(--accent-soft); }
+.inv-crystallize-text b { color: var(--ash); font-family: inherit; }
+
+/* —— Dev panel —— */
+.dev-panel {
+  background: linear-gradient(180deg, #141210, #0a0908);
+  border: 1px solid var(--edge2);
+}
+.dev-secret-row { background: linear-gradient(180deg, #1e1a18, #121010); border-color: var(--edge); }
+.dev-secret-meta b { color: var(--ash); }
+
+/* —— Race story borders (subtle) —— */
+.story-backdrop.race-human .story-box,
+.story-backdrop.race-elf .story-box,
+.story-backdrop.race-dark_elf .story-box,
+.story-backdrop.race-orc .story-box,
+.story-backdrop.race-dwarf .story-box {
+  border-color: var(--edge2);
+}
+.story-backdrop.race-orc .story-box { border-color: rgba(138, 48, 40, 0.45); }
+.story-backdrop.story-chapter-reward .story-title,
+.story-backdrop.story-quest .story-title { color: var(--ash); }
+
+/* —— Scrollbars —— */
+.sf-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(#3a3430, #242018);
+}
+.app.hub-screen > .card::-webkit-scrollbar-thumb {
+  background: linear-gradient(#3a3430, #242018);
+}
+
+/* —— Story (extended) —— */
+.story-body b,
+.story-lead,
+.story-arc-hd a,
+.story-arc-quest,
+.story-race-beat b { color: var(--ash); }
+.story-chapter {
+  color: var(--accent-soft);
+  border-color: rgba(138, 40, 40, 0.35);
+  background: rgba(138, 40, 40, 0.08);
+}
+.story-meta-icon {
+  border-color: rgba(80, 72, 68, 0.5);
+}
+.story-quest-ref {
+  border-color: rgba(80, 72, 68, 0.35);
+}
+.story-quest-label { color: var(--accent-soft); }
+.story-epigraph { border-left-color: rgba(138, 40, 40, 0.45); }
+.story-mechanic {
+  background: linear-gradient(135deg, rgba(138, 40, 40, 0.1), rgba(0, 0, 0, 0.25));
+  border-color: rgba(138, 40, 40, 0.28);
+}
+.story-mechanic-k { color: var(--accent-soft); }
+.story-arc-list li {
+  border-color: rgba(80, 72, 68, 0.25);
+}
+.story-arc-list li.story-arc-item:hover {
+  border-color: rgba(138, 40, 40, 0.4);
+  background: rgba(138, 40, 40, 0.06);
+}
+.story-arc-list li.open { border-color: rgba(138, 40, 40, 0.35); }
+.story-race-beat {
+  border-left-color: var(--accent);
+  background: rgba(138, 40, 40, 0.06);
+}
+
+/* —— Achievement modals —— */
+.ach-modal-box {
+  background: linear-gradient(180deg, #1c1816 0%, #0c0a08 55%, #080604 100%);
+  border: 1px solid var(--edge2);
+  border-radius: 4px;
+  box-shadow: 0 0 32px rgba(138, 40, 40, 0.15), 0 24px 64px rgba(0, 0, 0, 0.8);
+}
+.ach-modal-rays {
+  background: conic-gradient(from 0deg, transparent, rgba(138, 40, 40, 0.08), transparent, rgba(80, 32, 32, 0.06), transparent);
+}
+.ach-modal-ico {
+  background: linear-gradient(160deg, #0a0806, #161412);
+  border-color: var(--edge2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55), 0 0 12px rgba(138, 40, 40, 0.12);
+}
+.ach-modal-kicker { color: var(--accent-soft); }
+.ach-modal-title { color: #d8ccc4; font-family: inherit; }
+.ach-modal-reward { color: var(--ash); }
+.ach-reward-box {
+  background: linear-gradient(180deg, #1a1816, #0a0806);
+  border: 1px solid rgba(96, 80, 120, 0.45);
+  border-radius: 4px;
+  box-shadow: 0 0 32px rgba(96, 80, 120, 0.2), 0 24px 64px rgba(0, 0, 0, 0.8);
+}
+.ach-sticky-meta {
+  background: linear-gradient(180deg, rgba(18, 16, 14, 0.98), rgba(10, 8, 6, 0.92));
+  border-bottom-color: var(--edge);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.ach-progress {
+  color: var(--ash);
+  font-family: inherit;
+  text-shadow: none;
+}
+.ach-placeholder p { color: var(--ash); font-family: inherit; }
+.ach-card {
+  border-color: var(--edge);
+  background: linear-gradient(135deg, rgba(12, 10, 8, 0.75), rgba(20, 18, 16, 0.55));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 14px rgba(0, 0, 0, 0.28);
+  border-radius: 3px;
+}
+.ach-card.unlocked {
+  border-color: rgba(138, 40, 40, 0.35);
+  background: linear-gradient(135deg, rgba(60, 24, 24, 0.12), rgba(20, 18, 16, 0.5));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 16px rgba(138, 40, 40, 0.06);
+}
+.ach-reward { color: #b8a898; }
+
+/* —— Corner panels (extended) —— */
+.corner-panel-head { color: var(--ash); font-family: inherit; }
+.corner-panel-close:hover { border-color: var(--accent-soft); color: var(--ash); }
+.corner-panel-body a { color: var(--accent-soft); }
+.corner-panel-body a:hover { color: #e0d0c8; }
+.patch-body b,
+.patch-body .patch-ver { color: var(--ash); font-family: inherit; }
+#patchFab { color: var(--txt); }
+
+/* —— Inventory (extended) —— */
+.inv-equipped {
+  border-color: rgba(138, 40, 40, 0.22);
+}
+.inv-slot.filled {
+  border-color: var(--edge2);
+}
+.inv-slot.filled:hover {
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 10px rgba(138, 40, 40, 0.2), inset 0 0 5px rgba(0, 0, 0, 0.6);
+}
+.inv-slot.filled .inv-grade {
+  background: linear-gradient(180deg, #3a3028, #6a5040);
+  color: #d0c0b0;
+}
+.wplus { color: var(--ash); }
+.wrow .wact { color: var(--accent-soft); }
+.pluslvl {
+  color: #f0e0d8;
+  background: var(--accent);
+}
+
+/* —— Workshop / shop —— */
+.ws-sec h3 { color: var(--ash); }
+.craft-tabs button.sel {
+  background: var(--accent);
+  color: #f0e0d8;
+  border-color: var(--accent-soft);
+}
+.craft-card button.craftb {
+  background: linear-gradient(180deg, #3a2828, #241818);
+  color: #e0d0c8;
+  border-color: #5a3030;
+}
+.craft-card .cinfo b { color: #c8b8a8; }
+
+/* —— Mine skills —— */
+.mine-skill-btn {
+  border-color: var(--edge2);
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(24, 20, 18, 0.92), rgba(10, 8, 6, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.mine-skill-btn:hover:not(:disabled) {
+  border-color: var(--accent-soft);
+  filter: none;
+}
+.mine-skill-key { color: var(--accent-soft); }
+.mine-quest-npc { color: var(--accent-soft); }
+.mine-quest-bar i {
+  background: linear-gradient(90deg, #3a5828, #6a9860);
+}
+.qj-step-bar i {
+  background: linear-gradient(90deg, #5a2828, var(--accent-soft));
+}
+
+/* —— Golden mobs (muted elite) —— */
+.gnome.target-elite img { border-color: #8a7860; }
+.gnome.golden img {
+  border-color: #8a7850;
+  box-shadow: 0 0 16px rgba(120, 88, 40, 0.35), 0 6px 12px rgba(0, 0, 0, 0.6);
+}
+.gnome.mine-solo.golden .mob-solo-name { color: #b8a888; }
+.gnome.mine-solo.golden .mob-timer-fill { background: linear-gradient(90deg, #3a3020, #807050); }
+.gnome.mine-solo.golden .mob-timer-label { color: #988870; }
+.gnome.mine-solo.golden .mob-hp-label { color: #908070; }
+
+/* —— Avatar (extended) —— */
+.avatar-hub-btn {
+  border-color: var(--edge2);
+  background: linear-gradient(180deg, rgba(28, 24, 22, 0.95), rgba(16, 14, 12, 0.98));
+  border-radius: 3px;
+}
+.avatar-hub-btn:hover { border-color: var(--accent-soft); }
+.avatar-setup-box,
+.avatar-equip-box {
+  border-color: var(--edge2);
+  border-radius: 4px;
+  background: linear-gradient(180deg, #1a1816, #0c0a08);
+}
+.avatar-pick-card {
+  border-color: var(--edge);
+  border-radius: 3px;
+}
+.avatar-pick-card:hover { border-color: var(--accent-soft); }
+.avatar-pick-card strong { color: var(--ash); }
+.avatar-name-input {
+  border-color: var(--edge2);
+  background: #0a0806;
+}
+.avatar-name-input:focus { border-color: var(--accent-soft); }
+.avatar-portrait-wrap.race-human {
+  border-color: rgba(138, 40, 40, 0.35);
+  background: radial-gradient(circle at 50% 40%, rgba(138, 40, 40, 0.1), transparent 70%);
+}
+.avatar-xp-track { border-color: var(--edge); }
+.avatar-slot {
+  border-color: rgba(80, 72, 68, 0.45);
+  border-radius: 3px;
+}
+.avatar-slot:hover { border-color: var(--accent-soft); }
+.avatar-skills-title { color: var(--ash); }
+.avatar-equip-opt strong { color: var(--ash); }
+.avatar-equip-opt:hover { border-color: var(--accent-soft); }
+
+/* —— Game log scrollbars —— */
+.game-log-feed::-webkit-scrollbar-thumb {
+  background: linear-gradient(#3a3430, #242018);
+}
+
+/* —— Card hub scrollbar —— */
+.app.hub-screen > .card {
+  scrollbar-color: #3a3430 transparent;
+}
+
+/* —— Enchant scroll panel —— */
+.scroll-opt {
+  border-radius: 3px;
+}
+.scroll-opt .sc { color: #b8a898; }
+
+/* —— Acc / FunPay —— */
+.acc-name { color: var(--ash); font-family: inherit; }
+
+/* —— Modal crystallize —— */
+.modal-cryst-reward { color: var(--ash); }
+
+/* —— Dev panel (dark fantasy) —— */
+.dev-panel {
+  background: linear-gradient(180deg, #141210, #0a0908);
+  border-color: var(--edge2);
+}
+.dev-tab.sel { color: var(--accent-soft); border-bottom-color: var(--accent); }
+.dev-collect-btn,
+.dev-secret-btn {
+  border-color: var(--edge2);
+  color: var(--txt);
+  background: linear-gradient(180deg, #242220, #161412);
+}
+.dev-collect-btn:hover,
+.dev-secret-btn:hover { border-color: var(--accent-soft); filter: none; }
+.dev-banan-btn:hover { border-color: var(--accent-soft); }
+.dev-tune { border-color: var(--edge); }
+.dev-list-title,
+.dev-cat-name,
+.dev-tune-shot-g,
+.dev-debug-tag { color: var(--ash); font-family: inherit; }
+.dev-tune-section[open] summary { color: var(--ash); }
+
+/* —— Story box title glow —— */
+.story-box {
+  border-radius: 4px;
+}
+
+/* —— Wallet adena (currency keeps warm tint) —— */
+.wallet .coin { color: #c8b898; }
+
+/* —— Log filters fix (override hardcoded gold rgba) —— */
+.log-filter.on {
+  border-color: var(--accent);
+  color: #d0c0b8;
+  background: rgba(138, 40, 40, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(138, 40, 40, 0.18);
+}
+
+/* —— Inv grid scrollbars —— */
+.wlist::-webkit-scrollbar-thumb,
+.inv-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(#3a3430, #242018);
+  border-color: #1a1614;
+}
+
+/* —— Panel head ornate —— */
+.panel-head-ornate {
+  background: linear-gradient(180deg, rgba(24, 20, 18, 0.98), rgba(10, 8, 7, 0.99));
+}
+
+/* —— Back button —— */
+.back {
+  background: linear-gradient(180deg, #242220, #161412);
+  border-radius: 3px;
+}
+
+/* —— Search —— */
+.search {
+  border-radius: 3px;
+}
+
+/* —— Global border-radius tone down —— */
+.tile,
+.modal-box,
+.story-box,
+.corner-panel,
+.qj-chapter,
+.mine-banner,
+.inv-slot,
+.btn-primary,
+.btn-ghost {
+  border-radius: 4px;
+}

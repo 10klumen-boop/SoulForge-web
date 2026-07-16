@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SoulForge Lineage 2 — Enchant Sim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles/main.css" />
+<link rel="stylesheet" href="styles/dark-fantasy.css" />
+<script src="cloud-config.js"></script>
+
+</head>
+<body>
+<div class="shell">
+<aside class="game-log is-collapsed" id="gameLogPanel" aria-label="Журнал игры">
+  <button type="button" class="game-log-tab" id="gameLogToggle" title="Журнал (L)" aria-expanded="false" aria-controls="gameLogBody">
+    <span class="game-log-tab-label">Журнал</span>
+    <span class="game-log-tab-badge" id="gameLogBadge" hidden>0</span>
+  </button>
+  <div class="game-log-body" id="gameLogBody">
+    <div class="game-log-head">
+      <span class="game-log-title">Журнал</span>
+      <div class="game-log-head-actions">
+        <button type="button" class="game-log-clear" id="gameLogClear" title="Очистить журнал">⟲</button>
+        <button type="button" class="game-log-collapse" id="gameLogCollapse" title="Свернуть">«</button>
+      </div>
+    </div>
+    <div class="game-log-filters" id="gameLogFilters" role="toolbar" aria-label="Фильтры журнала"></div>
+    <div class="game-log-feed" id="gameLogFeed"></div>
+  </div>
+</aside>
+<div class="app title-screen">
+  <div class="topbar">
+    <div class="brand"><span class="l2">SoulForge Lineage 2</span><span class="sub">Enchant Sim</span></div>
+    <div class="topbar-actions">
+      <div class="avatar-hub" id="avatarHub" hidden>
+        <button type="button" class="avatar-hub-btn" id="avatarHubBtn" title="Персонаж">
+          <img id="avatarHubIcon" src="icons/etc_scroll_of_enchant_weapon_i03.png" alt="">
+          <div class="avatar-hub-text">
+            <span class="avatar-hub-name" id="avatarHubName">—</span>
+            <span class="avatar-hub-meta" id="avatarHubMeta">—</span>
+          </div>
+        </button>
+      </div>
+      <div class="topbar-hub-meta" id="hubCorner"></div>
+      <div class="wallet"><img src="icons/etc_adena_i00.png" alt="" class="wallet-ico"><div><div class="lbl">Adena</div><div class="coin"><span id="adena">0</span></div></div></div>
+<input type="file" id="saveFileInput" accept=".sfsave,application/octet-stream" hidden />
+      <button class="iconbtn" id="resetBtn" title="Сброс прогресса">⟲</button>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <section class="screen active home-screen" id="screen-home">
+      <div class="home-wrap">
+        <header class="home-header">
+          <div class="home-eyebrow">SoulForge · Lineage 2</div>
+          <h1 class="home-title">Enchant Sim</h1>
+          <p class="home-tagline">Заточка, задания и adena в духе классического L2</p>
+        </header>
+        <nav class="home-nav" aria-label="Главное меню">
+          <button type="button" class="home-nav-btn home-nav-play" id="homePlayBtn">
+            <span class="home-nav-ico" aria-hidden="true">⚔</span>
+            <span class="home-nav-text"><strong>Играть</strong><small>Задания · фарм · заточка</small></span>
+          </button>
+          <button type="button" class="home-nav-btn" id="homeCharsBtn">
+            <span class="home-nav-ico" aria-hidden="true"><img src="icons/char_menu.png?v=10" alt=""></span>
+            <span class="home-nav-text"><strong>Персонажи</strong><small id="homeCharsSub">Выбор и создание</small></span>
+          </button>
+          <button type="button" class="home-nav-btn" id="homeRatingBtn">
+            <span class="home-nav-ico" aria-hidden="true"><img src="icons/etc_feather_gold_i00.png" alt=""></span>
+            <span class="home-nav-text"><strong>Рейтинг</strong><small id="homeRatingSub">Заточка · сила · богатство</small></span>
+          </button>
+          <button type="button" class="home-nav-btn" id="homeSettingsBtn">
+            <span class="home-nav-ico" aria-hidden="true">⚙</span>
+            <span class="home-nav-text"><strong>Настройки</strong><small>Звук · сохранение · окно</small></span>
+          </button>
+          <button type="button" class="home-nav-btn" id="homePatchBtn">
+            <span class="home-nav-ico" aria-hidden="true">📜</span>
+            <span class="home-nav-text"><strong>Что нового</strong><small id="homePatchSub">История обновлений</small></span>
+          </button>
+          <button type="button" class="home-nav-btn" id="homeAuthorBtn">
+            <span class="home-nav-ico" aria-hidden="true">✦</span>
+            <span class="home-nav-text"><strong>От Автора</strong><small>О проекте и благодарности</small></span>
+          </button>
+        </nav>
+        <footer class="home-footer"><span class="home-ver" data-game-ver>v0.31a-r</span></footer>
+      </div>
+    </section>
+
+
+    <section class="screen" id="screen-characters">
+      <div class="panel-head">
+        <button class="back" data-to="home">← Главное меню</button>
+        <h2>Персонажи</h2>
+      </div>
+      <div class="char-menu-body sf-scroll sub-screen-body">
+        <p class="char-menu-hint">Выбери героя, создай нового или удали слот · до 5 персонажей</p>
+        <div class="char-roster" id="charRoster" role="listbox" aria-label="Слоты персонажей"></div>
+        <button type="button" class="char-menu-create" id="charMenuCreateBtn">+ Новый персонаж</button>
+      </div>
+    </section>
+
+
+    <section class="screen" id="screen-settings">
+      <div class="panel-head">
+        <button class="back" data-to="home">← Главное меню</button>
+        <h2>Настройки</h2>
+      </div>
+      <div class="settings-screen sf-scroll" id="settingsPop">
+        <div class="settings-row">
+          <span>Звук</span>
+          <button type="button" class="sett-toggle on" id="settMute">Вкл</button>
+        </div>
+        <div class="settings-divider">Громкость</div>
+        <div class="settings-row settings-vol">
+          <span>Музыка</span>
+          <input type="range" class="sett-range" id="settVolMusic" min="0" max="100" value="42">
+          <b class="sett-vol-val" id="settVolMusicVal">42%</b>
+        </div>
+        <div class="settings-row settings-vol">
+          <span>Эффекты</span>
+          <input type="range" class="sett-range" id="settVolSfx" min="0" max="100" value="72">
+          <b class="sett-vol-val" id="settVolSfxVal">72%</b>
+        </div>
+        <div class="settings-row settings-vol">
+          <span>Интерфейс</span>
+          <input type="range" class="sett-range" id="settVolUi" min="0" max="100" value="55">
+          <b class="sett-vol-val" id="settVolUiVal">55%</b>
+        </div>
+        <div class="settings-row settings-vol">
+          <span>Атмосфера</span>
+          <input type="range" class="sett-range" id="settVolAmb" min="0" max="100" value="24">
+          <b class="sett-vol-val" id="settVolAmbVal">24%</b>
+        </div>
+        <div class="settings-row settings-vol">
+          <span>Голоса</span>
+          <input type="range" class="sett-range" id="settVolVoice" min="0" max="100" value="88">
+          <b class="sett-vol-val" id="settVolVoiceVal">88%</b>
+        </div>
+        <div class="sett-hint">Музыка — «The Call of Destiny» на экране входа · M — быстрый mute</div>
+        <div class="settings-row">
+          <span>Пролог</span>
+          <button type="button" class="sett-toggle" id="settStory">Читать</button>
+        </div>
+        <div class="settings-row">
+          <span>Поверх всех окон</span>
+          <button type="button" class="sett-toggle" id="settTop">Выкл</button>
+        </div>
+        <div class="sett-hint" id="settTopHint">Мини-окно поверх других приложений (Chrome / Edge).</div>
+        <div id="saveTransferBlock">
+        <div class="settings-divider">Сохранение</div>
+        <div class="settings-row">
+          <span>Резервная копия</span>
+          <button type="button" class="sett-toggle" id="settExport">Экспорт</button>
+        </div>
+        <div class="settings-row">
+          <span>Восстановить</span>
+          <button type="button" class="sett-toggle" id="settImport">Импорт</button>
+        </div>
+        <div class="sett-hint" id="portableHint">Портативный режим · .sfsave для переноса между копиями.</div>
+        </div>
+        <div class="settings-divider">Онлайн</div>
+        <div class="settings-row">
+          <span>Аккаунт</span>
+          <b class="cloud-auth-status" id="cloudAuthStatus">Гость</b>
+        </div>
+        <div class="cloud-auth-form" id="cloudAuthForm">
+          <input type="text" class="cloud-input" id="cloudNick" placeholder="Ник (3–16)" maxlength="16" autocomplete="username">
+          <input type="password" class="cloud-input" id="cloudPass" placeholder="Пароль (6+)" maxlength="72" autocomplete="current-password">
+          <div class="cloud-auth-actions">
+            <button type="button" class="sett-toggle" id="cloudLoginBtn">Войти</button>
+            <button type="button" class="sett-toggle" id="cloudRegisterBtn">Регистрация</button>
+            <button type="button" class="sett-toggle" id="cloudLogoutBtn" hidden>Выйти</button>
+          </div>
+          <p class="sett-hint" id="cloudAuthMsg"></p>
+        </div>
+        <div class="settings-row">
+          <span>ID / ник</span>
+          <code class="player-id" id="playerIdShort" title="">—</code>
+        </div>
+        <div class="sett-hint" id="cloudHint">Онлайн-рейтинги: сервер не подключён.</div>
+        <div class="settings-divider">Отладка</div>
+        <div class="settings-row">
+          <span>Отчёт об ошибках</span>
+          <button type="button" class="sett-toggle" id="settErrorReport">Копировать</button>
+        </div>
+        <div class="sett-hint">Лог ошибок и состояния — для фидбека разработчику.</div>
+      </div>
+    </section>
+
+
+    <section class="screen" id="screen-leaderboard">
+      <div class="panel-head">
+        <button class="back" data-to="home">← Главное меню</button>
+        <h2>Рейтинг</h2>
+        <button type="button" class="back" id="lbRefreshBtn" style="margin-left:auto">Обновить</button>
+      </div>
+      <div class="lb-body sf-scroll sub-screen-body">
+        <div class="lb-tabs" role="tablist">
+          <button type="button" class="lb-tab sel" data-mode="enchant">Заточка</button>
+          <button type="button" class="lb-tab" data-mode="power">Сила</button>
+          <button type="button" class="lb-tab" data-mode="wealth">Богатство</button>
+        </div>
+        <p class="lb-status" id="lbStatus">—</p>
+        <div class="lb-list" id="lbList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-patch">
+      <div class="panel-head">
+        <button class="back" data-to="home">← Главное меню</button>
+        <h2>Что нового</h2>
+      </div>
+      <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.31a-r</p>
+        <ul>
+          <li><b>Баланс с нуля</b> — старт 25k, mine/sell без playtest-мультипликатора; wipe прогресса экономики.</li>
+          <li><b>Достижения</b> — early/mid drip (первый выход, +6, 25 киллов, 10M, главы III–IV); награды не крутят rich*.</li>
+          <li><b>Квесты / бой</b> — короче ch1, клики не продлевают таймер; enrage без ускорения бара.</li>
+          <li>Бижутерия UI скрыта; иконки рас/классов; AI-рефы вынесены в <code>archive/</code>.</li>
+        </ul>
+        <p class="patch-ver">v0.30a-r</p>
+        <ul>
+          <li><b>Главное меню</b> — официальный арт Lineage II Interlude на фоне title screen.</li>
+          <li><b>OST</b> — «The Call of Destiny» на экране входа; каналы громкости в настройках.</li>
+          <li><b>Достижения</b> — чеклист плейтеста, категории, dev-инструменты.</li>
+          <li>Исправлен пустой экран настроек после возврата из игры.</li>
+        </ul>
+        <p class="patch-ver">v0.29a-r</p>
+        <ul>
+          <li><b>Меню персонажей</b> — отдельный экран: выбор, создание и удаление (до 5 слотов).</li>
+          <li><b>Несколько персонажей</b> — у каждого свой прогресс (adena, квесты, инвентарь).</li>
+          <li><b>Главное меню</b> — title screen: игра, персонажи, настройки, патчноут, «От автора».</li>
+          <li>Пролог и брифинги квестов показываются при <b>входе в игру</b>, а не при создании героя.</li>
+          <li>AI dark fantasy <b>фоны локаций</b> и <b>спрайты мобов</b> с лёгкой анимацией.</li>
+          <li>Звуки L2 Interlude: заточка, ambient, UI (NevesOma pack).</li>
+          <li>Дроп по зонам: I — D; II — D+редко C; III–V — ступень грейдов (редкий топ, чаще ниже).</li>
+        </ul>
+        <p class="patch-ver">v0.28a-r</p>
+        <ul>
+          <li><b>Мастер создания</b> — раса → класс → пол → имя; портреты по расе и архетипу.</li>
+          <li>Стартовое NG-оружие по классу; экран персонажа со статами и слотами экипировки.</li>
+          <li>Боевые скиллы класса в шахте; бонусы уровня и шмота к заточке.</li>
+        </ul>
+        <p class="patch-ver">v0.27a-r</p>
+        <ul>
+          <li><b>Prelude · финал</b> — награда и эпилог после пяти расовых глав.</li>
+          <li><b>Журнал квестов</b> — главы Prelude, прогресс убийств, награды за главы.</li>
+          <li>HUD задания в шахте; брифинг NPC перед боем; золотые цели с полоской HP.</li>
+        </ul>
+        <p class="patch-ver">v0.26a-r</p>
+        <ul>
+          <li>Prelude для <b>5 рас</b>: свой пролог, поле и сюжетная нить (Interlude-лор).</li>
+          <li>Квестовые ворота по зонам; рассказчик и глава при открытии локации.</li>
+          <li>HP мобов от силы фарма; фоны локаций и спрайты мобов по зонам.</li>
+        </ul>
+        <p class="patch-ver">v0.25a-r</p>
+        <ul>
+          <li>Dark fantasy UI: новая тема, иконки зон по расе, hero-панель в хабе.</li>
+          <li>Журнал игры с фильтрами; sticky-шапки экранов инвентаря и квестов.</li>
+          <li>Иконки Masterwork wiki для классов, свитков, зон и UI L2.</li>
+        </ul>
+        <p class="patch-ver">v0.24a-r</p>
+        <ul>
+          <li>Расширение <b>достижений</b> — Prelude, квесты, фарм, заточка.</li>
+          <li>Сила фарма, уровень персонажа, разблокировка зон по уровню и силе.</li>
+          <li>Баланс adena, свитков и темпа прогрессии по главам.</li>
+        </ul>
+        <p class="patch-ver">v0.23a-r</p>
+        <ul>
+          <li>Онлайн-рейтинги (cloud API), ID игрока, экспорт/импорт .sfsave.</li>
+          <li>Защита сохранений v2: подпись, двойная копия, анти-откат.</li>
+          <li>Десктоп Tauri 2, режим «поверх окон», портативный прогресс.</li>
+        </ul>
+        <p class="patch-ver">v0.22a-r</p>
+        <ul>
+          <li>Мастерская зарядов, аксессуары на персонажа, FunPay-пасхалка.</li>
+          <li>Dev-панель, тюнинг баланса, отчёт об ошибках для фидбека.</li>
+          <li>Кристаллы, материалы души/духа, крафт снарядов по грейдам.</li>
+        </ul>
+        <p class="patch-ver">v0.21a-r</p>
+        <ul>
+          <li>Инвентарь с лимитом ячеек; коллекционные предметы в инвентаре.</li>
+          <li>Экран заточки и продажи; blessed / crystal / guarantee свитки.</li>
+          <li>Шахта с золотыми целями, jackpot и adena-бонусом по локации.</li>
+        </ul>
+        <p class="patch-ver">v0.20a-r</p>
+        <ul>
+          <li>Hero-баннер и плитки хаба; зоны фарма в сетке с превью локации.</li>
+          <li>Сюжетная полоска глав; кнопка «Сюжет главы» у выбранной зоны.</li>
+          <li>Уведомления об открытии новых зон и глав сюжета.</li>
+        </ul>
+        <p class="patch-ver">v0.19a</p>
+        <ul>
+          <li>Сюжет переписан под <b>ранний лор Lineage 2</b> — без «Кузницы Душ».</li>
+          <li>У каждой расы <b>свой путь</b> (Гиран, Эльмор, Плато, Тёмный лес, Мамир).</li>
+          <li>Локации — <b>перекрёстки</b>, где дороги пересекаются; в главах — твоя расовая линия.</li>
+        </ul>
+        <p class="patch-ver">v0.18a</p>
+        <ul>
+          <li>Сквозной сюжет «Осколки Кузницы Душ» — 5 глав по локациям.</li>
+          <li>Глава II: Эльфийские руины открыты (ур. 4, 86 силы).</li>
+          <li>Шахта подстраивается под локацию (фон, темп, бонус adena).</li>
+        </ul>
+        <p class="patch-ver">v0.17b</p>
+        <ul>
+          <li>Окно 1440×880 — меню и зоны фарма без обрезки.</li>
+          <li>Компактный хаб: зоны в сетке, hero сжимается на низких экранах.</li>
+        </ul>
+        <p class="patch-ver">v0.01a</p>
+        <ul>
+          <li>Первый запуск симулятора заточки в духе Lineage 2.</li>
+        </ul>
+      </div>
+    </section>
+
+
+    <section class="screen" id="screen-author">
+      <div class="panel-head">
+        <button class="back" data-to="home">← Главное меню</button>
+        <h2>От Автора</h2>
+      </div>
+      <div class="author-screen sf-scroll sub-screen-body">
+        <p><b>SoulForge Lineage 2</b> — некоммерческий фан-проект: симулятор заточки в духе классического Lineage&nbsp;2. Никакой цели кого-то ущемить или обидеть здесь нет — только любовь к игре и к гномам.</p>
+        <p>Lineage&nbsp;II и NCsoft к проекту не относятся. Приложение бесплатное и создано исключительно для фана.</p>
+        <p>Благодарность <a href="https://masterwork.wiki/lu4/main" target="_blank" rel="noopener noreferrer">Masterwork</a> за их wiki — без неё не было бы иконок, данных и вдохновения.</p>
+        <p><a href="https://t.me/GoodBanan" target="_blank" rel="noopener noreferrer">@GoodBanan</a> — за образ редкого гнома в шахте (пасхалка, не часть сюжета).</p>
+        <p>И всем, кто помогал советом, идеями и тестами — спасибо.</p>
+        <p class="author-feedback">Фидбек: <a href="https://t.me/Lumen256" target="_blank" rel="noopener noreferrer">@Lumen256</a> в Telegram</p>
+        <p class="author-ver">Enchant Sim · <span data-game-ver>v0.31a-r</span></p>
+      </div>
+    </section>
+
+    <section class="screen menu-screen" id="screen-menu">
+      <div class="hub-top-row"><button type="button" class="hub-back-btn" id="hubHomeBtn">← Главное меню</button></div>
+      <div class="hero">
+        <div class="hero-panel">
+          <div class="hero-bg" aria-hidden="true"></div>
+          <div class="hero-scrim" aria-hidden="true"></div>
+          <div class="hero-glow" aria-hidden="true"></div>
+          <div class="hero-embers" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="hero-inner">
+            <header class="hero-brand">
+              <div class="hero-brand-mark" aria-hidden="true">◆</div>
+              <div class="hero-brand-text">
+                <div class="hero-eyebrow">SoulForge · Lineage 2</div>
+                <h1 id="heroTitle">SoulForge</h1>
+                <div class="hero-sub">Enchant Sim</div>
+              </div>
+              <div class="hero-brand-mark" aria-hidden="true">◆</div>
+            </header>
+            <p class="hero-tagline" id="heroTagline">Задание → заточка → adena. Раса задаёт сюжет, сила фарма — улов.</p>
+            <div class="hero-cycle" aria-label="Игровой цикл">
+              <div class="hero-cycle-track" aria-hidden="true"></div>
+              <div class="hero-step hero-step-mine">
+                <span class="hero-step-ico"><img src="icons/quest_journal.png?v=10" alt=""></span>
+                <span class="hero-step-t">Задание</span>
+                <span class="hero-step-d">Лови цели · adena</span>
+              </div>
+              <div class="hero-step hero-step-ench">
+                <span class="hero-step-ico"><img src="icons/etc_scroll_of_enchant_weapon_i04.png" alt=""></span>
+                <span class="hero-step-t">Заточка</span>
+                <span class="hero-step-d">+0 … +16</span>
+              </div>
+              <div class="hero-step hero-step-gold">
+                <span class="hero-step-ico"><img src="icons/etc_adena_i00.png" alt=""></span>
+                <span class="hero-step-t">Adena</span>
+                <span class="hero-step-d">Продавай · крафти</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="farm-hub" id="farmHub">
+        <div class="farm-hub-head">
+          <span>Зоны фарма</span>
+          <small id="farmHubPower">Сила 0</small>
+        </div>
+        <div class="farm-zone-list" id="farmZoneList"></div>
+        <div class="farm-hub-play">
+          <button type="button" class="farm-story-read" id="farmStoryRead" title="Прочитать главу">Сюжет главы</button>
+          <button type="button" class="mine-banner" id="mineBanner">
+            <div><div class="mb-t" id="mineBannerTitle">Задание</div><div class="mb-d" id="mineBannerMeta">Prelude · лови цели за adena и оружие</div></div>
+            <div class="mb-go">Играть →</div>
+          </button>
+        </div>
+      </div>
+      <div class="story-arc-bar" id="storyArcBar" hidden>
+        <button type="button" class="story-arc-btn" id="storyArcBtn" title="Сюжет и главы">
+          <span class="story-arc-label" id="storyArcTitle">Prelude · Задания</span>
+          <span class="story-arc-dots" id="storyArcDots"></span>
+        </button>
+      </div>
+      <div class="grid" id="homeGrid">
+        <div class="tile" id="avatarTile"><img class="tile-ico" src="icons/char_menu.png?v=10" alt="" aria-hidden="true"><div class="tname">Персонаж</div><div class="tcount" id="avatarTileMeta">Создать</div></div>
+        <div class="tile" id="questTile"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"><div class="tname">Журнал квестов</div><div class="tcount" id="questJournalMeta">Prelude</div></div>
+        <div class="tile" id="invTile"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"><div class="tname">Инвентарь</div><div class="tcount" id="invCount">0 предметов</div></div>
+        <div class="tile" id="shopTile"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"><div class="tname">Мастерская зарядов</div><div class="tcount">Покупай руду · крафти · продавай</div></div>
+        <div class="tile" id="achTile"><img class="tile-ico" src="assets/ui/bloodhood_icon02_crop.png" alt="" aria-hidden="true"><div class="tname">Достижения</div><div class="tcount" id="achCount">0 / 43</div></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-avatar">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2>Персонаж</h2>
+      </div>
+      <div class="avatar-screen sf-scroll">
+        <div class="avatar-gear-layout">
+          <div class="avatar-gear-col left" id="avatarGearLeft"></div>
+          <div class="avatar-card avatar-card-center">
+            <div class="avatar-portrait-wrap">
+              <div class="avatar-portrait-frame">
+                <img class="avatar-portrait" id="avatarPortrait" src="assets/portraits/human_fighter_male.png?v=7" alt="">
+              </div>
+            </div>
+          </div>
+          <div class="avatar-gear-col right" id="avatarGearRight"></div>
+        </div>
+        <div class="avatar-card avatar-card-stats">
+          <div class="avatar-card-body">
+            <h3 class="avatar-name" id="avatarName">—</h3>
+            <p class="avatar-race" id="avatarRace">—</p>
+            <p class="avatar-gender" id="avatarGender">—</p>
+            <p class="avatar-class" id="avatarClass">—</p>
+            <p class="avatar-rank" id="avatarRank">Уровень 1</p>
+            <div class="avatar-xp-track" aria-hidden="true"><div class="avatar-xp-bar" id="avatarXpBar"></div></div>
+            <p class="avatar-xp-text" id="avatarXpText">0 / 100 опыта души</p>
+            <p class="avatar-class-desc" id="avatarClassDesc"></p>
+            <div class="avatar-stat-grid" id="avatarStatGrid"></div>
+            <div class="avatar-farm-row">
+              <span>Сила фарма</span>
+              <b id="avatarFarmPower">0</b>
+            </div>
+            <p class="avatar-farm-hint">Зону выбирай в меню — здесь только статы и экипировка.</p>
+            <p class="avatar-perk" id="avatarPerk"></p>
+            <div class="avatar-skills-panel" id="avatarSkillsPanel"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-quests">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2>Журнал квестов</h2>
+        <span class="panel-head-meta" id="questJournalMetaHead"></span>
+      </div>
+      <div class="quest-journal-list sf-scroll" id="questJournalList"></div>
+    </section>
+
+    <section class="screen" id="screen-inv">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2>Инвентарь</h2>
+      </div>
+      <div class="wlist sf-scroll" id="invList"></div>
+    </section>
+
+    <section class="screen" id="screen-shop">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img src="assets/ui/inventory_book.png" alt="" class="inv-head-ico"> Мастерская зарядов</h2>
+      </div>
+      <div class="wsbody sf-scroll" id="wsBody"></div>
+    </section>
+
+    <section class="screen" id="screen-ach">
+      <div class="panel-head panel-head-ornate">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img src="assets/ui/bloodhood_icon02_crop.png" alt="" class="inv-head-ico"> Достижения</h2>
+      </div>
+      <div class="ach-sticky-meta">
+        <div class="ach-head">
+          <div class="ach-progress" id="achSummary">0 / 43</div>
+          <div class="ach-hint">Секретных 0 / 6 · награды автоматически</div>
+        </div>
+        <div class="ach-playtest-bar" id="achPlaytestBar" hidden></div>
+        <div class="ach-tabs" id="achTabs"></div>
+      </div>
+      <div class="ach-scroll sf-scroll" id="achScroll">
+        <div class="ach-list" id="achList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-ench">
+      <div class="panel-head">
+        <button class="back" id="enchBack">← В инвентарь</button>
+        <h2 id="enchTitle">Заточка</h2>
+      </div>
+      <div class="ench sf-scroll">
+        <div class="stage" id="stage">
+          <div class="ench-rays" aria-hidden="true"></div>
+          <div class="ench-flash" id="enchFlash" aria-hidden="true"></div>
+          <div class="wname" id="stgName">—</div>
+          <div class="wplus" id="stgPlus">+0</div>
+          <div class="safezone" id="safeNote">+0…+3 — безопасная заточка</div>
+          <div class="weapon-wrap">
+            <div class="aura" id="aura"></div>
+            <div class="weapon" id="stgIcon">
+              <img id="stgImg" src="" alt="" />
+              <img id="stgBrokenImg" class="broken-crystal" src="" alt="" hidden />
+            </div>
+          </div>
+          <div class="verdict neutral" id="verdict">Удачи, авантюрист!</div>
+          <div class="statsbox">
+            <div class="pill"><div class="v" id="pMax">+0</div><div class="k">Рекорд</div></div>
+            <div class="pill"><div class="v" id="pSpent">0</div><div class="k">Потрачено</div></div>
+          </div>
+        </div>
+
+        <div class="control">
+          <div class="atk">
+            <div class="box"><div class="num" id="patk">0 <small id="patkAdd"></small></div><div class="cap">P. Atk</div></div>
+            <div class="box"><div class="num" id="matk">0 <small id="matkAdd"></small></div><div class="cap">M. Atk</div></div>
+          </div>
+          <div class="scrolls" id="scrolls"></div>
+          <div class="odds">Шанс: <b id="oddsVal">—</b> · цена: <b id="costVal">—</b></div>
+          <div class="actions">
+            <button class="btn btn-primary" id="enchBtn">Заточить ✦</button>
+            <button class="btn btn-ghost" id="newBtn" title="В инвентарь (N)">В инвентарь</button>
+          </div>
+          <button class="btn btn-sell" id="sellBtn" title="Продать (S)">Продать</button>
+          <div class="hint">Space — заточить · S — продать · N — в инвентарь · Esc — назад</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-acc">
+      <div class="panel-head">
+        <button class="back" id="accBack">← В инвентарь</button>
+        <h2 id="accTitle">Аксессуар</h2>
+      </div>
+      <div class="acc-panel sf-scroll">
+        <div class="acc-stage">
+          <div class="acc-aura"></div>
+          <img id="accImg" src="" alt="" class="acc-img">
+        </div>
+        <div class="acc-name" id="accName">—</div>
+        <div class="acc-note" id="accNote">—</div>
+        <div class="acc-actions">
+          <button type="button" class="btn btn-primary" id="accEquipBtn">⚡ Усилить персонажа</button>
+          <button type="button" class="btn btn-funpay" id="accFunpayBtn">
+            <img src="icons/etc_pig_coin_i00.png" alt="" class="funpay-ico"> Хрюкнуть на FunPay
+          </button>
+        </div>
+        <div class="acc-hint">FunPay: 50% шанс потерять весь прогресс</div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-mine">
+      <div class="panel-head panel-head-ornate">
+        <button class="back" id="mineBack">← В меню</button>
+        <h2 id="minePanelTitle">Задание</h2>
+      </div>
+      <div class="mine-story-bar" id="mineStoryBar" hidden>
+        <button type="button" class="mine-story-btn" id="mineStoryRead" title="Прочитать главу">📖</button>
+        <div class="mine-story-copy">
+          <span class="mine-story-tag" id="mineStoryTag">—</span>
+          <span class="mine-story-lead" id="mineStoryLead">—</span>
+          <span class="mine-story-quest" id="mineStoryQuest" hidden></span>
+        </div>
+      </div>
+      <div class="mine-hud">
+        <div class="mh">Добыто за сессию: <b id="mineEarned">0</b> adena</div>
+        <div class="mh">Убито: <b id="mineCaught">0</b></div>
+        <div class="mh">Упущено: <b id="mineMissed">0</b></div>
+        <div class="mh mine-farm-stats" id="mineFarmStats">—</div>
+        <button type="button" class="mh mine-shot-toggle" id="mineShotToggle" title="Авто Soulshot / Spiritshot">
+          Auto SS <b id="mineShotStock">—</b>
+        </button>
+      </div>
+      <div class="mine-quest-hud" id="mineQuestHud" hidden></div>
+      <div class="mine-skill-bar" id="mineSkillBar" hidden></div>
+      <div class="minefield" id="minefield">
+        <div class="mine-stage" id="mineStage">
+          <div class="mine-stage-inner" id="mineStageInner">
+            <img class="mine-bg-img" id="mineBgImg" src="assets/mine_bg.png" alt="" aria-hidden="true">
+            <div class="mine-overlay" aria-hidden="true"></div>
+            <div class="mine-empty" id="mineHint">Цели мелькают на поле — готовься ловить!</div>
+          </div>
+          <div class="mine-loot-layer" id="mineLootLayer" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+<div class="avatar-equip-backdrop" id="avatarEquipBackdrop" hidden>
+  <div class="avatar-equip-box" role="dialog" aria-modal="true" aria-labelledby="avatarEquipTitle">
+    <h3 id="avatarEquipTitle">Экипировка</h3>
+    <p class="avatar-equip-hint">Выбери предмет из инвентаря для этого слота.</p>
+    <div class="avatar-equip-list" id="avatarEquipList"></div>
+    <div class="avatar-equip-actions">
+      <button type="button" class="btn btn-ghost" id="avatarEquipUnequip">Снять</button>
+      <button type="button" class="btn btn-primary" id="avatarEquipClose">Закрыть</button>
+    </div>
+  </div>
+</div>
+<div class="avatar-setup-backdrop" id="avatarSetupBackdrop" hidden>
+  <div class="avatar-setup-box avatar-setup-wide" role="dialog" aria-modal="true" aria-labelledby="avatarSetupTitle">
+    <div class="story-ornament" aria-hidden="true">◆</div>
+    <h2 class="story-title" id="avatarSetupTitle">Создание персонажа</h2>
+    <p class="story-eyebrow" id="avatarSetupEyebrow">Шаг 1 · Раса</p>
+
+    <div class="avatar-setup-step" data-step="race">
+      <p class="avatar-pick-lead">Выбери расу, как в Lineage&nbsp;2.</p>
+      <div class="avatar-pick-grid" id="avatarRaceGrid"></div>
+    </div>
+    <div class="avatar-setup-step" data-step="class" hidden>
+      <p class="avatar-pick-hint" id="avatarClassHint"></p>
+      <div class="avatar-pick-grid avatar-pick-grid-class" id="avatarClassGrid"></div>
+      <div class="avatar-class-skills-preview" id="avatarClassSkillsPreview" hidden></div>
+    </div>
+    <div class="avatar-setup-step" data-step="gender" hidden>
+      <p class="avatar-pick-hint" id="avatarGenderHint">Выбери пол — портрет зависит от расы, класса и пола.</p>
+      <div class="avatar-pick-grid avatar-pick-grid-gender" id="avatarGenderGrid"></div>
+    </div>
+    <div class="avatar-setup-step" data-step="name" hidden>
+      <div class="avatar-summary" id="avatarSummary"></div>
+      <label class="avatar-name-label" for="avatarNameInput">Имя персонажа</label>
+      <input class="avatar-name-input" id="avatarNameInput" type="text" maxlength="16" autocomplete="off" placeholder="2–16 символов" />
+    </div>
+
+    <div class="avatar-setup-actions">
+      <button type="button" class="btn btn-ghost" id="avatarSetupBack" hidden>Назад</button>
+      <button type="button" class="btn btn-primary story-ok" id="avatarSetupNext">Далее</button>
+    </div>
+  </div>
+</div>
+<div class="story-backdrop" id="storyBackdrop" hidden>
+  <div class="story-box" role="dialog" aria-modal="true" aria-labelledby="storyTitle">
+    <div class="story-ornament" aria-hidden="true">◆</div>
+    <div class="story-meta">
+      <img class="story-meta-icon" id="storyIcon" alt="" hidden>
+      <span class="story-chapter" id="storyChapter" hidden></span>
+    </div>
+    <h2 class="story-title" id="storyTitle">Пролог</h2>
+    <p class="story-eyebrow" id="storyEyebrow">SoulForge</p>
+    <p class="story-lead" id="storyLead" hidden></p>
+    <div class="story-quest-ref" id="storyQuestRef" hidden></div>
+    <div class="story-body sf-scroll" id="storyBody"></div>
+    <button type="button" class="btn btn-primary story-ok" id="storyOk">В кузницу</button>
+  </div>
+</div>
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head" id="modalTitle">Подтверждение</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modalCancel">Отмена</button>
+      <button type="button" class="btn btn-primary" id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
+<div class="ach-modal-backdrop" id="achModalBackdrop" hidden>
+  <div class="ach-modal-box" role="dialog" aria-modal="true" aria-labelledby="achModalTitle">
+    <div class="ach-modal-rays" aria-hidden="true"></div>
+    <div class="ach-modal-badge" id="achModalBadge">🏆</div>
+    <img class="ach-modal-ico" id="achModalIco" src="" alt="">
+    <div class="ach-modal-kicker" id="achModalKicker">Достижение разблокировано!</div>
+    <h2 class="ach-modal-title" id="achModalTitle"></h2>
+    <p class="ach-modal-desc" id="achModalDesc"></p>
+    <div class="ach-modal-reward" id="achModalReward"></div>
+    <div class="ach-modal-queue" id="achModalQueue" hidden></div>
+    <button type="button" class="btn btn-primary ach-modal-btn" id="achModalOk">Отлично!</button>
+  </div>
+</div>
+<div class="ach-reward-backdrop" id="achRewardBackdrop" hidden>
+  <div class="ach-reward-box" role="dialog" aria-modal="true" aria-labelledby="achRewardTitle">
+    <div class="ach-reward-head">
+      <div class="ach-reward-kicker" id="achRewardKicker">🔮 Секретная награда</div>
+      <h2 class="ach-reward-title" id="achRewardTitle">Полная коллекция</h2>
+      <p class="ach-reward-desc" id="achRewardDesc"></p>
+    </div>
+    <div class="ach-reward-frame">
+      <img class="ach-reward-img" id="achRewardImg" src="" alt="">
+    </div>
+    <button type="button" class="btn btn-primary ach-reward-btn" id="achRewardOk">Закрыть</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="weapons-data.js"></script>
+<script src="src/01-constants.js"></script>
+<script src="src/28-starter-weapons.js"></script>
+<script src="src/02-state.js"></script>
+<script src="src/03-audio.js"></script>
+<script src="src/04-settings.js"></script>
+<script src="src/05-dom.js"></script>
+<script src="src/06-rules.js"></script>
+<script src="src/07-workshop.js"></script>
+<script src="src/08-menu.js"></script>
+<script src="src/09-inventory.js"></script>
+<script src="src/11-enchant.js"></script>
+<script src="src/12-mine.js"></script>
+<script src="src/13-portable-save.js"></script>
+<script src="src/14-cloud.js"></script>
+<script src="src/15-game-log.js"></script>
+<script src="src/16-accessory.js"></script>
+<script src="src/18-achievements.js"></script>
+<script src="src/19-mine-guard.js"></script>
+<script src="src/19-home.js"></script>
+<script src="src/20-author.js"></script>
+<script src="src/21-intro.js"></script>
+<script src="src/33-ui-icons.js"></script>
+<script src="src/34-avatar-portraits.js"></script>
+<script src="src/35-characters.js"></script>
+<script src="src/22-avatar.js"></script>
+<script src="src/23-avatar-gear.js"></script>
+<script src="src/25-story-zones.js"></script>
+<script src="src/26-mine-visuals.js"></script>
+<script src="src/27-quests.js"></script>
+<script src="src/29-quest-journal.js"></script>
+<script src="src/30-prelude-finale.js"></script>
+<script src="src/31-combat-skills.js"></script>
+<script src="src/32-debug-log.js"></script>
+<script src="src/24-avatar-stats.js"></script>
+<script src="src/99-bootstrap.js"></script>
+
+</body>
+</html>

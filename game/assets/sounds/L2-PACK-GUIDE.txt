@@ -1,0 +1,43 @@
+SoulForge — звуки из L2 Interlude (NevesOma_il_sounds)
+======================================================
+
+Полный пак не в git. В репозитории — отобранные wav в game/assets/sounds/.
+
+Пересборка:
+  python game/tools/pick_l2_sounds.py
+  python game/tools/pick_l2_sounds.py "D:/path/NevesOma_il_sounds"
+
+Скрипт: trim silence, normalize peak, trim длинных, fade для loop ambient.
+
+UI
+  click.wav       InterfaceSound/click_01
+  open.wav        inventory_open_01
+  coin.wav        Pickup (короткий)
+
+SFX
+  enchant_charge  smelting_loding (≤2s)
+  enchant_success sys_enchant_success
+  enchant_fail    sys_break (разрушение оружия)
+  jackpot         quest_jackpot (≤4.5s)
+  treasure        quest_itemget
+  mine_hit*       goblin/skeleton/werewolf dmg — WIP, в игре пока click
+  mine_kill       goblin_Death — WIP, не используется
+  quest           quest_accept_01
+  levelup         levelup (≤3s)
+
+Ambient
+  menu            jura_01 (legacy, заменён OST на главном экране)
+  mine            Lava_Bubble_Loop_01
+  indoor          wind_light_loop_1
+
+Music (главное меню)
+  menu_theme.m4a  The Call of Destiny — Chaotic Chronicle (NCsoft)
+  python game/tools/fetch_l2_music.py
+
+Dwarf voices
+  dwarf/M.wav     MDwarf_Death
+  dwarf/F.wav     FDwarf_Death
+
+Кэш в игре: SOUND_VER в 03-audio.js. После пересборки — Ctrl+F5.
+
+Детали: picked.manifest.json

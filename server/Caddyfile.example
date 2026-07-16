@@ -1,0 +1,12 @@
+# Example Caddyfile for SoulForge (replace your.domain)
+# Install: https://caddyserver.com/docs/install
+# Then: sudo cp Caddyfile.example /etc/caddy/Caddyfile && sudo systemctl reload caddy
+
+your.domain {
+	encode gzip
+	reverse_proxy 127.0.0.1:8787
+}
+
+www.your.domain {
+	redir https://your.domain{uri} permanent
+}
