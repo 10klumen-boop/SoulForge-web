@@ -361,7 +361,6 @@ admin.post("/maintenance/purge-sessions", (_req, res) => {
 app.use("/admin", admin);
 
 if (fs.existsSync(ADMIN_DIR)) {
-  app.get("/db-admin", (_req, res) => res.redirect("/db-admin/"));
   app.use("/db-admin", express.static(ADMIN_DIR, { index: "index.html" }));
 }
 
