@@ -22,6 +22,7 @@ module.exports = {
         PORT: "8787",
         HOST: "127.0.0.1",
         SOULFORGE_SERVE_GAME: "1",
+        // SOULFORGE_ADMIN_KEY: "change-me-long-random",
       },
     },
   ],

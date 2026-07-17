@@ -17,6 +17,7 @@ const SERVE_GAME = process.env.SOULFORGE_SERVE_GAME !== "0";
 const GAME_DIR = process.env.SOULFORGE_GAME || path.join(__dirname, "..", "game");
 const SESSION_DAYS = 30;
 const BCRYPT_ROUNDS = 10;
+const ADMIN_KEY = String(process.env.SOULFORGE_ADMIN_KEY || "").trim();
 const NICK_RE = /^[a-zA-Z]{2,16}$/;
 const PASS_RE = /^[a-zA-Z0-9]{6,72}$/;
 
@@ -76,6 +77,25 @@ const stmtUpsertScore = db.prepare(`
 
 function jsonError(res, status, message) {
   return res.status(status).json({ ok: false, error: message });
+}
+
+function adminKeyOk(got) {
+  if (!ADMIN_KEY) return false;
+  try {
+    const a = Buffer.from(String(got || ""), "utf8");
+    const b = Buffer.from(ADMIN_KEY, "utf8");
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch (e) {
+    return false;
+  }
+}
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_KEY) return jsonError(res, 404, "Админ-панель отключена");
+  const key = req.headers["x-soulforge-admin"];
+  if (!adminKeyOk(key)) return jsonError(res, 401, "Неверный ключ администратора");
+  next();
 }
 
 function newToken() {
@@ -240,10 +260,114 @@ app.get("/leaderboard/:mode", (req, res) => {
   res.json(rows);
 });
 
+app.get("/admin/enabled", (_req, res) => {
+  res.json({ ok: true, enabled: !!ADMIN_KEY });
+});
+
+const admin = express.Router();
+admin.use(requireAdmin);
+
+admin.get("/overview", (_req, res) => {
+  const users = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
+  const sessions = db.prepare("SELECT COUNT(*) AS n FROM sessions WHERE exp >= ?").get(Date.now()).n;
+  const scores = db.prepare("SELECT COUNT(*) AS n FROM scores").get().n;
+  res.json({ ok: true, users, sessions, scores, db: path.basename(DB_PATH) });
+});
+
+admin.get("/users", (req, res) => {
+  const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 100));
+  const offset = Math.max(0, Number(req.query.offset) || 0);
+  const q = String(req.query.q || "").trim();
+  const now = Date.now();
+  let rows;
+  if (q) {
+    rows = db
+      .prepare(
+        `SELECT u.id, u.nick, u.created_at,
+                s.max_plus, s.farm_power, s.earned, s.adena, s.updated_at, s.client_version,
+                (SELECT COUNT(*) FROM sessions ses WHERE ses.user_id = u.id AND ses.exp >= ?) AS sessions
+         FROM users u
+         LEFT JOIN scores s ON s.user_id = u.id
+         WHERE u.nick LIKE ? COLLATE NOCASE
+         ORDER BY u.id DESC
+         LIMIT ? OFFSET ?`
+      )
+      .all(now, "%" + q.replace(/[%_]/g, "") + "%", limit, offset);
+  } else {
+    rows = db
+      .prepare(
+        `SELECT u.id, u.nick, u.created_at,
+                s.max_plus, s.farm_power, s.earned, s.adena, s.updated_at, s.client_version,
+                (SELECT COUNT(*) FROM sessions ses WHERE ses.user_id = u.id AND ses.exp >= ?) AS sessions
+         FROM users u
+         LEFT JOIN scores s ON s.user_id = u.id
+         ORDER BY u.id DESC
+         LIMIT ? OFFSET ?`
+      )
+      .all(now, limit, offset);
+  }
+  res.json({ ok: true, rows });
+});
+
+admin.put("/users/:id/score", (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!stmtUserById.get(userId)) return jsonError(res, 404, "Пользователь не найден");
+  const body = req.body || {};
+  const now = Date.now();
+  const row = {
+    user_id: userId,
+    max_plus: Math.max(0, Math.floor(Number(body.max_plus) || 0)),
+    farm_power: Math.max(0, Math.floor(Number(body.farm_power) || 0)),
+    earned: Math.max(0, Math.floor(Number(body.earned) || 0)),
+    adena: Math.max(0, Math.floor(Number(body.adena) || 0)),
+    client_version: String(body.client_version || "admin").slice(0, 32),
+    updated_at: now,
+  };
+  stmtUpsertScore.run(row);
+  res.json({ ok: true, score: row });
+});
+
+admin.post("/users/:id/password", (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  const user = stmtUserById.get(userId);
+  if (!user) return jsonError(res, 404, "Пользователь не найден");
+  const password = String(req.body?.password || "");
+  if (!PASS_RE.test(password)) {
+    return jsonError(res, 400, "Пароль: 6–72 символа, только латиница и цифры");
+  }
+  const passHash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
+  db.prepare("UPDATE users SET pass_hash = ? WHERE id = ?").run(passHash, userId);
+  db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
+  res.json({ ok: true, nick: user.nick });
+});
+
+admin.delete("/users/:id", (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  const user = stmtUserById.get(userId);
+  if (!user) return jsonError(res, 404, "Пользователь не найден");
+  db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+  res.json({ ok: true, nick: user.nick });
+});
+
+admin.post("/maintenance/purge-sessions", (_req, res) => {
+  const info = stmtDeleteExpired.run(Date.now());
+  res.json({ ok: true, removed: info.changes });
+});
+
+app.use("/admin", admin);
+
 if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
   app.use(express.static(GAME_DIR, { fallthrough: true, index: "index.html" }));
   app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/auth") || req.path.startsWith("/runs") || req.path.startsWith("/leaderboard")) {
+    if (
+      req.path.startsWith("/auth") ||
+      req.path.startsWith("/runs") ||
+      req.path.startsWith("/leaderboard") ||
+      req.path.startsWith("/admin")
+    ) {
       return next();
     }
     res.sendFile(path.join(GAME_DIR, "index.html"), (err) => {
@@ -256,6 +380,8 @@ app.listen(PORT, HOST, () => {
   const shown = HOST === "0.0.0.0" ? "localhost" : HOST;
   console.log(`SoulForge cloud http://${shown}:${PORT} (bind ${HOST})`);
   console.log(`DB: ${DB_PATH}`);
+  if (ADMIN_KEY) console.log("Admin API: enabled (/admin/*, header X-Soulforge-Admin)");
+  else console.log("Admin API: disabled (set SOULFORGE_ADMIN_KEY to enable)");
   if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
     console.log(`Static game: ${GAME_DIR}`);
   }

@@ -89,6 +89,7 @@
         <button type="button" class="login-corner-btn" id="loginPatchBtn" title="Что нового">📜 Что нового</button>
         <button type="button" class="login-corner-btn" id="loginAuthorBtn" title="От Автора">✦ От Автора</button>
         <button type="button" class="login-corner-btn" id="loginSettingsBtn" title="Настройки">⚙ Настройки</button>
+        <button type="button" class="login-corner-btn" id="loginAdminBtn" title="База сервера" hidden>🗄 База</button>
       </div>
     </section>
 
@@ -187,6 +188,14 @@
         </div>
         <div class="sett-hint" id="portableHint">Портативный режим · .sfsave для переноса между копиями.</div>
         </div>
+        <div id="cloudAdminBlock" hidden>
+        <div class="settings-divider">Сервер</div>
+        <div class="settings-row">
+          <span>База аккаунтов</span>
+          <button type="button" class="sett-toggle" id="settCloudAdmin">Открыть</button>
+        </div>
+        <div class="sett-hint">Редактирование SQLite на VPS · нужен ключ SOULFORGE_ADMIN_KEY</div>
+        </div>
         <div class="settings-divider">Отладка</div>
         <div class="settings-row">
           <span>Отчёт об ошибках</span>
@@ -211,6 +220,36 @@
         </div>
         <p class="lb-status" id="lbStatus">—</p>
         <div class="lb-list" id="lbList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-cloud-admin">
+      <div class="panel-head">
+        <button class="back" data-to="home" id="cloudAdminBack">← Главное меню</button>
+        <h2>База сервера</h2>
+        <button type="button" class="back" id="cloudAdminRefresh" style="margin-left:auto">Обновить</button>
+      </div>
+      <div class="cloud-admin-body sf-scroll sub-screen-body">
+        <div id="cloudAdminGate">
+          <p class="cloud-admin-hint">Ключ задаётся на сервере в переменной <code>SOULFORGE_ADMIN_KEY</code>. Хранится только в этой вкладке.</p>
+          <label class="cloud-admin-field" for="cloudAdminKey">
+            <span>Ключ администратора</span>
+            <input type="password" id="cloudAdminKey" autocomplete="off" spellcheck="false" />
+          </label>
+          <div class="cloud-admin-toolbar">
+            <button type="button" class="cloud-admin-btn cloud-admin-btn-primary" id="cloudAdminUnlock">Войти</button>
+          </div>
+          <p class="cloud-admin-msg" id="cloudAdminGateMsg" aria-live="polite"></p>
+        </div>
+        <div id="cloudAdminPanel" hidden>
+          <p class="cloud-admin-stats" id="cloudAdminStats">—</p>
+          <div class="cloud-admin-toolbar">
+            <input type="search" class="cloud-admin-search" id="cloudAdminSearch" placeholder="Поиск по нику…" />
+            <button type="button" class="cloud-admin-btn" id="cloudAdminPurgeSessions">Очистить просроченные сессии</button>
+            <button type="button" class="cloud-admin-btn" id="cloudAdminLogout">Выйти из админки</button>
+          </div>
+          <div class="cloud-admin-table-wrap" id="cloudAdminTable"></div>
+        </div>
       </div>
     </section>
 
@@ -706,6 +745,7 @@
 <script src="src/12-mine.js"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/14-cloud.js"></script>
+<script src="src/36-cloud-admin.js"></script>
 <script src="src/15-game-log.js"></script>
 <script src="src/16-accessory.js"></script>
 <script src="src/18-achievements.js"></script>

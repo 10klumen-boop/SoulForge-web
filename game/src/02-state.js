@@ -345,13 +345,6 @@ async function switchSaveOwner(nextNick) {
 
   if (prev === next) return { ok: true, switched: false };
 
-  if (next && !(await hasStoredSaveForAsync(next)) && (await hasStoredSaveForAsync(null))) {
-    await copyStoredSaveAsync(null, next);
-    saveNotice = saveNotice
-      ? saveNotice + " · Прогресс гостя перенесён на аккаунт"
-      : "Прогресс гостя перенесён на аккаунт «" + next + "»";
-  }
-
   _saveOwner = next;
   _deskBlob.save = null;
   _deskBlob.seal = null;

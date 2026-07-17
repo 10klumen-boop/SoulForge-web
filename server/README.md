@@ -23,8 +23,15 @@ npm.cmd start
 | `SOULFORGE_DB` | `…/soulforge.db` | Явный путь к БД |
 | `SOULFORGE_SERVE_GAME` | `1` | `0` = только API |
 | `SOULFORGE_GAME` | `../game` | Путь к статике |
+| `SOULFORGE_ADMIN_KEY` | *(пусто)* | Ключ для `/admin/*` и экрана «База сервера» в клиенте |
+
+Если `SOULFORGE_ADMIN_KEY` задан, в игре (same-origin) появятся **🗄 База** на экране входа и пункт в настройках. Запросы: заголовок `X-Soulforge-Admin: <ключ>`. Ключ хранится в `sessionStorage` вкладки.
 
 Пример VPS:
+
+```bash
+export SOULFORGE_ADMIN_KEY='your-long-random-secret'
+```
 
 ```bash
 export HOST=127.0.0.1
@@ -66,6 +73,8 @@ Cron: `0 3 * * * cp …`
 
 ## API
 
+- `GET /admin/enabled` — включена ли админка (без ключа)
+- `GET /admin/overview` · `GET /admin/users` · `PUT /admin/users/:id/score` · `DELETE /admin/users/:id` — заголовок `X-Soulforge-Admin`
 - `POST /auth/register` `{ nick, password }`
 - `POST /auth/login`
 - `POST /auth/logout` (Bearer)

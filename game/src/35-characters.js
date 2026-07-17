@@ -42,9 +42,28 @@ function migrateCharactersStructure() {
     }
     return;
   }
+  if (!hasLegacySinglePlayerProgress()) {
+    state.characters = [];
+    state.activeCharacterId = null;
+    return;
+  }
   const id = newCharacterId();
   state.characters = [{ id, progress: snapshotProgressFromState() }];
   state.activeCharacterId = id;
+}
+
+/** Старый сейв без roster — один персонаж в корне state. Свежий аккаунт — пустой roster. */
+function hasLegacySinglePlayerProgress() {
+  if (state.avatar?.created) return true;
+  if ((state.totals?.tries || 0) > 0 || (state.totals?.earned || 0) > 0) return true;
+  if (state.adena != null && state.adena !== START_ADENA) return true;
+  const q = state.questProgress;
+  if (q) {
+    if (Object.keys(q.completed || {}).length) return true;
+    if (Object.keys(q.kills || {}).length) return true;
+  }
+  if (Object.keys(state.achievements?.unlocked || {}).length) return true;
+  return false;
 }
 
 function flushActiveCharacterToSlot() {

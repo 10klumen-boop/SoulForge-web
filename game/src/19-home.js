@@ -26,6 +26,7 @@ function openHome() {
   if (typeof Audio2 !== "undefined") Audio2.click();
   if (typeof updateHomeCharsSubtitle === "function") updateHomeCharsSubtitle();
   if (typeof syncCloudUI === "function") syncCloudUI();
+  if (typeof refreshCloudAdminAvailability === "function") refreshCloudAdminAvailability();
   show("home");
 }
 
