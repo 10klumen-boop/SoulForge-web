@@ -32,9 +32,11 @@ const CLOUD_CONFIG = {
         host.endsWith(".pages.dev") ||
         host.endsWith(".gitlab.io");
       const isDevPort = port === "8787" || port === "1420";
-      const isHttpsProd = location.protocol === "https:" && !isLocalHost && !isStaticPages;
-      const isLocalApi = (location.protocol === "http:" || location.protocol === "https:") && (port === "8787" || /soulforge/i.test(host));
-      if (isHttpsProd || isLocalApi) {
+      // Local API (:8787) or any real host (VPS IP/domain) — not GitHub Pages / localhost static
+      const isHttpish = location.protocol === "http:" || location.protocol === "https:";
+      const isLocalApi = isHttpish && (port === "8787" || /soulforge/i.test(host));
+      const isVpsOrigin = isHttpish && !isLocalHost && !isStaticPages;
+      if (isLocalApi || isVpsOrigin) {
         CLOUD_CONFIG.baseUrl = CLOUD_CONFIG.baseUrl || location.origin;
         CLOUD_CONFIG.enabled = true;
       } else if (cfg && cfg.enabled && !CLOUD_CONFIG.baseUrl && !isDevPort) {
