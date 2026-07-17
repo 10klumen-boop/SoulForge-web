@@ -19,16 +19,10 @@ function volFromPct(p) {
 
 function syncSettingsUI() {
   const muteBtn = $("#settMute");
-  muteBtn.textContent = state.muted ? "Выкл" : "Вкл";
-  muteBtn.classList.toggle("on", !state.muted);
-  const topBtn = $("#settTop");
-  topBtn.textContent = state.alwaysOnTop ? "Вкл" : "Выкл";
-  topBtn.classList.toggle("on", !!state.alwaysOnTop);
-  $("#settTopHint").textContent = isDesktopApp
-    ? "Окно приложения поверх других программ."
-    : window.documentPictureInPicture
-      ? "Мини-окно поверх других приложений (Chrome / Edge)."
-      : "Недоступно в браузере — установите десктоп-версию или используйте Chrome / Edge.";
+  if (muteBtn) {
+    muteBtn.textContent = state.muted ? "Выкл" : "Вкл";
+    muteBtn.classList.toggle("on", !state.muted);
+  }
 
   if (typeof defaultAudioVol === "function") {
     if (!state.audioVol || typeof state.audioVol !== "object") state.audioVol = defaultAudioVol();

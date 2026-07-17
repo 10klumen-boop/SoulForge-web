@@ -16,9 +16,10 @@ function show(screen) {
   $("#screen-" + screen).classList.add("active");
   const app = gameDoc().querySelector(".app");
   if (app) {
-    const titleScreens = ["home", "settings", "patch", "author", "characters"];
+    const titleScreens = ["login", "home", "settings", "patch", "author", "characters"];
     app.classList.toggle("hub-screen", screen === "menu");
     app.classList.toggle("title-screen", titleScreens.includes(screen));
+    app.classList.toggle("login-screen", screen === "login");
   }
   if (typeof Audio2 !== "undefined" && Audio2.setScreen) {
     Audio2.setScreen(screen);
@@ -28,6 +29,7 @@ function show(screen) {
     if (pop) pop.hidden = false;
     if (typeof syncSettingsUI === "function") syncSettingsUI();
   }
+  if (screen === "login" && typeof syncCloudUI === "function") syncCloudUI();
 }
 
 let _confirmResolve = null;

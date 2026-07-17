@@ -162,15 +162,217 @@ function mergeSavedData(data) {
 }
 
 // --- Защита сохранений (v2): подпись + двойная копия + счётчик против отката ---
-const SAVE_KEY = "soulforge_save";
-const SEAL_KEY = "soulforge_seal";
-const LIVE_SEQ_KEY = "soulforge_live_seq";
+// Прогресс привязан к аккаунту: guest → soulforge_save_guest, nick → soulforge_save_<nick>
+const SAVE_KEY_LEGACY = "soulforge_save";
+const SEAL_KEY_LEGACY = "soulforge_seal";
+const SAVE_KEY_GUEST = "soulforge_save_guest";
+const SEAL_KEY_GUEST = "soulforge_seal_guest";
+const LIVE_SEQ_KEY_LEGACY = "soulforge_live_seq";
 const SAVE_VER = 2;
 const _savePepper = ["sf", "2|", "ench", "ant", "|", "sim", "|", "L2", "26"].join("");
 let saveNotice = null;
 let desktopProgressMode = false;
 const _deskBlob = { save: null, seal: null };
 const _deskSession = {};
+/** @type {string|null} null = guest */
+let _saveOwner = null;
+
+function peekCloudNick() {
+  try {
+    const raw = localStorage.getItem("soulforge_cloud_auth");
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    const nick = o && o.nick != null ? String(o.nick).trim() : "";
+    return /^[a-zA-Z]{2,16}$/.test(nick) ? nick : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function currentSaveOwner() {
+  return _saveOwner;
+}
+
+function saveOwnerId() {
+  return _saveOwner || "guest";
+}
+
+function saveKeyFor(owner) {
+  return owner ? "soulforge_save_" + owner : SAVE_KEY_GUEST;
+}
+
+function sealKeyFor(owner) {
+  return owner ? "soulforge_seal_" + owner : SEAL_KEY_GUEST;
+}
+
+function liveSeqKeyFor(owner) {
+  return owner ? "soulforge_live_seq_" + owner : "soulforge_live_seq_guest";
+}
+
+function saveKey() {
+  return saveKeyFor(_saveOwner);
+}
+
+function sealKey() {
+  return sealKeyFor(_saveOwner);
+}
+
+function liveSeqKey() {
+  return liveSeqKeyFor(_saveOwner);
+}
+
+function deskProgressSlot(kind) {
+  return kind + ":" + saveOwnerId();
+}
+
+function migrateLegacySaveKeys() {
+  try {
+    const legacySave = localStorage.getItem(SAVE_KEY_LEGACY);
+    const legacySeal = localStorage.getItem(SEAL_KEY_LEGACY);
+    if (legacySave && !localStorage.getItem(SAVE_KEY_GUEST)) {
+      localStorage.setItem(SAVE_KEY_GUEST, legacySave);
+      if (legacySeal) localStorage.setItem(SEAL_KEY_GUEST, legacySeal);
+    }
+    if (legacySave) localStorage.removeItem(SAVE_KEY_LEGACY);
+    if (legacySeal) localStorage.removeItem(SEAL_KEY_LEGACY);
+    const legacySeq = sessionStorage.getItem(LIVE_SEQ_KEY_LEGACY);
+    if (legacySeq && !sessionStorage.getItem(liveSeqKeyFor(null))) {
+      sessionStorage.setItem(liveSeqKeyFor(null), legacySeq);
+    }
+    if (legacySeq) sessionStorage.removeItem(LIVE_SEQ_KEY_LEGACY);
+  } catch (e) {}
+}
+
+function deskSlotFor(owner, kind) {
+  return kind + ":" + (owner || "guest");
+}
+
+function hasStoredSaveFor(owner) {
+  try {
+    const raw = localStorage.getItem(saveKeyFor(owner));
+    if (!raw) return false;
+    const parsed = parseStoredRaw(raw);
+    return !!(parsed?.valid || parsed?.legacy);
+  } catch (e) {
+    return false;
+  }
+}
+
+async function hasStoredSaveForAsync(owner) {
+  if (hasStoredSaveFor(owner)) return true;
+  const api = window.soulforgeDesktop;
+  if (!api?.readProgress) return false;
+  try {
+    const raw = await api.readProgress(deskSlotFor(owner, "save"));
+    if (!raw && !owner) {
+      const legacy = await api.readProgress("save");
+      if (!legacy) return false;
+      const parsed = parseStoredRaw(legacy);
+      return !!(parsed?.valid || parsed?.legacy);
+    }
+    if (!raw) return false;
+    const parsed = parseStoredRaw(raw);
+    return !!(parsed?.valid || parsed?.legacy);
+  } catch (e) {
+    return false;
+  }
+}
+
+function copyStoredSave(fromOwner, toOwner) {
+  if ((fromOwner || null) === (toOwner || null)) return false;
+  try {
+    const s = localStorage.getItem(saveKeyFor(fromOwner));
+    const t = localStorage.getItem(sealKeyFor(fromOwner));
+    if (!s) return false;
+    localStorage.setItem(saveKeyFor(toOwner), s);
+    if (t) localStorage.setItem(sealKeyFor(toOwner), t);
+    else localStorage.setItem(sealKeyFor(toOwner), s);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function copyStoredSaveAsync(fromOwner, toOwner) {
+  if (copyStoredSave(fromOwner, toOwner)) return true;
+  const api = window.soulforgeDesktop;
+  if (!api?.readProgress || !api?.writeProgress) return false;
+  if ((fromOwner || null) === (toOwner || null)) return false;
+  try {
+    let s = await api.readProgress(deskSlotFor(fromOwner, "save"));
+    let t = await api.readProgress(deskSlotFor(fromOwner, "seal"));
+    if (!s && !fromOwner) {
+      s = await api.readProgress("save");
+      t = (await api.readProgress("seal")) || s;
+    }
+    if (!s) return false;
+    await api.writeProgress(deskSlotFor(toOwner, "save"), s);
+    await api.writeProgress(deskSlotFor(toOwner, "seal"), t || s);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function applyLoadedSave(loaded) {
+  Object.keys(state).forEach((k) => {
+    if (!(k in loaded)) delete state[k];
+  });
+  Object.assign(state, loaded);
+  if (typeof initCharacters === "function") initCharacters();
+  if (typeof loadActiveCharacter === "function") loadActiveCharacter();
+  if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();
+  if (typeof refreshProgressUI === "function") refreshProgressUI();
+  else {
+    try {
+      if (typeof renderMenu === "function") renderMenu();
+      if (typeof syncSettingsUI === "function") syncSettingsUI();
+    } catch (e) {}
+  }
+}
+
+/**
+ * Сохранить текущий прогресс под текущим владельцем и загрузить сейв другого аккаунта.
+ * @param {string|null} nextNick
+ */
+async function switchSaveOwner(nextNick) {
+  const next = nextNick && /^[a-zA-Z]{2,16}$/.test(nextNick) ? nextNick : null;
+  const prev = _saveOwner;
+  try {
+    if (typeof flushActiveCharacterToSlot === "function") flushActiveCharacterToSlot();
+    save();
+  } catch (e) {}
+
+  if (prev === next) return { ok: true, switched: false };
+
+  if (next && !(await hasStoredSaveForAsync(next)) && (await hasStoredSaveForAsync(null))) {
+    await copyStoredSaveAsync(null, next);
+    saveNotice = saveNotice
+      ? saveNotice + " · Прогресс гостя перенесён на аккаунт"
+      : "Прогресс гостя перенесён на аккаунт «" + next + "»";
+  }
+
+  _saveOwner = next;
+  _deskBlob.save = null;
+  _deskBlob.seal = null;
+
+  if (isDesktopSave() && window.soulforgeDesktop?.readProgress) {
+    // Empty account must not keep previous owner's in-memory state
+    applyLoadedSave(defaultState());
+    await hydrateDesktopSave();
+    if (typeof initCharacters === "function") initCharacters();
+    if (typeof loadActiveCharacter === "function") loadActiveCharacter();
+    if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();
+    if (typeof refreshProgressUI === "function") refreshProgressUI();
+  } else {
+    applyLoadedSave(load());
+  }
+  if (saveNotice && typeof toast === "function") {
+    toast(saveNotice, "system");
+    saveNotice = null;
+  }
+  return { ok: true, switched: true, from: prev, to: next };
+}
 
 function isDesktopSave() {
   return !!(typeof window !== "undefined" && window.soulforgeDesktop?.isDesktop);
@@ -178,10 +380,10 @@ function isDesktopSave() {
 
 function setLiveSeq(seq) {
   if (isDesktopSave()) {
-    _deskSession[LIVE_SEQ_KEY] = String(seq);
+    _deskSession[liveSeqKey()] = String(seq);
     return;
   }
-  try { sessionStorage.setItem(LIVE_SEQ_KEY, String(seq)); } catch (e) {}
+  try { sessionStorage.setItem(liveSeqKey(), String(seq)); } catch (e) {}
 }
 
 function exportGameData(st) {
@@ -245,8 +447,8 @@ function parseStoredRaw(raw) {
 }
 
 function readStored(key) {
-  if (desktopProgressMode && (key === SAVE_KEY || key === SEAL_KEY)) {
-    const raw = key === SEAL_KEY ? _deskBlob.seal : _deskBlob.save;
+  if (desktopProgressMode && (key === saveKey() || key === sealKey())) {
+    const raw = key === sealKey() ? _deskBlob.seal : _deskBlob.save;
     return parseStoredRaw(raw);
   }
   try {
@@ -259,19 +461,21 @@ function readStored(key) {
 
 function persistEnvelope(env) {
   const json = JSON.stringify(env);
+  const sk = saveKey();
+  const tk = sealKey();
   if (window.soulforgeDesktop?.writeProgress) {
     desktopProgressMode = true;
     _deskBlob.save = json;
     _deskBlob.seal = json;
-    window.soulforgeDesktop.writeProgress("save", json);
-    window.soulforgeDesktop.writeProgress("seal", json);
+    window.soulforgeDesktop.writeProgress(deskProgressSlot("save"), json);
+    window.soulforgeDesktop.writeProgress(deskProgressSlot("seal"), json);
     try {
-      localStorage.removeItem(SAVE_KEY);
-      localStorage.removeItem(SEAL_KEY);
+      localStorage.removeItem(sk);
+      localStorage.removeItem(tk);
     } catch (e) {}
   } else {
-    localStorage.setItem(SAVE_KEY, json);
-    localStorage.setItem(SEAL_KEY, json);
+    localStorage.setItem(sk, json);
+    localStorage.setItem(tk, json);
   }
   try { setLiveSeq(env.seq); } catch (e) {}
 }
@@ -280,12 +484,28 @@ async function hydrateDesktopSave() {
   const api = window.soulforgeDesktop;
   if (!api?.readProgress) return;
 
-  _deskBlob.save = await api.readProgress("save");
-  _deskBlob.seal = await api.readProgress("seal");
+  const slotSave = deskProgressSlot("save");
+  const slotSeal = deskProgressSlot("seal");
+  _deskBlob.save = await api.readProgress(slotSave);
+  _deskBlob.seal = await api.readProgress(slotSeal);
+
+  // Migrate legacy unscoped desktop files → guest once
+  if (!_deskBlob.save && !_saveOwner) {
+    const legacySave = await api.readProgress("save");
+    const legacySeal = await api.readProgress("seal");
+    if (legacySave) {
+      _deskBlob.save = legacySave;
+      _deskBlob.seal = legacySeal || legacySave;
+      desktopProgressMode = true;
+      await api.writeProgress(slotSave, legacySave);
+      await api.writeProgress(slotSeal, legacySeal || legacySave);
+    }
+  }
+
   const encSave = parseStoredRaw(_deskBlob.save);
   const encSeal = parseStoredRaw(_deskBlob.seal);
-  const locSave = parseStoredRaw(localStorage.getItem(SAVE_KEY));
-  const locSeal = parseStoredRaw(localStorage.getItem(SEAL_KEY));
+  const locSave = parseStoredRaw(localStorage.getItem(saveKey()));
+  const locSeal = parseStoredRaw(localStorage.getItem(sealKey()));
 
   const hasEncrypted = !!(encSave?.valid || encSeal?.valid);
   const hasLocal = !!(locSave?.valid || locSeal?.valid || locSave?.legacy);
@@ -330,19 +550,19 @@ async function hydrateDesktopSave() {
 
   Object.assign(state, persistIfBalanceWiped(mergeSavedData(picked.env.data)));
   try {
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem(SEAL_KEY);
+    localStorage.removeItem(saveKey());
+    localStorage.removeItem(sealKey());
   } catch (e) {}
 }
 
 function liveSeq() {
-  if (isDesktopSave()) return parseInt(_deskSession[LIVE_SEQ_KEY] || "0", 10) || 0;
-  try { return parseInt(sessionStorage.getItem(LIVE_SEQ_KEY) || "0", 10) || 0; } catch (e) { return 0; }
+  if (isDesktopSave()) return parseInt(_deskSession[liveSeqKey()] || "0", 10) || 0;
+  try { return parseInt(sessionStorage.getItem(liveSeqKey()) || "0", 10) || 0; } catch (e) { return 0; }
 }
 
 function maxStoredSeq() {
-  const a = readStored(SAVE_KEY);
-  const b = readStored(SEAL_KEY);
+  const a = readStored(saveKey());
+  const b = readStored(sealKey());
   let m = 0;
   if (a?.valid) m = Math.max(m, a.env.seq);
   if (b?.valid) m = Math.max(m, b.env.seq);
@@ -379,8 +599,8 @@ function pickEnvelope(save, seal) {
 function load() {
   if (isDesktopSave()) return defaultState();
 
-  const storedSave = readStored(SAVE_KEY);
-  const seal = readStored(SEAL_KEY);
+  const storedSave = readStored(saveKey());
+  const seal = readStored(sealKey());
 
   if (storedSave?.legacy && !seal) {
     const data = persistIfBalanceWiped(mergeSavedData(storedSave.legacy));
@@ -417,14 +637,16 @@ function save() {
 }
 
 function resetProgress() {
+  const sk = saveKey();
+  const tk = sealKey();
   try {
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem(SEAL_KEY);
-    sessionStorage.removeItem(LIVE_SEQ_KEY);
+    localStorage.removeItem(sk);
+    localStorage.removeItem(tk);
+    sessionStorage.removeItem(liveSeqKey());
   } catch (e) {}
-  if (isDesktopSave()) delete _deskSession[LIVE_SEQ_KEY];
+  if (isDesktopSave()) delete _deskSession[liveSeqKey()];
   if (desktopProgressMode && window.soulforgeDesktop?.clearProgress) {
-    window.soulforgeDesktop.clearProgress();
+    window.soulforgeDesktop.clearProgress(saveOwnerId());
     _deskBlob.save = null;
     _deskBlob.seal = null;
   }
@@ -437,9 +659,9 @@ function resetProgress() {
 
 function getCurrentEnvelope() {
   save();
-  const seal = readStored(SEAL_KEY);
+  const seal = readStored(sealKey());
   if (seal?.valid) return seal.env;
-  const storedSave = readStored(SAVE_KEY);
+  const storedSave = readStored(saveKey());
   if (storedSave?.valid) return storedSave.env;
   return makeEnvelope(exportGameData(state), Math.max(maxStoredSeq(), 1), Date.now());
 }
@@ -467,6 +689,9 @@ function refreshProgressUI() {
   if (typeof syncCloudUI === "function") syncCloudUI();
 }
 
+migrateLegacySaveKeys();
+/** Гость до явного входа; аккаунт — после login/register или resume на экране входа. */
+_saveOwner = null;
 let state = load();
 let cur = null;
 let listState = { cat: null, grade: "all", q: "" };

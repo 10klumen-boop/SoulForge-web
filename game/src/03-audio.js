@@ -40,7 +40,7 @@ const Audio2 = (() => {
   };
 
   // OST только на title-экранах; хаб игры (menu) — без музыки
-  const MUSIC_SCREENS = new Set(["home", "settings", "patch", "author", "characters"]);
+  const MUSIC_SCREENS = new Set(["login", "home", "settings", "patch", "author", "characters"]);
   const SCREEN_AMB = {
     mine: "mine",
     inv: "indoor",

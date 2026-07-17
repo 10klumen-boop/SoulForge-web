@@ -6,10 +6,20 @@ function applyVersionLabels() {
   document.querySelectorAll("[data-game-ver]").forEach((el) => {
     el.textContent = label;
   });
-  const patchSub = document.getElementById("homePatchSub");
+  const patchSub = document.getElementById("loginPatchSub") || document.getElementById("homePatchSub");
   if (patchSub) patchSub.textContent = "История обновлений · " + label;
   document.title = "SoulForge Lineage 2 — Enchant Sim " + label;
   if (typeof updateHomeCharsSubtitle === "function") updateHomeCharsSubtitle();
+}
+
+function openLoginScreen() {
+  if (typeof Audio2 !== "undefined") Audio2.click();
+  try {
+    if (typeof flushActiveCharacterToSlot === "function") flushActiveCharacterToSlot();
+    if (typeof save === "function") save();
+  } catch (e) {}
+  if (typeof syncCloudUI === "function") syncCloudUI();
+  show("login");
 }
 
 function openHome() {
@@ -37,8 +47,50 @@ function enterGameHub() {
   if (typeof runGameEntryModals === "function") runGameEntryModals();
 }
 
+function setTitleBackToLogin(screenId, label) {
+  const back = document.querySelector("#screen-" + screenId + " .panel-head .back");
+  if (!back) return;
+  back.dataset.to = "login";
+  back.textContent = label || "← Вход";
+  back.onclick = () => {
+    if (typeof Audio2 !== "undefined") Audio2.click();
+    show("login");
+  };
+}
+
+function wireLoginCornerMenu() {
+  const settingsBtn = document.getElementById("loginSettingsBtn");
+  if (settingsBtn && !settingsBtn.dataset.wired) {
+    settingsBtn.dataset.wired = "1";
+    settingsBtn.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      setTitleBackToLogin("settings");
+      show("settings");
+    };
+  }
+  const patchBtn = document.getElementById("loginPatchBtn");
+  if (patchBtn && !patchBtn.dataset.wired) {
+    patchBtn.dataset.wired = "1";
+    patchBtn.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      setTitleBackToLogin("patch");
+      show("patch");
+    };
+  }
+  const authorBtn = document.getElementById("loginAuthorBtn");
+  if (authorBtn && !authorBtn.dataset.wired) {
+    authorBtn.dataset.wired = "1";
+    authorBtn.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      setTitleBackToLogin("author");
+      show("author");
+    };
+  }
+}
+
 function wireHomeMenu() {
   applyVersionLabels();
+  wireLoginCornerMenu();
 
   const play = document.getElementById("homePlayBtn");
   if (play && !play.dataset.wired) {
@@ -61,30 +113,27 @@ function wireHomeMenu() {
     };
   }
 
+  const login = document.getElementById("homeLoginBtn");
+  if (login && !login.dataset.wired) {
+    login.dataset.wired = "1";
+    login.onclick = () => openLoginScreen();
+  }
+
   const settings = document.getElementById("homeSettingsBtn");
   if (settings && !settings.dataset.wired) {
     settings.dataset.wired = "1";
     settings.onclick = () => {
       if (typeof Audio2 !== "undefined") Audio2.click();
+      const back = document.querySelector("#screen-settings .panel-head .back");
+      if (back) {
+        back.dataset.to = "home";
+        back.textContent = "← Главное меню";
+        back.onclick = () => {
+          if (typeof Audio2 !== "undefined") Audio2.click();
+          show("home");
+        };
+      }
       show("settings");
-    };
-  }
-
-  const patch = document.getElementById("homePatchBtn");
-  if (patch && !patch.dataset.wired) {
-    patch.dataset.wired = "1";
-    patch.onclick = () => {
-      if (typeof Audio2 !== "undefined") Audio2.click();
-      show("patch");
-    };
-  }
-
-  const author = document.getElementById("homeAuthorBtn");
-  if (author && !author.dataset.wired) {
-    author.dataset.wired = "1";
-    author.onclick = () => {
-      if (typeof Audio2 !== "undefined") Audio2.click();
-      show("author");
     };
   }
 

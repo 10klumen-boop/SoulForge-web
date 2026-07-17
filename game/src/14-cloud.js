@@ -176,6 +176,18 @@ function authHeaders(json) {
   return h;
 }
 
+function cloudAuthValidate(nick, password) {
+  const n = String(nick || "").trim();
+  const p = String(password || "");
+  if (!/^[a-zA-Z]{2,16}$/.test(n)) {
+    return { ok: false, error: "Ник: 2–16 латинских букв (a–z, A–Z)" };
+  }
+  if (!/^[a-zA-Z0-9]{6,72}$/.test(p)) {
+    return { ok: false, error: "Пароль: от 6 символов, только латиница и цифры" };
+  }
+  return { ok: true, nick: n, password: p };
+}
+
 async function cloudAuthRequest(path, body) {
   if (!cloudEnabled()) return { ok: false, offline: true, error: "Сервер не подключён" };
   try {
@@ -192,10 +204,22 @@ async function cloudAuthRequest(path, body) {
   }
 }
 
+async function bindSaveToCloudNick(nick) {
+  if (typeof switchSaveOwner !== "function") return;
+  try {
+    await switchSaveOwner(nick || null);
+  } catch (e) {
+    console.error("switchSaveOwner failed:", e);
+  }
+}
+
 async function cloudRegister(nick, password) {
-  const r = await cloudAuthRequest("/auth/register", { nick, password });
+  const v = cloudAuthValidate(nick, password);
+  if (!v.ok) return v;
+  const r = await cloudAuthRequest("/auth/register", { nick: v.nick, password: v.password });
   if (r.ok && r.token) {
     writeCloudAuth({ nick: r.nick, token: r.token, exp: r.exp });
+    await bindSaveToCloudNick(r.nick);
     syncCloudUI();
     noteLeaderboardEvent("login");
   }
@@ -203,9 +227,12 @@ async function cloudRegister(nick, password) {
 }
 
 async function cloudLogin(nick, password) {
-  const r = await cloudAuthRequest("/auth/login", { nick, password });
+  const v = cloudAuthValidate(nick, password);
+  if (!v.ok) return v;
+  const r = await cloudAuthRequest("/auth/login", { nick: v.nick, password: v.password });
   if (r.ok && r.token) {
     writeCloudAuth({ nick: r.nick, token: r.token, exp: r.exp });
+    await bindSaveToCloudNick(r.nick);
     syncCloudUI();
     noteLeaderboardEvent("login");
   }
@@ -223,6 +250,7 @@ async function cloudLogout() {
       });
     } catch (e) {}
   }
+  await bindSaveToCloudNick(null);
   writeCloudAuth(null);
   syncCloudUI();
 }
@@ -250,7 +278,10 @@ async function submitLeaderboardEvent(event, extra, opts) {
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      if (res.status === 401) writeCloudAuth(null);
+      if (res.status === 401) {
+        await bindSaveToCloudNick(null);
+        writeCloudAuth(null);
+      }
       queuePendingSubmission(payload);
       syncCloudUI();
       return { ok: false, status: res.status };
@@ -318,35 +349,41 @@ function syncCloudUI() {
   if (hint) {
     if (!cloudEnabled()) {
       hint.textContent = pending
-        ? "Офлайн · " + pending + " событий в очереди"
-        : "Онлайн-рейтинги: сервер не подключён";
+        ? "Оффлайн · в очереди " + pending
+        : "Сервер оффлайн · «Отмена» — играть гостем";
     } else if (auth?.nick) {
       hint.textContent = pending
-        ? "В сети как " + auth.nick + " · в очереди " + pending
-        : "В сети как " + auth.nick + " · рейтинги активны";
+        ? ("В сети · " + auth.nick + " · в очереди " + pending)
+        : ("В сети · " + auth.nick + " · «Войти» для продолжения");
     } else {
-      hint.textContent = "Сервер доступен · войдите, чтобы участвовать в рейтинге";
+      hint.textContent = cloudEnabled()
+        ? "Сервер доступен · войди для рейтинга (или «Отмена» — гость)"
+        : "Рейтинг и прогресс привязаны к аккаунту.";
     }
   }
   const nickInput = document.getElementById("cloudNick");
+  const passInput = document.getElementById("cloudPass");
   const statusEl = document.getElementById("cloudAuthStatus");
   if (statusEl) {
-    statusEl.textContent = auth?.nick ? ("Вы вошли: " + auth.nick) : "Гость (без рейтинга)";
+    statusEl.textContent = auth?.nick ? ("Вход: " + auth.nick) : "Гость";
+    statusEl.hidden = !auth;
   }
   const loginBtn = document.getElementById("cloudLoginBtn");
   const regBtn = document.getElementById("cloudRegisterBtn");
   const logoutBtn = document.getElementById("cloudLogoutBtn");
-  if (loginBtn) loginBtn.hidden = !!auth;
+  if (loginBtn) loginBtn.hidden = false;
   if (regBtn) regBtn.hidden = !!auth;
   if (logoutBtn) logoutBtn.hidden = !auth;
-  if (nickInput && auth?.nick) nickInput.value = auth.nick;
+  if (nickInput) {
+    nickInput.hidden = false;
+    if (auth?.nick) nickInput.value = auth.nick;
+  }
+  if (passInput) passInput.hidden = false;
   const tile = document.getElementById("lbTileMeta");
   if (tile) tile.textContent = auth?.nick || (cloudEnabled() ? "Войти" : "Офлайн");
-  const homeSub = document.getElementById("homeRatingSub");
-  if (homeSub) {
-    homeSub.textContent = auth?.nick
-      ? ("В сети · " + auth.nick)
-      : (cloudEnabled() ? "Сервер доступен · войди в настройках" : "Заточка · сила · богатство");
+  const homeLoginBtn = document.getElementById("homeLoginBtn");
+  if (homeLoginBtn) {
+    homeLoginBtn.title = auth?.nick ? ("В сети · " + auth.nick) : "";
   }
 }
 
@@ -368,7 +405,7 @@ async function renderLeaderboard() {
   list.innerHTML = "";
   if (status) {
     if (!cloudEnabled()) status.textContent = "Сервер не подключён. Запустите server/ или укажите SOULFORGE_CLOUD.";
-    else if (!readCloudAuth()) status.textContent = "Можно смотреть таблицу гостем. Войдите в настройках, чтобы попасть в рейтинг.";
+    else if (!readCloudAuth()) status.textContent = "Можно смотреть таблицу гостем. Войдите в главном меню, чтобы попасть в рейтинг.";
     else status.textContent = "Режим: " + ({ enchant: "Заточка", power: "Сила", wealth: "Богатство" }[_lbMode] || _lbMode);
   }
   document.querySelectorAll(".lb-tab").forEach((btn) => {
@@ -417,10 +454,17 @@ function openLeaderboard(opts) {
   if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
 }
 
+function enterMainMenuFromLogin() {
+  if (typeof openHome === "function") openHome();
+  else if (typeof show === "function") show("home");
+  if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
+}
+
 async function wireCloudAuthForms() {
   const loginBtn = document.getElementById("cloudLoginBtn");
   const regBtn = document.getElementById("cloudRegisterBtn");
   const logoutBtn = document.getElementById("cloudLogoutBtn");
+  const cancelBtn = document.getElementById("cloudCancelBtn");
   const nickEl = document.getElementById("cloudNick");
   const passEl = document.getElementById("cloudPass");
   const msgEl = document.getElementById("cloudAuthMsg");
@@ -429,18 +473,29 @@ async function wireCloudAuthForms() {
     msgEl.textContent = t || "";
     msgEl.classList.toggle("warn", !!warn);
   };
+  const tryLogin = async () => {
+    const nick = (nickEl?.value || "").trim();
+    const password = passEl?.value || "";
+    const existing = readCloudAuth();
+    if (existing?.nick && existing?.token && !password) {
+      setMsg("С возвращением, " + existing.nick);
+      await bindSaveToCloudNick(existing.nick);
+      enterMainMenuFromLogin();
+      return;
+    }
+    setMsg("Вход…");
+    const r = await cloudLogin(nick, password);
+    if (r.ok) {
+      setMsg("Добро пожаловать, " + r.nick);
+      if (passEl) passEl.value = "";
+      flushPendingSubmissions();
+      enterMainMenuFromLogin();
+    } else setMsg(r.error || "Ошибка входа", true);
+  };
   if (loginBtn) {
     loginBtn.onclick = async () => {
       if (typeof Audio2 !== "undefined") Audio2.click();
-      const nick = (nickEl?.value || "").trim();
-      const password = passEl?.value || "";
-      setMsg("Вход…");
-      const r = await cloudLogin(nick, password);
-      if (r.ok) {
-        setMsg("Добро пожаловать, " + r.nick);
-        if (passEl) passEl.value = "";
-        flushPendingSubmissions();
-      } else setMsg(r.error || "Ошибка входа", true);
+      await tryLogin();
     };
   }
   if (regBtn) {
@@ -448,12 +503,13 @@ async function wireCloudAuthForms() {
       if (typeof Audio2 !== "undefined") Audio2.click();
       const nick = (nickEl?.value || "").trim();
       const password = passEl?.value || "";
-      setMsg("Регистрация…");
+      setMsg("Создание аккаунта…");
       const r = await cloudRegister(nick, password);
       if (r.ok) {
         setMsg("Аккаунт создан: " + r.nick);
         if (passEl) passEl.value = "";
         flushPendingSubmissions();
+        enterMainMenuFromLogin();
       } else setMsg(r.error || "Ошибка регистрации", true);
     };
   }
@@ -461,8 +517,44 @@ async function wireCloudAuthForms() {
     logoutBtn.onclick = async () => {
       if (typeof Audio2 !== "undefined") Audio2.click();
       await cloudLogout();
-      setMsg("Вы вышли");
+      setMsg("Выход выполнен");
+      if (passEl) passEl.value = "";
     };
+  }
+  if (cancelBtn) {
+    cancelBtn.onclick = async () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      setMsg("");
+      await bindSaveToCloudNick(null);
+      enterMainMenuFromLogin();
+    };
+  }
+  const devSkip = document.getElementById("loginDevSkip");
+  if (devSkip) {
+    const allowDev = typeof FEATURE_DEV_PANEL !== "undefined" && FEATURE_DEV_PANEL;
+    devSkip.hidden = !allowDev;
+    if (allowDev && !devSkip.dataset.wired) {
+      devSkip.dataset.wired = "1";
+      devSkip.onclick = () => {
+        if (typeof Audio2 !== "undefined") Audio2.click();
+        setMsg("DEV · пропуск");
+        enterMainMenuFromLogin();
+      };
+    }
+  }
+  const onEnter = (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (typeof Audio2 !== "undefined") Audio2.click();
+    tryLogin();
+  };
+  if (nickEl && !nickEl.dataset.enterWired) {
+    nickEl.dataset.enterWired = "1";
+    nickEl.addEventListener("keydown", onEnter);
+  }
+  if (passEl && !passEl.dataset.enterWired) {
+    passEl.dataset.enterWired = "1";
+    passEl.addEventListener("keydown", onEnter);
   }
   document.querySelectorAll(".lb-tab").forEach((btn) => {
     btn.onclick = () => {

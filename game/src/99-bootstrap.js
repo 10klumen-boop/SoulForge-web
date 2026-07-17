@@ -31,7 +31,6 @@ $("#newBtn").onclick = newWeapon;
 $("#sellBtn").onclick = sellWeapon;
 document.querySelectorAll(".back").forEach((b) => { if (b.dataset.to) b.onclick = () => { Audio2.click(); show(b.dataset.to); }; });
 $("#settMute").onclick = () => { Audio2.click(); toggleMute(); };
-$("#settTop").onclick = async () => { Audio2.click(); await toggleAlwaysOnTop(); };
 $("#resetBtn").onclick = async () => {
   if (!await showConfirm({
     title: "Сброс прогресса",
@@ -64,8 +63,19 @@ document.addEventListener("keydown", (e) => {
   } else if ($("#screen-acc").classList.contains("active")) {
     if (e.key === "Escape") { Audio2.click(); curAcc = null; goInventory(); }
   } else if (e.key === "Escape" && $("#screen-mine").classList.contains("active")) { stopMine(); renderMenu(); show("menu"); }
+  else if (e.key === "Escape" && $("#screen-login")?.classList.contains("active")) {
+    Audio2.click();
+    const cancel = document.getElementById("cloudCancelBtn");
+    if (cancel) cancel.click();
+  }
   else if (e.key === "Escape" && $("#screen-menu").classList.contains("active")) { Audio2.click(); show("home"); }
-  else if (e.key === "Escape" && ($("#screen-settings").classList.contains("active") || $("#screen-patch").classList.contains("active") || $("#screen-author").classList.contains("active") || $("#screen-characters").classList.contains("active") || $("#screen-leaderboard")?.classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
+  else if (e.key === "Escape" && ($("#screen-settings").classList.contains("active") || $("#screen-patch").classList.contains("active") || $("#screen-author").classList.contains("active"))) {
+    Audio2.click();
+    const back = document.querySelector(".screen.active .panel-head .back");
+    const to = back?.dataset?.to || "home";
+    show(to);
+  }
+  else if (e.key === "Escape" && ($("#screen-characters").classList.contains("active") || $("#screen-leaderboard")?.classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
   else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
@@ -103,7 +113,7 @@ if (typeof wireStoryArcBar === "function") wireStoryArcBar();
 if (typeof wireMineStory === "function") wireMineStory();
 renderMenu();
 if (typeof applyVersionLabels === "function") applyVersionLabels();
-show("home");
+show("login");
 if (typeof Audio2 !== "undefined") {
   if (Audio2.preload) Audio2.preload();
 }

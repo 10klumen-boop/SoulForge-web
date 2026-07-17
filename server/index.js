@@ -17,7 +17,8 @@ const SERVE_GAME = process.env.SOULFORGE_SERVE_GAME !== "0";
 const GAME_DIR = process.env.SOULFORGE_GAME || path.join(__dirname, "..", "game");
 const SESSION_DAYS = 30;
 const BCRYPT_ROUNDS = 10;
-const NICK_RE = /^[a-zA-Z0-9_]{3,16}$/;
+const NICK_RE = /^[a-zA-Z]{2,16}$/;
+const PASS_RE = /^[a-zA-Z0-9]{6,72}$/;
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -152,10 +153,10 @@ app.post("/auth/register", (req, res) => {
   const nick = String(req.body?.nick || "").trim();
   const password = String(req.body?.password || "");
   if (!NICK_RE.test(nick)) {
-    return jsonError(res, 400, "Ник: 3–16 символов (a-z, 0-9, _)");
+    return jsonError(res, 400, "Ник: 2–16 латинских букв (a-z, A-Z)");
   }
-  if (password.length < 6 || password.length > 72) {
-    return jsonError(res, 400, "Пароль: 6–72 символа");
+  if (!PASS_RE.test(password)) {
+    return jsonError(res, 400, "Пароль: 6–72 символа, только латиница и цифры");
   }
   if (stmtUserByNick.get(nick)) {
     return jsonError(res, 409, "Ник уже занят");

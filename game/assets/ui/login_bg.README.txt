@@ -1,0 +1,4 @@
+login_bg.png — фон экрана входа SoulForge Prelude (нейроген по референсу L2 Interlude harbor).
+login_bg_ref.png — исходный референс окна логина L2 (для повторного апскейла/стилизации).
+
+Cache-buster: ?v= в main.css (body:has(.app.login-screen)::before).

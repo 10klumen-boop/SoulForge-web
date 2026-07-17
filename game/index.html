@@ -53,7 +53,46 @@
 
   <div class="card">
 
-    <section class="screen active home-screen" id="screen-home">
+    <section class="screen active login-screen" id="screen-login">
+      <div class="login-stage">
+        <h1 class="login-logo">SoulForge Prelude</h1>
+        <div class="l2-login-win" role="dialog" aria-labelledby="l2LoginTitle">
+          <div class="l2-login-chrome" aria-hidden="true"></div>
+          <div class="l2-login-title" id="l2LoginTitle">Вход</div>
+          <div class="l2-login-body">
+            <label class="l2-login-field" for="cloudNick">
+              <span>Аккаунт</span>
+              <input type="text" id="cloudNick" maxlength="16" pattern="[A-Za-z]{2,16}" autocomplete="username" spellcheck="false" placeholder="2–16 латинских букв" />
+            </label>
+            <label class="l2-login-field" for="cloudPass">
+              <span>Пароль</span>
+              <input type="password" id="cloudPass" maxlength="72" pattern="[A-Za-z0-9]{6,72}" autocomplete="current-password" placeholder="латиница и цифры, от 6" />
+            </label>
+            <p class="l2-login-msg" id="cloudAuthMsg" aria-live="polite"></p>
+            <div class="l2-login-actions">
+              <button type="button" class="l2-login-btn l2-login-btn-primary" id="cloudLoginBtn">Войти</button>
+              <button type="button" class="l2-login-btn" id="cloudCancelBtn">Отмена</button>
+            </div>
+            <div class="l2-login-extra">
+              <button type="button" class="l2-login-link" id="cloudRegisterBtn">Создать аккаунт</button>
+              <button type="button" class="l2-login-link" id="cloudLogoutBtn" hidden>Выйти</button>
+            </div>
+            <p class="l2-login-hint" id="cloudHint">Рейтинг и прогресс привязаны к аккаунту.</p>
+            <p class="l2-login-status" id="cloudAuthStatus" hidden>Гость</p>
+            <code class="player-id" id="playerIdShort" hidden title="">—</code>
+          </div>
+        </div>
+        <p class="login-copy">SoulForge · фан-проект · не связан с NCsoft</p>
+      </div>
+      <button type="button" class="login-dev-skip" id="loginDevSkip" hidden>DEV · пропустить вход</button>
+      <div class="login-corner" aria-label="Дополнительно">
+        <button type="button" class="login-corner-btn" id="loginPatchBtn" title="Что нового">📜 Что нового</button>
+        <button type="button" class="login-corner-btn" id="loginAuthorBtn" title="От Автора">✦ От Автора</button>
+        <button type="button" class="login-corner-btn" id="loginSettingsBtn" title="Настройки">⚙ Настройки</button>
+      </div>
+    </section>
+
+    <section class="screen home-screen" id="screen-home">
       <div class="home-wrap">
         <header class="home-header">
           <div class="home-eyebrow">SoulForge · Lineage 2</div>
@@ -75,18 +114,13 @@
           </button>
           <button type="button" class="home-nav-btn" id="homeSettingsBtn">
             <span class="home-nav-ico" aria-hidden="true">⚙</span>
-            <span class="home-nav-text"><strong>Настройки</strong><small>Звук · сохранение · окно</small></span>
-          </button>
-          <button type="button" class="home-nav-btn" id="homePatchBtn">
-            <span class="home-nav-ico" aria-hidden="true">📜</span>
-            <span class="home-nav-text"><strong>Что нового</strong><small id="homePatchSub">История обновлений</small></span>
-          </button>
-          <button type="button" class="home-nav-btn" id="homeAuthorBtn">
-            <span class="home-nav-ico" aria-hidden="true">✦</span>
-            <span class="home-nav-text"><strong>От Автора</strong><small>О проекте и благодарности</small></span>
+            <span class="home-nav-text"><strong>Настройки</strong><small>Звук · сохранение</small></span>
           </button>
         </nav>
-        <footer class="home-footer"><span class="home-ver" data-game-ver>v0.31a-r</span></footer>
+        <footer class="home-footer">
+          <button type="button" class="home-login-link" id="homeLoginBtn">К окну логина</button>
+          <span class="home-ver" data-game-ver>v0.31a-r</span>
+        </footer>
       </div>
     </section>
 
@@ -141,15 +175,6 @@
           <b class="sett-vol-val" id="settVolVoiceVal">88%</b>
         </div>
         <div class="sett-hint">Музыка — «The Call of Destiny» на экране входа · M — быстрый mute</div>
-        <div class="settings-row">
-          <span>Пролог</span>
-          <button type="button" class="sett-toggle" id="settStory">Читать</button>
-        </div>
-        <div class="settings-row">
-          <span>Поверх всех окон</span>
-          <button type="button" class="sett-toggle" id="settTop">Выкл</button>
-        </div>
-        <div class="sett-hint" id="settTopHint">Мини-окно поверх других приложений (Chrome / Edge).</div>
         <div id="saveTransferBlock">
         <div class="settings-divider">Сохранение</div>
         <div class="settings-row">
@@ -162,26 +187,6 @@
         </div>
         <div class="sett-hint" id="portableHint">Портативный режим · .sfsave для переноса между копиями.</div>
         </div>
-        <div class="settings-divider">Онлайн</div>
-        <div class="settings-row">
-          <span>Аккаунт</span>
-          <b class="cloud-auth-status" id="cloudAuthStatus">Гость</b>
-        </div>
-        <div class="cloud-auth-form" id="cloudAuthForm">
-          <input type="text" class="cloud-input" id="cloudNick" placeholder="Ник (3–16)" maxlength="16" autocomplete="username">
-          <input type="password" class="cloud-input" id="cloudPass" placeholder="Пароль (6+)" maxlength="72" autocomplete="current-password">
-          <div class="cloud-auth-actions">
-            <button type="button" class="sett-toggle" id="cloudLoginBtn">Войти</button>
-            <button type="button" class="sett-toggle" id="cloudRegisterBtn">Регистрация</button>
-            <button type="button" class="sett-toggle" id="cloudLogoutBtn" hidden>Выйти</button>
-          </div>
-          <p class="sett-hint" id="cloudAuthMsg"></p>
-        </div>
-        <div class="settings-row">
-          <span>ID / ник</span>
-          <code class="player-id" id="playerIdShort" title="">—</code>
-        </div>
-        <div class="sett-hint" id="cloudHint">Онлайн-рейтинги: сервер не подключён.</div>
         <div class="settings-divider">Отладка</div>
         <div class="settings-row">
           <span>Отчёт об ошибках</span>
