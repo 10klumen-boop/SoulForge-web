@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SoulForge · База сервера</title>
+  <style>
+    :root { --bg: #0e0c08; --panel: #1a140c; --edge: #5a4830; --gold: #c9a86a; --txt: #e8dcc8; --dim: #9a8e78; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font: 14px/1.45 system-ui, Segoe UI, sans-serif; background: var(--bg); color: var(--txt); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
+    h1 { margin: 0 0 4px; font-size: 20px; color: var(--gold); }
+    .sub { margin: 0 0 20px; font-size: 12px; color: var(--dim); }
+  .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--gold); margin-bottom: 6px; }
+  input[type="password"], input[type="search"], input[type="number"], input[type="text"] {
+    width: 100%; max-width: 360px; padding: 8px 10px; border-radius: 3px;
+    border: 1px solid var(--edge); background: #0a0805; color: var(--txt);
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+  button {
+    padding: 8px 14px; border-radius: 3px; border: 1px solid var(--edge);
+    background: linear-gradient(180deg, #6a5530, #2a2010); color: #f2e6c8;
+    font-weight: 600; font-size: 12px; cursor: pointer;
+  }
+  button:hover { filter: brightness(1.1); }
+  button.warn { border-color: #8a4030; color: #f0d0c0; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .msg { margin-top: 10px; font-size: 12px; color: var(--dim); }
+  .msg.err { color: #e0a070; }
+  .stats { font-size: 13px; color: var(--gold); margin: 0 0 12px; }
+  .table-wrap { overflow: auto; border: 1px solid var(--edge); border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,.06); text-align: left; vertical-align: top; }
+  th { background: #120e08; color: var(--gold); position: sticky; top: 0; }
+  td small { color: var(--dim); }
+  .inp { width: 72px; padding: 4px 6px; }
+  .acts { display: flex; flex-direction: column; gap: 4px; min-width: 100px; }
+  code { font-size: 11px; color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SoulForge · База сервера</h1>
+    <p class="sub">Отдельная консоль SQLite · не часть игры · <code>SOULFORGE_ADMIN_KEY</code></p>
+
+    <div class="card" id="gate">
+      <label for="adminKey">Ключ администратора</label>
+      <input type="password" id="adminKey" autocomplete="off" spellcheck="false" />
+      <div class="row">
+        <button type="button" id="unlockBtn">Войти</button>
+      </div>
+      <p class="msg" id="gateMsg"></p>
+    </div>
+
+    <div id="panel" hidden>
+      <div class="card">
+        <p class="stats" id="stats">—</p>
+        <div class="row">
+          <input type="search" id="search" placeholder="Поиск по нику…" style="flex:1;min-width:160px;max-width:none" />
+          <button type="button" id="refreshBtn">Обновить</button>
+          <button type="button" id="purgeBtn">Очистить просроченные сессии</button>
+          <button type="button" id="logoutBtn">Выйти</button>
+        </div>
+      </div>
+      <div class="table-wrap" id="table"></div>
+    </div>
+  </div>
+  <script>
+(function () {
+  const KEY = "soulforge_db_admin_key";
+  const $ = (id) => document.getElementById(id);
+
+  function readKey() { try { return sessionStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
+  function writeKey(k) { try { if (k) sessionStorage.setItem(KEY, k); else sessionStorage.removeItem(KEY); } catch (e) {} }
+
+  function headers(json) {
+    const h = {};
+    if (json) h["Content-Type"] = "application/json";
+    const k = readKey();
+    if (k) h["X-Soulforge-Admin"] = k;
+    return h;
+  }
+
+  async function api(path, opts) {
+    opts = opts || {};
+    const res = await fetch(path, {
+      method: opts.method || "GET",
+      headers: headers(opts.json),
+      body: opts.body != null ? JSON.stringify(opts.body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, status: res.status, error: data.error || "Ошибка" };
+    return { ok: true, ...data };
+  }
+
+  function esc(s) {
+    return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  }
+
+  function fmtTs(ts) {
+    if (!ts) return "—";
+    try { return new Date(ts).toLocaleString("ru-RU"); } catch (e) { return String(ts); }
+  }
+
+  async function boot() {
+    const en = await api("/admin/enabled");
+    if (!en.ok || !en.enabled) {
+      $("gateMsg").textContent = "Админка отключена: задайте SOULFORGE_ADMIN_KEY на сервере.";
+      $("gateMsg").className = "msg err";
+      $("unlockBtn").disabled = true;
+      return;
+    }
+    if (readKey()) {
+      $("adminKey").value = readKey();
+      await loadPanel();
+    }
+  }
+
+  async function loadPanel() {
+    const q = ($("search").value || "").trim();
+    const overview = await api("/admin/overview");
+    if (!overview.ok) return failAuth(overview);
+    $("stats").textContent =
+      "Пользователей: " + overview.users +
+      " · Сессий: " + overview.sessions +
+      " · Рейтинг: " + overview.scores +
+      " · " + (overview.db || "soulforge.db");
+
+    const list = await api("/admin/users" + (q ? "?q=" + encodeURIComponent(q) : ""));
+    if (!list.ok) return failAuth(list);
+
+    $("gate").hidden = true;
+    $("panel").hidden = false;
+
+    const rows = list.rows || [];
+    if (!rows.length) {
+      $("table").innerHTML = '<p class="msg" style="padding:12px">Нет пользователей</p>';
+      return;
+    }
+
+    let html = "<table><thead><tr><th>ID</th><th>Ник</th><th>+</th><th>Сила</th><th>Adena</th><th>Заработано</th><th>Сессии</th><th></th></tr></thead><tbody>";
+    rows.forEach((u) => {
+      html += '<tr data-id="' + u.id + '">' +
+        "<td>" + u.id + "</td>" +
+        "<td><strong>" + esc(u.nick) + "</strong><br><small>" + fmtTs(u.created_at) + "</small></td>" +
+        '<td><input class="inp" data-f="max_plus" type="number" min="0" value="' + (u.max_plus || 0) + '"></td>' +
+        '<td><input class="inp" data-f="farm_power" type="number" min="0" value="' + (u.farm_power || 0) + '"></td>' +
+        '<td><input class="inp" data-f="adena" type="number" min="0" value="' + (u.adena || 0) + '"></td>' +
+        '<td><input class="inp" data-f="earned" type="number" min="0" value="' + (u.earned || 0) + '"></td>' +
+        "<td>" + (u.sessions || 0) + "</td>" +
+        '<td class="acts"><button data-act="save">Сохранить</button><button class="warn" data-act="delete">Удалить</button></td>' +
+        "</tr>";
+    });
+    html += "</tbody></table>";
+    $("table").innerHTML = html;
+    $("table").querySelectorAll("[data-act]").forEach((btn) => {
+      btn.onclick = () => rowAct(btn);
+    });
+  }
+
+  function failAuth(r) {
+    if (r.status === 401) {
+      writeKey("");
+      $("gateMsg").textContent = r.error || "Неверный ключ";
+      $("gateMsg").className = "msg err";
+      $("gate").hidden = false;
+      $("panel").hidden = true;
+    }
+  }
+
+  async function rowAct(btn) {
+    const row = btn.closest("tr[data-id]");
+    if (!row) return;
+    const id = row.dataset.id;
+    const act = btn.dataset.act;
+    if (act === "save") {
+      const body = {};
+      row.querySelectorAll(".inp").forEach((inp) => { body[inp.dataset.f] = Number(inp.value) || 0; });
+      btn.disabled = true;
+      const r = await api("/admin/users/" + id + "/score", { method: "PUT", json: true, body });
+      btn.disabled = false;
+      if (r.ok) loadPanel();
+      else alert(r.error || "Ошибка");
+      return;
+    }
+    if (act === "delete") {
+      const nick = row.querySelector("strong")?.textContent || id;
+      if (!confirm('Удалить «' + nick + '» и все данные?')) return;
+      btn.disabled = true;
+      const r = await api("/admin/users/" + id, { method: "DELETE" });
+      btn.disabled = false;
+      if (r.ok) loadPanel();
+      else alert(r.error || "Ошибка");
+    }
+  }
+
+  $("unlockBtn").onclick = async () => {
+    writeKey(($("adminKey").value || "").trim());
+    $("gateMsg").textContent = "";
+    await loadPanel();
+  };
+  $("adminKey").addEventListener("keydown", (e) => { if (e.key === "Enter") $("unlockBtn").click(); });
+  $("logoutBtn").onclick = () => {
+    writeKey("");
+    $("adminKey").value = "";
+    $("gate").hidden = false;
+    $("panel").hidden = true;
+  };
+  $("refreshBtn").onclick = () => loadPanel();
+  let t;
+  $("search").addEventListener("input", () => { clearTimeout(t); t = setTimeout(loadPanel, 300); });
+  $("purgeBtn").onclick = async () => {
+    const r = await api("/admin/maintenance/purge-sessions", { method: "POST", json: true, body: {} });
+    if (r.ok) { alert("Удалено сессий: " + (r.removed || 0)); loadPanel(); }
+    else alert(r.error || "Ошибка");
+  };
+
+  boot();
+})();
+  </script>
+</body>
+</html>

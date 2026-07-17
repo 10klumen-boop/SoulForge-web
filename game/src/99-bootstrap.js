@@ -76,11 +76,6 @@ document.addEventListener("keydown", (e) => {
     show(to);
   }
   else if (e.key === "Escape" && ($("#screen-characters").classList.contains("active") || $("#screen-leaderboard")?.classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
-  else if (e.key === "Escape" && $("#screen-cloud-admin")?.classList.contains("active")) {
-    Audio2.click();
-    const back = document.getElementById("cloudAdminBack");
-    if (back) back.click();
-  }
   else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
@@ -103,7 +98,6 @@ if (typeof wireHomeMenu === "function") wireHomeMenu();
 if (typeof wireAvatarGear === "function") wireAvatarGear();
 wirePortableSaveUI();
 initCloud();
-if (typeof initCloudAdmin === "function") initCloudAdmin();
 if (typeof checkAchievements === "function") checkAchievements({ silent: true });
 if (typeof migrateAvatar === "function") migrateAvatar();
 if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();

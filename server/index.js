@@ -15,6 +15,7 @@ const DATA_DIR = process.env.SOULFORGE_DATA || path.join(__dirname, "data");
 const DB_PATH = process.env.SOULFORGE_DB || path.join(DATA_DIR, "soulforge.db");
 const SERVE_GAME = process.env.SOULFORGE_SERVE_GAME !== "0";
 const GAME_DIR = process.env.SOULFORGE_GAME || path.join(__dirname, "..", "game");
+const ADMIN_DIR = path.join(__dirname, "admin");
 const SESSION_DAYS = 30;
 const BCRYPT_ROUNDS = 10;
 const ADMIN_KEY = String(process.env.SOULFORGE_ADMIN_KEY || "").trim();
@@ -359,6 +360,11 @@ admin.post("/maintenance/purge-sessions", (_req, res) => {
 
 app.use("/admin", admin);
 
+if (fs.existsSync(ADMIN_DIR)) {
+  app.get("/db-admin", (_req, res) => res.redirect("/db-admin/"));
+  app.use("/db-admin", express.static(ADMIN_DIR, { index: "index.html" }));
+}
+
 if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
   app.use(express.static(GAME_DIR, { fallthrough: true, index: "index.html" }));
   app.get("*", (req, res, next) => {
@@ -366,7 +372,8 @@ if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
       req.path.startsWith("/auth") ||
       req.path.startsWith("/runs") ||
       req.path.startsWith("/leaderboard") ||
-      req.path.startsWith("/admin")
+      req.path.startsWith("/admin") ||
+      req.path.startsWith("/db-admin")
     ) {
       return next();
     }
@@ -380,7 +387,7 @@ app.listen(PORT, HOST, () => {
   const shown = HOST === "0.0.0.0" ? "localhost" : HOST;
   console.log(`SoulForge cloud http://${shown}:${PORT} (bind ${HOST})`);
   console.log(`DB: ${DB_PATH}`);
-  if (ADMIN_KEY) console.log("Admin API: enabled (/admin/*, header X-Soulforge-Admin)");
+  if (ADMIN_KEY) console.log("Admin console: /db-admin/ (header X-Soulforge-Admin)");
   else console.log("Admin API: disabled (set SOULFORGE_ADMIN_KEY to enable)");
   if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
     console.log(`Static game: ${GAME_DIR}`);

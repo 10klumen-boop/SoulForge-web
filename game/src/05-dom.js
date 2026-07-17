@@ -28,7 +28,6 @@ function show(screen) {
     const pop = document.getElementById("settingsPop");
     if (pop) pop.hidden = false;
     if (typeof syncSettingsUI === "function") syncSettingsUI();
-    if (typeof refreshCloudAdminAvailability === "function") refreshCloudAdminAvailability();
   }
   if (screen === "login" && typeof syncCloudUI === "function") syncCloudUI();
 }
