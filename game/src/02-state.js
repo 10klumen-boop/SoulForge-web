@@ -18,7 +18,7 @@ function defaultState() {
     adena: START_ADENA,
     farmZone: "banana_mine",
     storyProgress: { chaptersSeen: {}, unlocksShown: {} },
-    questProgress: { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {} },
+    questProgress: { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {}, stepRewards: {} },
     records: {},
     totals: { tries: 0, fails: 0, earned: 0 },
     muted: false,
@@ -141,12 +141,13 @@ function mergeSavedData(data) {
     st.storyProgress = { chaptersSeen: {}, unlocksShown: {} };
   }
   if (!st.questProgress || typeof st.questProgress !== "object") {
-    st.questProgress = { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {} };
+    st.questProgress = { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {}, stepRewards: {} };
   } else {
     if (!st.questProgress.goldenKills) st.questProgress.goldenKills = {};
     if (!st.questProgress.bosses) st.questProgress.bosses = {};
     if (!st.questProgress.briefings) st.questProgress.briefings = {};
     if (!st.questProgress.chapterRewards) st.questProgress.chapterRewards = {};
+    if (!st.questProgress.stepRewards) st.questProgress.stepRewards = {};
   }
   applyBalanceResetIfNeeded(st);
   if (typeof initCharacters === "function") initCharacters();

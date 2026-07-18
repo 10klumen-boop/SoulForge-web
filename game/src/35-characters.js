@@ -103,15 +103,41 @@ function slotIsCreated(slot) {
   return !!(a?.created && String(a.name || "").trim());
 }
 
+function countCharacterSlots() {
+  migrateCharactersStructure();
+  const total = state.characters.length;
+  const created = listCreatedCharacters().length;
+  return { total, created, max: CHARACTER_MAX_SLOTS };
+}
+
 function updateHomeCharsSubtitle() {
   const el = document.getElementById("homeCharsSub");
   if (!el) return;
   migrateCharactersStructure();
+  const { created, max } = countCharacterSlots();
   const a = state.avatar;
   if (a?.created && String(a.name || "").trim()) {
-    el.textContent = "Играем: " + a.name;
+    el.textContent = "Играем: " + a.name + " · " + created + "/" + max;
+  } else if (created === 0 && state.characters.length === 0) {
+    el.textContent = "0/" + max + " слотов · создай первого";
+  } else if (created === 0) {
+    el.textContent = "0/" + max + " · заверши создание";
   } else {
-    el.textContent = "Выбор и создание";
+    el.textContent = created + "/" + max + " персонажей";
+  }
+}
+
+function updateCharMenuHint() {
+  const el = document.getElementById("charMenuHint");
+  if (!el) return;
+  migrateCharactersStructure();
+  const { created, total, max } = countCharacterSlots();
+  if (total === 0) {
+    el.textContent = "Нет персонажей · нажми «+ Новый персонаж» · слоты " + created + "/" + max;
+  } else if (created === 0) {
+    el.textContent = "Слот открыт · выбери его и задай имя · " + created + "/" + max;
+  } else {
+    el.textContent = "Выбери героя, создай нового или удали · " + created + "/" + max + " персонажей";
   }
 }
 
@@ -181,13 +207,12 @@ async function deleteCharacter(id) {
   flushActiveCharacterToSlot();
   state.characters = state.characters.filter((c) => c.id !== id);
   if (!state.characters.length) {
-    const newId = newCharacterId();
-    state.characters.push({ id: newId, progress: freshCharacterProgress() });
-    state.activeCharacterId = newId;
+    state.activeCharacterId = null;
+    if (typeof applyProgressToState === "function") applyProgressToState(freshCharacterProgress());
   } else if (state.activeCharacterId === id) {
     state.activeCharacterId = state.characters[0].id;
+    loadActiveCharacter();
   }
-  loadActiveCharacter();
   if (typeof migrateAvatar === "function") migrateAvatar();
   save();
   const feed = document.getElementById("gameLogFeed");
@@ -222,8 +247,13 @@ function renderCharacterRoster() {
   migrateCharactersStructure();
   flushActiveCharacterToSlot();
   updateHomeCharsSubtitle();
+  updateCharMenuHint();
   const active = state.activeCharacterId;
   let html = "";
+  if (!state.characters.length) {
+    html =
+      '<p class="char-roster-empty">Слотов пока нет. Создай первого героя — прогресс сохранится на этом аккаунте.</p>';
+  }
   state.characters.forEach((slot) => {
     const a = slot.progress?.avatar || {};
     const created = slotIsCreated(slot);

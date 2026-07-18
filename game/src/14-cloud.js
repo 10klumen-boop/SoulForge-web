@@ -294,10 +294,11 @@ async function submitLeaderboardEvent(event, extra, opts) {
   }
 }
 
-async function flushPendingSubmissions() {
-  if (!cloudEnabled() || !readCloudAuth()?.token) return { flushed: 0 };
+async function flushPendingSubmissions(opts) {
+  opts = opts || {};
+  if (!cloudEnabled() || !readCloudAuth()?.token) return { flushed: 0, remaining: 0 };
   const pending = readPendingSubmissions();
-  if (!pending.length) return { flushed: 0 };
+  if (!pending.length) return { flushed: 0, remaining: 0 };
   const left = [];
   let flushed = 0;
   for (const item of pending) {
@@ -314,6 +315,12 @@ async function flushPendingSubmissions() {
     }
   }
   writePendingSubmissions(left);
+  syncCloudUI();
+  if (opts.notify && flushed > 0 && typeof toast === "function") {
+    toast("В рейтинг отправлено: " + flushed, "success");
+  } else if (opts.notify && pending.length && flushed === 0 && left.length && typeof toast === "function") {
+    toast("Очередь рейтинга не ушла — попробуй позже", "warn");
+  }
   return { flushed, remaining: left.length };
 }
 
@@ -329,6 +336,31 @@ async function fetchLeaderboard(mode) {
   } catch (e) {
     return { ok: false, offline: true, rows: [] };
   }
+}
+
+function updateHomeRatingSubtitle() {
+  const el = document.getElementById("homeRatingSub");
+  if (!el) return;
+  const pending = readPendingSubmissions().length;
+  const auth = readCloudAuth();
+  if (!cloudEnabled()) {
+    el.textContent = pending ? ("Оффлайн · в очереди " + pending) : "Сервер оффлайн";
+    return;
+  }
+  if (!auth?.nick) {
+    el.textContent = pending
+      ? ("Гость · в очереди " + pending + " · войди")
+      : "Смотри гостем · войди, чтобы попасть";
+    return;
+  }
+  el.textContent = pending
+    ? (auth.nick + " · очередь " + pending)
+    : "Заточка · сила · богатство";
+}
+
+function isLeaderboardMe(rowName, me) {
+  if (!me || !rowName) return false;
+  return String(rowName).toLowerCase() === String(me).toLowerCase();
 }
 
 function syncCloudUI() {
@@ -354,11 +386,11 @@ function syncCloudUI() {
     } else if (auth?.nick) {
       hint.textContent = pending
         ? ("В сети · " + auth.nick + " · в очереди " + pending)
-        : ("В сети · " + auth.nick + " · «Войти» для продолжения");
+        : ("В сети · " + auth.nick + " · «Отмена» — в меню · «Выйти» — сменить аккаунт");
     } else {
-      hint.textContent = cloudEnabled()
-        ? "Сервер доступен · войди для рейтинга (или «Отмена» — гость)"
-        : "Рейтинг и прогресс привязаны к аккаунту.";
+      hint.textContent = pending
+        ? ("Гость · в очереди " + pending + " — войди, чтобы отправить в рейтинг")
+        : "Войди для рейтинга и сохранения на аккаунте · «Отмена» — гость";
     }
   }
   const nickInput = document.getElementById("cloudNick");
@@ -381,14 +413,39 @@ function syncCloudUI() {
   if (passInput) passInput.hidden = false;
   const tile = document.getElementById("lbTileMeta");
   if (tile) tile.textContent = auth?.nick || (cloudEnabled() ? "Войти" : "Офлайн");
+
+  const homeStatus = document.getElementById("homeAccountStatus");
+  if (homeStatus) {
+    if (auth?.nick) {
+      homeStatus.textContent = "Аккаунт: " + auth.nick;
+      homeStatus.classList.remove("is-guest");
+    } else {
+      homeStatus.textContent = "Гость · прогресс только на этом устройстве";
+      homeStatus.classList.add("is-guest");
+    }
+  }
   const homeLoginBtn = document.getElementById("homeLoginBtn");
   if (homeLoginBtn) {
-    homeLoginBtn.title = auth?.nick ? ("В сети · " + auth.nick) : "";
+    if (auth?.nick) {
+      homeLoginBtn.textContent = "Сменить аккаунт";
+      homeLoginBtn.title = "В сети · " + auth.nick;
+    } else {
+      homeLoginBtn.textContent = "Войти в аккаунт";
+      homeLoginBtn.title = "Логин или регистрация";
+    }
   }
+  updateHomeRatingSubtitle();
+  if (typeof updateHomeCharsSubtitle === "function") updateHomeCharsSubtitle();
 }
 
 function noteLeaderboardEvent(event, extra, opts) {
-  submitLeaderboardEvent(event, extra, opts);
+  submitLeaderboardEvent(event, extra, opts).then((r) => {
+    if (!r?.queued || (event !== "record" && event !== "sell")) return;
+    if (typeof toast !== "function") return;
+    const auth = readCloudAuth();
+    if (!auth?.token) return;
+    if (r.offline) toast("Нет сети · рекорд в очереди", "warn");
+  });
 }
 
 function formatLbValue(mode, row) {
@@ -401,12 +458,31 @@ function formatLbValue(mode, row) {
 async function renderLeaderboard() {
   const list = document.getElementById("lbList");
   const status = document.getElementById("lbStatus");
+  const cta = document.getElementById("lbLoginCta");
   if (!list) return;
   list.innerHTML = "";
+  const auth = readCloudAuth();
+  const pending = readPendingSubmissions().length;
+  const modeLabel = { enchant: "Заточка", power: "Сила", wealth: "Богатство" }[_lbMode] || _lbMode;
+
+  if (cta) {
+    cta.hidden = !!(auth?.nick) || !cloudEnabled();
+  }
+
   if (status) {
-    if (!cloudEnabled()) status.textContent = "Сервер не подключён. Запустите server/ или укажите SOULFORGE_CLOUD.";
-    else if (!readCloudAuth()) status.textContent = "Можно смотреть таблицу гостем. Войдите в главном меню, чтобы попасть в рейтинг.";
-    else status.textContent = "Режим: " + ({ enchant: "Заточка", power: "Сила", wealth: "Богатство" }[_lbMode] || _lbMode);
+    if (!cloudEnabled()) {
+      status.textContent = pending
+        ? "Сервер недоступен · в очереди " + pending + " событий"
+        : "Сервер не подключён";
+    } else if (!auth?.nick) {
+      status.textContent = pending
+        ? "Гость · смотришь таблицу · в очереди " + pending + " — войди, чтобы отправить"
+        : "Гость · смотришь таблицу · войди, чтобы попасть в рейтинг";
+    } else if (pending) {
+      status.textContent = modeLabel + " · " + auth.nick + " · отправка очереди: " + pending;
+    } else {
+      status.textContent = modeLabel + " · " + auth.nick;
+    }
   }
   document.querySelectorAll(".lb-tab").forEach((btn) => {
     btn.classList.toggle("sel", btn.dataset.mode === _lbMode);
@@ -419,22 +495,38 @@ async function renderLeaderboard() {
   if (!res.rows.length) {
     const empty = document.createElement("p");
     empty.className = "lb-empty";
-    empty.textContent = "Пока пусто — сыграй и отправь прогресс.";
+    empty.textContent = auth?.nick
+      ? "Пока пусто — заточи оружие или заверши фарм, затем обнови."
+      : "Пока пусто. Войди и сыграй, чтобы появиться в таблице.";
     list.appendChild(empty);
     return;
   }
   const me = getCloudNick();
+  let foundMe = false;
   res.rows.forEach((row) => {
+    const isMe = isLeaderboardMe(row.name, me);
+    if (isMe) foundMe = true;
     const el = document.createElement("div");
-    el.className = "lb-row" + (me && row.name === me ? " me" : "");
+    el.className = "lb-row" + (isMe ? " me" : "");
     el.innerHTML =
       '<span class="lb-rank">' + row.rank + "</span>" +
       '<span class="lb-name"></span>' +
       '<span class="lb-val"></span>';
-    el.querySelector(".lb-name").textContent = row.name || "—";
+    const nameEl = el.querySelector(".lb-name");
+    nameEl.textContent = row.name || "—";
+    if (isMe) {
+      const tag = document.createElement("span");
+      tag.className = "lb-me-tag";
+      tag.textContent = "ты";
+      nameEl.appendChild(tag);
+    }
     el.querySelector(".lb-val").textContent = formatLbValue(_lbMode, row);
     list.appendChild(el);
   });
+  if (me && !foundMe && status) {
+    status.textContent =
+      (status.textContent || modeLabel) + " · тебя ещё нет в топе — сыграй и нажми «Обновить»";
+  }
 }
 
 function openLeaderboard(opts) {
@@ -449,15 +541,31 @@ function openLeaderboard(opts) {
       show(to);
     };
   }
+  if (readCloudAuth()?.token) flushPendingSubmissions();
   renderLeaderboard();
   show("leaderboard");
   if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
 }
 
-function enterMainMenuFromLogin() {
+function enterMainMenuFromLogin(opts) {
+  opts = opts || {};
   if (typeof openHome === "function") openHome();
   else if (typeof show === "function") show("home");
   if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
+  const emptyRoster =
+    typeof listCreatedCharacters === "function"
+      ? listCreatedCharacters().length === 0
+      : !(state?.avatar?.created);
+  if (opts.afterRegister || (opts.guideCreate && emptyRoster)) {
+    if (typeof toast === "function") {
+      toast(
+        opts.afterRegister
+          ? "Аккаунт пустой — открой «Персонажи» и создай героя"
+          : "Сначала создай персонажа в «Персонажи»",
+        "system"
+      );
+    }
+  }
 }
 
 async function wireCloudAuthForms() {
@@ -480,7 +588,7 @@ async function wireCloudAuthForms() {
     if (existing?.nick && existing?.token && !password) {
       setMsg("С возвращением, " + existing.nick);
       await bindSaveToCloudNick(existing.nick);
-      enterMainMenuFromLogin();
+      enterMainMenuFromLogin({ guideCreate: true });
       return;
     }
     setMsg("Вход…");
@@ -488,8 +596,8 @@ async function wireCloudAuthForms() {
     if (r.ok) {
       setMsg("Добро пожаловать, " + r.nick);
       if (passEl) passEl.value = "";
-      flushPendingSubmissions();
-      enterMainMenuFromLogin();
+      await flushPendingSubmissions({ notify: true });
+      enterMainMenuFromLogin({ guideCreate: true });
     } else setMsg(r.error || "Ошибка входа", true);
   };
   if (loginBtn) {
@@ -508,8 +616,8 @@ async function wireCloudAuthForms() {
       if (r.ok) {
         setMsg("Аккаунт создан: " + r.nick);
         if (passEl) passEl.value = "";
-        flushPendingSubmissions();
-        enterMainMenuFromLogin();
+        await flushPendingSubmissions({ notify: true });
+        enterMainMenuFromLogin({ afterRegister: true });
       } else setMsg(r.error || "Ошибка регистрации", true);
     };
   }
@@ -565,10 +673,20 @@ async function wireCloudAuthForms() {
   });
   const refreshBtn = document.getElementById("lbRefreshBtn");
   if (refreshBtn) {
-    refreshBtn.onclick = () => {
+    refreshBtn.onclick = async () => {
       if (typeof Audio2 !== "undefined") Audio2.click();
-      noteLeaderboardEvent("snapshot", null, { force: true });
-      renderLeaderboard();
+      await flushPendingSubmissions({ notify: true });
+      await submitLeaderboardEvent("snapshot", null, { force: true });
+      await renderLeaderboard();
+    };
+  }
+  const lbCta = document.getElementById("lbLoginCta");
+  if (lbCta && !lbCta.dataset.wired) {
+    lbCta.dataset.wired = "1";
+    lbCta.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      if (typeof openLoginScreen === "function") openLoginScreen();
+      else show("login");
     };
   }
 }
@@ -576,7 +694,7 @@ async function wireCloudAuthForms() {
 function initCloud() {
   syncCloudUI();
   wireCloudAuthForms();
-  if (cloudEnabled()) flushPendingSubmissions();
+  if (cloudEnabled()) flushPendingSubmissions({ notify: true });
 }
 
 window.SoulforgeCloud = {

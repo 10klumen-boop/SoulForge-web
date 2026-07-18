@@ -54,6 +54,94 @@ const ZONE_CHAPTER_REWARDS = {
   },
 };
 
+/** Награда за шаг поручения (меньше главы; растёт с главой и номером шага). */
+function zoneQuestStepRewardDef(zoneId, step) {
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  const ch = Math.min(5, Math.max(1, zone?.chapter || 1));
+  const s = Math.min(3, Math.max(1, Number(step) || 1));
+  const adenaBase = [2200, 3500, 5200, 7200, 9500][ch - 1];
+  const stepMult = [1, 1.25, 1.55][s - 1];
+  const adena = Math.round(adenaBase * stepMult);
+  const soul = Math.max(1, Math.round([3, 5, 7, 9, 12][ch - 1] * [0.85, 1, 1.2][s - 1]));
+  let spirit = 0;
+  if (ch >= 2) {
+    spirit = Math.round([0, 2, 3, 5, 7][ch - 1] * [0.6, 0.9, 1.15][s - 1]);
+  }
+  const crystals = {};
+  if (s === 3) {
+    if (ch <= 2) crystals.D = 1;
+    else if (ch === 3) crystals.D = 1;
+    else crystals.C = 1;
+  } else if (s === 2 && ch >= 4) {
+    crystals.D = 1;
+  }
+  return { adena, soul, spirit, crystals };
+}
+
+function ensureStepRewardsState() {
+  ensureQuestProgress();
+  if (!state.questProgress.stepRewards) state.questProgress.stepRewards = {};
+}
+
+function isQuestStepRewardClaimed(questId) {
+  ensureStepRewardsState();
+  return !!state.questProgress.stepRewards[questId];
+}
+
+function formatQuestStepLootLines(zoneId, step) {
+  const rw = zoneQuestStepRewardDef(zoneId, step);
+  const lines = [];
+  const adena = typeof playtestIncome === "function" ? playtestIncome(rw.adena || 0) : (rw.adena || 0);
+  if (adena) lines.push("+" + fmtAdena(adena) + " adena");
+  if (rw.soul) lines.push("Soul Ore ×" + fmt(rw.soul));
+  if (rw.spirit) lines.push("Spirit Ore ×" + fmt(rw.spirit));
+  if (rw.crystals) {
+    Object.keys(rw.crystals).forEach((g) => {
+      if (rw.crystals[g]) lines.push("Кристалл " + g + " ×" + rw.crystals[g]);
+    });
+  }
+  return lines;
+}
+
+function formatQuestStepLootShort(zoneId, step) {
+  return formatQuestStepLootLines(zoneId, step).join(" · ");
+}
+
+function applyQuestStepReward(zoneId, step, questId, opts) {
+  opts = opts || {};
+  ensureStepRewardsState();
+  if (!questId || state.questProgress.stepRewards[questId]) {
+    return { adena: 0, summary: "", skipped: true };
+  }
+  const rw = zoneQuestStepRewardDef(zoneId, step);
+  if (typeof ensureWorkshopState === "function") ensureWorkshopState();
+  if (!state.crystals) state.crystals = { D: 0, C: 0, B: 0, A: 0 };
+  if (!state.materials) state.materials = { soul: 0, spirit: 0 };
+  let adena = typeof playtestIncome === "function" ? playtestIncome(rw.adena || 0) : (rw.adena || 0);
+  if (adena > 0) {
+    state.adena += adena;
+    state.totals.earned = (state.totals.earned || 0) + adena;
+  }
+  if (rw.soul) state.materials.soul = (state.materials.soul || 0) + rw.soul;
+  if (rw.spirit) state.materials.spirit = (state.materials.spirit || 0) + rw.spirit;
+  if (rw.crystals) {
+    Object.keys(rw.crystals).forEach((g) => {
+      state.crystals[g] = (state.crystals[g] || 0) + (rw.crystals[g] || 0);
+    });
+  }
+  state.questProgress.stepRewards[questId] = true;
+  if ($("#adena")) $("#adena").textContent = fmt(state.adena);
+  const summary = formatQuestStepLootShort(zoneId, step);
+  if (!opts.silent && typeof gameLog === "function" && summary) {
+    gameLog("Награда поручения " + step + "/" + (typeof QUESTS_PER_ZONE !== "undefined" ? QUESTS_PER_ZONE : 3) + ": " + summary, "success");
+  }
+  return { adena, rw, summary };
+}
+
+function grantQuestStepReward(zoneId, step, questId) {
+  return applyQuestStepReward(zoneId, step, questId);
+}
+
 function ensureChapterRewardsState() {
   ensureQuestProgress();
   if (!state.questProgress.chapterRewards) state.questProgress.chapterRewards = {};
@@ -211,14 +299,26 @@ function questJournalProgressSummary() {
 
 function questStepStatusHtml(def) {
   if (!def) return "";
-  if (isQuestStepComplete(def.id)) return '<span class="qj-status done">✓</span>';
+  const lootShort =
+    typeof formatQuestStepLootShort === "function"
+      ? formatQuestStepLootShort(def.zoneId, def.step)
+      : "";
+  if (isQuestStepComplete(def.id)) {
+    return (
+      '<span class="qj-status done">✓</span>' +
+      (lootShort ? '<span class="qj-step-loot claimed" title="Награда получена">' + lootShort + "</span>" : "")
+    );
+  }
   const kills = questKillsDone(def.id);
   const need = def.kills;
   let obj = kills + "/" + need;
   if (def.goldenKills) obj += " · ★" + questGoldenKillsDone(def.id) + "/" + def.goldenKills;
   const pct = Math.min(100, Math.round((kills / Math.max(1, need)) * 100));
-  return '<span class="qj-status active">' + obj + '</span>' +
-    '<span class="qj-step-bar"><i style="width:' + pct + '%"></i></span>';
+  return (
+    '<span class="qj-status active">' + obj + "</span>" +
+    '<span class="qj-step-bar"><i style="width:' + pct + '%"></i></span>' +
+    (lootShort ? '<span class="qj-step-loot" title="Награда за шаг">' + lootShort + "</span>" : "")
+  );
 }
 
 function renderQuestJournal() {

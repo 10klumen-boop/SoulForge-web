@@ -42,6 +42,41 @@ export SOULFORGE_DATA=/var/www/soulforge/server/data
 export SOULFORGE_SERVE_GAME=1
 ```
 
+## Деплой на VPS (шпаргалка)
+
+С ПК (мастерская `L2Raptus`):
+
+```bat
+deploy-vps.bat
+```
+
+Что делает: `export_release_web.py` → commit/push в `SoulForge-web` → на сервере `git pull` + `pm2`.
+
+SSH-ключ: `%USERPROFILE%\.ssh\soulforge_vps`  
+Один раз на VPS (после `ssh root@109.196.103.50` с паролем):
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvPhJdJyMmUI16wPkJ2TMvDIlgMgLQ3m5iopO8CpuK1 admin@DESKTOP-VG13O3Q' >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Вручную на сервере (если bat недоступен):
+
+```bash
+cd /var/www/soulforge && git pull --ff-only
+cd server && npm ci --omit=dev
+pm2 delete soulforge
+pm2 start ecosystem.config.cjs && pm2 save
+curl -sS http://127.0.0.1:8787/health
+```
+
+Админ-ключ: `SOULFORGE_ADMIN_KEY` в `ecosystem.config.cjs` **на VPS** (не коммить секреты в git). После смены:
+
+```bash
+pm2 delete soulforge && pm2 start ecosystem.config.cjs && pm2 save
+```
+
 ## PM2
 
 ```bash

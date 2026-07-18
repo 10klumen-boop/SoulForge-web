@@ -30,10 +30,38 @@ function renderScrolls() {
 
 function notifyWeaponRecord(w, plus) {
   if (!bumpWeaponRecord(w.id, plus)) return;
-  if (plus > safeLevel() + 4) toast("Новый рекорд: +" + plus + " " + w.name, "success");
+  const nick =
+    typeof getCloudNick === "function"
+      ? getCloudNick()
+      : (typeof SoulforgeCloud !== "undefined" ? SoulforgeCloud.getNick() : null);
+  let msg = "Рекорд: +" + plus + " «" + w.name + "»";
+  if (nick) msg += " · уходит в рейтинг";
+  else if (typeof cloudEnabled === "function" && cloudEnabled()) msg += " · войди, чтобы в таблицу";
+  if (typeof toast === "function") toast(msg, "success");
   if (typeof noteLeaderboardEvent === "function") {
     noteLeaderboardEvent("record", { weaponId: w.id, plus, grade: w.grade, weaponName: w.name });
   }
+}
+
+function playEnchantPlusPop(plus, opts) {
+  opts = opts || {};
+  const el = $("#stgPlus");
+  const stage = $("#stage");
+  if (el) {
+    el.textContent = "+" + plus;
+    el.classList.remove("plus-pop");
+    void el.offsetWidth;
+    el.classList.add("plus-pop");
+    setTimeout(() => el.classList.remove("plus-pop"), 560);
+  }
+  if (!stage) return;
+  stage.querySelectorAll(".wplus-float").forEach((n) => n.remove());
+  const float = document.createElement("div");
+  float.className = "wplus-float" + (opts.maxed ? " is-max" : "");
+  float.textContent = opts.maxed ? "+16!" : "+" + plus;
+  float.setAttribute("aria-hidden", "true");
+  stage.appendChild(float);
+  setTimeout(() => float.remove(), 900);
 }
 
 function renderBrokenVisual(w, broken) {
@@ -152,6 +180,7 @@ function doEnchant() {
       enchFlash("success", gi.color);
       const maxed = cur.plus >= MAX_PLUS; maxed ? Audio2.jackpot() : Audio2.success();
       enchantFirework(gi.color, maxed ? 52 : 36);
+      playEnchantPlusPop(cur.plus, { maxed });
       animMs = 520;
       setTimeout(() => stage.classList.remove("success"), animMs);
       setTimeout(() => stage.classList.remove("success-flash"), 880);

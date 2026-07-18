@@ -98,6 +98,7 @@
           <div class="home-eyebrow">SoulForge · Lineage 2</div>
           <h1 class="home-title">Enchant Sim</h1>
           <p class="home-tagline">Заточка, задания и adena в духе классического L2</p>
+          <p class="home-account" id="homeAccountStatus" aria-live="polite">Гость</p>
         </header>
         <nav class="home-nav" aria-label="Главное меню">
           <button type="button" class="home-nav-btn home-nav-play" id="homePlayBtn">
@@ -118,7 +119,7 @@
           </button>
         </nav>
         <footer class="home-footer">
-          <button type="button" class="home-login-link" id="homeLoginBtn">К окну логина</button>
+          <button type="button" class="home-login-link" id="homeLoginBtn">Войти в аккаунт</button>
           <span class="home-ver" data-game-ver>v0.31a-r</span>
         </footer>
       </div>
@@ -131,7 +132,7 @@
         <h2>Персонажи</h2>
       </div>
       <div class="char-menu-body sf-scroll sub-screen-body">
-        <p class="char-menu-hint">Выбери героя, создай нового или удали слот · до 5 персонажей</p>
+        <p class="char-menu-hint" id="charMenuHint">Выбери героя, создай нового или удали слот · до 5 персонажей</p>
         <div class="char-roster" id="charRoster" role="listbox" aria-label="Слоты персонажей"></div>
         <button type="button" class="char-menu-create" id="charMenuCreateBtn">+ Новый персонаж</button>
       </div>
@@ -210,6 +211,7 @@
           <button type="button" class="lb-tab" data-mode="wealth">Богатство</button>
         </div>
         <p class="lb-status" id="lbStatus">—</p>
+        <button type="button" class="lb-login-cta" id="lbLoginCta" hidden>Войти в аккаунт</button>
         <div class="lb-list" id="lbList"></div>
       </div>
     </section>
@@ -502,7 +504,9 @@
           <div class="ench-rays" aria-hidden="true"></div>
           <div class="ench-flash" id="enchFlash" aria-hidden="true"></div>
           <div class="wname" id="stgName">—</div>
-          <div class="wplus" id="stgPlus">+0</div>
+          <div class="wplus-wrap">
+            <div class="wplus" id="stgPlus">+0</div>
+          </div>
           <div class="safezone" id="safeNote">+0…+3 — безопасная заточка</div>
           <div class="weapon-wrap">
             <div class="aura" id="aura"></div>

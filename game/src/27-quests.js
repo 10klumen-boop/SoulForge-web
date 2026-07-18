@@ -78,7 +78,7 @@ function questStepId(zoneId, step) {
 
 function ensureQuestProgress() {
   if (!state.questProgress || typeof state.questProgress !== "object") {
-    state.questProgress = { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {} };
+    state.questProgress = { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {}, stepRewards: {} };
   }
   const q = state.questProgress;
   if (!q.completed) q.completed = {};
@@ -87,6 +87,7 @@ function ensureQuestProgress() {
   if (!q.bosses) q.bosses = {};
   if (!q.briefings) q.briefings = {};
   if (!q.chapterRewards) q.chapterRewards = {};
+  if (!q.stepRewards) q.stepRewards = {};
 }
 
 function prevFarmZone(zone) {
@@ -244,18 +245,33 @@ function onQuestMobKill(zoneId, mobType) {
   const done = isQuestStepObjectivesMet(def);
   if (done) {
     markQuestStepComplete(def.id);
+    const loot =
+      typeof grantQuestStepReward === "function"
+        ? grantQuestStepReward(zoneId, def.step, def.id)
+        : null;
+    const lootBit = loot?.summary ? " · " + loot.summary : "";
     const next = activeZoneQuest(zoneId);
     if (next) {
-      if (typeof gameLog === "function") gameLog(def.title + " — выполнено. Следующее: " + next.step + "/" + QUESTS_PER_ZONE, "success");
-      if (typeof toast === "function") toast("✓ Поручение " + def.step + "/" + QUESTS_PER_ZONE + " — дальше " + next.step, "success");
+      if (typeof gameLog === "function") {
+        gameLog(def.title + " — выполнено" + (loot?.summary ? " (" + loot.summary + ")" : "") + ". Следующее: " + next.step + "/" + QUESTS_PER_ZONE, "success");
+      }
+      if (typeof toast === "function") {
+        toast("✓ Поручение " + def.step + "/" + QUESTS_PER_ZONE + lootBit, "success");
+      }
     } else {
       const boss = zoneBossDef(zoneId);
-      if (typeof gameLog === "function") gameLog("Все поручения выполнены — на поле явится " + boss.name, "success");
-      if (typeof toast === "function") toast("☠ Босс локации: " + boss.name + " — выйди на поле!", "warn");
+      if (typeof gameLog === "function") {
+        gameLog("Все поручения выполнены" + (loot?.summary ? " (" + loot.summary + ")" : "") + " — на поле явится " + boss.name, "success");
+      }
+      if (typeof toast === "function") {
+        toast("☠ Босс: " + boss.name + lootBit, "warn");
+      }
     }
+    if (typeof noteLeaderboardEvent === "function") noteLeaderboardEvent("snapshot");
     if (typeof notifyFarmZoneUnlocks === "function") notifyFarmZoneUnlocks();
     if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
     if (typeof renderStoryArcBar === "function") renderStoryArcBar();
+    if (typeof renderQuestJournal === "function") renderQuestJournal();
     if (typeof checkAchievements === "function") checkAchievements();
   }
   if (typeof renderMineQuestHud === "function") renderMineQuestHud();
@@ -342,6 +358,14 @@ function questBodyHtml(def) {
   if (def.goldenKills) obj += " и <b>" + def.goldenKills + "</b> элитных целей (золотых)";
   obj += ". У врагов есть <b>HP</b> — урон зависит от силы.";
   parts.push("<p>Цель: " + obj + "</p>");
+  if (typeof formatQuestStepLootLines === "function") {
+    const lootLines = formatQuestStepLootLines(def.zoneId, def.step);
+    if (lootLines.length) {
+      parts.push('<div class="quest-step-loot"><p><b>Награда за шаг:</b></p><ul>');
+      lootLines.forEach((ln) => parts.push("<li>" + ln + "</li>"));
+      parts.push("</ul></div>");
+    }
+  }
   if (def.step === def.stepsTotal) {
     parts.push("<p><b>После этого поручения</b> на поле явится босс локации.</p>");
   }

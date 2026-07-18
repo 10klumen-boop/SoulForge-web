@@ -37,7 +37,14 @@ function openCharactersScreen() {
 
 function enterGameHub() {
   if (typeof needsAvatarSetup === "function" && needsAvatarSetup()) {
-    if (typeof toast === "function") toast("Сначала создай персонажа", "warn");
+    if (typeof toast === "function") {
+      const n =
+        typeof listCreatedCharacters === "function" ? listCreatedCharacters().length : 0;
+      toast(
+        n === 0 ? "Сначала создай персонажа в «Персонажи»" : "Досоздай персонажа: имя, раса, класс",
+        "warn"
+      );
+    }
     openCharactersScreen();
     return;
   }
