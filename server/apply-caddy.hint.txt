@@ -1,0 +1,10 @@
+@echo off
+REM Apply Caddyfile from repo onto this VPS (run ON the server)
+cd /d "%~dp0" 2>nul
+set "SRC=/var/www/soulforge/server/Caddyfile"
+if not exist "%SRC%" set "SRC=%~dp0Caddyfile"
+echo Use on Linux VPS:
+echo   sudo cp /var/www/soulforge/server/Caddyfile /etc/caddy/Caddyfile
+echo   sudo caddy validate --config /etc/caddy/Caddyfile
+echo   sudo systemctl reload caddy
+echo   curl -sS https://soulfgonline.com/health

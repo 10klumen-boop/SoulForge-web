@@ -77,6 +77,28 @@ curl -sS http://127.0.0.1:8787/health
 pm2 delete soulforge && pm2 start ecosystem.config.cjs && pm2 save
 ```
 
+## Smoke bots (API)
+
+С ПК, против VPS:
+
+```bat
+tools\smoke-vps.bat
+```
+
+или из `server/`:
+
+```bat
+npm.cmd run smoke:vps
+npm.cmd run smoke:local
+```
+
+Проверяет: `/health`, рейтинги, register/login бота, tiny `/runs`, 401 без токена.
+Ник бота случайный (`Bot…..`), в рейтинг почти не влияет. Фиксированный ник:
+
+```bat
+node scripts\smoke-api.mjs --base http://109.196.103.50 --nick SmokeBot --pass SmokeBot1
+```
+
 ## PM2
 
 ```bash
