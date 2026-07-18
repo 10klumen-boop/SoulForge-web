@@ -2,12 +2,12 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>SoulForge Lineage 2 — Enchant Sim</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css" />
+<link rel="stylesheet" href="styles/main.css?v=m5" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -56,40 +56,41 @@
     <section class="screen active login-screen" id="screen-login">
       <div class="login-stage">
         <h1 class="login-logo">SoulForge Prelude</h1>
-        <div class="l2-login-win" role="dialog" aria-labelledby="l2LoginTitle">
-          <div class="l2-login-chrome" aria-hidden="true"></div>
-          <div class="l2-login-title" id="l2LoginTitle">Вход</div>
-          <div class="l2-login-body">
-            <label class="l2-login-field" for="cloudNick">
-              <span>Аккаунт</span>
-              <input type="text" id="cloudNick" maxlength="16" pattern="[A-Za-z]{2,16}" autocomplete="username" spellcheck="false" placeholder="2–16 латинских букв" />
-            </label>
-            <label class="l2-login-field" for="cloudPass">
-              <span>Пароль</span>
-              <input type="password" id="cloudPass" maxlength="72" pattern="[A-Za-z0-9]{6,72}" autocomplete="current-password" placeholder="латиница и цифры, от 6" />
-            </label>
-            <p class="l2-login-msg" id="cloudAuthMsg" aria-live="polite"></p>
-            <div class="l2-login-actions">
-              <button type="button" class="l2-login-btn l2-login-btn-primary" id="cloudLoginBtn">Войти</button>
-              <button type="button" class="l2-login-btn" id="cloudCancelBtn">Отмена</button>
+        <div class="login-panel">
+          <div class="l2-login-win" role="dialog" aria-labelledby="l2LoginTitle">
+            <div class="l2-login-chrome" aria-hidden="true"></div>
+            <div class="l2-login-title" id="l2LoginTitle">Вход</div>
+            <div class="l2-login-body">
+              <label class="l2-login-field" for="cloudNick">
+                <span>Аккаунт</span>
+                <input type="text" id="cloudNick" maxlength="16" pattern="[A-Za-z]{2,16}" autocomplete="username" spellcheck="false" placeholder="2–16 латинских букв" />
+              </label>
+              <label class="l2-login-field" for="cloudPass">
+                <span>Пароль</span>
+                <input type="password" id="cloudPass" maxlength="72" pattern="[A-Za-z0-9]{6,72}" autocomplete="current-password" placeholder="латиница и цифры, от 6" />
+              </label>
+              <p class="l2-login-msg" id="cloudAuthMsg" aria-live="polite"></p>
+              <div class="l2-login-actions">
+                <button type="button" class="l2-login-btn l2-login-btn-primary" id="cloudLoginBtn">Войти</button>
+                <button type="button" class="l2-login-btn" id="cloudCancelBtn">Отмена</button>
+              </div>
+              <div class="l2-login-extra">
+                <button type="button" class="l2-login-link" id="cloudRegisterBtn">Создать аккаунт</button>
+                <button type="button" class="l2-login-link" id="cloudLogoutBtn" hidden>Выйти</button>
+              </div>
+              <p class="l2-login-hint" id="cloudHint">Рейтинг и прогресс привязаны к аккаунту.</p>
+              <p class="l2-login-status" id="cloudAuthStatus" hidden>Гость</p>
+              <code class="player-id" id="playerIdShort" hidden title="">—</code>
             </div>
-            <div class="l2-login-extra">
-              <button type="button" class="l2-login-link" id="cloudRegisterBtn">Создать аккаунт</button>
-              <button type="button" class="l2-login-link" id="cloudLogoutBtn" hidden>Выйти</button>
-            </div>
-            <p class="l2-login-hint" id="cloudHint">Рейтинг и прогресс привязаны к аккаунту.</p>
-            <p class="l2-login-status" id="cloudAuthStatus" hidden>Гость</p>
-            <code class="player-id" id="playerIdShort" hidden title="">—</code>
           </div>
+          <p class="login-copy">SoulForge · фан-проект · не связан с NCsoft</p>
         </div>
-        <p class="login-copy">SoulForge · фан-проект · не связан с NCsoft</p>
+        <div class="login-corner" aria-label="Дополнительно">
+          <button type="button" class="login-corner-btn" id="loginAuthorBtn" title="От Автора">✦ От Автора</button>
+          <button type="button" class="login-corner-btn" id="loginSettingsBtn" title="Настройки">⚙ Настройки</button>
+        </div>
       </div>
       <button type="button" class="login-dev-skip" id="loginDevSkip" hidden>DEV · пропустить вход</button>
-      <div class="login-corner" aria-label="Дополнительно">
-        <button type="button" class="login-corner-btn" id="loginPatchBtn" title="Что нового">📜 Что нового</button>
-        <button type="button" class="login-corner-btn" id="loginAuthorBtn" title="От Автора">✦ От Автора</button>
-        <button type="button" class="login-corner-btn" id="loginSettingsBtn" title="Настройки">⚙ Настройки</button>
-      </div>
     </section>
 
     <section class="screen home-screen" id="screen-home">
