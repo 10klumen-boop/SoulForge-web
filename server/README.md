@@ -20,7 +20,9 @@ npm.cmd start
 | `HOST` | `0.0.0.0` | Локально слушать все интерфейсы |
 | `HOST` (VPS) | **`127.0.0.1`** | Только localhost — снаружи Caddy/nginx |
 | `SOULFORGE_DATA` | `server/data` | Каталог SQLite |
-| `SOULFORGE_DB` | `…/soulforge.db` | Явный путь к БД |
+| `SOULFORGE_DB` | `…/soulforge.db` | Явный путь к БД (SQLite) |
+| `SOULFORGE_DB_DRIVER` | `sqlite` | `sqlite` или `postgres` (postgres — после миграции) |
+| `DATABASE_URL` | *(пусто)* | PostgreSQL connection string |
 | `SOULFORGE_SERVE_GAME` | `1` | `0` = только API |
 | `SOULFORGE_GAME` | `../game` | Путь к статике |
 | `SOULFORGE_ADMIN_KEY` | *(пусто)* | Ключ для `/db-admin/` и API `/admin/*` |
@@ -123,12 +125,75 @@ sudo systemctl reload caddy
 
 ## Бэкап SQLite
 
+Скрипт: [`scripts/backup-sqlite.sh`](scripts/backup-sqlite.sh).
+
 ```bash
-# раз в сутки
-cp /var/www/soulforge/server/data/soulforge.db /var/backups/soulforge-$(date +%F).db
+# на VPS один раз
+mkdir -p /var/backups/soulforge
+cp /var/www/soulforge/server/scripts/backup-sqlite.sh /usr/local/bin/soulforge-backup-db
+chmod +x /usr/local/bin/soulforge-backup-db
+echo '15 3 * * * root /usr/local/bin/soulforge-backup-db' > /etc/cron.d/soulforge-db
 ```
 
-Cron: `0 3 * * * cp …`
+Или вручную: `cp /var/www/soulforge/server/data/soulforge.db /var/backups/soulforge-$(date +%F).db`
+
+## Что лежит в БД (и что нет)
+
+### В SQLite / будущем Postgres
+
+| Таблица | Что хранит |
+|---------|------------|
+| `users` | аккаунты (ник, bcrypt) |
+| `sessions` | токены входа |
+| `scores` | рейтинг **по персонажу** (`user_id` + `character_id`): имя героя, max+, farm_power, earned, adena, mobs |
+| `player_saves` | **полный прогресс** (`payload` JSON) + колонки-сводка для админки |
+| `player_characters` | персонажи по слотам (денормализация из сейва) |
+| `character_events` | журнал ключевых действий персонажа (заточка, лут, сессия фарма, квесты…) |
+| `character_backups` | снапшоты `progress` персонажа при каждом `PUT /save` (хранение последних ~40) |
+| `write_leases` | кто сейчас имеет право `PUT /save` (writerId вкладки) |
+
+Источник правды для игрока онлайн: **`PUT /save`** → `player_saves` (+ обновление `scores` и `player_characters`).
+
+**Write lease:** одновременно писать может только одна **вкладка** (`writerId` = device + tab). Второе устройство/вкладка получает `423` и может **перехватить** (сначала BroadcastChannel просит соседнюю вкладку сделать flush). Heartbeat ~30 с (+ flush), TTL ~90 с.
+
+### Только на клиенте (не в БД)
+
+| Где | Что |
+|-----|-----|
+| `localStorage` | токен входа, **кэш** сейва под ником, очередь `pending` для `/runs` |
+| `sessionStorage` | счётчик `seq` текущей сессии (анти-откат) |
+| `.sfsave` | ручной экспорт/импорт (portable save) |
+| `state.devTune` | dev-оверрайды баланса — **не** уходят в облако |
+
+### Частично / не полностью
+
+| API | В БД попадает | Не сохраняется |
+|-----|---------------|----------------|
+| `POST /runs` | `scores` по `characterId` (максимумы) | тип события, `records`, `attestation`, история забегов |
+| `POST /events` | строки в `character_events` | каждый тап/килл обычного моба |
+| `PUT /save` | сейв + scores + **бэкап progress** каждого слота | — |
+| `GET /leaderboard` | строки персонажей (`name`/`charName` + `nick`) | — |
+| Admin restore | подмена progress из `character_backups` + bump seq | — |
+
+Итого: **игровой прогресс** — `player_saves`. **Рейтинг** — на персонажа в `scores`. **Аудит** — `character_events` (ключевые действия, не каждый тап). **Откат героя** — `character_backups` (админка → «Бэкапы»).
+
+## Подготовка к PostgreSQL
+
+Схема целевой БД: [`db/schema.postgres.sql`](db/schema.postgres.sql).  
+Пример env: [`.env.example`](.env.example).
+
+План миграции (когда понадобится):
+
+1. `apt install postgresql` на VPS, `CREATE DATABASE soulforge`.
+2. Применить `schema.postgres.sql`.
+3. Скрипт `migrate-sqlite-to-postgres.mjs` (ещё не реализован) — копия из `soulforge.db`.
+4. В коде: слой `server/db/` + `pg` pool, `SOULFORGE_DB_DRIVER=postgres`.
+5. Smoke → переключить pm2 → оставить SQLite как бэкап на неделю.
+
+Пока в проде **SQLite** — этого достаточно до роста нагрузки.
+
+Код БД вынесен в [`db/`](db/): `index.js` (фабрика), `sqlite.js` (текущий драйвер), `save-utils.js` (сводка сейва).  
+`index.js` API вызывает `createStore()` — для Postgres позже добавится `db/postgres.js` с тем же интерфейсом.
 
 ## API
 
@@ -137,5 +202,9 @@ Cron: `0 3 * * * cp …`
 - `POST /auth/register` `{ nick, password }`
 - `POST /auth/login`
 - `POST /auth/logout` (Bearer)
-- `POST /runs` (Bearer) — maxPlus, farmPower, earned, adena
-- `GET /leaderboard/:mode` — `enchant` | `power` | `wealth`
+- `POST /runs` (Bearer) — characterId, charName, maxPlus, farmPower, earned, adena, mobs
+- `POST /events` (Bearer) — batch ключевых действий персонажа
+- `GET /events`, `GET /backups` (Bearer) — свой журнал / список снапшотов
+- `GET /leaderboard/:mode` — `enchant` | `power` | `wealth` | `mobs` (имя героя + ник аккаунта)
+- Admin: `GET …/backups`, `POST …/backups/:id/restore` — откат персонажа
+- Admin UI `/db-admin` — вкладки Аккаунты / События / Бэкапы / Рейтинг, фильтры, карточка игрока

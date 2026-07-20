@@ -3,51 +3,99 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SoulForge · База сервера</title>
+  <title>SoulForge · Админка</title>
   <style>
-    :root { --bg: #0e0c08; --panel: #1a140c; --edge: #5a4830; --gold: #c9a86a; --txt: #e8dcc8; --dim: #9a8e78; }
+    :root {
+      --bg: #0c0a07; --panel: #16110a; --panel2: #1e1710; --edge: #5a4830;
+      --gold: #c9a86a; --txt: #e8dcc8; --dim: #9a8e78; --ok: #7aaa6a; --bad: #c07050;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; font: 14px/1.45 system-ui, Segoe UI, sans-serif; background: var(--bg); color: var(--txt); }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
-    h1 { margin: 0 0 4px; font-size: 20px; color: var(--gold); }
-    .sub { margin: 0 0 20px; font-size: 12px; color: var(--dim); }
-  .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
-  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--gold); margin-bottom: 6px; }
-  input[type="password"], input[type="search"], input[type="number"], input[type="text"] {
-    width: 100%; max-width: 360px; padding: 8px 10px; border-radius: 3px;
-    border: 1px solid var(--edge); background: #0a0805; color: var(--txt);
-  }
-  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
-  button {
-    padding: 8px 14px; border-radius: 3px; border: 1px solid var(--edge);
-    background: linear-gradient(180deg, #6a5530, #2a2010); color: #f2e6c8;
-    font-weight: 600; font-size: 12px; cursor: pointer;
-  }
-  button:hover { filter: brightness(1.1); }
-  button.warn { border-color: #8a4030; color: #f0d0c0; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  .msg { margin-top: 10px; font-size: 12px; color: var(--dim); }
-  .msg.err { color: #e0a070; }
-  .stats { font-size: 13px; color: var(--gold); margin: 0 0 12px; }
-  .table-wrap { overflow: auto; border: 1px solid var(--edge); border-radius: 4px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th, td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,.06); text-align: left; vertical-align: top; }
-  th { background: #120e08; color: var(--gold); position: sticky; top: 0; }
-  td small { color: var(--dim); }
-  .inp { width: 72px; padding: 4px 6px; }
-  .acts { display: flex; flex-direction: column; gap: 4px; min-width: 100px; }
-  code { font-size: 11px; color: var(--gold); }
+    body { margin: 0; min-height: 100vh; font: 13px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--txt); }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 16px 14px 48px; }
+    h1 { margin: 0 0 2px; font-size: 20px; color: var(--gold); }
+    .sub { margin: 0 0 14px; font-size: 12px; color: var(--dim); }
+    .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; }
+    label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--gold); margin-bottom: 4px; }
+    input, select {
+      padding: 7px 9px; border-radius: 3px; border: 1px solid var(--edge);
+      background: #0a0805; color: var(--txt); font: inherit;
+    }
+    input[type="password"], input[type="search"], input[type="text"], input[type="number"], input[type="datetime-local"] {
+      width: 100%; max-width: 280px;
+    }
+    .filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px 10px; align-items: end; }
+    .filters .grow { grid-column: span 2; }
+    .filters input, .filters select { max-width: none; width: 100%; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .row.mt { margin-top: 10px; }
+    button {
+      padding: 7px 12px; border-radius: 3px; border: 1px solid var(--edge);
+      background: linear-gradient(180deg, #6a5530, #2a2010); color: #f2e6c8;
+      font-weight: 600; font-size: 12px; cursor: pointer;
+    }
+    button:hover { filter: brightness(1.1); }
+    button.ghost { background: #1a140c; }
+    button.warn { border-color: #8a4030; color: #f0d0c0; }
+    button.ok { border-color: #4a6a40; color: #d0e8c0; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .msg { margin-top: 8px; font-size: 12px; color: var(--dim); }
+    .msg.err { color: var(--bad); }
+    .stats { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12px; color: var(--gold); margin: 0; }
+    .stats b { color: var(--txt); font-weight: 700; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+    .tab {
+      padding: 8px 14px; border: 1px solid var(--edge); border-radius: 4px 4px 0 0;
+      background: #120e08; color: var(--dim); font-weight: 700; font-size: 12px; cursor: pointer;
+    }
+    .tab.sel { background: var(--panel2); color: var(--gold); border-bottom-color: var(--panel2); }
+    .table-wrap { overflow: auto; border: 1px solid var(--edge); border-radius: 4px; max-height: min(70vh, 720px); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,.06); text-align: left; vertical-align: top; }
+    th { background: #120e08; color: var(--gold); position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+    tr:hover td { background: rgba(201,168,106,.04); }
+    tr.clickable { cursor: pointer; }
+    td small, .muted { color: var(--dim); }
+    .pill {
+      display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+      border: 1px solid rgba(201,168,106,.35); color: var(--gold); white-space: nowrap;
+    }
+    .pill.evt { border-color: rgba(120,160,200,.4); color: #a8c8e0; }
+    .acts { display: flex; flex-wrap: wrap; gap: 4px; min-width: 120px; }
+    .acts button { padding: 4px 8px; font-size: 11px; }
+    .inp { width: 68px; padding: 3px 5px; }
+    code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: var(--gold); }
+    .pager { display: flex; gap: 8px; align-items: center; margin-top: 10px; color: var(--dim); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 1100px) {
+      .layout.has-detail { grid-template-columns: 1fr 380px; }
+    }
+    .detail {
+      background: var(--panel2); border: 1px solid var(--edge); border-radius: 6px;
+      padding: 12px; position: sticky; top: 8px; max-height: calc(100vh - 24px); overflow: auto;
+    }
+    .detail h2 { margin: 0 0 8px; font-size: 15px; color: var(--gold); }
+    .detail h3 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); }
+    .detail .close { float: right; }
+    .kv { display: grid; grid-template-columns: 100px 1fr; gap: 4px 8px; font-size: 12px; }
+    .kv span:first-child { color: var(--dim); }
+    .payload {
+      margin: 4px 0 0; padding: 6px 8px; background: #0a0805; border-radius: 3px;
+      font-family: ui-monospace, Consolas, monospace; font-size: 10px; color: var(--dim);
+      white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow: auto;
+    }
+    .empty { padding: 20px; color: var(--dim); text-align: center; }
+    .section[hidden], [hidden] { display: none !important; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>SoulForge · База сервера</h1>
-    <p class="sub">Отдельная консоль SQLite · не часть игры · <code>SOULFORGE_ADMIN_KEY</code></p>
+    <h1>SoulForge · Админка</h1>
+    <p class="sub">Пользователи · события · бэкапы · рейтинг · <code>SOULFORGE_ADMIN_KEY</code></p>
 
     <div class="card" id="gate">
       <label for="adminKey">Ключ администратора</label>
       <input type="password" id="adminKey" autocomplete="off" spellcheck="false" />
-      <div class="row">
+      <div class="row mt">
         <button type="button" id="unlockBtn">Войти</button>
       </div>
       <p class="msg" id="gateMsg"></p>
@@ -55,21 +103,155 @@
 
     <div id="panel" hidden>
       <div class="card">
-        <p class="stats" id="stats">—</p>
-        <div class="row">
-          <input type="search" id="search" placeholder="Поиск по нику…" style="flex:1;min-width:160px;max-width:none" />
-          <button type="button" id="refreshBtn">Обновить</button>
-          <button type="button" id="purgeBtn">Очистить просроченные сессии</button>
+        <p class="stats" id="stats"></p>
+        <div class="row mt">
+          <button type="button" class="ghost" id="refreshBtn">Обновить</button>
+          <button type="button" class="ghost" id="purgeBtn">Очистить сессии</button>
           <button type="button" id="logoutBtn">Выйти</button>
         </div>
       </div>
-      <div class="table-wrap" id="table"></div>
+
+      <div class="tabs" id="tabs">
+        <button type="button" class="tab sel" data-tab="users">Аккаунты</button>
+        <button type="button" class="tab" data-tab="events">События</button>
+        <button type="button" class="tab" data-tab="backups">Бэкапы</button>
+        <button type="button" class="tab" data-tab="scores">Рейтинг</button>
+      </div>
+
+      <div class="layout" id="layout">
+        <div>
+          <!-- USERS -->
+          <section class="section" id="sec-users">
+            <div class="card">
+              <div class="filters">
+                <div class="grow">
+                  <label>Поиск ника</label>
+                  <input type="search" id="usersQ" placeholder="nick…" />
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button type="button" id="usersApply">Найти</button>
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap" id="usersTable"></div>
+            <div class="pager" id="usersPager"></div>
+          </section>
+
+          <!-- EVENTS -->
+          <section class="section" id="sec-events" hidden>
+            <div class="card">
+              <div class="filters">
+                <div>
+                  <label>Ник</label>
+                  <input type="search" id="evNick" placeholder="nick…" />
+                </div>
+                <div>
+                  <label>Тип события</label>
+                  <select id="evType"><option value="">Все</option></select>
+                </div>
+                <div>
+                  <label>characterId</label>
+                  <input type="text" id="evChar" placeholder="c…" />
+                </div>
+                <div>
+                  <label>С</label>
+                  <input type="datetime-local" id="evSince" />
+                </div>
+                <div>
+                  <label>По</label>
+                  <input type="datetime-local" id="evUntil" />
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button type="button" id="evApply">Фильтр</button>
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap" id="eventsTable"></div>
+            <div class="pager" id="eventsPager"></div>
+          </section>
+
+          <!-- BACKUPS -->
+          <section class="section" id="sec-backups" hidden>
+            <div class="card">
+              <div class="filters">
+                <div>
+                  <label>Ник</label>
+                  <input type="search" id="bkNick" placeholder="nick…" />
+                </div>
+                <div>
+                  <label>characterId</label>
+                  <input type="text" id="bkChar" placeholder="c…" />
+                </div>
+                <div>
+                  <label>С</label>
+                  <input type="datetime-local" id="bkSince" />
+                </div>
+                <div>
+                  <label>По</label>
+                  <input type="datetime-local" id="bkUntil" />
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button type="button" id="bkApply">Фильтр</button>
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap" id="backupsTable"></div>
+            <div class="pager" id="backupsPager"></div>
+          </section>
+
+          <!-- SCORES -->
+          <section class="section" id="sec-scores" hidden>
+            <div class="card">
+              <div class="filters">
+                <div>
+                  <label>Ник</label>
+                  <input type="search" id="scNick" placeholder="nick…" />
+                </div>
+                <div>
+                  <label>Сортировка</label>
+                  <select id="scSort">
+                    <option value="enchant">Заточка</option>
+                    <option value="power">Сила</option>
+                    <option value="wealth">Богатство</option>
+                    <option value="mobs">Мобы</option>
+                    <option value="adena">Adena</option>
+                    <option value="updated">Обновлено</option>
+                  </select>
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button type="button" id="scApply">Фильтр</button>
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap" id="scoresTable"></div>
+            <div class="pager" id="scoresPager"></div>
+          </section>
+        </div>
+
+        <aside class="detail" id="detail" hidden>
+          <button type="button" class="ghost close" id="detailClose">Закрыть</button>
+          <div id="detailBody"></div>
+        </aside>
+      </div>
     </div>
   </div>
+
   <script>
 (function () {
   const KEY = "soulforge_db_admin_key";
   const $ = (id) => document.getElementById(id);
+  const state = {
+    tab: "users",
+    users: { q: "", offset: 0, limit: 50 },
+    events: { nick: "", event: "", characterId: "", since: null, until: null, offset: 0, limit: 100 },
+    backups: { nick: "", characterId: "", since: null, until: null, offset: 0, limit: 50 },
+    scores: { nick: "", sort: "enchant", offset: 0, limit: 100 },
+    selectedUserId: null,
+  };
 
   function readKey() { try { return sessionStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
   function writeKey(k) { try { if (k) sessionStorage.setItem(KEY, k); else sessionStorage.removeItem(KEY); } catch (e) {} }
@@ -86,7 +268,7 @@
     opts = opts || {};
     const res = await fetch(path, {
       method: opts.method || "GET",
-      headers: headers(opts.json),
+      headers: headers(!!opts.json || opts.body != null),
       body: opts.body != null ? JSON.stringify(opts.body) : undefined,
     });
     const data = await res.json().catch(() => ({}));
@@ -95,7 +277,8 @@
   }
 
   function esc(s) {
-    return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
   }
 
   function fmtTs(ts) {
@@ -103,7 +286,498 @@
     try { return new Date(ts).toLocaleString("ru-RU"); } catch (e) { return String(ts); }
   }
 
-  async function boot() {
+  function fmtNum(n) {
+    n = Number(n) || 0;
+    try { return n.toLocaleString("ru-RU"); } catch (e) { return String(n); }
+  }
+
+  function dtLocalToMs(val) {
+    if (!val) return null;
+    const t = Date.parse(val);
+    return Number.isFinite(t) ? t : null;
+  }
+
+  function qs(obj) {
+    const p = new URLSearchParams();
+    Object.keys(obj).forEach((k) => {
+      const v = obj[k];
+      if (v == null || v === "") return;
+      p.set(k, String(v));
+    });
+    const s = p.toString();
+    return s ? "?" + s : "";
+  }
+
+  function failAuth(r) {
+    if (r && r.status === 401) {
+      writeKey("");
+      $("gateMsg").textContent = r.error || "Неверный ключ";
+      $("gateMsg").className = "msg err";
+      $("gate").hidden = false;
+      $("panel").hidden = true;
+    }
+  }
+
+  function setTab(tab) {
+    state.tab = tab;
+    document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("sel", b.dataset.tab === tab));
+    ["users", "events", "backups", "scores"].forEach((t) => {
+      const el = $("sec-" + t);
+      if (el) el.hidden = t !== tab;
+    });
+    refreshTab();
+  }
+
+  function renderPager(el, total, page) {
+    const { offset, limit } = page;
+    const from = total ? offset + 1 : 0;
+    const to = Math.min(offset + limit, total);
+    el.innerHTML =
+      "<span>" + from + "–" + to + " из " + total + "</span>" +
+      '<button type="button" class="ghost" data-page="prev"' + (offset <= 0 ? " disabled" : "") + ">←</button>" +
+      '<button type="button" class="ghost" data-page="next"' + (offset + limit >= total ? " disabled" : "") + ">→</button>";
+    el.querySelectorAll("[data-page]").forEach((btn) => {
+      btn.onclick = () => {
+        if (btn.dataset.page === "prev") page.offset = Math.max(0, page.offset - page.limit);
+        else page.offset += page.limit;
+        refreshTab();
+      };
+    });
+  }
+
+  async function loadOverview() {
+    const overview = await api("/admin/overview");
+    if (!overview.ok) return failAuth(overview);
+    $("stats").innerHTML =
+      "<span>Аккаунты <b>" + overview.users + "</b></span>" +
+      "<span>Сессии <b>" + overview.sessions + "</b></span>" +
+      "<span>Рейтинг <b>" + overview.scores + "</b></span>" +
+      "<span>Сейвы <b>" + (overview.saves || 0) + "</b></span>" +
+      "<span>События <b>" + (overview.events || 0) + "</b></span>" +
+      "<span>Бэкапы <b>" + (overview.backups || 0) + "</b></span>" +
+      "<span class='muted'>" + esc(overview.db || "") + "</span>";
+  }
+
+  async function loadEventTypes() {
+    const r = await api("/admin/events/types");
+    if (!r.ok) return;
+    const sel = $("evType");
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Все</option>';
+    (r.rows || []).forEach((row) => {
+      const opt = document.createElement("option");
+      opt.value = row.event;
+      opt.textContent = row.event + " (" + row.n + ")";
+      sel.appendChild(opt);
+    });
+    sel.value = cur;
+  }
+
+  async function loadUsers() {
+    const p = state.users;
+    p.q = ($("usersQ").value || "").trim();
+    const r = await api("/admin/users" + qs({ q: p.q, limit: p.limit, offset: p.offset }));
+    if (!r.ok) return failAuth(r);
+    const rows = r.rows || [];
+    if (!rows.length) {
+      $("usersTable").innerHTML = '<p class="empty">Нет аккаунтов</p>';
+      $("usersPager").innerHTML = "";
+      return;
+    }
+    let html = "<table><thead><tr>" +
+      "<th>ID</th><th>Ник</th><th>Герой</th><th>Слоты</th><th>+</th><th>Сила</th><th>Мобы</th><th>Adena</th><th>Earned</th><th></th>" +
+      "</tr></thead><tbody>";
+    rows.forEach((u) => {
+      const hero = (u.active_name || "—") + (u.active_level ? " · ур." + u.active_level : "");
+      html += '<tr class="clickable" data-user="' + u.id + '">' +
+        "<td>" + u.id + "</td>" +
+        "<td><strong>" + esc(u.nick) + "</strong><br><small>" + fmtTs(u.created_at) + "</small></td>" +
+        "<td>" + esc(hero) + "<br><small>" + esc(u.save_farm_zone || "") + "</small></td>" +
+        "<td>" + (u.chars_count || 0) + "</td>" +
+        "<td>" + (u.max_plus || 0) + "</td>" +
+        "<td>" + fmtNum(u.farm_power) + "</td>" +
+        "<td>" + fmtNum(u.mobs) + "</td>" +
+        "<td>" + fmtNum(u.adena) + "</td>" +
+        "<td>" + fmtNum(u.earned) + "</td>" +
+        '<td class="acts" onclick="event.stopPropagation()">' +
+          '<button type="button" data-open="' + u.id + '">Открыть</button>' +
+          '<button type="button" class="warn" data-del="' + u.id + '" data-nick="' + esc(u.nick) + '">Удалить</button>' +
+        "</td></tr>";
+    });
+    html += "</tbody></table>";
+    $("usersTable").innerHTML = html;
+    $("usersTable").querySelectorAll("[data-user]").forEach((tr) => {
+      tr.onclick = () => openUser(Number(tr.dataset.user));
+    });
+    $("usersTable").querySelectorAll("[data-open]").forEach((btn) => {
+      btn.onclick = (e) => { e.stopPropagation(); openUser(Number(btn.dataset.open)); };
+    });
+    $("usersTable").querySelectorAll("[data-del]").forEach((btn) => {
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        if (!confirm('Удалить «' + btn.dataset.nick + '» и все данные?')) return;
+        const del = await api("/admin/users/" + btn.dataset.del, { method: "DELETE" });
+        if (del.ok) { if (state.selectedUserId === Number(btn.dataset.del)) closeDetail(); loadUsers(); loadOverview(); }
+        else alert(del.error || "Ошибка");
+      };
+    });
+    renderPager($("usersPager"), rows.length < p.limit && p.offset === 0 ? rows.length : p.offset + rows.length + (rows.length === p.limit ? 1 : 0), p);
+    // Approximate pager when API has no total — show next if full page
+    $("usersPager").innerHTML =
+      "<span>показано " + rows.length + (p.offset ? " · offset " + p.offset : "") + "</span>" +
+      '<button type="button" class="ghost" data-page="prev"' + (p.offset <= 0 ? " disabled" : "") + ">←</button>" +
+      '<button type="button" class="ghost" data-page="next"' + (rows.length < p.limit ? " disabled" : "") + ">→</button>";
+    $("usersPager").querySelectorAll("[data-page]").forEach((btn) => {
+      btn.onclick = () => {
+        if (btn.dataset.page === "prev") p.offset = Math.max(0, p.offset - p.limit);
+        else p.offset += p.limit;
+        loadUsers();
+      };
+    });
+  }
+
+  async function loadEvents() {
+    const p = state.events;
+    p.nick = ($("evNick").value || "").trim();
+    p.event = $("evType").value || "";
+    p.characterId = ($("evChar").value || "").trim();
+    p.since = dtLocalToMs($("evSince").value);
+    p.until = dtLocalToMs($("evUntil").value);
+    const r = await api("/admin/events" + qs({
+      nick: p.nick, event: p.event, characterId: p.characterId,
+      since: p.since, until: p.until, limit: p.limit, offset: p.offset,
+    }));
+    if (!r.ok) return failAuth(r);
+    const rows = r.rows || [];
+    if (!rows.length) {
+      $("eventsTable").innerHTML = '<p class="empty">Нет событий по фильтру</p>';
+      renderPager($("eventsPager"), r.total || 0, p);
+      return;
+    }
+    let html = "<table><thead><tr><th>Когда</th><th>Аккаунт</th><th>Герой</th><th>Событие</th><th>Adena</th><th>Payload</th></tr></thead><tbody>";
+    rows.forEach((e) => {
+      const payload = e.payload ? JSON.stringify(e.payload) : "";
+      html += '<tr class="clickable" data-user="' + e.userId + '">' +
+        "<td><small>" + fmtTs(e.createdAt) + "</small></td>" +
+        "<td><strong>" + esc(e.nick) + "</strong><br><small>#" + e.userId + "</small></td>" +
+        "<td>" + esc(e.charName || "—") + "<br><small class='mono'>" + esc(e.characterId) + "</small></td>" +
+        '<td><span class="pill evt">' + esc(e.event) + "</span></td>" +
+        "<td>" + (e.adena != null ? fmtNum(e.adena) : "—") + "</td>" +
+        "<td>" + (payload ? '<div class="payload">' + esc(payload) + "</div>" : "—") + "</td>" +
+        "</tr>";
+    });
+    html += "</tbody></table>";
+    $("eventsTable").innerHTML = html;
+    $("eventsTable").querySelectorAll("[data-user]").forEach((tr) => {
+      tr.onclick = () => openUser(Number(tr.dataset.user));
+    });
+    renderPager($("eventsPager"), r.total || 0, p);
+  }
+
+  async function loadBackups() {
+    const p = state.backups;
+    p.nick = ($("bkNick").value || "").trim();
+    p.characterId = ($("bkChar").value || "").trim();
+    p.since = dtLocalToMs($("bkSince").value);
+    p.until = dtLocalToMs($("bkUntil").value);
+    const r = await api("/admin/backups" + qs({
+      nick: p.nick, characterId: p.characterId,
+      since: p.since, until: p.until, limit: p.limit, offset: p.offset,
+    }));
+    if (!r.ok) return failAuth(r);
+    const rows = r.rows || [];
+    if (!rows.length) {
+      $("backupsTable").innerHTML = '<p class="empty">Нет бэкапов по фильтру</p>';
+      renderPager($("backupsPager"), r.total || 0, p);
+      return;
+    }
+    let html = "<table><thead><tr><th>ID</th><th>Когда</th><th>Аккаунт</th><th>Герой</th><th>Ур.</th><th>Adena</th><th>Размер</th><th></th></tr></thead><tbody>";
+    rows.forEach((b) => {
+      html += "<tr>" +
+        "<td>#" + b.id + "</td>" +
+        "<td><small>" + fmtTs(b.createdAt) + "</small></td>" +
+        '<td class="clickable" data-user="' + b.userId + '"><strong>' + esc(b.nick) + "</strong></td>" +
+        "<td>" + esc(b.charName || "—") + "<br><small class='mono'>" + esc(b.characterId) + "</small></td>" +
+        "<td>" + (b.level || 1) + "</td>" +
+        "<td>" + fmtNum(b.adena) + "</td>" +
+        "<td>" + fmtNum(b.progressBytes) + " B</td>" +
+        '<td class="acts">' +
+          '<button type="button" class="ok" data-restore="' + b.userId + '" data-bid="' + b.id + '" data-name="' + esc(b.charName || b.characterId) + '">Restore</button>' +
+          '<button type="button" class="ghost" data-view="' + b.userId + '" data-bid="' + b.id + '">JSON</button>' +
+        "</td></tr>";
+    });
+    html += "</tbody></table>";
+    $("backupsTable").innerHTML = html;
+    $("backupsTable").querySelectorAll("[data-user]").forEach((td) => {
+      td.onclick = () => openUser(Number(td.dataset.user));
+    });
+    $("backupsTable").querySelectorAll("[data-restore]").forEach((btn) => {
+      btn.onclick = () => restoreBackup(Number(btn.dataset.restore), Number(btn.dataset.bid), btn.dataset.name);
+    });
+    $("backupsTable").querySelectorAll("[data-view]").forEach((btn) => {
+      btn.onclick = () => viewBackup(Number(btn.dataset.view), Number(btn.dataset.bid));
+    });
+    renderPager($("backupsPager"), r.total || 0, p);
+  }
+
+  async function loadScores() {
+    const p = state.scores;
+    p.nick = ($("scNick").value || "").trim();
+    p.sort = $("scSort").value || "enchant";
+    const r = await api("/admin/scores" + qs({
+      nick: p.nick, sort: p.sort, limit: p.limit, offset: p.offset,
+    }));
+    if (!r.ok) return failAuth(r);
+    const rows = r.rows || [];
+    if (!rows.length) {
+      $("scoresTable").innerHTML = '<p class="empty">Нет строк рейтинга</p>';
+      renderPager($("scoresPager"), r.total || 0, p);
+      return;
+    }
+    let html = "<table><thead><tr><th>Аккаунт</th><th>Герой</th><th>+</th><th>Сила</th><th>Earned</th><th>Adena</th><th>Мобы</th><th>Обновлено</th><th></th></tr></thead><tbody>";
+    rows.forEach((s) => {
+      html += '<tr class="clickable" data-user="' + s.userId + '">' +
+        "<td><strong>" + esc(s.nick) + "</strong></td>" +
+        "<td>" + esc(s.charName || "—") + "<br><small class='mono'>" + esc(s.characterId) + "</small></td>" +
+        "<td>" + (s.maxPlus || 0) + "</td>" +
+        "<td>" + fmtNum(s.farmPower) + "</td>" +
+        "<td>" + fmtNum(s.earned) + "</td>" +
+        "<td>" + fmtNum(s.adena) + "</td>" +
+        "<td>" + fmtNum(s.mobs) + "</td>" +
+        "<td><small>" + fmtTs(s.updatedAt) + "</small></td>" +
+        '<td class="acts" onclick="event.stopPropagation()"><button type="button" data-open="' + s.userId + '">Открыть</button></td>' +
+        "</tr>";
+    });
+    html += "</tbody></table>";
+    $("scoresTable").innerHTML = html;
+    $("scoresTable").querySelectorAll("[data-user]").forEach((tr) => {
+      tr.onclick = () => openUser(Number(tr.dataset.user));
+    });
+    $("scoresTable").querySelectorAll("[data-open]").forEach((btn) => {
+      btn.onclick = (e) => { e.stopPropagation(); openUser(Number(btn.dataset.open)); };
+    });
+    renderPager($("scoresPager"), r.total || 0, p);
+  }
+
+  async function openUser(userId) {
+    state.selectedUserId = userId;
+    const r = await api("/admin/users/" + userId);
+    if (!r.ok) { failAuth(r); alert(r.error || "Ошибка"); return; }
+    $("detail").hidden = false;
+    $("layout").classList.add("has-detail");
+    const u = r.user;
+    const save = r.save;
+    const lease = r.lease;
+    let html = "<h2>" + esc(u.nick) + " <small class='muted'>#" + u.id + "</small></h2>";
+    html += '<div class="kv">' +
+      "<span>Создан</span><span>" + fmtTs(u.createdAt) + "</span>" +
+      "<span>Сейв</span><span>" + (save ? "seq " + save.seq + " · " + fmtTs(save.savedAt) : "нет") + "</span>" +
+      "<span>Зона</span><span>" + esc(save?.farmZone || "—") + "</span>" +
+      "<span>Lease</span><span>" + (lease ? esc(lease.writerId) + " · до " + fmtTs(lease.expiresAt) : "—") + "</span>" +
+      "</div>";
+
+    html += "<h3>Персонажи (" + (r.characters || []).length + ")</h3>";
+    if (!(r.characters || []).length) html += '<p class="muted">Нет слотов</p>';
+    else {
+      html += "<table><thead><tr><th>Имя</th><th>Ур</th><th>+</th><th>Сила</th><th>Adena</th></tr></thead><tbody>";
+      (r.characters || []).forEach((c) => {
+        html += "<tr><td>" + esc(c.charName || "—") + "<br><small class='mono'>" + esc(c.characterId) + "</small></td>" +
+          "<td>" + (c.level || 1) + "</td><td>" + (c.maxPlus || 0) + "</td>" +
+          "<td>" + fmtNum(c.farmPower) + "</td><td>" + fmtNum(c.adena) + "</td></tr>";
+      });
+      html += "</tbody></table>";
+    }
+
+    html += "<h3>Рейтинг (правка)</h3>";
+    const scores = r.scores || [];
+    if (!scores.length) {
+      html += '<p class="muted">Нет строк scores — сохранение создаст для активного героя</p>';
+      html += '<div class="row mt">' +
+        '<input class="inp" id="dPlus" type="number" min="0" placeholder="+" value="0">' +
+        '<input class="inp" id="dPower" type="number" min="0" placeholder="сила" value="0">' +
+        '<input class="inp" id="dMobs" type="number" min="0" placeholder="мобы" value="0">' +
+        '<input class="inp" id="dAdena" type="number" min="0" placeholder="adena" value="0">' +
+        '<input class="inp" id="dEarned" type="number" min="0" placeholder="earned" value="0">' +
+        '<button type="button" id="dScoreSave">Сохранить score</button></div>';
+    } else {
+      scores.forEach((s, i) => {
+        html += '<div class="card" style="padding:8px;margin:6px 0">' +
+          "<div><strong>" + esc(s.charName || s.characterId) + "</strong> <small class='mono'>" + esc(s.characterId) + "</small></div>" +
+          '<div class="row mt">' +
+          '<label>+</label><input class="inp" data-score="' + i + '" data-f="max_plus" type="number" min="0" value="' + (s.maxPlus || 0) + '">' +
+          '<label>сила</label><input class="inp" data-score="' + i + '" data-f="farm_power" type="number" min="0" value="' + (s.farmPower || 0) + '">' +
+          '<label>мобы</label><input class="inp" data-score="' + i + '" data-f="mobs" type="number" min="0" value="' + (s.mobs || 0) + '">' +
+          '<label>adena</label><input class="inp" data-score="' + i + '" data-f="adena" type="number" min="0" value="' + (s.adena || 0) + '">' +
+          '<label>earned</label><input class="inp" data-score="' + i + '" data-f="earned" type="number" min="0" value="' + (s.earned || 0) + '">' +
+          '<button type="button" data-save-score="' + i + '" data-cid="' + esc(s.characterId) + '">Save</button>' +
+          "</div></div>";
+      });
+    }
+
+    html += "<h3>Бэкапы (" + (r.backups || []).length + ")</h3>";
+    if (!(r.backups || []).length) html += '<p class="muted">Пока нет</p>';
+    else {
+      html += "<table><thead><tr><th>#</th><th>Герой</th><th>Когда</th><th></th></tr></thead><tbody>";
+      (r.backups || []).forEach((b) => {
+        html += "<tr><td>" + b.id + "</td><td>" + esc(b.charName || b.characterId) +
+          "<br><small>ур." + b.level + " · " + fmtNum(b.adena) + "</small></td>" +
+          "<td><small>" + fmtTs(b.createdAt) + "</small></td>" +
+          '<td class="acts"><button type="button" class="ok" data-restore="' + userId + '" data-bid="' + b.id + '">Restore</button>' +
+          '<button type="button" class="ghost" data-view="' + userId + '" data-bid="' + b.id + '">JSON</button></td></tr>';
+      });
+      html += "</tbody></table>";
+    }
+
+    html += "<h3>События (" + (r.events || []).length + ")</h3>";
+    if (!(r.events || []).length) html += '<p class="muted">Пока нет</p>';
+    else {
+      html += "<table><thead><tr><th>Когда</th><th>Тип</th><th>Детали</th></tr></thead><tbody>";
+      (r.events || []).slice(0, 40).forEach((e) => {
+        const payload = e.payload ? JSON.stringify(e.payload) : "";
+        html += "<tr><td><small>" + fmtTs(e.createdAt) + "</small></td>" +
+          '<td><span class="pill evt">' + esc(e.event) + "</span></td>" +
+          "<td><small>" + esc(e.charName || e.characterId || "") + "</small>" +
+          (payload ? '<div class="payload">' + esc(payload) + "</div>" : "") + "</td></tr>";
+      });
+      html += "</tbody></table>";
+    }
+
+    html += '<div class="row mt"><button type="button" class="ghost" id="dFilterEv">События этого ника</button>' +
+      '<button type="button" class="ghost" id="dFilterBk">Бэкапы этого ника</button></div>';
+
+    $("detailBody").innerHTML = html;
+    $("detailBody").querySelectorAll("[data-save-score]").forEach((btn) => {
+      btn.onclick = async () => {
+        const i = btn.dataset.saveScore;
+        const body = { character_id: btn.dataset.cid };
+        $("detailBody").querySelectorAll('[data-score="' + i + '"]').forEach((inp) => {
+          body[inp.dataset.f] = Number(inp.value) || 0;
+        });
+        const saveR = await api("/admin/users/" + userId + "/score", { method: "PUT", body });
+        if (saveR.ok) { alert("Score сохранён"); openUser(userId); }
+        else alert(saveR.error || "Ошибка");
+      };
+    });
+    const dScoreSave = $("dScoreSave");
+    if (dScoreSave) {
+      dScoreSave.onclick = async () => {
+        const body = {
+          max_plus: Number($("dPlus").value) || 0,
+          farm_power: Number($("dPower").value) || 0,
+          mobs: Number($("dMobs").value) || 0,
+          adena: Number($("dAdena").value) || 0,
+          earned: Number($("dEarned").value) || 0,
+        };
+        const saveR = await api("/admin/users/" + userId + "/score", { method: "PUT", body });
+        if (saveR.ok) { alert("Score сохранён"); openUser(userId); }
+        else alert(saveR.error || "Ошибка");
+      };
+    }
+    $("detailBody").querySelectorAll("[data-restore]").forEach((btn) => {
+      btn.onclick = () => restoreBackup(Number(btn.dataset.restore), Number(btn.dataset.bid));
+    });
+    $("detailBody").querySelectorAll("[data-view]").forEach((btn) => {
+      btn.onclick = () => viewBackup(Number(btn.dataset.view), Number(btn.dataset.bid));
+    });
+    const fe = $("dFilterEv");
+    if (fe) fe.onclick = () => {
+      $("evNick").value = u.nick;
+      state.events.offset = 0;
+      setTab("events");
+    };
+    const fb = $("dFilterBk");
+    if (fb) fb.onclick = () => {
+      $("bkNick").value = u.nick;
+      state.backups.offset = 0;
+      setTab("backups");
+    };
+  }
+
+  function closeDetail() {
+    state.selectedUserId = null;
+    $("detail").hidden = true;
+    $("layout").classList.remove("has-detail");
+    $("detailBody").innerHTML = "";
+  }
+
+  async function restoreBackup(userId, backupId, name) {
+    if (!confirm("Восстановить персонажа" + (name ? " «" + name + "»" : "") + " из бэкапа #" + backupId + "?\nИгрок получит этот progress при следующей синхронизации.")) return;
+    const r = await api("/admin/users/" + userId + "/backups/" + backupId + "/restore", { method: "POST", body: {} });
+    if (r.ok) {
+      alert("OK · seq=" + r.seq + " · " + (r.characterId || ""));
+      if (state.selectedUserId === userId) openUser(userId);
+      if (state.tab === "backups") loadBackups();
+    } else alert(r.error || "Ошибка");
+  }
+
+  async function viewBackup(userId, backupId) {
+    const r = await api("/admin/users/" + userId + "/backups/" + backupId);
+    if (!r.ok) { alert(r.error || "Ошибка"); return; }
+    const w = window.open("", "_blank", "width=720,height=800");
+    if (!w) { alert(JSON.stringify(r.backup, null, 2)); return; }
+    w.document.write("<pre style='background:#111;color:#ddd;padding:12px;font:12px monospace'>" +
+      esc(JSON.stringify(r.backup, null, 2)) + "</pre>");
+  }
+
+  function refreshTab() {
+    if (state.tab === "users") loadUsers();
+    else if (state.tab === "events") loadEvents();
+    else if (state.tab === "backups") loadBackups();
+    else if (state.tab === "scores") loadScores();
+  }
+
+  async function loadPanel() {
+    await loadOverview();
+    $("gate").hidden = true;
+    $("panel").hidden = false;
+    await loadEventTypes();
+    refreshTab();
+  }
+
+  $("unlockBtn").onclick = async () => {
+    writeKey(($("adminKey").value || "").trim());
+    $("gateMsg").textContent = "";
+    const en = await api("/admin/enabled");
+    if (!en.ok || !en.enabled) {
+      $("gateMsg").textContent = "Админка отключена на сервере";
+      $("gateMsg").className = "msg err";
+      return;
+    }
+    const test = await api("/admin/overview");
+    if (!test.ok) {
+      $("gateMsg").textContent = test.error || "Неверный ключ";
+      $("gateMsg").className = "msg err";
+      writeKey("");
+      return;
+    }
+    await loadPanel();
+  };
+  $("adminKey").addEventListener("keydown", (e) => { if (e.key === "Enter") $("unlockBtn").click(); });
+  $("logoutBtn").onclick = () => {
+    writeKey("");
+    $("adminKey").value = "";
+    closeDetail();
+    $("gate").hidden = false;
+    $("panel").hidden = true;
+  };
+  $("refreshBtn").onclick = () => { loadOverview(); refreshTab(); if (state.selectedUserId) openUser(state.selectedUserId); };
+  $("purgeBtn").onclick = async () => {
+    const r = await api("/admin/maintenance/purge-sessions", { method: "POST", body: {} });
+    if (r.ok) { alert("Удалено сессий: " + (r.removed || 0)); loadOverview(); }
+    else alert(r.error || "Ошибка");
+  };
+  $("detailClose").onclick = closeDetail;
+
+  document.querySelectorAll(".tab").forEach((btn) => {
+    btn.onclick = () => setTab(btn.dataset.tab);
+  });
+  $("usersApply").onclick = () => { state.users.offset = 0; loadUsers(); };
+  $("usersQ").addEventListener("keydown", (e) => { if (e.key === "Enter") $("usersApply").click(); });
+  $("evApply").onclick = () => { state.events.offset = 0; loadEvents(); };
+  $("bkApply").onclick = () => { state.backups.offset = 0; loadBackups(); };
+  $("scApply").onclick = () => { state.scores.offset = 0; loadScores(); };
+
+  (async function boot() {
     const en = await api("/admin/enabled");
     if (!en.ok || !en.enabled) {
       $("gateMsg").textContent = "Админка отключена: задайте SOULFORGE_ADMIN_KEY на сервере.";
@@ -113,115 +787,11 @@
     }
     if (readKey()) {
       $("adminKey").value = readKey();
-      await loadPanel();
+      const test = await api("/admin/overview");
+      if (test.ok) await loadPanel();
+      else writeKey("");
     }
-  }
-
-  async function loadPanel() {
-    const q = ($("search").value || "").trim();
-    const overview = await api("/admin/overview");
-    if (!overview.ok) return failAuth(overview);
-    $("stats").textContent =
-      "Пользователей: " + overview.users +
-      " · Сессий: " + overview.sessions +
-      " · Рейтинг: " + overview.scores +
-      " · Сейвы: " + (overview.saves || 0) +
-      " · " + (overview.db || "soulforge.db");
-
-    const list = await api("/admin/users" + (q ? "?q=" + encodeURIComponent(q) : ""));
-    if (!list.ok) return failAuth(list);
-
-    $("gate").hidden = true;
-    $("panel").hidden = false;
-
-    const rows = list.rows || [];
-    if (!rows.length) {
-      $("table").innerHTML = '<p class="msg" style="padding:12px">Нет пользователей</p>';
-      return;
-    }
-
-    let html = "<table><thead><tr><th>ID</th><th>Ник</th><th>Герой</th><th>Слоты</th><th>+</th><th>Сила</th><th>Мобы</th><th>Adena</th><th>Заработано</th><th>Сессии</th><th></th></tr></thead><tbody>";
-    rows.forEach((u) => {
-      const hero = (u.active_name || "—") + (u.active_level ? " · ур." + u.active_level : "");
-      html += '<tr data-id="' + u.id + '">' +
-        "<td>" + u.id + "</td>" +
-        "<td><strong>" + esc(u.nick) + "</strong><br><small>" + fmtTs(u.created_at) + "</small></td>" +
-        "<td>" + esc(hero) + "<br><small>" + esc(u.save_farm_zone || "") + "</small></td>" +
-        "<td>" + (u.chars_count || 0) + "</td>" +
-        '<td><input class="inp" data-f="max_plus" type="number" min="0" value="' + (u.max_plus || 0) + '"></td>' +
-        '<td><input class="inp" data-f="farm_power" type="number" min="0" value="' + (u.farm_power || 0) + '"></td>' +
-        '<td><input class="inp" data-f="mobs" type="number" min="0" value="' + (u.mobs || 0) + '"></td>' +
-        '<td><input class="inp" data-f="adena" type="number" min="0" value="' + (u.adena || 0) + '"></td>' +
-        '<td><input class="inp" data-f="earned" type="number" min="0" value="' + (u.earned || 0) + '"></td>' +
-        "<td>" + (u.sessions || 0) + "</td>" +
-        '<td class="acts"><button data-act="save">Сохранить</button><button class="warn" data-act="delete">Удалить</button></td>' +
-        "</tr>";
-    });
-    html += "</tbody></table>";
-    $("table").innerHTML = html;
-    $("table").querySelectorAll("[data-act]").forEach((btn) => {
-      btn.onclick = () => rowAct(btn);
-    });
-  }
-
-  function failAuth(r) {
-    if (r.status === 401) {
-      writeKey("");
-      $("gateMsg").textContent = r.error || "Неверный ключ";
-      $("gateMsg").className = "msg err";
-      $("gate").hidden = false;
-      $("panel").hidden = true;
-    }
-  }
-
-  async function rowAct(btn) {
-    const row = btn.closest("tr[data-id]");
-    if (!row) return;
-    const id = row.dataset.id;
-    const act = btn.dataset.act;
-    if (act === "save") {
-      const body = {};
-      row.querySelectorAll(".inp").forEach((inp) => { body[inp.dataset.f] = Number(inp.value) || 0; });
-      btn.disabled = true;
-      const r = await api("/admin/users/" + id + "/score", { method: "PUT", json: true, body });
-      btn.disabled = false;
-      if (r.ok) loadPanel();
-      else alert(r.error || "Ошибка");
-      return;
-    }
-    if (act === "delete") {
-      const nick = row.querySelector("strong")?.textContent || id;
-      if (!confirm('Удалить «' + nick + '» и все данные?')) return;
-      btn.disabled = true;
-      const r = await api("/admin/users/" + id, { method: "DELETE" });
-      btn.disabled = false;
-      if (r.ok) loadPanel();
-      else alert(r.error || "Ошибка");
-    }
-  }
-
-  $("unlockBtn").onclick = async () => {
-    writeKey(($("adminKey").value || "").trim());
-    $("gateMsg").textContent = "";
-    await loadPanel();
-  };
-  $("adminKey").addEventListener("keydown", (e) => { if (e.key === "Enter") $("unlockBtn").click(); });
-  $("logoutBtn").onclick = () => {
-    writeKey("");
-    $("adminKey").value = "";
-    $("gate").hidden = false;
-    $("panel").hidden = true;
-  };
-  $("refreshBtn").onclick = () => loadPanel();
-  let t;
-  $("search").addEventListener("input", () => { clearTimeout(t); t = setTimeout(loadPanel, 300); });
-  $("purgeBtn").onclick = async () => {
-    const r = await api("/admin/maintenance/purge-sessions", { method: "POST", json: true, body: {} });
-    if (r.ok) { alert("Удалено сессий: " + (r.removed || 0)); loadPanel(); }
-    else alert(r.error || "Ошибка");
-  };
-
-  boot();
+  })();
 })();
   </script>
 </body>

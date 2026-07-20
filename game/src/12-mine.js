@@ -10,6 +10,8 @@ const BANAN_HITS = 10;
 const BANAN_TIME_MS = 9000;
 const ZAKEN_EARRING_ID = "zaken_blessed_earring";
 let mineWeaponsByGrade = null;
+/** Сводка сессии фарма (не логируем каждый тап). */
+let mineSession = null;
 
 function rollMineWeaponDrop(zoneId) {
   zoneId = zoneId || (typeof currentMineZoneId === "function" ? currentMineZoneId() : (state.farmZone || "banana_mine"));
@@ -55,7 +57,7 @@ function grantBananLoot(loot) {
   if (loot.kind === "weapon") {
     const w = rollMineWeaponDrop();
     if (!w) return { ok: false, text: "—" };
-    const it = addToInventory(w.id);
+    const it = addToInventory(w.id, { source: "rare_loot", zoneId: state.farmZone || null });
     if (!it) return { ok: false, text: "инвентарь полон", invFull: true };
     it.plus = loot.plus;
     bumpWeaponRecord(w.id, loot.plus);
@@ -117,6 +119,13 @@ function openMine() {
   if (hintEl) hintEl.textContent = cfg.hint || "Один враг на экране — уничтожь до конца таймера";
   mineActive = true;
   mineOverlayPaused = false;
+  mineSession = {
+    startedAt: Date.now(),
+    adena0: Math.max(0, Math.floor(Number(state.adena) || 0)),
+    kills: 0,
+    weapons: 0,
+    zoneId: state.farmZone || "banana_mine",
+  };
   resetMineGuardSession();
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
   $("#mineEarned").textContent = "0";
@@ -157,7 +166,21 @@ function stopMine() {
   const lootLayer = document.getElementById("mineLootLayer");
   if (lootLayer) lootLayer.innerHTML = "";
   if (typeof Audio2.stopDwarfVoice === "function") Audio2.stopDwarfVoice();
+  if (mineSession && typeof logCharacterEvent === "function") {
+    const adenaNow = Math.max(0, Math.floor(Number(state.adena) || 0));
+    logCharacterEvent("farm_session", {
+      zoneId: mineSession.zoneId,
+      kills: mineSession.kills || 0,
+      weapons: mineSession.weapons || 0,
+      adenaGain: Math.max(0, adenaNow - (mineSession.adena0 || 0)),
+      durationMs: Date.now() - (mineSession.startedAt || Date.now()),
+    });
+  }
+  mineSession = null;
+  // Immediate local + cloud flush — debounce must not leave combat loot on an old cloud seq.
   if (typeof save === "function") save();
+  if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
+  else if (window.SoulforgeCloud?.flushSave) window.SoulforgeCloud.flushSave({ force: true });
   if (typeof noteLeaderboardEvent === "function") noteLeaderboardEvent("snapshot");
 }
 
@@ -856,7 +879,7 @@ function finishMobKill(g, type, dropAt, guard) {
     if (Math.random() < weaponChance) {
       const drop = rollMineWeaponDrop(zoneId);
       if (drop) {
-        const added = addToInventory(drop.id);
+        const added = addToInventory(drop.id, { source: "golden", zoneId });
         if (added) {
           weaponDrop = drop;
           toast("💰 Золотая цель обронила: " + drop.name + " (" + drop.grade + ") → в инвентарь!", "loot");
@@ -899,6 +922,20 @@ function finishMobKill(g, type, dropAt, guard) {
     achStat("gnomesCaught", 1);
     if (type === "golden") achStat("goldenGnomes", 1);
     if (type === "boss") achStat("bossKills", 1);
+  }
+  if (mineSession) {
+    mineSession.kills = (mineSession.kills || 0) + 1;
+    if (weaponDrop) mineSession.weapons = (mineSession.weapons || 0) + 1;
+  }
+  if ((type === "boss" || type === "golden" || type === "banan") && typeof logCharacterEvent === "function") {
+    logCharacterEvent("loot_rare", {
+      type,
+      zoneId,
+      adenaGain: reward,
+      weaponId: weaponDrop?.id || null,
+      weaponName: weaponDrop?.name || null,
+      grade: weaponDrop?.grade || null,
+    });
   }
   save();
   if (typeof checkAchievements === "function") checkAchievements();

@@ -270,6 +270,15 @@ function onQuestMobKill(zoneId, mobType) {
       }
     }
     if (typeof noteLeaderboardEvent === "function") noteLeaderboardEvent("snapshot");
+    if (typeof logCharacterEvent === "function") {
+      logCharacterEvent("quest_step", {
+        zoneId,
+        questId: def.id,
+        step: def.step,
+        title: def.title,
+        loot: loot?.summary || null,
+      });
+    }
     if (typeof notifyFarmZoneUnlocks === "function") notifyFarmZoneUnlocks();
     if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
     if (typeof renderStoryArcBar === "function") renderStoryArcBar();
@@ -296,10 +305,15 @@ function onZoneBossDefeated(zoneId) {
   if (typeof renderMineQuestHud === "function") renderMineQuestHud();
   if (typeof renderQuestJournal === "function") renderQuestJournal();
   save();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("quest_boss", {
+      zoneId,
+      bossId: boss?.id || null,
+      bossName: boss?.name || null,
+    });
+  }
   if (typeof checkAchievements === "function") checkAchievements();
 }
-
-function questStatusText(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
   if (!zone) return "";
   if (isZoneChapterComplete(zone.id)) return "глава ✓";

@@ -17,7 +17,12 @@
     cursor: text;
   }
 
-  html, body { height: 100%; }
+  html, body {
+    height: 100%;
+    /* Mac trackpad: swipe-back / overscroll не уводит со страницы игры */
+    overscroll-behavior: none;
+    overscroll-behavior-x: none;
+  }
   body {
     font-family: var(--font-ui);
     font-size: 15px;
@@ -942,12 +947,27 @@
     background: rgba(55,40,16,.55);
     box-shadow: inset 0 0 0 1px rgba(201,168,106,.15);
   }
+  .lb-row.mine {
+    border-color: rgba(201,168,106,.35);
+    background: rgba(40,30,14,.4);
+  }
   .lb-rank { color: var(--txt-dim); font-variant-numeric: tabular-nums; }
-  .lb-name { color: var(--txt); font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .lb-name { color: var(--txt); font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+  .lb-name-main { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-nick {
+    flex-shrink: 0; font-size: 11px; font-weight: 500; color: var(--txt-dim);
+    opacity: .9;
+  }
+  .lb-nick::before { content: "· "; opacity: .7; }
   .lb-me-tag {
     flex-shrink: 0; font-size: 10px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; color: #1a1208; background: var(--gold-soft);
     border-radius: 3px; padding: 1px 6px;
+  }
+  .lb-mine-tag {
+    flex-shrink: 0; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--gold-soft);
+    border: 1px solid rgba(201,168,106,.45); border-radius: 3px; padding: 0 5px;
   }
   .lb-val { color: var(--gold-soft); font-variant-numeric: tabular-nums; }
   .lb-empty { color: var(--txt-dim); font-size: 13px; }
@@ -1446,11 +1466,15 @@
     gap: 6px;
     padding: 16px;
     justify-content: center;
+    overscroll-behavior: contain;
+    /* вертикальный скролл ок; горизонтальный свайп/жест не уводит страницу */
+    touch-action: pan-y;
   }
   .inv-slot { width:54px; height:54px; border-radius:4px; position:relative;
     background: linear-gradient(160deg,#0f0a06,#1d140b); border:1px solid #3a2c1a; box-shadow: inset 0 0 7px rgba(0,0,0,.85); transition:.12s;
     -webkit-user-drag: element;
     user-select: none;
+    touch-action: none; /* drag слотов — не путать со скроллом трекпада */
   }
   .inv-slot.filled { cursor:var(--cursor-l2); }
   .inv-slot.filled:hover { border-color: var(--gold); box-shadow: 0 0 12px rgba(201,168,106,.55), inset 0 0 5px rgba(0,0,0,.6); transform: translateY(-2px); }
@@ -3704,20 +3728,22 @@
   .l2-login-msg.warn { color: #e0a070; }
   .l2-login-actions {
     display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 2px;
-    padding-top: 2px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 4px;
+    padding-top: 4px;
   }
   .l2-login-btn {
-    min-width: 92px;
-    height: 28px;
+    width: 100%;
+    min-width: 0;
+    height: 34px;
     padding: 0 16px;
     border-radius: 1px;
     border: 1px solid rgba(100,78,42,.95);
     background: linear-gradient(180deg, #7a6238 0%, #4a3818 45%, #2e2210 100%);
     color: #f2e6c8;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: .06em;
     cursor: var(--cursor-l2);
@@ -3728,42 +3754,42 @@
     text-shadow: 0 1px 0 rgba(0,0,0,.6);
   }
   .l2-login-btn-primary {
+    height: 38px;
+    font-size: 14px;
     border-color: rgba(180,145,80,.95);
-    background: linear-gradient(180deg, #8a7038 0%, #564018 48%, #342408 100%);
+    background: linear-gradient(180deg, #9a7c40 0%, #5e4820 48%, #3a280c 100%);
+  }
+  .l2-login-btn-secondary {
+    border-color: rgba(120,100,60,.9);
+    background: linear-gradient(180deg, #5a4a30 0%, #322818 50%, #1c160e 100%);
+    color: #e8dcc0;
+  }
+  .l2-login-btn-danger {
+    border-color: rgba(120,70,50,.9);
+    background: linear-gradient(180deg, #6a4030 0%, #3a2418 50%, #20140e 100%);
+    color: #f0d0b8;
   }
   .l2-login-btn:hover {
     filter: brightness(1.12);
     border-color: rgba(201,168,106,.95);
+  }
+  .l2-login-btn-danger:hover {
+    border-color: rgba(200,120,90,.9);
   }
   .l2-login-btn:active {
     filter: brightness(.94);
     box-shadow: inset 0 2px 4px rgba(0,0,0,.55);
     transform: translateY(1px);
   }
-  .l2-login-extra {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    margin-top: 0;
-    padding-top: 2px;
-    border-top: 1px solid rgba(201,168,106,.12);
+  .l2-login-btn:disabled {
+    opacity: .55;
+    cursor: default;
+    filter: none;
+    transform: none;
   }
-  .l2-login-link {
-    background: none;
-    border: 0;
-    padding: 2px 0;
-    color: rgba(201,168,106,.9);
-    font-size: 11px;
-    letter-spacing: .03em;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: var(--cursor-l2);
-  }
-  .l2-login-link:hover { color: #f0e2c0; filter: brightness(1.08); }
   .l2-login-hint {
     margin: 0;
-    padding-top: 2px;
+    padding-top: 4px;
     font-size: 10px;
     line-height: 1.4;
     text-align: center;
@@ -3771,11 +3797,45 @@
   }
   .l2-login-status {
     margin: 0;
-    font-size: 10px;
+    font-size: 11px;
     text-align: center;
-    color: rgba(201,168,106,.65);
+    color: rgba(201,168,106,.85);
     letter-spacing: .04em;
   }
+  .cloud-write-lock-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 14px;
+    padding: 10px 14px;
+    background: linear-gradient(180deg, rgba(72, 36, 24, .97), rgba(32, 18, 12, .98));
+    border-bottom: 1px solid rgba(200, 120, 90, .55);
+    color: #f0d8c0;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
+  }
+  .cloud-write-lock-banner[hidden] { display: none !important; }
+  .cloud-write-lock-btn {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 2px;
+    border: 1px solid rgba(201,168,106,.7);
+    background: linear-gradient(180deg, #8a6038, #4a3018);
+    color: #f2e6c8;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    cursor: var(--cursor-l2);
+  }
+  .cloud-write-lock-btn:hover { filter: brightness(1.1); }
   .login-corner {
     position: absolute;
     right: 12px;

@@ -141,6 +141,13 @@ function updateCharMenuHint() {
   }
 }
 
+function syncCharacterCloudAfterSwitch() {
+  if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
+  if (typeof noteLeaderboardEvent === "function") {
+    noteLeaderboardEvent("snapshot", null, { force: true });
+  }
+}
+
 function selectCharacter(id) {
   migrateCharactersStructure();
   if (id === state.activeCharacterId) return;
@@ -148,11 +155,20 @@ function selectCharacter(id) {
   if (!slot) return;
   if (typeof Audio2 !== "undefined") Audio2.click();
   if (typeof stopMine === "function") stopMine();
+  // Снимок уходящего героя в рейтинг (payload собирается синхронно)
+  if (typeof noteLeaderboardEvent === "function" && state.activeCharacterId) {
+    noteLeaderboardEvent("snapshot", null, { force: true });
+  }
+  const fromId = state.activeCharacterId;
   flushActiveCharacterToSlot();
   state.activeCharacterId = id;
   loadActiveCharacter();
   if (typeof migrateAvatar === "function") migrateAvatar();
   save();
+  syncCharacterCloudAfterSwitch();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("char_switch", { from: fromId, to: id });
+  }
   const feed = document.getElementById("gameLogFeed");
   if (feed) feed.innerHTML = "";
   if (typeof refreshProgressUI === "function") refreshProgressUI();
@@ -180,6 +196,9 @@ function beginCreateCharacter() {
   applyProgressToState(progress);
   save();
   renderCharacterRoster();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("char_create", { characterId: id }, { characterId: id });
+  }
   if (typeof maybeShowAvatarSetup === "function") maybeShowAvatarSetup();
 }
 
@@ -215,6 +234,10 @@ async function deleteCharacter(id) {
   }
   if (typeof migrateAvatar === "function") migrateAvatar();
   save();
+  syncCharacterCloudAfterSwitch();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("char_delete", { characterId: id, name: name || null });
+  }
   const feed = document.getElementById("gameLogFeed");
   if (feed) feed.innerHTML = "";
   if (typeof refreshProgressUI === "function") refreshProgressUI();

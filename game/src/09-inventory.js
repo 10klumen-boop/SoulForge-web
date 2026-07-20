@@ -14,7 +14,7 @@ function trimInventoryToCap() {
   return true;
 }
 
-function addToInventory(weaponId) {
+function addToInventory(weaponId, meta) {
   if (!state.inventory) state.inventory = [];
   if (isInventoryFull()) {
     toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
@@ -26,6 +26,16 @@ function addToInventory(weaponId) {
   save();
   renderMenu();
   if (typeof checkAchievements === "function") checkAchievements();
+  if (typeof logCharacterEvent === "function") {
+    const w = WMAP[weaponId];
+    logCharacterEvent("loot_weapon", {
+      weaponId,
+      weaponName: w?.name || weaponId,
+      grade: w?.grade || null,
+      source: meta?.source || "unknown",
+      zoneId: meta?.zoneId || state.farmZone || null,
+    });
+  }
   return it;
 }
 
@@ -110,6 +120,43 @@ function openInventory() { renderInventory(); show("inv"); Audio2.open(); }
 function goInventory() { renderInventory(); renderMenu(); show("inv"); }
 
 let dragSrc = null;
+/** @type {{ idx: number, t: number, x: number, y: number } | null} */
+let dragMeta = null;
+let lastWheelAt = 0;
+
+document.addEventListener(
+  "wheel",
+  () => {
+    lastWheelAt = Date.now();
+    if (dragSrc == null && !dragMeta) return;
+    dragSrc = null;
+    dragMeta = null;
+    $$(".inv-slot.dragover,.inv-slot.dragging").forEach((s) => s.classList.remove("dragover", "dragging"));
+    const cz = document.getElementById("invCrystallize");
+    if (cz) setCrystallizeIco(cz, "normal");
+  },
+  { passive: true, capture: true }
+);
+
+function clearInvDragUi() {
+  dragSrc = null;
+  dragMeta = null;
+  $$(".inv-slot.dragover,.inv-slot.dragging").forEach((s) => s.classList.remove("dragover", "dragging"));
+  const cz = document.getElementById("invCrystallize");
+  if (cz) setCrystallizeIco(cz, "normal");
+}
+
+/** Скролл/жест трекпада часто стартует «ложный» HTML5-drag — отсекаем. */
+function isAccidentalInvDrag(e) {
+  if (Date.now() - lastWheelAt < 220) return true;
+  if (!dragMeta) return true;
+  if (Date.now() - dragMeta.t < 140) return true;
+  const x = e && typeof e.clientX === "number" ? e.clientX : dragMeta.x;
+  const y = e && typeof e.clientY === "number" ? e.clientY : dragMeta.y;
+  const dx = x - dragMeta.x;
+  const dy = y - dragMeta.y;
+  return dx * dx + dy * dy < 100; // <10px — не считаем переносом
+}
 
 function setCrystallizeIco(zone, state) {
   const img = zone && zone.querySelector(".inv-crystallize-ico");
@@ -152,7 +199,17 @@ async function crystallizeAt(idx) {
   state.crystals[grade] = (state.crystals[grade] || 0) + yld;
   Audio2.coin();
   save();
+  if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
   toast("Кристаллизация: " + w.name + plusStr + " → +" + yld + " крист. (" + grade + ")", "loot");
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("crystallize", {
+      weaponId: w.id,
+      weaponName: w.name,
+      grade,
+      plus: it.plus || 0,
+      crystals: yld,
+    });
+  }
   renderInventory();
 }
 
@@ -189,9 +246,9 @@ function attachCrystallizeZone(zone) {
     e.preventDefault();
     setCrystallizeIco(zone, "normal");
     const idx = dragIndexFromEvent(e);
-    dragSrc = null;
-    $$(".inv-slot.dragover,.inv-slot.dragging").forEach((s) => s.classList.remove("dragover", "dragging"));
-    if (idx == null) return;
+    const accidental = isAccidentalInvDrag(e);
+    clearInvDragUi();
+    if (idx == null || accidental) return;
     const inv = state.inventory || [];
     const it = inv[idx];
     if (!it) return;
@@ -219,7 +276,14 @@ function attachDnD(slot, idx) {
   slot.setAttribute("draggable", "true");
   slot.draggable = true;
   slot.addEventListener("dragstart", (e) => {
+    // Двухпальцевый скролл на Mac часто стартует drag — отменяем
+    if (Date.now() - lastWheelAt < 220) {
+      e.preventDefault();
+      clearInvDragUi();
+      return;
+    }
     dragSrc = idx;
+    dragMeta = { idx, t: Date.now(), x: e.clientX || 0, y: e.clientY || 0 };
     slot.classList.add("dragging");
     e.dataTransfer.effectAllowed = "move";
     try {
@@ -228,10 +292,7 @@ function attachDnD(slot, idx) {
     } catch (_) {}
   });
   slot.addEventListener("dragend", () => {
-    dragSrc = null;
-    $$(".inv-slot.dragover,.inv-slot.dragging").forEach((s) => s.classList.remove("dragover", "dragging"));
-    const cz = document.getElementById("invCrystallize") || $("#invCrystallize");
-    if (cz) setCrystallizeIco(cz, "normal");
+    clearInvDragUi();
   });
   slot.addEventListener("dragover", (e) => {
     e.preventDefault();
@@ -242,9 +303,13 @@ function attachDnD(slot, idx) {
     e.preventDefault();
     slot.classList.remove("dragover");
     const from = dragIndexFromEvent(e);
-    if (from == null) return;
+    const accidental = isAccidentalInvDrag(e);
+    clearInvDragUi();
+    if (from == null || accidental) return;
     reorderInventory(from, idx);
   });
+  // ПКМ / двухпальцевый клик Mac → кристаллизация (с подтверждением).
+  // Обычный скролл сюда не попадает; drag-на-зону защищён isAccidentalInvDrag.
   slot.addEventListener("contextmenu", (e) => {
     const inv = state.inventory || [];
     const it = inv[idx];
@@ -417,8 +482,11 @@ function renderInventory() {
     empty.addEventListener("dragleave", () => empty.classList.remove("dragover"));
     empty.addEventListener("drop", (e) => {
       e.preventDefault(); empty.classList.remove("dragover");
-      if (dragSrc == null || isInventoryFull()) return;
-      reorderInventory(dragSrc, "end");
+      const from = dragSrc;
+      const accidental = isAccidentalInvDrag(e);
+      clearInvDragUi();
+      if (from == null || accidental || isInventoryFull()) return;
+      reorderInventory(from, "end");
     });
     grid.appendChild(empty);
   }
@@ -435,5 +503,8 @@ function sellCrystals() {
   $("#adena").textContent = fmt(state.adena);
   renderInventory();
   toast("Кристаллы проданы за " + fmt(total) + " adena", "gold");
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("sell_crystals", { adenaGain: total });
+  }
   if (typeof checkAchievements === "function") checkAchievements();
 }

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m5" />
+<link rel="stylesheet" href="styles/main.css?v=m8" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -72,11 +72,9 @@
               <p class="l2-login-msg" id="cloudAuthMsg" aria-live="polite"></p>
               <div class="l2-login-actions">
                 <button type="button" class="l2-login-btn l2-login-btn-primary" id="cloudLoginBtn">Войти</button>
-                <button type="button" class="l2-login-btn" id="cloudCancelBtn">Отмена</button>
-              </div>
-              <div class="l2-login-extra">
-                <button type="button" class="l2-login-link" id="cloudRegisterBtn">Создать аккаунт</button>
-                <button type="button" class="l2-login-link" id="cloudLogoutBtn" hidden>Выйти</button>
+                <button type="button" class="l2-login-btn l2-login-btn-secondary" id="cloudRegisterBtn">Создать аккаунт</button>
+                <button type="button" class="l2-login-btn l2-login-btn-danger" id="cloudLogoutBtn" hidden>Выйти из аккаунта</button>
+                <button type="button" class="l2-login-btn" id="cloudCancelBtn" hidden>Отмена</button>
               </div>
               <p class="l2-login-hint" id="cloudHint">Прогресс хранится на сервере и привязан к аккаунту.</p>
               <p class="l2-login-status" id="cloudAuthStatus" hidden></p>
@@ -121,7 +119,7 @@
         </nav>
         <footer class="home-footer">
           <button type="button" class="home-login-link" id="homeLoginBtn">Войти в аккаунт</button>
-          <span class="home-ver" data-game-ver>v0.31a-r</span>
+          <span class="home-ver" data-game-ver>v0.35a</span>
         </footer>
       </div>
     </section>
@@ -223,6 +221,27 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.36b</p>
+        <ul>
+          <li><b>Рейтинг по герою</b> — в таблице теперь имя персонажа, ник аккаунта рядом мельче. Несколько героев на одном аккаунте — отдельные места в топе.</li>
+          <li><b>Метка «ты» / «твой»</b> — активный герой подсвечен как «ты», остальные ваши персонажи — «твой».</li>
+          <li><b>Надёжнее облако</b> — заточка, продажи, лут и сессии фарма пишутся в журнал на сервере; при каждом сохранении делается снимок героя (на случай отката поддержки).</li>
+          <li><b>Mac / трекпад</b> — случайный свайп двумя пальцами в инвентаре больше не «съедает» оружие и не уводит со страницы.</li>
+          <li><b>Смена персонажа</b> — прогресс уходящего героя сразу уходит в облако и в рейтинг.</li>
+        </ul>
+        <p class="patch-ver">v0.35a</p>
+        <ul>
+          <li><b>Одна вкладка пишет сейв</b> — если открыть аккаунт ещё раз, игра попросит перехватить запись; прогресс не разъедется между устройствами.</li>
+          <li><b>Вход</b> — понятнее «Создать аккаунт» / «Выйти»; «Сменить аккаунт» полностью выходит из сессии.</li>
+          <li>Облако сохраняет чаще и стабильнее (меньше риска отката лута после фарма).</li>
+        </ul>
+        <p class="patch-ver">v0.33a</p>
+        <ul>
+          <li><b>Облачные сейвы</b> — прогресс на сервере, синхронизация между устройствами.</li>
+          <li><b>Только аккаунт</b> — вход обязателен; localStorage остаётся кэшем.</li>
+          <li><b>Рейтинг «Мобы»</b> — отдельная вкладка в таблице лидеров.</li>
+          <li><b>Глава I</b> — длиннее квесты, мягче босс, баланс P.Atk / M.Atk по классу.</li>
+        </ul>
         <p class="patch-ver">v0.31a-r</p>
         <ul>
           <li><b>Баланс с нуля</b> — старт 25k, mine/sell без playtest-мультипликатора; wipe прогресса экономики.</li>
@@ -338,7 +357,7 @@
         <p><a href="https://t.me/GoodBanan" target="_blank" rel="noopener noreferrer">@GoodBanan</a> — за образ редкого гнома в шахте (пасхалка, не часть сюжета).</p>
         <p>И всем, кто помогал советом, идеями и тестами — спасибо.</p>
         <p class="author-feedback">Фидбек: <a href="https://t.me/Lumen256" target="_blank" rel="noopener noreferrer">@Lumen256</a> в Telegram</p>
-        <p class="author-ver">Enchant Sim · <span data-game-ver>v0.31a-r</span></p>
+        <p class="author-ver">Enchant Sim · <span data-game-ver>v0.35a</span></p>
       </div>
     </section>
 

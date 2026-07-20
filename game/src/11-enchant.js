@@ -190,6 +190,16 @@ function doEnchant() {
         maxed ? "success" : "enchant"
       );
       notifyWeaponRecord(cur.weapon, cur.plus);
+      if (typeof logCharacterEvent === "function") {
+        logCharacterEvent("enchant_ok", {
+          weaponId: cur.weapon.id,
+          weaponName: cur.weapon.name,
+          grade: cur.weapon.grade,
+          plus: cur.plus,
+          scroll: sc.id,
+          cost: sc.cost,
+        });
+      }
     } else {
       state.totals.fails++; Audio2.fail();
       enchFlash("fail");
@@ -197,10 +207,23 @@ function doEnchant() {
       animMs = 420;
       setTimeout(() => stage.classList.remove("shake"), animMs);
       if (sc.behavior === "reset") {
+        const plusBefore = cur.plus;
         cur.plus = 0; cur.item.plus = 0; setVerdict("Провал — заточка сброшена до +0 (оружие цело)", "bad");
         gameLog("Провал (благ.): " + cur.weapon.name + " — сброс до +0", "fail");
         shards(cur.weapon.glow, 16);
+        if (typeof logCharacterEvent === "function") {
+          logCharacterEvent("enchant_fail", {
+            weaponId: cur.weapon.id,
+            weaponName: cur.weapon.name,
+            grade: cur.weapon.grade,
+            plusBefore,
+            scroll: sc.id,
+            cost: sc.cost,
+            behavior: "reset",
+          });
+        }
       } else {
+        const plusBefore = cur.plus;
         notifyWeaponRecord(cur.weapon, cur.plus);
         cur.broken = true;
         if (typeof achStat === "function") achStat("weaponsBroken", 1);
@@ -223,6 +246,17 @@ function doEnchant() {
         setVerdict("Оружие рассыпалось → +" + yld + " кристаллов (" + grade + ")", "bad");
         shards(CRYSTAL_COLOR[grade] || "#ff5a5a", 30);
         gameLog("Разрушено: " + cur.weapon.name + plusTag + " → +" + yld + " крист. (" + grade + ")", "fail");
+        if (typeof logCharacterEvent === "function") {
+          logCharacterEvent("enchant_break", {
+            weaponId: cur.weapon.id,
+            weaponName: cur.weapon.name,
+            grade,
+            plus: plusBefore,
+            scroll: sc.id,
+            cost: sc.cost,
+            crystals: yld,
+          });
+        }
       }
     }
     if (typeof onEnchantAvatarXp === "function") {
@@ -266,6 +300,15 @@ function sellWeapon() {
   $("#adena").textContent = fmt(state.adena);
   if (typeof checkAchievements === "function") checkAchievements();
   if (typeof noteLeaderboardEvent === "function") noteLeaderboardEvent("sell");
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("sell_weapon", {
+      weaponId: cur.weapon.id,
+      weaponName: cur.weapon.name,
+      grade: cur.weapon.grade,
+      plus: cur.plus,
+      adenaGain: sv,
+    });
+  }
   goInventory();
 }
 

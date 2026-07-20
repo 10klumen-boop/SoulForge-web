@@ -141,6 +141,8 @@ async function stepAuthAndRuns() {
   await req("POST", "/runs", {
     token,
     body: {
+      characterId: "c_smoke_run",
+      charName: "SmokeRunner",
       maxPlus: 1,
       farmPower: 1,
       earned: 1,
@@ -156,13 +158,22 @@ async function stepAuthAndRuns() {
     expectStatus: 200,
   });
   const hit = Array.isArray(board.json)
-    ? board.json.find((r) => r.name === nick)
+    ? board.json.find(
+        (r) =>
+          r.characterId === "c_smoke_run" ||
+          r.charName === "SmokeRunner" ||
+          r.name === nick ||
+          r.nick === nick
+      )
     : null;
   if (!hit) {
     // may be outside top 100 — still OK if runs succeeded
     ok("leaderboard has bot", "not in top 100 (ok)");
   } else {
-    ok("leaderboard has bot", `rank=${hit.rank} maxPlus=${hit.maxPlus}`);
+    ok(
+      "leaderboard has bot",
+      `rank=${hit.rank} name=${hit.name} nick=${hit.nick || "—"} maxPlus=${hit.maxPlus}`
+    );
   }
 
   await req("POST", "/auth/logout", { token, body: {}, expectStatus: 200 });
@@ -216,11 +227,32 @@ async function stepCloudSave() {
   if (!empty.json?.ok) throw new Error("GET /save failed");
   ok("GET /save", empty.json.empty ? "empty" : "has data");
 
+  const deviceA = "d_smoke_a.t_smoke_a1";
+  const deviceB = "d_smoke_b.t_smoke_b1";
+
+  const leaseA = await req("POST", "/save/lease", {
+    token,
+    body: { writerId: deviceA, deviceId: deviceA },
+    expectStatus: 200,
+  });
+  if (!leaseA.json?.ok || !leaseA.json?.lease) throw new Error("lease A failed");
+  ok("POST /save/lease", "writer A");
+
+  const leaseBBlocked = await req("POST", "/save/lease", {
+    token,
+    body: { writerId: deviceB, deviceId: deviceB },
+    expectStatus: 423,
+  });
+  if (!leaseBBlocked.json?.locked) throw new Error("expected 423 for second device");
+  ok("lease B blocked → 423");
+
   const payload = {
     seq: Date.now(),
     savedAt: Date.now(),
     clientVersion: "smoke",
     farmPower: 12,
+    writerId: deviceA,
+    deviceId: deviceA,
     data: {
       adena: 12345,
       farmZone: "banana_mine",
@@ -244,16 +276,86 @@ async function stepCloudSave() {
       records: {},
     },
   };
+  const putBlocked = await req("PUT", "/save", {
+    token,
+    body: { ...payload, writerId: deviceB, deviceId: deviceB },
+    expectStatus: 423,
+  });
+  if (!putBlocked.json?.locked) throw new Error("PUT without lease should 423");
+  ok("PUT from B without lease → 423");
+
   const put = await req("PUT", "/save", { token, body: payload, expectStatus: 200 });
   if (!put.json?.ok) throw new Error("PUT /save failed");
   ok("PUT /save", `seq=${put.json.seq}`);
+
+  const takeover = await req("POST", "/save/lease", {
+    token,
+    body: { writerId: deviceB, deviceId: deviceB, takeover: true },
+    expectStatus: 200,
+  });
+  if (!takeover.json?.ok || !takeover.json?.tookOver) throw new Error("takeover failed");
+  ok("lease takeover → B");
+
+  const putAStale = await req("PUT", "/save", {
+    token,
+    body: { ...payload, seq: payload.seq + 1, writerId: deviceA, deviceId: deviceA },
+    expectStatus: 423,
+  });
+  if (!putAStale.json?.locked) throw new Error("A should lose write after takeover");
+  ok("PUT from A after takeover → 423");
 
   const got = await req("GET", "/save", { token, expectStatus: 200 });
   if (got.json?.empty) throw new Error("save still empty after PUT");
   if (got.json?.data?.activeCharacterId !== "c_smoke") throw new Error("bad activeCharacterId");
   ok("GET /save after PUT", got.json.summary?.activeName || "ok");
 
-  await req("POST", "/auth/logout", { token, body: {}, expectStatus: 200 });
+  await req("POST", "/events", {
+    token,
+    body: {
+      events: [
+        {
+          event: "enchant_ok",
+          characterId: "c_smoke",
+          charName: "SmokeHero",
+          adena: 12345,
+          payload: { weaponId: "test", plus: 4 },
+        },
+        {
+          event: "farm_session",
+          characterId: "c_smoke",
+          charName: "SmokeHero",
+          adena: 12345,
+          payload: { kills: 3, adenaGain: 100 },
+        },
+      ],
+    },
+    expectStatus: 200,
+  });
+  ok("POST /events");
+
+  const ev = await req("GET", "/events?characterId=c_smoke&limit=10", {
+    token,
+    expectStatus: 200,
+  });
+  if (!ev.json?.ok || !Array.isArray(ev.json.rows) || ev.json.rows.length < 1) {
+    throw new Error("events empty");
+  }
+  ok("GET /events", `${ev.json.rows.length} rows`);
+
+  const bak = await req("GET", "/backups?characterId=c_smoke&limit=5", {
+    token,
+    expectStatus: 200,
+  });
+  if (!bak.json?.ok || !Array.isArray(bak.json.rows) || !bak.json.rows.length) {
+    throw new Error("backups empty after PUT /save");
+  }
+  ok("GET /backups", `${bak.json.rows.length} snaps · #${bak.json.rows[0].id}`);
+
+  await req("POST", "/auth/logout", {
+    token,
+    body: { writerId: deviceB, deviceId: deviceB },
+    expectStatus: 200,
+  });
 }
 
 async function stepNegatives() {

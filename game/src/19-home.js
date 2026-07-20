@@ -1,7 +1,7 @@
 // ===== Главное меню (title screen) =====
 
 function applyVersionLabels() {
-  const v = typeof GAME_VERSION !== "undefined" ? GAME_VERSION : "0.30a-r";
+  const v = typeof GAME_VERSION !== "undefined" ? GAME_VERSION : "0.35a";
   const label = "v" + v;
   document.querySelectorAll("[data-game-ver]").forEach((el) => {
     el.textContent = label;
@@ -20,6 +20,22 @@ function openLoginScreen() {
   } catch (e) {}
   if (typeof syncCloudUI === "function") syncCloudUI();
   show("login");
+}
+
+/** Сменить аккаунт = полный logout (lease + токен), не просто экран входа. */
+async function switchAccountFromHome() {
+  if (typeof Audio2 !== "undefined") Audio2.click();
+  if (typeof readCloudAuth === "function" && readCloudAuth()?.token) {
+    if (typeof cloudLogout === "function") {
+      await cloudLogout();
+      return;
+    }
+    if (window.SoulforgeCloud?.logout) {
+      await window.SoulforgeCloud.logout();
+      return;
+    }
+  }
+  openLoginScreen();
 }
 
 function openHome() {
@@ -123,7 +139,10 @@ function wireHomeMenu() {
   const login = document.getElementById("homeLoginBtn");
   if (login && !login.dataset.wired) {
     login.dataset.wired = "1";
-    login.onclick = () => openLoginScreen();
+    login.onclick = () => {
+      if (typeof switchAccountFromHome === "function") switchAccountFromHome();
+      else openLoginScreen();
+    };
   }
 
   const settings = document.getElementById("homeSettingsBtn");

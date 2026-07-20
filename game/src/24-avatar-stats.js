@@ -100,9 +100,15 @@ function selectFarmZone(zoneId) {
 
   if (state.farmZone === zoneId) return true;
 
+  const from = state.farmZone;
   state.farmZone = zoneId;
 
   save();
+  if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
+  else if (window.SoulforgeCloud?.flushSave) window.SoulforgeCloud.flushSave({ force: true });
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("zone_change", { from, to: zoneId });
+  }
 
   renderMenuFarmHub();
   if (typeof renderMenuHero === "function") renderMenuHero();

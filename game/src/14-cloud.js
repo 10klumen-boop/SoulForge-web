@@ -2,8 +2,13 @@
 const CLOUD_AUTH_KEY = "soulforge_cloud_auth";
 const PLAYER_ID_KEY = "soulforge_player_id";
 const CLOUD_PENDING_KEY = "soulforge_cloud_pending";
-const CLIENT_VERSION = typeof GAME_VERSION !== "undefined" ? GAME_VERSION : "0.31a-r";
+const CLOUD_EVENTS_KEY = "soulforge_cloud_events";
+const CLOUD_DEVICE_KEY = "soulforge_device_id";
+const CLOUD_TAB_KEY = "soulforge_tab_id";
+const CLIENT_VERSION = typeof GAME_VERSION !== "undefined" ? GAME_VERSION : "0.36a";
 const CLOUD_SUBMIT_MIN_MS = 45_000;
+const CLOUD_LEASE_HEARTBEAT_MS = 30_000;
+const CLOUD_LEASE_YIELD_WAIT_MS = 2000;
 
 const CLOUD_CONFIG = {
   baseUrl: null,
@@ -50,6 +55,72 @@ const CLOUD_CONFIG = {
   } catch (e) {}
 })();
 
+function getCloudDeviceId() {
+  try {
+    if (window.soulforgeDesktop?.isDesktop) {
+      if (!_deskDeviceId) {
+        _deskDeviceId =
+          "d_" +
+          (crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2, 10))
+            .replace(/-/g, "")
+            .slice(0, 24);
+      }
+      return _deskDeviceId;
+    }
+    let id = localStorage.getItem(CLOUD_DEVICE_KEY);
+    if (!id || !/^[A-Za-z0-9_-]{8,64}$/.test(id)) {
+      id =
+        "d_" +
+        (crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2, 10))
+          .replace(/-/g, "")
+          .slice(0, 24);
+      localStorage.setItem(CLOUD_DEVICE_KEY, id);
+    }
+    return id;
+  } catch (e) {
+    return "d_local_" + String(Date.now()).slice(-10);
+  }
+}
+
+function getCloudTabId() {
+  try {
+    if (window.soulforgeDesktop?.isDesktop) {
+      if (!_deskTabId) {
+        _deskTabId =
+          "t_" +
+          (crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2, 8))
+            .replace(/-/g, "")
+            .slice(0, 16);
+      }
+      return _deskTabId;
+    }
+    let id = sessionStorage.getItem(CLOUD_TAB_KEY);
+    if (!id || !/^[A-Za-z0-9_-]{6,32}$/.test(id)) {
+      id =
+        "t_" +
+        (crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2, 8))
+          .replace(/-/g, "")
+          .slice(0, 16);
+      sessionStorage.setItem(CLOUD_TAB_KEY, id);
+    }
+    return id;
+  } catch (e) {
+    return "t_" + String(Date.now()).slice(-8);
+  }
+}
+
+/** Уникальный writer = устройство + вкладка (две вкладки не пишут вместе). */
+function getCloudWriterId() {
+  return (getCloudDeviceId() + "." + getCloudTabId()).slice(0, 96);
+}
+
+function leaseBody(extra) {
+  const id = getCloudWriterId();
+  return Object.assign({ writerId: id, deviceId: id }, extra || {});
+}
+
+let _deskDeviceId = null;
+let _deskTabId = null;
 let _deskPlayerId = null;
 const _deskCloudPending = [];
 let _lastCloudSubmitAt = 0;
@@ -136,6 +207,73 @@ function queuePendingSubmission(payload) {
   writePendingSubmissions(list);
 }
 
+function readPendingEvents() {
+  try {
+    const raw = localStorage.getItem(CLOUD_EVENTS_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function writePendingEvents(list) {
+  try {
+    localStorage.setItem(CLOUD_EVENTS_KEY, JSON.stringify((list || []).slice(-200)));
+  } catch (e) {}
+}
+
+function queuePendingEvent(ev) {
+  const list = readPendingEvents();
+  list.push(ev);
+  writePendingEvents(list);
+}
+
+/** Журнал действий персонажа → POST /events (не каждый тап). */
+function logCharacterEvent(event, payload, opts) {
+  opts = opts || {};
+  const ev = {
+    event: String(event || "").slice(0, 32),
+    characterId: state?.activeCharacterId || opts.characterId || null,
+    charName: state?.avatar?.name || opts.charName || null,
+    adena: state?.adena != null ? Math.max(0, Math.floor(Number(state.adena) || 0)) : null,
+    at: Date.now(),
+    payload: payload && typeof payload === "object" ? payload : payload != null ? { value: payload } : null,
+    clientVersion: CLIENT_VERSION,
+  };
+  if (!ev.event) return { ok: false };
+  queuePendingEvent(ev);
+  flushPendingEvents().catch(() => {});
+  return { ok: true, queued: true };
+}
+
+async function flushPendingEvents() {
+  if (!cloudEnabled() || !readCloudAuth()?.token) {
+    return { flushed: 0, remaining: readPendingEvents().length };
+  }
+  const pending = readPendingEvents();
+  if (!pending.length) return { flushed: 0, remaining: 0 };
+  const batch = pending.slice(0, 100);
+  const left = pending.slice(batch.length);
+  try {
+    const res = await fetch(cloudApiUrl("/events"), {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({ events: batch }),
+    });
+    if (!res.ok) {
+      writePendingEvents(pending);
+      return { flushed: 0, remaining: pending.length, status: res.status };
+    }
+    writePendingEvents(left);
+    if (left.length) flushPendingEvents().catch(() => {});
+    return { flushed: batch.length, remaining: left.length };
+  } catch (e) {
+    writePendingEvents(pending);
+    return { flushed: 0, remaining: pending.length, offline: true };
+  }
+}
+
 function computeMaxPlus(records) {
   if (typeof maxWeaponPlus === "function") return maxWeaponPlus();
   let m = 0;
@@ -153,6 +291,9 @@ function buildLeaderboardPayload(event, extra) {
     v: 1,
     playerId: getPlayerId(),
     displayName: auth?.nick || null,
+    characterId: state.activeCharacterId || null,
+    charName: state.avatar?.name || null,
+    activeCharacterId: state.activeCharacterId || null,
     event,
     seq,
     savedAt,
@@ -249,6 +390,7 @@ async function cloudRegister(nick, password) {
     }
     syncCloudUI();
     noteLeaderboardEvent("login");
+    logCharacterEvent("login", { via: "register" });
   }
   return r;
 }
@@ -274,24 +416,35 @@ async function cloudLogin(nick, password) {
     }
     syncCloudUI();
     noteLeaderboardEvent("login");
+    logCharacterEvent("login", { via: "login" });
   }
   return r;
 }
 
 async function cloudLogout() {
   const auth = readCloudAuth();
+  logCharacterEvent("logout", { via: "logout" });
+  try {
+    await flushPendingEvents();
+  } catch (e) {}
+  stopLeaseHeartbeat();
   try {
     await flushCloudSave({ force: true });
+  } catch (e) {}
+  try {
+    await releaseWriteLease();
   } catch (e) {}
   if (cloudEnabled() && auth?.token) {
     try {
       await fetch(cloudApiUrl("/auth/logout"), {
         method: "POST",
         headers: authHeaders(true),
-        body: "{}",
+        body: JSON.stringify({ writerId: getCloudWriterId(), deviceId: getCloudWriterId() }),
       });
     } catch (e) {}
   }
+  _cloudWriteLocked = false;
+  setWriteLockBanner(false);
   await bindSaveToCloudNick(null);
   writeCloudAuth(null);
   _cloudDevBypass = false;
@@ -326,8 +479,216 @@ function buildCloudSaveBody() {
     savedAt: Date.now(),
     clientVersion: CLIENT_VERSION,
     farmPower: data.farmPower || 0,
+    deviceId: getCloudWriterId(),
+    writerId: getCloudWriterId(),
     data,
   };
+}
+
+let _leaseHeartbeatTimer = null;
+let _cloudWriteLocked = false;
+let _cloudLeaseExpiresAt = 0;
+
+function stopLeaseHeartbeat() {
+  if (_leaseHeartbeatTimer) {
+    clearInterval(_leaseHeartbeatTimer);
+    _leaseHeartbeatTimer = null;
+  }
+}
+
+function startLeaseHeartbeat() {
+  stopLeaseHeartbeat();
+  if (!cloudEnabled() || !readCloudAuth()?.token) return;
+  _leaseHeartbeatTimer = setInterval(() => {
+    renewWriteLease().catch(() => {});
+  }, CLOUD_LEASE_HEARTBEAT_MS);
+}
+
+function setWriteLockBanner(show, opts) {
+  opts = opts || {};
+  let el = document.getElementById("cloudWriteLockBanner");
+  if (!el && show && typeof document !== "undefined") {
+    el = document.createElement("div");
+    el.id = "cloudWriteLockBanner";
+    el.className = "cloud-write-lock-banner";
+    el.innerHTML =
+      '<span class="cloud-write-lock-text">Аккаунт открыт в другой вкладке или на другом устройстве. Запись отключена.</span>' +
+      '<button type="button" class="cloud-write-lock-btn" id="cloudWriteLockTakeover">Перехватить</button>';
+    document.body.appendChild(el);
+    const btn = el.querySelector("#cloudWriteLockTakeover");
+    if (btn && !btn.dataset.wired) {
+      btn.dataset.wired = "1";
+      btn.onclick = async () => {
+        if (typeof Audio2 !== "undefined") Audio2.click();
+        const lease = await acquireWriteLease({ takeover: true, askTakeover: false, notify: true });
+        if (lease.ok) {
+          setWriteLockBanner(false);
+          if (typeof toast === "function") toast("Запись снова на этом устройстве", "success");
+        }
+      };
+    }
+  }
+  if (!el) return;
+  el.hidden = !show;
+  if (opts.text) {
+    const t = el.querySelector(".cloud-write-lock-text");
+    if (t) t.textContent = opts.text;
+  }
+}
+
+async function releaseWriteLease() {
+  if (!cloudEnabled() || !readCloudAuth()?.token) return { ok: false };
+  try {
+    const res = await fetch(cloudApiUrl("/save/lease/release"), {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify(leaseBody()),
+    });
+    return { ok: res.ok };
+  } catch (e) {
+    return { ok: false, offline: true };
+  }
+}
+
+async function renewWriteLease() {
+  if (!cloudEnabled() || !readCloudAuth()?.token) return { ok: false, needAuth: true };
+  if (_cloudWriteLocked) return { ok: false, locked: true };
+  try {
+    const res = await fetch(cloudApiUrl("/save/lease/renew"), {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify(leaseBody()),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.status === 423) {
+      await handleWriteLeaseLost(json);
+      return { ok: false, locked: true, ...json };
+    }
+    if (!res.ok) return { ok: false, status: res.status, error: json.error };
+    _cloudLeaseExpiresAt = json.lease?.expiresAt || 0;
+    _cloudWriteLocked = false;
+    setWriteLockBanner(false);
+    // Периодический flush — меньше потерь при перехвате
+    flushCloudSave().catch(() => {});
+    return { ok: true, ...json };
+  } catch (e) {
+    return { ok: false, offline: true };
+  }
+}
+
+async function handleWriteLeaseLost(json) {
+  _cloudWriteLocked = true;
+  stopLeaseHeartbeat();
+  setWriteLockBanner(true);
+  if (typeof toast === "function") {
+    toast("Аккаунт перехвачен — запись остановлена", "warn");
+  }
+  try {
+    const remote = await fetchCloudSave();
+    if (remote.ok && !remote.empty) {
+      applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+    }
+  } catch (e) {}
+}
+
+function wireLeaseYieldChannel() {
+  if (typeof BroadcastChannel === "undefined") return;
+  if (document.documentElement.dataset.leaseYieldWired) return;
+  document.documentElement.dataset.leaseYieldWired = "1";
+  try {
+    const ch = new BroadcastChannel("soulforge-lease");
+    ch.onmessage = async (ev) => {
+      const msg = ev?.data;
+      if (!msg || msg.type !== "please-yield") return;
+      if (!readCloudAuth()?.token || _cloudWriteLocked) return;
+      try {
+        await flushCloudSave({ force: true });
+        await releaseWriteLease();
+      } catch (e) {}
+      _cloudWriteLocked = true;
+      stopLeaseHeartbeat();
+      setWriteLockBanner(true, {
+        text: "Другая вкладка запросила управление. Запись на этой вкладке отключена.",
+      });
+      if (typeof toast === "function") toast("Управление передано другой вкладке", "warn");
+    };
+    window._soulforgeLeaseChannel = ch;
+  } catch (e) {}
+}
+
+async function requestOtherTabsYield() {
+  if (typeof BroadcastChannel === "undefined") return;
+  try {
+    const ch = window._soulforgeLeaseChannel || new BroadcastChannel("soulforge-lease");
+    ch.postMessage({ type: "please-yield", from: getCloudWriterId(), at: Date.now() });
+    await new Promise((r) => setTimeout(r, CLOUD_LEASE_YIELD_WAIT_MS));
+  } catch (e) {}
+}
+
+/**
+ * Захватить право записи. При конфликте — спросить takeover.
+ * @returns {{ ok: boolean, locked?: boolean, tookOver?: boolean }}
+ */
+async function acquireWriteLease(opts) {
+  opts = opts || {};
+  if (!cloudEnabled() || !readCloudAuth()?.token) return { ok: false, needAuth: true };
+  const tryClaim = async (takeover) => {
+    const res = await fetch(cloudApiUrl("/save/lease"), {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify(leaseBody({ takeover: !!takeover })),
+    });
+    const json = await res.json().catch(() => ({}));
+    return { res, json };
+  };
+  try {
+    let { res, json } = await tryClaim(false);
+    if (res.status === 423) {
+      let takeover = !!opts.takeover;
+      if (!takeover && opts.askTakeover !== false) {
+        if (typeof showConfirm === "function") {
+          takeover = await showConfirm({
+            title: "Другое устройство / вкладка",
+            message:
+              "Этот аккаунт сейчас открыт в другой вкладке или на другом устройстве.\n" +
+              "Перехватить управление? Сначала попробуем сохранить прогресс там, затем запись будет только здесь.",
+            okText: "Перехватить",
+            danger: true,
+          });
+        } else {
+          takeover = true;
+        }
+      }
+      if (!takeover) {
+        _cloudWriteLocked = true;
+        setWriteLockBanner(true);
+        return { ok: false, locked: true, cancelled: true, ...json };
+      }
+      await requestOtherTabsYield();
+      ({ res, json } = await tryClaim(true));
+      if (!res.ok) {
+        _cloudWriteLocked = true;
+        setWriteLockBanner(true);
+        return { ok: false, locked: true, ...json };
+      }
+      _cloudWriteLocked = false;
+      setWriteLockBanner(false);
+      _cloudLeaseExpiresAt = json.lease?.expiresAt || 0;
+      startLeaseHeartbeat();
+      if (opts.notify && typeof toast === "function") {
+        toast("Управление перехвачено на эту вкладку", "success");
+      }
+      return { ok: true, tookOver: true, ...json };
+    }
+    if (!res.ok) return { ok: false, status: res.status, error: json.error };
+    _cloudWriteLocked = false;
+    setWriteLockBanner(false);
+    _cloudLeaseExpiresAt = json.lease?.expiresAt || 0;
+    startLeaseHeartbeat();
+    return { ok: true, ...json };
+  } catch (e) {
+    return { ok: false, offline: true, error: "Нет связи с сервером" };
+  }
 }
 
 async function fetchCloudSave() {
@@ -355,7 +716,11 @@ async function pushCloudSave(opts) {
   if (!cloudEnabled() || !readCloudAuth()?.token) {
     return { ok: false, needAuth: true };
   }
+  if (_cloudWriteLocked) {
+    return { ok: false, locked: true };
+  }
   const body = buildCloudSaveBody();
+  const sentSeq = body.seq;
   try {
     const res = await fetch(cloudApiUrl("/save"), {
       method: "PUT",
@@ -363,12 +728,21 @@ async function pushCloudSave(opts) {
       body: JSON.stringify(body),
     });
     const json = await res.json().catch(() => ({}));
+    if (res.status === 423) {
+      await handleWriteLeaseLost(json);
+      return { ok: false, locked: true, ...json };
+    }
     if (res.status === 409 && json.data) {
-      applyCloudSaveData(json.data, json.seq, json.savedAt);
-      if (opts.notify && typeof toast === "function") {
-        toast("Сейв с другого устройства новее — загружен с сервера", "warn");
+      const localSeq = typeof maxStoredSeq === "function" ? maxStoredSeq() : sentSeq;
+      // Only apply remote if it is actually newer than local — never roll back combat progress.
+      if ((json.seq || 0) > localSeq) {
+        applyCloudSaveData(json.data, json.seq, json.savedAt);
+        if (opts.notify && typeof toast === "function") {
+          toast("Сейв с другого устройства новее — загружен с сервера", "warn");
+        }
+        return { ok: false, conflict: true, applied: true };
       }
-      return { ok: false, conflict: true, applied: true };
+      return { ok: false, conflict: true, applied: false, stale: true };
     }
     if (res.status === 401) {
       await bindSaveToCloudNick(null);
@@ -377,7 +751,13 @@ async function pushCloudSave(opts) {
       return { ok: false, needAuth: true };
     }
     if (!res.ok) return { ok: false, status: res.status, error: json.error };
+    // Response for an outdated request — ignore (a newer local save exists).
+    const nowLocal = typeof maxStoredSeq === "function" ? maxStoredSeq() : sentSeq;
+    if (sentSeq < nowLocal) {
+      return { ok: true, stale: true, seq: sentSeq };
+    }
     _lastCloudSaveAt = Date.now();
+    if (json.lease?.expiresAt) _cloudLeaseExpiresAt = json.lease.expiresAt;
     return { ok: true, ...json };
   } catch (e) {
     return { ok: false, offline: true };
@@ -403,13 +783,37 @@ function applyCloudSaveData(data, seq, savedAt) {
   }
 }
 
-/** После логина: скачать облако или залить локальный кэш этого ника. */
+/** После логина: скачать облако, захватить право записи, при пустом облаке — залить кэш ника. */
 async function syncCloudProgress(opts) {
   opts = opts || {};
   if (!cloudEnabled() || !readCloudAuth()?.token) return { ok: false, needAuth: true };
   const nick = readCloudAuth()?.nick;
   const remote = await fetchCloudSave();
   if (!remote.ok) return remote;
+
+  if (!remote.empty) {
+    applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+  }
+
+  const lease = await acquireWriteLease({
+    askTakeover: opts.askTakeover !== false,
+    takeover: opts.takeover,
+    notify: opts.notify,
+  });
+  if (!lease.ok) {
+    if (lease.cancelled || lease.locked) {
+      return {
+        ok: false,
+        locked: true,
+        cancelled: !!lease.cancelled,
+        error: lease.cancelled
+          ? "Аккаунт открыт на другом устройстве"
+          : (lease.error || "Нет права записи"),
+      };
+    }
+    return lease;
+  }
+
   if (remote.empty) {
     const ownerMatches =
       nick &&
@@ -417,15 +821,18 @@ async function syncCloudProgress(opts) {
       currentSaveOwner() === nick;
     if (ownerMatches && localSaveHasProgress()) {
       const up = await pushCloudSave({ force: true });
-      if (!up.ok && !up.conflict) return up;
+      if (!up.ok && !up.conflict && !up.locked) return up;
       if (up.ok && opts.notify && typeof toast === "function") {
         toast("Прогресс сохранён в облако", "success");
       }
       return { ok: true, uploaded: true, ...up };
     }
+    if (opts.notify && typeof toast === "function") {
+      toast("Новый облачный сейв — можно играть", "success");
+    }
     return { ok: true, empty: true };
   }
-  applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+
   if (opts.notify && typeof toast === "function") {
     const name = remote.summary?.activeName;
     toast(name ? "Облачный сейв: " + name : "Прогресс загружен с сервера", "success");
@@ -438,7 +845,9 @@ let _lastCloudSaveAt = 0;
 let _cloudSaveApplying = false;
 let _cloudDevBypass = false;
 let _cloudAuthBusy = false;
-const CLOUD_SAVE_DEBOUNCE_MS = 3000;
+const CLOUD_SAVE_DEBOUNCE_MS = 1500;
+let _cloudPushBusy = false;
+let _cloudPushAgain = false;
 const CLOUD_GATED_SCREENS = new Set([
   "home", "menu", "characters", "leaderboard",
   "inv", "ench", "shop", "mine", "acc", "ach", "avatar", "quests",
@@ -459,7 +868,7 @@ function cloudGateScreen(screen) {
 }
 
 function scheduleCloudSave() {
-  if (_cloudSaveApplying) return;
+  if (_cloudSaveApplying || _cloudWriteLocked) return;
   if (!cloudEnabled() || !readCloudAuth()?.token) return;
   if (_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
   _cloudSaveTimer = setTimeout(() => {
@@ -475,8 +884,25 @@ async function flushCloudSave(opts) {
     _cloudSaveTimer = null;
   }
   if (_cloudSaveApplying) return { ok: false, applying: true };
+  if (_cloudWriteLocked) return { ok: false, locked: true };
   if (!cloudEnabled() || !readCloudAuth()?.token) return { ok: false, needAuth: true };
-  return pushCloudSave(opts);
+
+  // Serialize PUTs: one in flight; if save changes meanwhile, push again with latest body.
+  if (_cloudPushBusy) {
+    _cloudPushAgain = true;
+    return { ok: false, queued: true };
+  }
+  _cloudPushBusy = true;
+  let last = { ok: false };
+  try {
+    do {
+      _cloudPushAgain = false;
+      last = await pushCloudSave(opts);
+    } while (_cloudPushAgain);
+  } finally {
+    _cloudPushBusy = false;
+  }
+  return last;
 }
 
 function wireCloudSaveLifecycle() {
@@ -533,7 +959,10 @@ async function flushPendingSubmissions(opts) {
   opts = opts || {};
   if (!cloudEnabled() || !readCloudAuth()?.token) return { flushed: 0, remaining: 0 };
   const pending = readPendingSubmissions();
-  if (!pending.length) return { flushed: 0, remaining: 0 };
+  if (!pending.length) {
+    await flushPendingEvents();
+    return { flushed: 0, remaining: 0 };
+  }
   const left = [];
   let flushed = 0;
   for (const item of pending) {
@@ -556,6 +985,7 @@ async function flushPendingSubmissions(opts) {
   } else if (opts.notify && pending.length && flushed === 0 && left.length && typeof toast === "function") {
     toast("Очередь рейтинга не ушла — попробуй позже", "warn");
   }
+  await flushPendingEvents();
   return { flushed, remaining: left.length };
 }
 
@@ -593,9 +1023,23 @@ function updateHomeRatingSubtitle() {
     : "Заточка · сила · богатство";
 }
 
-function isLeaderboardMe(rowName, me) {
-  if (!me || !rowName) return false;
-  return String(rowName).toLowerCase() === String(me).toLowerCase();
+function isLeaderboardMe(row, me) {
+  if (!me || !row) return false;
+  const account = String(me).toLowerCase();
+  const nick = String(row.nick || "").toLowerCase();
+  const cid = typeof state !== "undefined" ? state.activeCharacterId : null;
+  if (cid && row.characterId) {
+    return nick === account && String(row.characterId) === String(cid);
+  }
+  if (nick) return nick === account;
+  return String(row.name || "").toLowerCase() === account;
+}
+
+function isLeaderboardMyAccount(row, me) {
+  if (!me || !row) return false;
+  const nick = String(row.nick || "").toLowerCase();
+  if (nick) return nick === String(me).toLowerCase();
+  return String(row.name || "").toLowerCase() === String(me).toLowerCase();
 }
 
 function syncCloudUI() {
@@ -639,10 +1083,15 @@ function syncCloudUI() {
   const regBtn = document.getElementById("cloudRegisterBtn");
   const logoutBtn = document.getElementById("cloudLogoutBtn");
   const cancelBtn = document.getElementById("cloudCancelBtn");
-  if (loginBtn) loginBtn.hidden = false;
+  if (loginBtn) {
+    loginBtn.hidden = false;
+    loginBtn.textContent = auth?.nick ? "Продолжить" : "Войти";
+  }
   if (regBtn) regBtn.hidden = !!auth;
   if (logoutBtn) logoutBtn.hidden = !auth;
   if (cancelBtn) cancelBtn.hidden = cloudEnabled();
+  const titleEl = document.getElementById("l2LoginTitle");
+  if (titleEl) titleEl.textContent = auth?.nick ? "Сессия" : "Вход";
   if (nickInput) {
     nickInput.hidden = false;
     if (auth?.nick) nickInput.value = auth.nick;
@@ -668,7 +1117,7 @@ function syncCloudUI() {
   if (homeLoginBtn) {
     if (auth?.nick) {
       homeLoginBtn.textContent = "Сменить аккаунт";
-      homeLoginBtn.title = "В сети · " + auth.nick;
+      homeLoginBtn.title = "Выйти и открыть вход";
     } else {
       homeLoginBtn.textContent = "Войти в аккаунт";
       homeLoginBtn.title = "Логин или регистрация";
@@ -723,9 +1172,12 @@ async function renderLeaderboard() {
         ? "Войдите · в очереди " + pending
         : "Войдите, чтобы попасть в рейтинг";
     } else if (pending) {
-      status.textContent = modeLabel + " · " + auth.nick + " · отправка очереди: " + pending;
+      status.textContent = modeLabel + " · " + (state.avatar?.name || auth.nick) + " · очередь: " + pending;
     } else {
-      status.textContent = modeLabel + " · " + auth.nick;
+      const hero = state.avatar?.name;
+      status.textContent = hero
+        ? modeLabel + " · " + hero + " · " + auth.nick
+        : modeLabel + " · " + auth.nick;
     }
   }
   document.querySelectorAll(".lb-tab").forEach((btn) => {
@@ -748,20 +1200,37 @@ async function renderLeaderboard() {
   const me = getCloudNick();
   let foundMe = false;
   res.rows.forEach((row) => {
-    const isMe = isLeaderboardMe(row.name, me);
+    const isMe = isLeaderboardMe(row, me);
+    const isMine = !isMe && isLeaderboardMyAccount(row, me);
     if (isMe) foundMe = true;
     const el = document.createElement("div");
-    el.className = "lb-row" + (isMe ? " me" : "");
+    el.className = "lb-row" + (isMe ? " me" : isMine ? " mine" : "");
     el.innerHTML =
       '<span class="lb-rank">' + row.rank + "</span>" +
       '<span class="lb-name"></span>' +
       '<span class="lb-val"></span>';
     const nameEl = el.querySelector(".lb-name");
-    nameEl.textContent = row.name || "—";
+    const hero = row.charName || row.name || "—";
+    const account = row.nick || "";
+    const main = document.createElement("span");
+    main.className = "lb-name-main";
+    main.textContent = hero;
+    nameEl.appendChild(main);
+    if (account && String(account).toLowerCase() !== String(hero).toLowerCase()) {
+      const nickEl = document.createElement("span");
+      nickEl.className = "lb-nick";
+      nickEl.textContent = account;
+      nameEl.appendChild(nickEl);
+    }
     if (isMe) {
       const tag = document.createElement("span");
       tag.className = "lb-me-tag";
       tag.textContent = "ты";
+      nameEl.appendChild(tag);
+    } else if (isMine) {
+      const tag = document.createElement("span");
+      tag.className = "lb-mine-tag";
+      tag.textContent = "твой";
       nameEl.appendChild(tag);
     }
     el.querySelector(".lb-val").textContent = formatLbValue(_lbMode, row);
@@ -847,7 +1316,12 @@ async function wireCloudAuthForms() {
         await bindSaveToCloudNick(existing.nick);
         const sync = await syncCloudProgress({ notify: true });
         if (!sync.ok) {
-          setMsg(sync.offline ? "Нет связи с сервером" : (sync.error || "Не удалось загрузить сейв"), true);
+          setMsg(
+            sync.locked
+              ? (sync.error || "Аккаунт открыт на другом устройстве")
+              : (sync.error || "Не удалось загрузить сейв"),
+            true
+          );
           return;
         }
         setMsg("С возвращением, " + existing.nick);
@@ -984,8 +1458,10 @@ function initCloud() {
   syncCloudUI();
   wireCloudAuthForms();
   wireCloudSaveLifecycle();
+  wireLeaseYieldChannel();
   if (cloudEnabled() && readCloudAuth()?.token) {
     flushPendingSubmissions({ notify: false });
+    flushPendingEvents().catch(() => {});
   }
 }
 
@@ -1003,11 +1479,17 @@ async function tryResumeCloudSession() {
   await bindSaveToCloudNick(auth.nick);
   const sync = await syncCloudProgress({ notify: false });
   if (!sync.ok) {
-    setMsg(sync.offline ? "Нет связи с сервером" : (sync.error || "Не удалось загрузить сейв"), true);
+    const msg = sync.locked
+      ? (sync.error || "Аккаунт открыт на другом устройстве")
+      : sync.offline
+        ? "Нет связи с сервером"
+        : (sync.error || "Не удалось загрузить сейв");
+    setMsg(msg, true);
     return sync;
   }
   setMsg("");
   await flushPendingSubmissions({ notify: false });
+  flushPendingEvents().catch(() => {});
   enterMainMenuFromLogin({ guideCreate: true });
   return sync;
 }
@@ -1020,12 +1502,16 @@ window.SoulforgeCloud = {
   login: cloudLogin,
   logout: cloudLogout,
   submit: submitLeaderboardEvent,
+  logEvent: logCharacterEvent,
+  flushEvents: flushPendingEvents,
   fetchLeaderboard,
   flushPending: flushPendingSubmissions,
   pending: readPendingSubmissions,
   syncProgress: syncCloudProgress,
   tryResumeSession: tryResumeCloudSession,
   gateScreen: cloudGateScreen,
+  acquireLease: acquireWriteLease,
+  getDeviceId: getCloudDeviceId,
   pushSave: pushCloudSave,
   flushSave: flushCloudSave,
   scheduleSave: scheduleCloudSave,

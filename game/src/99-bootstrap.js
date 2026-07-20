@@ -148,4 +148,22 @@ document.addEventListener(
   },
   { capture: true }
 );
+
+// Mac trackpad / кнопки мыши «Назад/Вперёд»: не уводить со SPA
+(function trapBrowserHistoryGestures() {
+  try {
+    history.replaceState({ soulforge: 1 }, "", location.href);
+    history.pushState({ soulforge: 1 }, "", location.href);
+  } catch (_) {}
+  window.addEventListener("popstate", () => {
+    try {
+      history.pushState({ soulforge: 1 }, "", location.href);
+    } catch (_) {}
+  });
+  const blockNavBtn = (e) => {
+    if (e.button === 3 || e.button === 4) e.preventDefault();
+  };
+  document.addEventListener("mousedown", blockNavBtn, { capture: true });
+  document.addEventListener("mouseup", blockNavBtn, { capture: true });
+})();
 })();

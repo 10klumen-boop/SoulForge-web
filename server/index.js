@@ -7,7 +7,8 @@ const crypto = require("crypto");
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
-const Database = require("better-sqlite3");
+const { createStore } = require("./db");
+const { maxPlusFromRecords, parseSavePayload, resolveActiveCharacterId } = require("./db/save-utils");
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = process.env.HOST || "0.0.0.0";
@@ -18,272 +19,33 @@ const GAME_DIR = process.env.SOULFORGE_GAME || path.join(__dirname, "..", "game"
 const ADMIN_DIR = path.join(__dirname, "admin");
 const SESSION_DAYS = 30;
 const BCRYPT_ROUNDS = 10;
+const WRITE_LEASE_TTL_MS = Number(process.env.SOULFORGE_LEASE_TTL_MS || 90_000);
 const ADMIN_KEY = String(process.env.SOULFORGE_ADMIN_KEY || "").trim();
 const NICK_RE = /^[a-zA-Z]{2,16}$/;
 const PASS_RE = /^[a-zA-Z0-9]{6,72}$/;
+/** writerId = deviceId.tabId (одна вкладка) */
+const WRITER_ID_RE = /^[A-Za-z0-9_.-]{8,96}$/;
 
-fs.mkdirSync(DATA_DIR, { recursive: true });
+const store = createStore({ dataDir: DATA_DIR, dbPath: DB_PATH });
+const dbInfo = store.info();
 
-const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nick TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    pass_hash TEXT NOT NULL,
-    created_at INTEGER NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS sessions (
-    token TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    exp INTEGER NOT NULL,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-  CREATE TABLE IF NOT EXISTS scores (
-    user_id INTEGER PRIMARY KEY,
-    max_plus INTEGER NOT NULL DEFAULT 0,
-    farm_power INTEGER NOT NULL DEFAULT 0,
-    earned INTEGER NOT NULL DEFAULT 0,
-    adena INTEGER NOT NULL DEFAULT 0,
-    mobs INTEGER NOT NULL DEFAULT 0,
-    client_version TEXT,
-    updated_at INTEGER NOT NULL,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-`);
-
-function ensureScoreColumn(name, ddl) {
-  const cols = db.prepare("PRAGMA table_info(scores)").all();
-  if (!cols.some((c) => c.name === name)) {
-    db.exec(`ALTER TABLE scores ADD COLUMN ${name} ${ddl}`);
-  }
+function normalizeWriterId(raw) {
+  const id = String(raw || "").trim().slice(0, 96);
+  return WRITER_ID_RE.test(id) ? id : null;
 }
-ensureScoreColumn("mobs", "INTEGER NOT NULL DEFAULT 0");
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS player_saves (
-    user_id INTEGER PRIMARY KEY,
-    nick TEXT NOT NULL,
-    payload TEXT NOT NULL,
-    seq INTEGER NOT NULL DEFAULT 0,
-    saved_at INTEGER NOT NULL,
-    client_version TEXT,
-    chars_count INTEGER NOT NULL DEFAULT 0,
-    active_name TEXT,
-    active_level INTEGER NOT NULL DEFAULT 1,
-    adena INTEGER NOT NULL DEFAULT 0,
-    mobs INTEGER NOT NULL DEFAULT 0,
-    max_plus INTEGER NOT NULL DEFAULT 0,
-    farm_zone TEXT,
-    updated_at INTEGER NOT NULL,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-  CREATE TABLE IF NOT EXISTS player_characters (
-    user_id INTEGER NOT NULL,
-    slot_id TEXT NOT NULL,
-    nick TEXT NOT NULL,
-    name TEXT,
-    race_id TEXT,
-    class_id TEXT,
-    gender_id TEXT,
-    level INTEGER NOT NULL DEFAULT 1,
-    adena INTEGER NOT NULL DEFAULT 0,
-    farm_zone TEXT,
-    created INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (user_id, slot_id),
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-`);
+function readWriterId(body) {
+  return normalizeWriterId(body?.writerId) || normalizeWriterId(body?.deviceId);
+}
 
-const stmtUserByNick = db.prepare("SELECT * FROM users WHERE nick = ? COLLATE NOCASE");
-const stmtUserById = db.prepare("SELECT id, nick, created_at FROM users WHERE id = ?");
-const stmtInsertUser = db.prepare(
-  "INSERT INTO users (nick, pass_hash, created_at) VALUES (?, ?, ?)"
-);
-const stmtInsertSession = db.prepare(
-  "INSERT INTO sessions (token, user_id, exp) VALUES (?, ?, ?)"
-);
-const stmtSession = db.prepare(
-  "SELECT s.token, s.user_id, s.exp, u.nick FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?"
-);
-const stmtDeleteSession = db.prepare("DELETE FROM sessions WHERE token = ?");
-const stmtDeleteExpired = db.prepare("DELETE FROM sessions WHERE exp < ?");
-const stmtUpsertScore = db.prepare(`
-  INSERT INTO scores (user_id, max_plus, farm_power, earned, adena, mobs, client_version, updated_at)
-  VALUES (@user_id, @max_plus, @farm_power, @earned, @adena, @mobs, @client_version, @updated_at)
-  ON CONFLICT(user_id) DO UPDATE SET
-    max_plus = excluded.max_plus,
-    farm_power = excluded.farm_power,
-    earned = excluded.earned,
-    adena = excluded.adena,
-    mobs = excluded.mobs,
-    client_version = excluded.client_version,
-    updated_at = excluded.updated_at
-`);
-const stmtGetSave = db.prepare("SELECT * FROM player_saves WHERE user_id = ?");
-const stmtUpsertSave = db.prepare(`
-  INSERT INTO player_saves (
-    user_id, nick, payload, seq, saved_at, client_version,
-    chars_count, active_name, active_level, adena, mobs, max_plus, farm_zone, updated_at
-  ) VALUES (
-    @user_id, @nick, @payload, @seq, @saved_at, @client_version,
-    @chars_count, @active_name, @active_level, @adena, @mobs, @max_plus, @farm_zone, @updated_at
-  )
-  ON CONFLICT(user_id) DO UPDATE SET
-    nick = excluded.nick,
-    payload = excluded.payload,
-    seq = excluded.seq,
-    saved_at = excluded.saved_at,
-    client_version = excluded.client_version,
-    chars_count = excluded.chars_count,
-    active_name = excluded.active_name,
-    active_level = excluded.active_level,
-    adena = excluded.adena,
-    mobs = excluded.mobs,
-    max_plus = excluded.max_plus,
-    farm_zone = excluded.farm_zone,
-    updated_at = excluded.updated_at
-`);
-const stmtDeleteChars = db.prepare("DELETE FROM player_characters WHERE user_id = ?");
-const stmtInsertChar = db.prepare(`
-  INSERT INTO player_characters (
-    user_id, slot_id, nick, name, race_id, class_id, gender_id, level, adena, farm_zone, created
-  ) VALUES (
-    @user_id, @slot_id, @nick, @name, @race_id, @class_id, @gender_id, @level, @adena, @farm_zone, @created
-  )
-`);
-const stmtCountSaves = db.prepare("SELECT COUNT(*) AS n FROM player_saves");
-
-function summarizeSaveData(data) {
-  data = data && typeof data === "object" ? data : {};
-  const chars = Array.isArray(data.characters) ? data.characters : [];
-  const activeId = data.activeCharacterId;
-  let active = null;
-  if (activeId) {
-    const slot = chars.find((c) => c && c.id === activeId);
-    active = slot?.progress || null;
-  }
-  if (!active && chars[0]?.progress) active = chars[0].progress;
-  if (!active && data.avatar) active = data;
-  const av = active?.avatar || data.avatar || {};
-  const adena = Math.max(0, Math.floor(Number(active?.adena ?? data.adena) || 0));
-  const mobs = Math.max(
-    0,
-    Math.floor(Number(active?.achievements?.stats?.gnomesCaught ?? data.achievements?.stats?.gnomesCaught) || 0)
-  );
-  const records = active?.records || data.records || {};
-  const maxPlus = maxPlusFromRecords(records);
-  const earned = Math.max(
-    0,
-    Math.floor(Number(active?.totals?.earned ?? data.totals?.earned) || 0)
-  );
-  const farmPower = Math.max(
-    0,
-    Math.floor(Number(data.farmPower ?? data._farmPower) || 0)
-  );
+function leasePayload(lease) {
+  if (!lease) return null;
   return {
-    chars_count: chars.length || (av.created ? 1 : 0),
-    active_name: String(av.name || "").slice(0, 48) || null,
-    active_level: Math.max(1, Math.floor(Number(av.level) || 1)),
-    adena,
-    mobs,
-    max_plus: maxPlus,
-    earned,
-    farm_power: farmPower,
-    farm_zone: String(active?.farmZone || data.farmZone || "").slice(0, 64) || null,
+    writerId: lease.device_id,
+    deviceId: lease.device_id,
+    claimedAt: lease.claimed_at,
+    expiresAt: lease.expires_at,
   };
-}
-
-function characterRowsFromData(userId, nick, data) {
-  data = data && typeof data === "object" ? data : {};
-  const chars = Array.isArray(data.characters) ? data.characters : [];
-  const rows = [];
-  if (chars.length) {
-    for (const slot of chars) {
-      if (!slot || !slot.id) continue;
-      const p = slot.progress || {};
-      const av = p.avatar || {};
-      rows.push({
-        user_id: userId,
-        slot_id: String(slot.id).slice(0, 64),
-        nick,
-        name: String(av.name || "").slice(0, 48) || null,
-        race_id: String(av.raceId || "").slice(0, 32) || null,
-        class_id: String(av.classId || "").slice(0, 32) || null,
-        gender_id: String(av.genderId || "").slice(0, 16) || null,
-        level: Math.max(1, Math.floor(Number(av.level) || 1)),
-        adena: Math.max(0, Math.floor(Number(p.adena) || 0)),
-        farm_zone: String(p.farmZone || "").slice(0, 64) || null,
-        created: av.created ? 1 : 0,
-      });
-    }
-  } else if (data.avatar?.created) {
-    rows.push({
-      user_id: userId,
-      slot_id: "legacy",
-      nick,
-      name: String(data.avatar.name || "").slice(0, 48) || null,
-      race_id: String(data.avatar.raceId || "").slice(0, 32) || null,
-      class_id: String(data.avatar.classId || "").slice(0, 32) || null,
-      gender_id: String(data.avatar.genderId || "").slice(0, 16) || null,
-      level: Math.max(1, Math.floor(Number(data.avatar.level) || 1)),
-      adena: Math.max(0, Math.floor(Number(data.adena) || 0)),
-      farm_zone: String(data.farmZone || "").slice(0, 64) || null,
-      created: 1,
-    });
-  }
-  return rows;
-}
-
-function persistPlayerSave(user, seq, savedAt, clientVersion, data) {
-  const summary = summarizeSaveData(data);
-  const payload = JSON.stringify(data);
-  const now = Date.now();
-  const saveRow = {
-    user_id: user.id,
-    nick: user.nick,
-    payload,
-    seq: Math.max(0, Math.floor(Number(seq) || 0)),
-    saved_at: Math.max(0, Math.floor(Number(savedAt) || now)),
-    client_version: String(clientVersion || "").slice(0, 32),
-    chars_count: summary.chars_count,
-    active_name: summary.active_name,
-    active_level: summary.active_level,
-    adena: summary.adena,
-    mobs: summary.mobs,
-    max_plus: summary.max_plus,
-    farm_zone: summary.farm_zone,
-    updated_at: now,
-  };
-  const tx = db.transaction(() => {
-    stmtUpsertSave.run(saveRow);
-    stmtDeleteChars.run(user.id);
-    for (const row of characterRowsFromData(user.id, user.nick, data)) {
-      stmtInsertChar.run(row);
-    }
-    const prev = db.prepare("SELECT * FROM scores WHERE user_id = ?").get(user.id);
-    stmtUpsertScore.run({
-      user_id: user.id,
-      max_plus: Math.max(prev?.max_plus || 0, summary.max_plus),
-      farm_power: Math.max(prev?.farm_power || 0, summary.farm_power),
-      earned: Math.max(prev?.earned || 0, summary.earned),
-      adena: summary.adena,
-      mobs: Math.max(prev?.mobs || 0, summary.mobs),
-      client_version: saveRow.client_version,
-      updated_at: now,
-    });
-  });
-  tx();
-  return { saveRow, summary };
-}
-
-function parseSavePayload(row) {
-  if (!row) return null;
-  try {
-    return JSON.parse(row.payload);
-  } catch (e) {
-    return null;
-  }
 }
 
 function jsonError(res, status, message) {
@@ -318,8 +80,8 @@ function authUser(req) {
   const m = /^Bearer\s+(.+)$/i.exec(header);
   const token = m ? m[1].trim() : (req.body && req.body.token) || "";
   if (!token) return null;
-  stmtDeleteExpired.run(Date.now());
-  const row = stmtSession.get(token);
+  store.deleteExpiredSessions(Date.now());
+  const row = store.getSession(token);
   if (!row || row.exp < Date.now()) return null;
   return { id: row.user_id, nick: row.nick, token };
 }
@@ -327,53 +89,8 @@ function authUser(req) {
 function createSession(userId) {
   const token = newToken();
   const exp = Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000;
-  stmtInsertSession.run(token, userId, exp);
+  store.insertSession(token, userId, exp);
   return { token, exp };
-}
-
-function maxPlusFromRecords(records) {
-  if (!records || typeof records !== "object") return 0;
-  let m = 0;
-  for (const k of Object.keys(records)) m = Math.max(m, Number(records[k]) || 0);
-  return m;
-}
-
-function boardRows(mode, limit) {
-  limit = Math.min(100, Math.max(1, limit || 50));
-  let order = "s.max_plus DESC, s.updated_at ASC";
-  let valueExpr = "s.max_plus";
-  if (mode === "power") {
-    order = "s.farm_power DESC, s.updated_at ASC";
-    valueExpr = "s.farm_power";
-  } else if (mode === "wealth") {
-    order = "s.earned DESC, s.updated_at ASC";
-    valueExpr = "s.earned";
-  } else if (mode === "mobs") {
-    order = "s.mobs DESC, s.updated_at ASC";
-    valueExpr = "s.mobs";
-  } else {
-    mode = "enchant";
-  }
-  const rows = db
-    .prepare(
-      `SELECT u.nick AS name, ${valueExpr} AS value, s.max_plus, s.farm_power, s.earned, s.adena, s.mobs, s.updated_at
-       FROM scores s JOIN users u ON u.id = s.user_id
-       ORDER BY ${order}
-       LIMIT ?`
-    )
-    .all(limit);
-  return rows.map((r, i) => ({
-    rank: i + 1,
-    name: r.name,
-    value: r.value,
-    maxPlus: r.max_plus,
-    farmPower: r.farm_power,
-    earned: r.earned,
-    adena: r.adena,
-    mobs: r.mobs || 0,
-    updatedAt: r.updated_at,
-    mode,
-  }));
 }
 
 const app = express();
@@ -381,7 +98,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "soulforge-cloud", version: "0.31.0" });
+  res.json({ ok: true, service: "soulforge-cloud", version: "0.36.1", db: dbInfo.driver });
 });
 
 app.post("/auth/register", (req, res) => {
@@ -393,12 +110,12 @@ app.post("/auth/register", (req, res) => {
   if (!PASS_RE.test(password)) {
     return jsonError(res, 400, "Пароль: 6–72 символа, только латиница и цифры");
   }
-  if (stmtUserByNick.get(nick)) {
+  if (store.getUserByNick(nick)) {
     return jsonError(res, 409, "Ник уже занят");
   }
   const passHash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
-  const info = stmtInsertUser.run(nick, passHash, Date.now());
-  const session = createSession(info.lastInsertRowid);
+  const created = store.insertUser(nick, passHash, Date.now());
+  const session = createSession(created.id);
   res.json({
     ok: true,
     nick,
@@ -410,7 +127,7 @@ app.post("/auth/register", (req, res) => {
 app.post("/auth/login", (req, res) => {
   const nick = String(req.body?.nick || "").trim();
   const password = String(req.body?.password || "");
-  const user = stmtUserByNick.get(nick);
+  const user = store.getUserByNick(nick);
   if (!user || !bcrypt.compareSync(password, user.pass_hash)) {
     return jsonError(res, 401, "Неверный ник или пароль");
   }
@@ -425,14 +142,18 @@ app.post("/auth/login", (req, res) => {
 
 app.post("/auth/logout", (req, res) => {
   const user = authUser(req);
-  if (user?.token) stmtDeleteSession.run(user.token);
+  if (user?.token) {
+    const deviceId = readWriterId(req.body);
+    if (deviceId) store.releaseWriteLease(user.id, deviceId);
+    store.deleteSession(user.token);
+  }
   res.json({ ok: true });
 });
 
 app.get("/auth/me", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Нет сессии");
-  const row = stmtUserById.get(user.id);
+  const row = store.getUserById(user.id);
   res.json({ ok: true, nick: row.nick, id: row.id });
 });
 
@@ -456,10 +177,27 @@ app.post("/runs", (req, res) => {
       Number(body.mobs ?? body.kills ?? body.totals?.gnomesCaught ?? body.achievements?.stats?.gnomesCaught) || 0
     )
   );
+  let characterId = String(body.characterId || body.activeCharacterId || "").slice(0, 64);
+  let charName =
+    String(body.charName || body.characterName || "").trim().slice(0, 48) || null;
+  if (!characterId) {
+    const save = store.getSave(user.id);
+    const data = parseSavePayload(save);
+    characterId = resolveActiveCharacterId(data) || "legacy";
+    if (!charName && data) {
+      const av =
+        (Array.isArray(data.characters)
+          ? data.characters.find((c) => c && c.id === characterId)?.progress?.avatar
+          : null) || data.avatar;
+      charName = av?.name ? String(av.name).slice(0, 48) : null;
+    }
+  }
   const now = Date.now();
-  const prev = db.prepare("SELECT * FROM scores WHERE user_id = ?").get(user.id);
-  const next = {
+  const prev = store.getScore(user.id, characterId);
+  store.upsertScore({
     user_id: user.id,
+    character_id: characterId,
+    char_name: charName || prev?.char_name || null,
     max_plus: Math.max(prev?.max_plus || 0, maxPlus),
     farm_power: Math.max(prev?.farm_power || 0, farmPower),
     earned: Math.max(prev?.earned || 0, earned),
@@ -467,16 +205,50 @@ app.post("/runs", (req, res) => {
     mobs: Math.max(prev?.mobs || 0, mobs),
     client_version: String(body.clientVersion || "").slice(0, 32),
     updated_at: now,
-  };
-  stmtUpsertScore.run(next);
-  res.json({ ok: true });
+  });
+  res.json({ ok: true, characterId });
+});
+
+app.post("/events", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const body = req.body || {};
+  let list = Array.isArray(body.events) ? body.events : null;
+  if (!list && body.event) list = [body];
+  if (!list || !list.length) return jsonError(res, 400, "Нужен массив events");
+  if (list.length > 100) list = list.slice(0, 100);
+  const inserted = store.insertCharacterEvents(user.id, list);
+  res.json({ ok: true, inserted: inserted.length, ids: inserted.map((x) => x.id) });
+});
+
+app.get("/events", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const characterId = String(req.query.characterId || req.query.character_id || "").slice(0, 64) || null;
+  const limit = Number(req.query.limit) || 100;
+  const rows = store.listCharacterEvents(user.id, characterId, limit);
+  res.json({ ok: true, rows });
+});
+
+app.get("/backups", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const characterId = String(req.query.characterId || req.query.character_id || "").slice(0, 64) || null;
+  const limit = Number(req.query.limit) || 40;
+  const rows = store.listCharacterBackups(user.id, characterId, limit);
+  res.json({ ok: true, rows });
 });
 
 app.get("/save", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
-  const row = stmtGetSave.get(user.id);
-  if (!row) return res.json({ ok: true, empty: true });
+  const row = store.getSave(user.id);
+  const now = Date.now();
+  const lease = store.getWriteLease(user.id);
+  const leaseActive = lease && lease.expires_at > now ? leasePayload(lease) : null;
+  if (!row) {
+    return res.json({ ok: true, empty: true, lease: leaseActive });
+  }
   const data = parseSavePayload(row);
   if (!data) return jsonError(res, 500, "Повреждённый сейв на сервере");
   res.json({
@@ -486,6 +258,7 @@ app.get("/save", (req, res) => {
     savedAt: row.saved_at,
     clientVersion: row.client_version,
     data,
+    lease: leaseActive,
     summary: {
       charsCount: row.chars_count,
       activeName: row.active_name,
@@ -498,6 +271,59 @@ app.get("/save", (req, res) => {
   });
 });
 
+app.post("/save/lease", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const deviceId = readWriterId(req.body);
+  if (!deviceId) return jsonError(res, 400, "Нужен writerId (вкладка/устройство)");
+  const takeover = !!req.body?.takeover;
+  const now = Date.now();
+  const result = store.claimWriteLease(user.id, deviceId, now, WRITE_LEASE_TTL_MS, takeover);
+  if (!result.ok) {
+    if (result.error === "need_device") return jsonError(res, 400, "Нужен writerId");
+    return res.status(423).json({
+      ok: false,
+      error: "Аккаунт открыт на другом устройстве или во вкладке",
+      locked: true,
+      lease: leasePayload(result.lease),
+    });
+  }
+  res.json({
+    ok: true,
+    lease: leasePayload(result.lease),
+    tookOver: !!result.tookOver,
+    ttlMs: WRITE_LEASE_TTL_MS,
+  });
+});
+
+app.post("/save/lease/renew", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const deviceId = readWriterId(req.body);
+  if (!deviceId) return jsonError(res, 400, "Нужен writerId (вкладка/устройство)");
+  const now = Date.now();
+  const result = store.renewWriteLease(user.id, deviceId, now, WRITE_LEASE_TTL_MS);
+  if (!result.ok) {
+    return res.status(423).json({
+      ok: false,
+      error: result.expired
+        ? "Сессия записи истекла"
+        : "Аккаунт открыт на другом устройстве или во вкладке",
+      locked: true,
+      lease: leasePayload(result.lease),
+    });
+  }
+  res.json({ ok: true, lease: leasePayload(result.lease), ttlMs: WRITE_LEASE_TTL_MS });
+});
+
+app.post("/save/lease/release", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const deviceId = readWriterId(req.body);
+  if (deviceId) store.releaseWriteLease(user.id, deviceId);
+  res.json({ ok: true });
+});
+
 app.put("/save", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
@@ -506,10 +332,36 @@ app.put("/save", (req, res) => {
   if (!data || typeof data !== "object") {
     return jsonError(res, 400, "Нужен data (объект прогресса)");
   }
+  const deviceId = readWriterId(body);
+  if (!deviceId) return jsonError(res, 400, "Нужен writerId для сохранения");
+  const now = Date.now();
+  let leaseCheck = store.assertWriteLease(user.id, deviceId, now);
+  if (!leaseCheck.ok && leaseCheck.missing) {
+    const claimed = store.claimWriteLease(user.id, deviceId, now, WRITE_LEASE_TTL_MS, false);
+    if (!claimed.ok) {
+      return res.status(423).json({
+        ok: false,
+        error: "Аккаунт открыт на другом устройстве или во вкладке",
+        locked: true,
+        lease: leasePayload(claimed.lease),
+      });
+    }
+    leaseCheck = { ok: true, lease: claimed.lease };
+  } else if (!leaseCheck.ok) {
+    return res.status(423).json({
+      ok: false,
+      error: "Аккаунт открыт на другом устройстве или во вкладке",
+      locked: true,
+      lease: leasePayload(leaseCheck.lease),
+    });
+  } else {
+    store.renewWriteLease(user.id, deviceId, now, WRITE_LEASE_TTL_MS);
+  }
   const seq = Math.max(0, Math.floor(Number(body.seq) || 0));
   const savedAt = Math.max(0, Math.floor(Number(body.savedAt) || Date.now()));
-  const prev = stmtGetSave.get(user.id);
-  if (prev && seq < (prev.seq || 0)) {
+  const prev = store.getSave(user.id);
+  // Strictly newer seq only — equal/older must not overwrite (stale in-flight PUTs).
+  if (prev && seq <= (prev.seq || 0)) {
     const prevData = parseSavePayload(prev);
     return res.status(409).json({
       ok: false,
@@ -518,18 +370,25 @@ app.put("/save", (req, res) => {
       seq: prev.seq,
       savedAt: prev.saved_at,
       data: prevData,
+      lease: leasePayload(store.getWriteLease(user.id)),
     });
   }
   try {
     if (typeof body.farmPower === "number") data.farmPower = body.farmPower;
-    const { summary } = persistPlayerSave(
+    const { summary } = store.persistPlayerSave(
       user,
       seq,
       savedAt,
       body.clientVersion,
       data
     );
-    res.json({ ok: true, seq, savedAt, summary });
+    res.json({
+      ok: true,
+      seq,
+      savedAt,
+      summary,
+      lease: leasePayload(store.getWriteLease(user.id)),
+    });
   } catch (e) {
     console.error("PUT /save failed:", e);
     return jsonError(res, 500, "Не удалось сохранить");
@@ -542,7 +401,7 @@ app.get("/leaderboard/:mode", (req, res) => {
   if (!["enchant", "power", "wealth", "mobs", "default"].includes(mode)) {
     return jsonError(res, 400, "mode: enchant | power | wealth | mobs");
   }
-  const rows = boardRows(mode === "default" ? "enchant" : mode, limit);
+  const rows = store.getLeaderboard(mode === "default" ? "enchant" : mode, limit);
   res.json(rows);
 });
 
@@ -554,60 +413,89 @@ const admin = express.Router();
 admin.use(requireAdmin);
 
 admin.get("/overview", (_req, res) => {
-  const users = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
-  const sessions = db.prepare("SELECT COUNT(*) AS n FROM sessions WHERE exp >= ?").get(Date.now()).n;
-  const scores = db.prepare("SELECT COUNT(*) AS n FROM scores").get().n;
-  const saves = stmtCountSaves.get().n;
-  res.json({ ok: true, users, sessions, scores, saves, db: path.basename(DB_PATH) });
+  const counts = store.getOverviewCounts(Date.now());
+  res.json({ ok: true, ...counts, db: dbInfo.label });
 });
 
 admin.get("/users", (req, res) => {
   const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 100));
   const offset = Math.max(0, Number(req.query.offset) || 0);
   const q = String(req.query.q || "").trim();
-  const now = Date.now();
-  let rows;
-  if (q) {
-    rows = db
-      .prepare(
-        `SELECT u.id, u.nick, u.created_at,
-                s.max_plus, s.farm_power, s.earned, s.adena, s.mobs, s.updated_at, s.client_version,
-                ps.chars_count, ps.active_name, ps.active_level, ps.farm_zone AS save_farm_zone,
-                (SELECT COUNT(*) FROM sessions ses WHERE ses.user_id = u.id AND ses.exp >= ?) AS sessions
-         FROM users u
-         LEFT JOIN scores s ON s.user_id = u.id
-         LEFT JOIN player_saves ps ON ps.user_id = u.id
-         WHERE u.nick LIKE ? COLLATE NOCASE
-         ORDER BY u.id DESC
-         LIMIT ? OFFSET ?`
-      )
-      .all(now, "%" + q.replace(/[%_]/g, "") + "%", limit, offset);
-  } else {
-    rows = db
-      .prepare(
-        `SELECT u.id, u.nick, u.created_at,
-                s.max_plus, s.farm_power, s.earned, s.adena, s.mobs, s.updated_at, s.client_version,
-                ps.chars_count, ps.active_name, ps.active_level, ps.farm_zone AS save_farm_zone,
-                (SELECT COUNT(*) FROM sessions ses WHERE ses.user_id = u.id AND ses.exp >= ?) AS sessions
-         FROM users u
-         LEFT JOIN scores s ON s.user_id = u.id
-         LEFT JOIN player_saves ps ON ps.user_id = u.id
-         ORDER BY u.id DESC
-         LIMIT ? OFFSET ?`
-      )
-      .all(now, limit, offset);
-  }
+  const rows = store.listAdminUsers({ q, limit, offset, now: Date.now() });
   res.json({ ok: true, rows });
+});
+
+admin.get("/users/:id", (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  const detail = store.getAdminUserDetail(userId);
+  if (!detail) return jsonError(res, 404, "Пользователь не найден");
+  res.json({ ok: true, ...detail });
+});
+
+admin.get("/events", (req, res) => {
+  const result = store.adminListEvents({
+    nick: String(req.query.nick || req.query.q || "").trim() || null,
+    characterId: String(req.query.characterId || "").slice(0, 64) || null,
+    event: String(req.query.event || "").slice(0, 32) || null,
+    since: req.query.since ? Number(req.query.since) : null,
+    until: req.query.until ? Number(req.query.until) : null,
+    limit: Number(req.query.limit) || 100,
+    offset: Number(req.query.offset) || 0,
+  });
+  res.json({ ok: true, ...result });
+});
+
+admin.get("/events/types", (_req, res) => {
+  res.json({ ok: true, rows: store.listEventTypes() });
+});
+
+admin.get("/backups", (req, res) => {
+  const result = store.adminListBackups({
+    nick: String(req.query.nick || req.query.q || "").trim() || null,
+    characterId: String(req.query.characterId || "").slice(0, 64) || null,
+    since: req.query.since ? Number(req.query.since) : null,
+    until: req.query.until ? Number(req.query.until) : null,
+    limit: Number(req.query.limit) || 50,
+    offset: Number(req.query.offset) || 0,
+  });
+  res.json({ ok: true, ...result });
+});
+
+admin.get("/scores", (req, res) => {
+  const result = store.adminListScores({
+    nick: String(req.query.nick || req.query.q || "").trim() || null,
+    limit: Number(req.query.limit) || 100,
+    offset: Number(req.query.offset) || 0,
+    sort: String(req.query.sort || "enchant"),
+  });
+  res.json({ ok: true, ...result });
 });
 
 admin.put("/users/:id/score", (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
-  if (!stmtUserById.get(userId)) return jsonError(res, 404, "Пользователь не найден");
+  if (!store.getUserById(userId)) return jsonError(res, 404, "Пользователь не найден");
   const body = req.body || {};
   const now = Date.now();
+  let characterId = String(body.character_id || body.characterId || "").slice(0, 64);
+  let rawCharName = body.char_name || body.charName;
+  if (!characterId) {
+    const save = store.getSave(userId);
+    const data = parseSavePayload(save);
+    characterId = resolveActiveCharacterId(data) || "legacy";
+    if (!rawCharName && data) {
+      const av =
+        (Array.isArray(data.characters)
+          ? data.characters.find((c) => c && c.id === characterId)?.progress?.avatar
+          : null) || data.avatar;
+      rawCharName = av?.name || null;
+    }
+  }
   const row = {
     user_id: userId,
+    character_id: characterId,
+    char_name: rawCharName ? String(rawCharName).slice(0, 48) : null,
     max_plus: Math.max(0, Math.floor(Number(body.max_plus) || 0)),
     farm_power: Math.max(0, Math.floor(Number(body.farm_power) || 0)),
     earned: Math.max(0, Math.floor(Number(body.earned) || 0)),
@@ -616,37 +504,85 @@ admin.put("/users/:id/score", (req, res) => {
     client_version: String(body.client_version || "admin").slice(0, 32),
     updated_at: now,
   };
-  stmtUpsertScore.run(row);
+  store.upsertScore(row);
   res.json({ ok: true, score: row });
 });
 
 admin.post("/users/:id/password", (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
-  const user = stmtUserById.get(userId);
+  const user = store.getUserById(userId);
   if (!user) return jsonError(res, 404, "Пользователь не найден");
   const password = String(req.body?.password || "");
   if (!PASS_RE.test(password)) {
     return jsonError(res, 400, "Пароль: 6–72 символа, только латиница и цифры");
   }
   const passHash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
-  db.prepare("UPDATE users SET pass_hash = ? WHERE id = ?").run(passHash, userId);
-  db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
+  store.updateUserPassword(userId, passHash);
   res.json({ ok: true, nick: user.nick });
 });
 
 admin.delete("/users/:id", (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
-  const user = stmtUserById.get(userId);
+  const user = store.getUserById(userId);
   if (!user) return jsonError(res, 404, "Пользователь не найден");
-  db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+  store.deleteUser(userId);
   res.json({ ok: true, nick: user.nick });
 });
 
 admin.post("/maintenance/purge-sessions", (_req, res) => {
-  const info = stmtDeleteExpired.run(Date.now());
+  const info = store.deleteExpiredSessions(Date.now());
   res.json({ ok: true, removed: info.changes });
+});
+
+admin.get("/users/:id/events", (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!store.getUserById(userId)) return jsonError(res, 404, "Пользователь не найден");
+  const characterId = String(req.query.characterId || "").slice(0, 64) || null;
+  const rows = store.listCharacterEvents(userId, characterId, Number(req.query.limit) || 200);
+  res.json({ ok: true, rows });
+});
+
+admin.get("/users/:id/backups", (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!store.getUserById(userId)) return jsonError(res, 404, "Пользователь не найден");
+  const characterId = String(req.query.characterId || "").slice(0, 64) || null;
+  const rows = store.listCharacterBackups(userId, characterId, Number(req.query.limit) || 40);
+  res.json({ ok: true, rows });
+});
+
+admin.get("/users/:id/backups/:backupId", (req, res) => {
+  const userId = Number(req.params.id);
+  const backupId = Number(req.params.backupId);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!Number.isInteger(backupId) || backupId < 1) return jsonError(res, 400, "Некорректный backupId");
+  const row = store.getCharacterBackup(userId, backupId);
+  if (!row) return jsonError(res, 404, "Бэкап не найден");
+  res.json({ ok: true, backup: row });
+});
+
+admin.post("/users/:id/backups/:backupId/restore", (req, res) => {
+  const userId = Number(req.params.id);
+  const backupId = Number(req.params.backupId);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!Number.isInteger(backupId) || backupId < 1) return jsonError(res, 400, "Некорректный backupId");
+  const user = store.getUserById(userId);
+  if (!user) return jsonError(res, 404, "Пользователь не найден");
+  const result = store.restoreCharacterBackup(user, backupId);
+  if (!result.ok) {
+    const map = {
+      not_found: [404, "Бэкап не найден"],
+      bad_backup: [500, "Повреждённый бэкап"],
+      no_save: [404, "Нет сейва"],
+      bad_save: [500, "Повреждённый сейв"],
+    };
+    const [code, msg] = map[result.error] || [400, result.error || "Ошибка"];
+    return jsonError(res, code, msg);
+  }
+  res.json({ ok: true, ...result });
 });
 
 app.use("/admin", admin);
@@ -661,6 +597,8 @@ if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
     if (
       req.path.startsWith("/auth") ||
       req.path.startsWith("/runs") ||
+      req.path.startsWith("/events") ||
+      req.path.startsWith("/backups") ||
       req.path.startsWith("/save") ||
       req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/admin") ||
@@ -677,7 +615,7 @@ if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
 app.listen(PORT, HOST, () => {
   const shown = HOST === "0.0.0.0" ? "localhost" : HOST;
   console.log(`SoulForge cloud http://${shown}:${PORT} (bind ${HOST})`);
-  console.log(`DB: ${DB_PATH}`);
+  console.log(`DB: ${dbInfo.driver} · ${dbInfo.path}`);
   if (ADMIN_KEY) console.log("Admin console: /db-admin/ (header X-Soulforge-Admin)");
   else console.log("Admin API: disabled (set SOULFORGE_ADMIN_KEY to enable)");
   if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
