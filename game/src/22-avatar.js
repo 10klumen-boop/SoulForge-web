@@ -136,6 +136,11 @@ function migrateAvatar() {
   if (typeof migrateAvatarGear === "function") migrateAvatarGear();
   if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();
   if (a.created) return;
+  // Пустой слот ростера ждёт мастер создания — не поднимаем «Странника» из чужого прогресса.
+  if (Array.isArray(state.characters) && state.characters.length && state.activeCharacterId) {
+    const slot = state.characters.find((c) => c.id === state.activeCharacterId);
+    if (slot && typeof slotIsCreated === "function" && !slotIsCreated(slot)) return;
+  }
   const hasProgress =
     state.storySeen ||
     (state.totals?.tries || 0) > 0 ||
@@ -199,7 +204,10 @@ function createAvatar(name, raceId, classId, genderId) {
   const gender = typeof normalizeAvatarGender === "function" ? normalizeAvatarGender(genderId) : "male";
   if (!race || !branches.includes(classId)) return false;
   if (n.length < 2) return false;
-  Object.assign(state.avatar, {
+  const base = typeof defaultAvatar === "function" ? defaultAvatar() : {
+    raceId: "", classId: "", genderId: "", name: "", level: 1, xp: 0, created: false, gear: { weapon: null },
+  };
+  state.avatar = Object.assign({}, base, {
     raceId,
     classId,
     genderId: gender,
@@ -208,6 +216,7 @@ function createAvatar(name, raceId, classId, genderId) {
     xp: 0,
     created: true,
     prologueSeen: false,
+    starterGranted: false,
   });
   if (typeof grantStarterWeapon === "function") {
     const item = grantStarterWeapon(classId);
@@ -630,6 +639,7 @@ function submitAvatarSetup() {
   setAvatarSetupOpen(false);
   renderAvatarHub();
   renderMenu();
+  if (typeof syncUiAfterCharacterSwap === "function") syncUiAfterCharacterSwap();
   if (typeof renderCharacterRoster === "function") renderCharacterRoster();
   const info = avatarDisplayInfo();
   if (typeof gameLog === "function") {

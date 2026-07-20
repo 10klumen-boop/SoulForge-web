@@ -308,7 +308,11 @@ function renderMineSkillBar() {
 
 function renderAvatarSkillsPanel() {
   const el = document.getElementById("avatarSkillsPanel");
-  if (!el || !state.avatar?.created) return;
+  if (!el) return;
+  if (!state.avatar?.created) {
+    el.innerHTML = "";
+    return;
+  }
   const skills = combatSkillsForAvatar();
   const lvl = state.avatar.level || 1;
   const className =

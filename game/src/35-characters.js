@@ -35,6 +35,24 @@ function applyProgressToState(progress) {
   });
 }
 
+/** Чистый прогресс в пустой слот — без «хвостов» от предыдущего героя. */
+function resetEmptySlotProgress(slot) {
+  if (!slot || slotIsCreated(slot)) return;
+  slot.progress = freshCharacterProgress();
+}
+
+function syncUiAfterCharacterSwap() {
+  if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
+  if (typeof renderAvatarHub === "function") renderAvatarHub();
+  if (typeof renderAvatarSkillsPanel === "function") renderAvatarSkillsPanel();
+  if (typeof renderMineSkillBar === "function") renderMineSkillBar();
+  if ($("#screen-avatar")?.classList.contains("active") && typeof renderAvatarScreen === "function") {
+    renderAvatarScreen();
+  }
+  if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
+  if (typeof renderMineHudStats === "function") renderMineHudStats();
+}
+
 function migrateCharactersStructure() {
   if (state.characters && Array.isArray(state.characters) && state.characters.length) {
     if (!state.activeCharacterId || !state.characters.some((c) => c.id === state.activeCharacterId)) {
@@ -198,6 +216,7 @@ function selectCharacter(id) {
   const feed = document.getElementById("gameLogFeed");
   if (feed) feed.innerHTML = "";
   if (typeof refreshProgressUI === "function") refreshProgressUI();
+  syncUiAfterCharacterSwap();
   renderCharacterRoster();
   const a = state.avatar;
   if (a?.created && typeof gameLog === "function") {
@@ -218,9 +237,12 @@ function beginCreateCharacter() {
   }
   if (typeof stopMine === "function") stopMine();
   flushActiveCharacterToSlot();
+  resetEmptySlotProgress(empty);
   state.activeCharacterId = empty.id;
   applyProgressToState(empty.progress);
   save();
+  if (typeof refreshProgressUI === "function") refreshProgressUI();
+  syncUiAfterCharacterSwap();
   renderCharacterRoster();
   if (typeof logCharacterEvent === "function") {
     logCharacterEvent("char_create", { characterId: empty.id }, { characterId: empty.id });
@@ -272,6 +294,7 @@ async function deleteCharacter(id) {
   const feed = document.getElementById("gameLogFeed");
   if (feed) feed.innerHTML = "";
   if (typeof refreshProgressUI === "function") refreshProgressUI();
+  syncUiAfterCharacterSwap();
   renderCharacterRoster();
   if (typeof toast === "function") {
     toast("Персонаж «" + name + "» удалён · слот свободен", "warn");
@@ -283,7 +306,13 @@ function onCharacterSlotClick(id) {
   const slot = state.characters.find((c) => c.id === id);
   if (!slot) return;
   const created = slotIsCreated(slot);
+  if (!created) resetEmptySlotProgress(slot);
   if (id !== state.activeCharacterId) selectCharacter(id);
+  else if (!created) {
+    applyProgressToState(slot.progress);
+    if (typeof refreshProgressUI === "function") refreshProgressUI();
+    syncUiAfterCharacterSwap();
+  }
   if (!created && typeof maybeShowAvatarSetup === "function") maybeShowAvatarSetup();
 }
 
