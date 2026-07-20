@@ -114,9 +114,10 @@ function getCloudWriterId() {
   return (getCloudDeviceId() + "." + getCloudTabId()).slice(0, 96);
 }
 
+/** Lease на сервере — по устройству (не вкладке). writerId — для yield между вкладками. */
 function leaseBody(extra) {
-  const id = getCloudWriterId();
-  return Object.assign({ writerId: id, deviceId: id }, extra || {});
+  const deviceId = getCloudDeviceId();
+  return Object.assign({ deviceId, writerId: getCloudWriterId() }, extra || {});
 }
 
 let _deskDeviceId = null;
@@ -379,14 +380,16 @@ async function cloudRegister(nick, password) {
     await bindSaveToCloudNick(r.nick);
     const sync = await syncCloudProgress({ notify: true });
     if (!sync.ok) {
-      writeCloudAuth(null);
-      await bindSaveToCloudNick(null);
-      syncCloudUI();
-      return {
-        ok: false,
-        offline: !!sync.offline,
-        error: sync.error || (sync.offline ? "Нет связи с сервером" : "Не удалось синхронизировать сейв"),
-      };
+      if (!sync.readOnly) {
+        writeCloudAuth(null);
+        await bindSaveToCloudNick(null);
+        syncCloudUI();
+        return {
+          ok: false,
+          offline: !!sync.offline,
+          error: sync.error || (sync.offline ? "Нет связи с сервером" : "Не удалось синхронизировать сейв"),
+        };
+      }
     }
     syncCloudUI();
     noteLeaderboardEvent("login");
@@ -405,14 +408,16 @@ async function cloudLogin(nick, password) {
     await bindSaveToCloudNick(r.nick);
     const sync = await syncCloudProgress({ notify: true });
     if (!sync.ok) {
-      writeCloudAuth(null);
-      await bindSaveToCloudNick(null);
-      syncCloudUI();
-      return {
-        ok: false,
-        offline: !!sync.offline,
-        error: sync.error || (sync.offline ? "Нет связи с сервером" : "Не удалось синхронизировать сейв"),
-      };
+      if (!sync.readOnly) {
+        writeCloudAuth(null);
+        await bindSaveToCloudNick(null);
+        syncCloudUI();
+        return {
+          ok: false,
+          offline: !!sync.offline,
+          error: sync.error || (sync.offline ? "Нет связи с сервером" : "Не удалось синхронизировать сейв"),
+        };
+      }
     }
     syncCloudUI();
     noteLeaderboardEvent("login");
@@ -439,7 +444,7 @@ async function cloudLogout() {
       await fetch(cloudApiUrl("/auth/logout"), {
         method: "POST",
         headers: authHeaders(true),
-        body: JSON.stringify({ writerId: getCloudWriterId(), deviceId: getCloudWriterId() }),
+        body: JSON.stringify({ deviceId: getCloudDeviceId(), writerId: getCloudWriterId() }),
       });
     } catch (e) {}
   }
@@ -479,7 +484,7 @@ function buildCloudSaveBody() {
     savedAt: Date.now(),
     clientVersion: CLIENT_VERSION,
     farmPower: data.farmPower || 0,
-    deviceId: getCloudWriterId(),
+    deviceId: getCloudDeviceId(),
     writerId: getCloudWriterId(),
     data,
   };
@@ -504,6 +509,19 @@ function startLeaseHeartbeat() {
   }, CLOUD_LEASE_HEARTBEAT_MS);
 }
 
+function cloudWriteLocked() {
+  return !!_cloudWriteLocked;
+}
+
+function cloudHasWriteAccess() {
+  if (!cloudEnabled() || !readCloudAuth()?.token) return true;
+  return !_cloudWriteLocked;
+}
+
+function cloudGameplayAllowed() {
+  return cloudHasWriteAccess();
+}
+
 function setWriteLockBanner(show, opts) {
   opts = opts || {};
   let el = document.getElementById("cloudWriteLockBanner");
@@ -512,13 +530,18 @@ function setWriteLockBanner(show, opts) {
     el.id = "cloudWriteLockBanner";
     el.className = "cloud-write-lock-banner";
     el.innerHTML =
-      '<span class="cloud-write-lock-text">Аккаунт открыт в другой вкладке или на другом устройстве. Запись отключена.</span>' +
-      '<button type="button" class="cloud-write-lock-btn" id="cloudWriteLockTakeover">Перехватить</button>';
+      '<div class="cloud-write-lock-card">' +
+      '<p class="cloud-write-lock-text">Аккаунт открыт на другом устройстве. Здесь только просмотр — прогресс не сохранится.</p>' +
+      '<div class="cloud-write-lock-actions">' +
+      '<button type="button" class="cloud-write-lock-btn cloud-write-lock-btn-primary" id="cloudWriteLockTakeover">Перехватить</button>' +
+      '<button type="button" class="cloud-write-lock-btn cloud-write-lock-btn-ghost" id="cloudWriteLockRefresh">Обновить с сервера</button>' +
+      "</div></div>";
     document.body.appendChild(el);
-    const btn = el.querySelector("#cloudWriteLockTakeover");
-    if (btn && !btn.dataset.wired) {
-      btn.dataset.wired = "1";
-      btn.onclick = async () => {
+    const btnTake = el.querySelector("#cloudWriteLockTakeover");
+    const btnRef = el.querySelector("#cloudWriteLockRefresh");
+    if (btnTake && !btnTake.dataset.wired) {
+      btnTake.dataset.wired = "1";
+      btnTake.onclick = async () => {
         if (typeof Audio2 !== "undefined") Audio2.click();
         const lease = await acquireWriteLease({ takeover: true, askTakeover: false, notify: true });
         if (lease.ok) {
@@ -527,9 +550,23 @@ function setWriteLockBanner(show, opts) {
         }
       };
     }
+    if (btnRef && !btnRef.dataset.wired) {
+      btnRef.dataset.wired = "1";
+      btnRef.onclick = async () => {
+        if (typeof Audio2 !== "undefined") Audio2.click();
+        try {
+          const remote = await fetchCloudSave();
+          if (remote.ok && !remote.empty) {
+            applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+            if (typeof toast === "function") toast("Прогресс обновлён с сервера", "success");
+          }
+        } catch (e) {}
+      };
+    }
   }
   if (!el) return;
   el.hidden = !show;
+  document.body.classList.toggle("cloud-write-locked", !!show);
   if (opts.text) {
     const t = el.querySelector(".cloud-write-lock-text");
     if (t) t.textContent = opts.text;
@@ -656,10 +693,24 @@ async function acquireWriteLease(opts) {
             danger: true,
           });
         } else {
-          takeover = true;
+          takeover = false;
         }
       }
       if (!takeover) {
+        if (opts.offerReadOnly !== false && typeof showConfirm === "function") {
+          const viewOnly = await showConfirm({
+            title: "Только просмотр",
+            message:
+              "Войти без записи? Прогресс подтянется с сервера, играть и сохранять можно только на активном устройстве.",
+            okText: "Просмотр",
+            cancelText: "Остаться на входе",
+          });
+          if (viewOnly) {
+            _cloudWriteLocked = true;
+            setWriteLockBanner(true);
+            return { ok: false, locked: true, cancelled: true, readOnly: true, ...json };
+          }
+        }
         _cloudWriteLocked = true;
         setWriteLockBanner(true);
         return { ok: false, locked: true, cancelled: true, ...json };
@@ -768,18 +819,20 @@ function applyCloudSaveData(data, seq, savedAt) {
   if (!data || typeof data !== "object") return;
   if (typeof applyLoadedSave === "function") applyLoadedSave(data);
   else Object.assign(state, data);
-  if (typeof save === "function") {
-    _cloudSaveApplying = true;
-    try {
+  const serverSeq = Math.max(1, Math.floor(Number(seq) || 0));
+  const serverAt = Math.max(0, Math.floor(Number(savedAt) || Date.now()));
+  _cloudSaveApplying = true;
+  try {
+    if (typeof persistEnvelope === "function" && typeof makeEnvelope === "function") {
+      const snap =
+        typeof exportGameData === "function" ? exportGameData(state) : data;
+      persistEnvelope(makeEnvelope(snap, serverSeq, serverAt));
+    } else if (typeof save === "function") {
       save();
-    } finally {
-      _cloudSaveApplying = false;
     }
-  }
-  if (seq != null && typeof setLiveSeq === "function") {
-    try {
-      setLiveSeq(seq);
-    } catch (e) {}
+    if (typeof setLiveSeq === "function") setLiveSeq(serverSeq);
+  } finally {
+    _cloudSaveApplying = false;
   }
 }
 
@@ -799,8 +852,12 @@ async function syncCloudProgress(opts) {
     askTakeover: opts.askTakeover !== false,
     takeover: opts.takeover,
     notify: opts.notify,
+    offerReadOnly: opts.offerReadOnly !== false,
   });
   if (!lease.ok) {
+    if (lease.readOnly) {
+      return { ok: true, readOnly: true, locked: true, summary: remote.summary };
+    }
     if (lease.cancelled || lease.locked) {
       return {
         ok: false,
@@ -909,10 +966,19 @@ function wireCloudSaveLifecycle() {
   if (typeof document === "undefined" || document.documentElement.dataset.cloudSaveWired) return;
   document.documentElement.dataset.cloudSaveWired = "1";
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") flushCloudSave();
+    if (document.visibilityState === "hidden") {
+      flushCloudSave();
+      return;
+    }
+    if (_cloudWriteLocked) return;
+    renewWriteLease().catch(() => {});
   });
   window.addEventListener("pagehide", () => {
     flushCloudSave();
+  });
+  window.addEventListener("focus", () => {
+    if (_cloudWriteLocked || !readCloudAuth()?.token) return;
+    renewWriteLease().catch(() => {});
   });
 }
 
@@ -1315,7 +1381,7 @@ async function wireCloudAuthForms() {
       try {
         await bindSaveToCloudNick(existing.nick);
         const sync = await syncCloudProgress({ notify: true });
-        if (!sync.ok) {
+        if (!sync.ok && !sync.readOnly) {
           setMsg(
             sync.locked
               ? (sync.error || "Аккаунт открыт на другом устройстве")
@@ -1324,7 +1390,7 @@ async function wireCloudAuthForms() {
           );
           return;
         }
-        setMsg("С возвращением, " + existing.nick);
+        setMsg(sync.readOnly ? "Только просмотр — " + existing.nick : "С возвращением, " + existing.nick);
         await flushPendingSubmissions({ notify: true });
         enterMainMenuFromLogin({ guideCreate: true });
       } finally {
@@ -1510,6 +1576,8 @@ window.SoulforgeCloud = {
   syncProgress: syncCloudProgress,
   tryResumeSession: tryResumeCloudSession,
   gateScreen: cloudGateScreen,
+  gameplayAllowed: cloudGameplayAllowed,
+  writeLocked: cloudWriteLocked,
   acquireLease: acquireWriteLease,
   getDeviceId: getCloudDeviceId,
   pushSave: pushCloudSave,

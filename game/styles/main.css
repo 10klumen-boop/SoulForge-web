@@ -3823,6 +3823,43 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
   }
   .cloud-write-lock-banner[hidden] { display: none !important; }
+  body.cloud-write-locked .app {
+    pointer-events: none;
+    user-select: none;
+    filter: grayscale(0.12) brightness(0.92);
+  }
+  body.cloud-write-locked .cloud-write-lock-banner {
+    pointer-events: auto;
+    inset: 0;
+    bottom: auto;
+    min-height: 100%;
+    align-items: center;
+    padding-top: 18vh;
+    background: rgba(8, 6, 4, 0.72);
+    border-bottom: none;
+  }
+  .cloud-write-lock-card {
+    max-width: 420px;
+    padding: 18px 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(200, 120, 90, .45);
+    background: linear-gradient(180deg, rgba(48, 28, 18, .98), rgba(24, 14, 10, .99));
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .55);
+  }
+  .cloud-write-lock-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .cloud-write-lock-btn-primary {
+    background: linear-gradient(180deg, #9a6838, #5a3818);
+  }
+  .cloud-write-lock-btn-ghost {
+    background: transparent;
+    border-color: rgba(201,168,106,.35);
+  }
   .cloud-write-lock-btn {
     height: 30px;
     padding: 0 14px;
