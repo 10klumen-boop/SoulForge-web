@@ -327,13 +327,14 @@ function applyLoadedSave(loaded) {
     state.activeCharacterId &&
     Array.isArray(state.characters) &&
     state.characters.some((c) => c.id === state.activeCharacterId);
-  // Root progress in save envelope = active character (see exportGameData after flush).
-  // Slot progress can lag on another device — never let stale slot overwrite root on load.
-  if (rosterActive && typeof flushActiveCharacterToSlot === "function") {
+  if (typeof reconcileActiveCharacterProgress === "function") {
+    reconcileActiveCharacterProgress();
+  } else if (rosterActive && typeof flushActiveCharacterToSlot === "function") {
     flushActiveCharacterToSlot();
   } else if (typeof loadActiveCharacter === "function") {
     loadActiveCharacter();
   }
+  if (typeof repairQuestProgressIntegrity === "function") repairQuestProgressIntegrity();
   if (typeof normalizeAvatarRace === "function") normalizeAvatarRace();
   if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();
   if (typeof ensureStoryProgress === "function") ensureStoryProgress();

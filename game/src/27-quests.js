@@ -314,6 +314,8 @@ function onZoneBossDefeated(zoneId) {
   }
   if (typeof checkAchievements === "function") checkAchievements();
 }
+
+function questStatusText(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
   if (!zone) return "";
   if (isZoneChapterComplete(zone.id)) return "глава ✓";
@@ -346,13 +348,19 @@ function migrateQuestProgress() {
   if (!state.questProgress._migratedV2) {
     for (let i = 0; i < maxIdx; i++) {
       const zid = FARM_ZONES[i].id;
-      zoneQuestSteps(zid).forEach((q) => markQuestStepComplete(q.id));
+      zoneQuestSteps(zid).forEach((q) => {
+        markQuestStepComplete(q.id);
+        markQuestBriefingSeen(q.id);
+      });
       markZoneBossDefeated(zid);
     }
     FARM_ZONES.forEach((zone, i) => {
       const legacyKey = "quest_" + zone.id;
       if (state.questProgress.completed[legacyKey]) {
-        zoneQuestSteps(zone.id).forEach((q) => markQuestStepComplete(q.id));
+        zoneQuestSteps(zone.id).forEach((q) => {
+          markQuestStepComplete(q.id);
+          markQuestBriefingSeen(q.id);
+        });
         delete state.questProgress.completed[legacyKey];
         if (i < maxIdx) markZoneBossDefeated(zone.id);
       }
@@ -363,6 +371,39 @@ function migrateQuestProgress() {
   }
   if (state.questProgress._migratedV1) return;
   state.questProgress._migratedV1 = true;
+}
+
+/** Сброс «фантомных» завершений (миграция / рассинхрон слотов) — иначе в шахте только босс. */
+function repairQuestProgressIntegrity() {
+  if (!state.avatar?.created) return false;
+  ensureQuestProgress();
+  const q = state.questProgress;
+  let dirty = false;
+  FARM_ZONES.forEach((zone) => {
+    if (!zone.active) return;
+    const steps = zoneQuestSteps(zone.id);
+    let anyComplete = false;
+    let anyKills = false;
+    steps.forEach((step) => {
+      if (isQuestStepComplete(step.id)) anyComplete = true;
+      if (questKillsDone(step.id) > 0 || questGoldenKillsDone(step.id) > 0) anyKills = true;
+    });
+    if (anyComplete && !anyKills && !isZoneBossDefeated(zone.id)) {
+      steps.forEach((step) => {
+        delete q.completed[step.id];
+        delete q.kills[step.id];
+        delete q.goldenKills[step.id];
+        delete q.briefings[step.id];
+      });
+      delete q.bosses[zone.id];
+      dirty = true;
+    } else if (!allZoneQuestsComplete(zone.id) && q.bosses[zone.id]) {
+      delete q.bosses[zone.id];
+      dirty = true;
+    }
+  });
+  if (dirty) save();
+  return dirty;
 }
 
 function questBodyHtml(def) {

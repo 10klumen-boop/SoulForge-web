@@ -402,9 +402,14 @@ function pickMineTargetSprite(type, zoneId) {
   }
   const pool = mineTargetPool(type, zoneId);
   if (!pool?.length) return MINE_DWARF_FALLBACK[type === "golden" ? "golden" : "normal"][0];
+  if (pool.length === 1) return pool[0];
   const key = zoneId + ":" + type;
-  const idx = (_mineSpritePick[key] || 0) % pool.length;
-  _mineSpritePick[key] = idx + 1;
+  let idx;
+  const last = _mineSpritePick[key];
+  do {
+    idx = Math.floor(Math.random() * pool.length);
+  } while (idx === last);
+  _mineSpritePick[key] = idx;
   return pool[idx];
 }
 

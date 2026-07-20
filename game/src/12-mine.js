@@ -117,6 +117,7 @@ function openMine() {
   }
   if (typeof resetMineSpritePick === "function") resetMineSpritePick(zoneId);
   if (typeof normalizeAvatarRace === "function") normalizeAvatarRace();
+  if (typeof repairQuestProgressIntegrity === "function") repairQuestProgressIntegrity();
   const hintEl = document.getElementById("mineHint");
   if (hintEl) hintEl.textContent = cfg.hint || "Один враг на экране — уничтожь до конца таймера";
   mineActive = true;

@@ -79,10 +79,22 @@ function loadActiveCharacter() {
   if (slot?.progress) applyProgressToState(slot.progress);
 }
 
-function initCharacters() {
-  const hadSlots = state.characters && state.characters.length;
+function reconcileActiveCharacterProgress() {
   migrateCharactersStructure();
-  if (hadSlots) loadActiveCharacter();
+  if (!state.activeCharacterId || !Array.isArray(state.characters)) return;
+  const slot = state.characters.find((c) => c.id === state.activeCharacterId);
+  if (!slot?.progress) return;
+  const countDone = (qp) =>
+    Object.keys(qp?.completed || {}).filter((k) => !k.startsWith("_")).length;
+  const rootDone = countDone(state.questProgress);
+  const slotDone = countDone(slot.progress.questProgress);
+  if (slotDone > rootDone) applyProgressToState(slot.progress);
+  flushActiveCharacterToSlot();
+}
+
+function initCharacters() {
+  migrateCharactersStructure();
+  reconcileActiveCharacterProgress();
 }
 
 function characterSlotsFull() {
