@@ -3,13 +3,13 @@
 /** Награды за прохождение главы (босс повержен). */
 const ZONE_CHAPTER_REWARDS = {
   banana_mine: {
-    adena: 18_000,
-    soul: 12,
+    adena: 22_000,
+    soul: 20,
     spirit: 0,
-    crystals: { D: 1 },
+    crystals: { D: 2 },
     lines: [
       "Старейшина благодарит за зачистку — остров снова дышит.",
-      "Небольшая выплата и кристалл D — на первую уверенную заточку.",
+      "Выплата и кристаллы D — заточи клинок и добери силу до следующей главы.",
     ],
   },
   elven_ruins: {
@@ -59,10 +59,10 @@ function zoneQuestStepRewardDef(zoneId, step) {
   const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
   const ch = Math.min(5, Math.max(1, zone?.chapter || 1));
   const s = Math.min(3, Math.max(1, Number(step) || 1));
-  const adenaBase = [2200, 3500, 5200, 7200, 9500][ch - 1];
+  const adenaBase = [2800, 3500, 5200, 7200, 9500][ch - 1];
   const stepMult = [1, 1.25, 1.55][s - 1];
   const adena = Math.round(adenaBase * stepMult);
-  const soul = Math.max(1, Math.round([3, 5, 7, 9, 12][ch - 1] * [0.85, 1, 1.2][s - 1]));
+  const soul = Math.max(1, Math.round([5, 5, 7, 9, 12][ch - 1] * [0.85, 1, 1.2][s - 1]));
   let spirit = 0;
   if (ch >= 2) {
     spirit = Math.round([0, 2, 3, 5, 7][ch - 1] * [0.6, 0.9, 1.15][s - 1]);
@@ -72,6 +72,9 @@ function zoneQuestStepRewardDef(zoneId, step) {
     if (ch <= 2) crystals.D = 1;
     else if (ch === 3) crystals.D = 1;
     else crystals.C = 1;
+  } else if (s === 2 && ch === 1) {
+    // Гл.1: кристалл уже на шаге 2 — успеть заточить до босса
+    crystals.D = 1;
   } else if (s === 2 && ch >= 4) {
     crystals.D = 1;
   }

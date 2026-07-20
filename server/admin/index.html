@@ -125,6 +125,7 @@
       "Пользователей: " + overview.users +
       " · Сессий: " + overview.sessions +
       " · Рейтинг: " + overview.scores +
+      " · Сейвы: " + (overview.saves || 0) +
       " · " + (overview.db || "soulforge.db");
 
     const list = await api("/admin/users" + (q ? "?q=" + encodeURIComponent(q) : ""));
@@ -139,13 +140,17 @@
       return;
     }
 
-    let html = "<table><thead><tr><th>ID</th><th>Ник</th><th>+</th><th>Сила</th><th>Adena</th><th>Заработано</th><th>Сессии</th><th></th></tr></thead><tbody>";
+    let html = "<table><thead><tr><th>ID</th><th>Ник</th><th>Герой</th><th>Слоты</th><th>+</th><th>Сила</th><th>Мобы</th><th>Adena</th><th>Заработано</th><th>Сессии</th><th></th></tr></thead><tbody>";
     rows.forEach((u) => {
+      const hero = (u.active_name || "—") + (u.active_level ? " · ур." + u.active_level : "");
       html += '<tr data-id="' + u.id + '">' +
         "<td>" + u.id + "</td>" +
         "<td><strong>" + esc(u.nick) + "</strong><br><small>" + fmtTs(u.created_at) + "</small></td>" +
+        "<td>" + esc(hero) + "<br><small>" + esc(u.save_farm_zone || "") + "</small></td>" +
+        "<td>" + (u.chars_count || 0) + "</td>" +
         '<td><input class="inp" data-f="max_plus" type="number" min="0" value="' + (u.max_plus || 0) + '"></td>' +
         '<td><input class="inp" data-f="farm_power" type="number" min="0" value="' + (u.farm_power || 0) + '"></td>' +
+        '<td><input class="inp" data-f="mobs" type="number" min="0" value="' + (u.mobs || 0) + '"></td>' +
         '<td><input class="inp" data-f="adena" type="number" min="0" value="' + (u.adena || 0) + '"></td>' +
         '<td><input class="inp" data-f="earned" type="number" min="0" value="' + (u.earned || 0) + '"></td>' +
         "<td>" + (u.sessions || 0) + "</td>" +

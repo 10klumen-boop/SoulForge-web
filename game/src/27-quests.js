@@ -2,15 +2,17 @@
 
 const QUESTS_PER_ZONE = 3;
 
-/** Убийств по шагам: [зачистка, элита, финал] — хватает, чтобы подойти к порогу следующей зоны */
+/** Убийств по шагам: [зачистка, элита, финал] — подтягивает lvl/силу к боссу и частично к гейту след. зоны */
 function zoneQuestKillTargets(chapter) {
   const ch = Math.min(5, Math.max(1, chapter || 1));
+  // Гл.1 длиннее: к боссу ~targetPower, после босса остаётся дожим до reqPower гл.2 (86)
+  if (ch === 1) return [22, 14, 24]; // 60 + ★2
   return [
-    12 + ch * 4, // ch1=16 … ch5=32
-    8 + ch * 3,  // ch1=11 … ch5=23
-    14 + ch * 3, // ch1=17 … ch5=29
+    12 + ch * 4, // ch2=20 … ch5=32
+    8 + ch * 3, // ch2=14 … ch5=23
+    14 + ch * 3, // ch2=20 … ch5=29
   ];
-  // Итого за главу: 44 / 54 / 64 / 74 / 84 (+ золотые + босс)
+  // Итого за главу: 60 / 54 / 64 / 74 / 84 (+ золотые + босс)
 }
 
 /** Сколько «золотых» целей нужно на шаге 2 */
@@ -20,8 +22,8 @@ function zoneQuestGoldenTarget(chapter) {
 
 const QUEST_STEP_FLAVOR = [
   "Сперва выжги гнездо — пусть поле запомнит твою сталь.",
-  "Теперь добей элиту — тех, кто несёт лучшую добычу.",
-  "Последнее поручение. После него явится хозяин этой земли.",
+  "Теперь добей элиту — тех, кто несёт лучшую добычу. Кристаллы сберегай на заточку.",
+  "Последнее поручение. Заточи клинок — после него явится хозяин этой земли.",
 ];
 
 /** @type {Record<string, Record<string, { name: string, role: string, icon: string, greet: string }>>} */
@@ -65,7 +67,7 @@ const QUEST_NPC_BY_RACE_ZONE = {
 
 /** Босс локации после 3 квестов */
 const ZONE_BOSSES = {
-  banana_mine: { name: "Вождь стервятников", mob: "relic-werewolf", hpMult: 14, rewardMult: 2.0 },
+  banana_mine: { name: "Вождь стервятников", mob: "relic-werewolf", hpMult: 11, rewardMult: 2.0 },
   elven_ruins: { name: "Повелитель зеркал", mob: "silent-horror", hpMult: 16, rewardMult: 2.2 },
   orc_barracks: { name: "Кабу-разрушитель", mob: "tunath-orc-warrior", hpMult: 17, rewardMult: 2.4 },
   dark_cavern: { name: "Сердце скверны", mob: "dre-vanul", hpMult: 18, rewardMult: 2.5 },

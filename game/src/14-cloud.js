@@ -161,6 +161,7 @@ function buildLeaderboardPayload(event, extra) {
     earned: data.totals?.earned || 0,
     maxPlus: computeMaxPlus(data.records),
     farmPower: typeof avatarFarmPower === "function" ? avatarFarmPower() : 0,
+    mobs: data.achievements?.stats?.gnomesCaught || 0,
     totals: { ...data.totals },
     records: { ...data.records },
     attestation: saveDigest(seq, savedAt, data),
@@ -204,6 +205,20 @@ async function cloudAuthRequest(path, body) {
   }
 }
 
+
+/** Если у ника ещё нет сейва — перенести guest-прогресс под ник (один раз). */
+function maybeMigrateGuestSaveToNick(nick) {
+  if (!nick) return false;
+  if (typeof hasStoredSaveFor !== "function" || typeof copyStoredSave !== "function") return false;
+  try {
+    if (hasStoredSaveFor(nick)) return false;
+    if (!hasStoredSaveFor(null)) return false;
+    return !!copyStoredSave(null, nick);
+  } catch (e) {
+    return false;
+  }
+}
+
 async function bindSaveToCloudNick(nick) {
   if (typeof switchSaveOwner !== "function") return;
   try {
@@ -219,7 +234,9 @@ async function cloudRegister(nick, password) {
   const r = await cloudAuthRequest("/auth/register", { nick: v.nick, password: v.password });
   if (r.ok && r.token) {
     writeCloudAuth({ nick: r.nick, token: r.token, exp: r.exp });
+    maybeMigrateGuestSaveToNick(r.nick);
     await bindSaveToCloudNick(r.nick);
+    await syncCloudProgress({ notify: true });
     syncCloudUI();
     noteLeaderboardEvent("login");
   }
@@ -232,7 +249,9 @@ async function cloudLogin(nick, password) {
   const r = await cloudAuthRequest("/auth/login", { nick: v.nick, password: v.password });
   if (r.ok && r.token) {
     writeCloudAuth({ nick: r.nick, token: r.token, exp: r.exp });
+    maybeMigrateGuestSaveToNick(r.nick);
     await bindSaveToCloudNick(r.nick);
+    await syncCloudProgress({ notify: true });
     syncCloudUI();
     noteLeaderboardEvent("login");
   }
@@ -241,6 +260,9 @@ async function cloudLogin(nick, password) {
 
 async function cloudLogout() {
   const auth = readCloudAuth();
+  try {
+    await flushCloudSave({ force: true });
+  } catch (e) {}
   if (cloudEnabled() && auth?.token) {
     try {
       await fetch(cloudApiUrl("/auth/logout"), {
@@ -253,6 +275,171 @@ async function cloudLogout() {
   await bindSaveToCloudNick(null);
   writeCloudAuth(null);
   syncCloudUI();
+}
+
+/** Есть ли осмысленный локальный прогресс для первой заливки в облако. */
+function localSaveHasProgress() {
+  try {
+    if (typeof flushActiveCharacterToSlot === "function") flushActiveCharacterToSlot();
+  } catch (e) {}
+  if (typeof listCreatedCharacters === "function" && listCreatedCharacters().length > 0) return true;
+  if (state?.avatar?.created) return true;
+  if ((state?.totals?.tries || 0) > 0 || (state?.totals?.earned || 0) > 0) return true;
+  if (state?.adena != null && typeof START_ADENA !== "undefined" && state.adena !== START_ADENA) return true;
+  const chars = state?.characters;
+  if (Array.isArray(chars) && chars.some((c) => c?.progress?.avatar?.created)) return true;
+  return false;
+}
+
+function buildCloudSaveBody() {
+  try {
+    if (typeof flushActiveCharacterToSlot === "function") flushActiveCharacterToSlot();
+  } catch (e) {}
+  const data = typeof exportGameData === "function" ? exportGameData(state) : { ...state };
+  delete data.devTune;
+  if (typeof avatarFarmPower === "function") data.farmPower = avatarFarmPower();
+  const seq = typeof maxStoredSeq === "function" ? maxStoredSeq() : Date.now();
+  return {
+    seq: Math.max(1, seq),
+    savedAt: Date.now(),
+    clientVersion: CLIENT_VERSION,
+    farmPower: data.farmPower || 0,
+    data,
+  };
+}
+
+async function fetchCloudSave() {
+  if (!cloudEnabled() || !readCloudAuth()?.token) {
+    return { ok: false, needAuth: true };
+  }
+  try {
+    const res = await fetch(cloudApiUrl("/save"), { headers: authHeaders(false) });
+    const json = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      await bindSaveToCloudNick(null);
+      writeCloudAuth(null);
+      syncCloudUI();
+      return { ok: false, needAuth: true };
+    }
+    if (!res.ok) return { ok: false, status: res.status, error: json.error };
+    return { ok: true, ...json };
+  } catch (e) {
+    return { ok: false, offline: true, error: "Нет связи с сервером" };
+  }
+}
+
+async function pushCloudSave(opts) {
+  opts = opts || {};
+  if (!cloudEnabled() || !readCloudAuth()?.token) {
+    return { ok: false, needAuth: true };
+  }
+  const body = buildCloudSaveBody();
+  try {
+    const res = await fetch(cloudApiUrl("/save"), {
+      method: "PUT",
+      headers: authHeaders(true),
+      body: JSON.stringify(body),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.status === 409 && json.data) {
+      applyCloudSaveData(json.data, json.seq, json.savedAt);
+      if (opts.notify && typeof toast === "function") {
+        toast("Сейв с другого устройства новее — загружен с сервера", "warn");
+      }
+      return { ok: false, conflict: true, applied: true };
+    }
+    if (res.status === 401) {
+      await bindSaveToCloudNick(null);
+      writeCloudAuth(null);
+      syncCloudUI();
+      return { ok: false, needAuth: true };
+    }
+    if (!res.ok) return { ok: false, status: res.status, error: json.error };
+    _lastCloudSaveAt = Date.now();
+    return { ok: true, ...json };
+  } catch (e) {
+    return { ok: false, offline: true };
+  }
+}
+
+function applyCloudSaveData(data, seq, savedAt) {
+  if (!data || typeof data !== "object") return;
+  if (typeof applyLoadedSave === "function") applyLoadedSave(data);
+  else Object.assign(state, data);
+  if (typeof save === "function") {
+    _cloudSaveApplying = true;
+    try {
+      save();
+    } finally {
+      _cloudSaveApplying = false;
+    }
+  }
+  if (seq != null && typeof setLiveSeq === "function") {
+    try {
+      setLiveSeq(seq);
+    } catch (e) {}
+  }
+}
+
+/** После логина: скачать облако или залить локальный прогресс. */
+async function syncCloudProgress(opts) {
+  opts = opts || {};
+  if (!cloudEnabled() || !readCloudAuth()?.token) return { ok: false, needAuth: true };
+  const remote = await fetchCloudSave();
+  if (!remote.ok) return remote;
+  if (remote.empty) {
+    if (localSaveHasProgress()) {
+      const up = await pushCloudSave({ force: true });
+      if (up.ok && opts.notify && typeof toast === "function") {
+        toast("Прогресс сохранён в облако", "success");
+      }
+      return { ok: true, uploaded: true, ...up };
+    }
+    return { ok: true, empty: true };
+  }
+  applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+  if (opts.notify && typeof toast === "function") {
+    const name = remote.summary?.activeName;
+    toast(name ? "Облачный сейв: " + name : "Прогресс загружен с сервера", "success");
+  }
+  return { ok: true, downloaded: true, summary: remote.summary };
+}
+
+let _cloudSaveTimer = null;
+let _lastCloudSaveAt = 0;
+let _cloudSaveApplying = false;
+const CLOUD_SAVE_DEBOUNCE_MS = 3000;
+
+function scheduleCloudSave() {
+  if (_cloudSaveApplying) return;
+  if (!cloudEnabled() || !readCloudAuth()?.token) return;
+  if (_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
+  _cloudSaveTimer = setTimeout(() => {
+    _cloudSaveTimer = null;
+    flushCloudSave();
+  }, CLOUD_SAVE_DEBOUNCE_MS);
+}
+
+async function flushCloudSave(opts) {
+  opts = opts || {};
+  if (_cloudSaveTimer) {
+    clearTimeout(_cloudSaveTimer);
+    _cloudSaveTimer = null;
+  }
+  if (_cloudSaveApplying) return { ok: false, applying: true };
+  if (!cloudEnabled() || !readCloudAuth()?.token) return { ok: false, needAuth: true };
+  return pushCloudSave(opts);
+}
+
+function wireCloudSaveLifecycle() {
+  if (typeof document === "undefined" || document.documentElement.dataset.cloudSaveWired) return;
+  document.documentElement.dataset.cloudSaveWired = "1";
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushCloudSave();
+  });
+  window.addEventListener("pagehide", () => {
+    flushCloudSave();
+  });
 }
 
 async function submitLeaderboardEvent(event, extra, opts) {
@@ -452,6 +639,10 @@ function formatLbValue(mode, row) {
   const v = row.value != null ? row.value : 0;
   if (mode === "enchant") return "+" + v;
   if (mode === "wealth") return typeof fmtAdena === "function" ? fmtAdena(v) : String(v);
+  if (mode === "mobs") {
+    const n = typeof fmt === "function" ? fmt(v) : String(v);
+    return n + " мобов";
+  }
   return typeof fmt === "function" ? fmt(v) : String(v);
 }
 
@@ -463,7 +654,7 @@ async function renderLeaderboard() {
   list.innerHTML = "";
   const auth = readCloudAuth();
   const pending = readPendingSubmissions().length;
-  const modeLabel = { enchant: "Заточка", power: "Сила", wealth: "Богатство" }[_lbMode] || _lbMode;
+  const modeLabel = { enchant: "Заточка", power: "Сила", wealth: "Богатство", mobs: "Мобы" }[_lbMode] || _lbMode;
 
   if (cta) {
     cta.hidden = !!(auth?.nick) || !cloudEnabled();
@@ -588,6 +779,7 @@ async function wireCloudAuthForms() {
     if (existing?.nick && existing?.token && !password) {
       setMsg("С возвращением, " + existing.nick);
       await bindSaveToCloudNick(existing.nick);
+      await syncCloudProgress({ notify: true });
       enterMainMenuFromLogin({ guideCreate: true });
       return;
     }
@@ -694,7 +886,11 @@ async function wireCloudAuthForms() {
 function initCloud() {
   syncCloudUI();
   wireCloudAuthForms();
-  if (cloudEnabled()) flushPendingSubmissions({ notify: true });
+  wireCloudSaveLifecycle();
+  if (cloudEnabled()) {
+    flushPendingSubmissions({ notify: true });
+    if (readCloudAuth()?.token) syncCloudProgress({ notify: false });
+  }
 }
 
 window.SoulforgeCloud = {
@@ -708,4 +904,8 @@ window.SoulforgeCloud = {
   fetchLeaderboard,
   flushPending: flushPendingSubmissions,
   pending: readPendingSubmissions,
+  syncProgress: syncCloudProgress,
+  pushSave: pushCloudSave,
+  flushSave: flushCloudSave,
+  scheduleSave: scheduleCloudSave,
 };

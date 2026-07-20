@@ -628,6 +628,10 @@ function save() {
   const seq = maxStoredSeq() + 1;
   const env = makeEnvelope(exportGameData(state), seq, Date.now());
   persistEnvelope(env);
+  if (typeof scheduleCloudSave === "function") scheduleCloudSave();
+  else if (typeof window !== "undefined" && window.SoulforgeCloud?.scheduleSave) {
+    window.SoulforgeCloud.scheduleSave();
+  }
 }
 
 function resetProgress() {

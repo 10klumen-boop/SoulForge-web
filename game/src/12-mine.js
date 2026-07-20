@@ -262,7 +262,7 @@ function currentMineZoneId() {
 function rollMineType() {
   const zoneId = currentMineZoneId();
   const cfg = typeof zoneMineConfig === "function" ? zoneMineConfig(zoneId) : {};
-  const banan = tune("mine.bananChance", 0.0001);
+  const banan = tune("mine.bananChance", 0.00001);
   const golden = tune("mine.goldenChance." + zoneId, cfg.goldenChance ?? tune("mine.goldenChance", 0.04));
   const r = Math.random();
   if (r < banan) return "banan";
@@ -286,7 +286,7 @@ function rollBananLootTuned() {
   if (r < s + a + w) {
     const drop = rollMineWeaponDrop();
     const g = drop?.grade || "D";
-    return { kind: "weapon", grade: g, plus: 15, label: g + "-оружие +15" };
+    return { kind: "weapon", grade: g, plus: 6, label: g + "-оружие +6" };
   }
   return { kind: "earring", label: COLLECTIBLES.zaken_blessed_earring.name };
 }
@@ -570,8 +570,9 @@ function mineMobLifetime(maxHp, damage, type) {
   const timerMult = typeof tune === "function" ? tune("mine.timerMult", 0.85) : 0.85;
   const hits = Math.max(1, Math.ceil(maxHp / Math.max(1, damage)));
   const bossMult = type === "boss" ? 1.48 : type === "golden" ? 1.15 : 1;
-  const floor = type === "boss" ? 14000 : type === "golden" ? 10000 : 8500;
-  const cap = type === "boss" ? 32000 : 19000;
+  // Босс: больше окна под клики (раньше cap×0.85 ≈ 27 с — слишком туго без заточки)
+  const floor = type === "boss" ? 18000 : type === "golden" ? 10000 : 8500;
+  const cap = type === "boss" ? 48000 : 19000;
   return Math.round(Math.min(cap, Math.max(floor, Math.round(hits * 880 * bossMult + 2000))) * timerMult);
 }
 

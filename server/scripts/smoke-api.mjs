@@ -90,7 +90,7 @@ async function stepHealth() {
 }
 
 async function stepLeaderboards() {
-  for (const mode of ["enchant", "power", "wealth"]) {
+  for (const mode of ["enchant", "power", "wealth", "mobs"]) {
     const { json } = await req("GET", `/leaderboard/${mode}?limit=5`, {
       expectStatus: 200,
     });
@@ -145,6 +145,7 @@ async function stepAuthAndRuns() {
       farmPower: 1,
       earned: 1,
       adena: 1,
+      mobs: 3,
       clientVersion: "smoke",
     },
     expectStatus: 200,
@@ -193,12 +194,77 @@ async function stepAuthAndRuns() {
   return nick;
 }
 
+
+async function stepCloudSave() {
+  const nick = FIXED_NICK || lettersNick();
+  let token;
+  try {
+    const reg = await req("POST", "/auth/register", {
+      body: { nick, password: PASS },
+      expectStatus: 200,
+    });
+    token = reg.json.token;
+  } catch (e) {
+    const login = await req("POST", "/auth/login", {
+      body: { nick, password: PASS },
+      expectStatus: 200,
+    });
+    token = login.json.token;
+  }
+
+  const empty = await req("GET", "/save", { token, expectStatus: 200 });
+  if (!empty.json?.ok) throw new Error("GET /save failed");
+  ok("GET /save", empty.json.empty ? "empty" : "has data");
+
+  const payload = {
+    seq: Date.now(),
+    savedAt: Date.now(),
+    clientVersion: "smoke",
+    farmPower: 12,
+    data: {
+      adena: 12345,
+      farmZone: "banana_mine",
+      avatar: { created: true, name: "SmokeHero", raceId: "human", classId: "fighter", level: 3 },
+      characters: [
+        {
+          id: "c_smoke",
+          progress: {
+            adena: 12345,
+            farmZone: "banana_mine",
+            avatar: { created: true, name: "SmokeHero", raceId: "human", classId: "fighter", level: 3 },
+            achievements: { unlocked: {}, stats: { gnomesCaught: 7 } },
+            totals: { earned: 100, tries: 1, fails: 0 },
+            records: {},
+          },
+        },
+      ],
+      activeCharacterId: "c_smoke",
+      achievements: { unlocked: {}, stats: { gnomesCaught: 7 } },
+      totals: { earned: 100, tries: 1, fails: 0 },
+      records: {},
+    },
+  };
+  const put = await req("PUT", "/save", { token, body: payload, expectStatus: 200 });
+  if (!put.json?.ok) throw new Error("PUT /save failed");
+  ok("PUT /save", `seq=${put.json.seq}`);
+
+  const got = await req("GET", "/save", { token, expectStatus: 200 });
+  if (got.json?.empty) throw new Error("save still empty after PUT");
+  if (got.json?.data?.activeCharacterId !== "c_smoke") throw new Error("bad activeCharacterId");
+  ok("GET /save after PUT", got.json.summary?.activeName || "ok");
+
+  await req("POST", "/auth/logout", { token, body: {}, expectStatus: 200 });
+}
+
 async function stepNegatives() {
   await req("POST", "/runs", {
     body: { maxPlus: 1 },
     expectStatus: 401,
   });
   ok("runs without token → 401");
+
+  await req("GET", "/save", { expectStatus: 401 });
+  ok("GET /save without token → 401");
 
   await req("POST", "/auth/login", {
     body: { nick: "NoSuchBot", password: "wrongpass1" },
@@ -214,6 +280,7 @@ async function main() {
     ["leaderboards", stepLeaderboards],
     ["admin/enabled", stepAdminEnabled],
     ["auth + runs", stepAuthAndRuns],
+    ["cloud save", stepCloudSave],
     ["negatives", stepNegatives],
   ];
   for (const [label, fn] of steps) {

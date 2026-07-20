@@ -45,8 +45,52 @@ db.exec(`
     farm_power INTEGER NOT NULL DEFAULT 0,
     earned INTEGER NOT NULL DEFAULT 0,
     adena INTEGER NOT NULL DEFAULT 0,
+    mobs INTEGER NOT NULL DEFAULT 0,
     client_version TEXT,
     updated_at INTEGER NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+`);
+
+function ensureScoreColumn(name, ddl) {
+  const cols = db.prepare("PRAGMA table_info(scores)").all();
+  if (!cols.some((c) => c.name === name)) {
+    db.exec(`ALTER TABLE scores ADD COLUMN ${name} ${ddl}`);
+  }
+}
+ensureScoreColumn("mobs", "INTEGER NOT NULL DEFAULT 0");
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS player_saves (
+    user_id INTEGER PRIMARY KEY,
+    nick TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    seq INTEGER NOT NULL DEFAULT 0,
+    saved_at INTEGER NOT NULL,
+    client_version TEXT,
+    chars_count INTEGER NOT NULL DEFAULT 0,
+    active_name TEXT,
+    active_level INTEGER NOT NULL DEFAULT 1,
+    adena INTEGER NOT NULL DEFAULT 0,
+    mobs INTEGER NOT NULL DEFAULT 0,
+    max_plus INTEGER NOT NULL DEFAULT 0,
+    farm_zone TEXT,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS player_characters (
+    user_id INTEGER NOT NULL,
+    slot_id TEXT NOT NULL,
+    nick TEXT NOT NULL,
+    name TEXT,
+    race_id TEXT,
+    class_id TEXT,
+    gender_id TEXT,
+    level INTEGER NOT NULL DEFAULT 1,
+    adena INTEGER NOT NULL DEFAULT 0,
+    farm_zone TEXT,
+    created INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, slot_id),
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
 `);
@@ -65,16 +109,182 @@ const stmtSession = db.prepare(
 const stmtDeleteSession = db.prepare("DELETE FROM sessions WHERE token = ?");
 const stmtDeleteExpired = db.prepare("DELETE FROM sessions WHERE exp < ?");
 const stmtUpsertScore = db.prepare(`
-  INSERT INTO scores (user_id, max_plus, farm_power, earned, adena, client_version, updated_at)
-  VALUES (@user_id, @max_plus, @farm_power, @earned, @adena, @client_version, @updated_at)
+  INSERT INTO scores (user_id, max_plus, farm_power, earned, adena, mobs, client_version, updated_at)
+  VALUES (@user_id, @max_plus, @farm_power, @earned, @adena, @mobs, @client_version, @updated_at)
   ON CONFLICT(user_id) DO UPDATE SET
     max_plus = excluded.max_plus,
     farm_power = excluded.farm_power,
     earned = excluded.earned,
     adena = excluded.adena,
+    mobs = excluded.mobs,
     client_version = excluded.client_version,
     updated_at = excluded.updated_at
 `);
+const stmtGetSave = db.prepare("SELECT * FROM player_saves WHERE user_id = ?");
+const stmtUpsertSave = db.prepare(`
+  INSERT INTO player_saves (
+    user_id, nick, payload, seq, saved_at, client_version,
+    chars_count, active_name, active_level, adena, mobs, max_plus, farm_zone, updated_at
+  ) VALUES (
+    @user_id, @nick, @payload, @seq, @saved_at, @client_version,
+    @chars_count, @active_name, @active_level, @adena, @mobs, @max_plus, @farm_zone, @updated_at
+  )
+  ON CONFLICT(user_id) DO UPDATE SET
+    nick = excluded.nick,
+    payload = excluded.payload,
+    seq = excluded.seq,
+    saved_at = excluded.saved_at,
+    client_version = excluded.client_version,
+    chars_count = excluded.chars_count,
+    active_name = excluded.active_name,
+    active_level = excluded.active_level,
+    adena = excluded.adena,
+    mobs = excluded.mobs,
+    max_plus = excluded.max_plus,
+    farm_zone = excluded.farm_zone,
+    updated_at = excluded.updated_at
+`);
+const stmtDeleteChars = db.prepare("DELETE FROM player_characters WHERE user_id = ?");
+const stmtInsertChar = db.prepare(`
+  INSERT INTO player_characters (
+    user_id, slot_id, nick, name, race_id, class_id, gender_id, level, adena, farm_zone, created
+  ) VALUES (
+    @user_id, @slot_id, @nick, @name, @race_id, @class_id, @gender_id, @level, @adena, @farm_zone, @created
+  )
+`);
+const stmtCountSaves = db.prepare("SELECT COUNT(*) AS n FROM player_saves");
+
+function summarizeSaveData(data) {
+  data = data && typeof data === "object" ? data : {};
+  const chars = Array.isArray(data.characters) ? data.characters : [];
+  const activeId = data.activeCharacterId;
+  let active = null;
+  if (activeId) {
+    const slot = chars.find((c) => c && c.id === activeId);
+    active = slot?.progress || null;
+  }
+  if (!active && chars[0]?.progress) active = chars[0].progress;
+  if (!active && data.avatar) active = data;
+  const av = active?.avatar || data.avatar || {};
+  const adena = Math.max(0, Math.floor(Number(active?.adena ?? data.adena) || 0));
+  const mobs = Math.max(
+    0,
+    Math.floor(Number(active?.achievements?.stats?.gnomesCaught ?? data.achievements?.stats?.gnomesCaught) || 0)
+  );
+  const records = active?.records || data.records || {};
+  const maxPlus = maxPlusFromRecords(records);
+  const earned = Math.max(
+    0,
+    Math.floor(Number(active?.totals?.earned ?? data.totals?.earned) || 0)
+  );
+  const farmPower = Math.max(
+    0,
+    Math.floor(Number(data.farmPower ?? data._farmPower) || 0)
+  );
+  return {
+    chars_count: chars.length || (av.created ? 1 : 0),
+    active_name: String(av.name || "").slice(0, 48) || null,
+    active_level: Math.max(1, Math.floor(Number(av.level) || 1)),
+    adena,
+    mobs,
+    max_plus: maxPlus,
+    earned,
+    farm_power: farmPower,
+    farm_zone: String(active?.farmZone || data.farmZone || "").slice(0, 64) || null,
+  };
+}
+
+function characterRowsFromData(userId, nick, data) {
+  data = data && typeof data === "object" ? data : {};
+  const chars = Array.isArray(data.characters) ? data.characters : [];
+  const rows = [];
+  if (chars.length) {
+    for (const slot of chars) {
+      if (!slot || !slot.id) continue;
+      const p = slot.progress || {};
+      const av = p.avatar || {};
+      rows.push({
+        user_id: userId,
+        slot_id: String(slot.id).slice(0, 64),
+        nick,
+        name: String(av.name || "").slice(0, 48) || null,
+        race_id: String(av.raceId || "").slice(0, 32) || null,
+        class_id: String(av.classId || "").slice(0, 32) || null,
+        gender_id: String(av.genderId || "").slice(0, 16) || null,
+        level: Math.max(1, Math.floor(Number(av.level) || 1)),
+        adena: Math.max(0, Math.floor(Number(p.adena) || 0)),
+        farm_zone: String(p.farmZone || "").slice(0, 64) || null,
+        created: av.created ? 1 : 0,
+      });
+    }
+  } else if (data.avatar?.created) {
+    rows.push({
+      user_id: userId,
+      slot_id: "legacy",
+      nick,
+      name: String(data.avatar.name || "").slice(0, 48) || null,
+      race_id: String(data.avatar.raceId || "").slice(0, 32) || null,
+      class_id: String(data.avatar.classId || "").slice(0, 32) || null,
+      gender_id: String(data.avatar.genderId || "").slice(0, 16) || null,
+      level: Math.max(1, Math.floor(Number(data.avatar.level) || 1)),
+      adena: Math.max(0, Math.floor(Number(data.adena) || 0)),
+      farm_zone: String(data.farmZone || "").slice(0, 64) || null,
+      created: 1,
+    });
+  }
+  return rows;
+}
+
+function persistPlayerSave(user, seq, savedAt, clientVersion, data) {
+  const summary = summarizeSaveData(data);
+  const payload = JSON.stringify(data);
+  const now = Date.now();
+  const saveRow = {
+    user_id: user.id,
+    nick: user.nick,
+    payload,
+    seq: Math.max(0, Math.floor(Number(seq) || 0)),
+    saved_at: Math.max(0, Math.floor(Number(savedAt) || now)),
+    client_version: String(clientVersion || "").slice(0, 32),
+    chars_count: summary.chars_count,
+    active_name: summary.active_name,
+    active_level: summary.active_level,
+    adena: summary.adena,
+    mobs: summary.mobs,
+    max_plus: summary.max_plus,
+    farm_zone: summary.farm_zone,
+    updated_at: now,
+  };
+  const tx = db.transaction(() => {
+    stmtUpsertSave.run(saveRow);
+    stmtDeleteChars.run(user.id);
+    for (const row of characterRowsFromData(user.id, user.nick, data)) {
+      stmtInsertChar.run(row);
+    }
+    const prev = db.prepare("SELECT * FROM scores WHERE user_id = ?").get(user.id);
+    stmtUpsertScore.run({
+      user_id: user.id,
+      max_plus: Math.max(prev?.max_plus || 0, summary.max_plus),
+      farm_power: Math.max(prev?.farm_power || 0, summary.farm_power),
+      earned: Math.max(prev?.earned || 0, summary.earned),
+      adena: summary.adena,
+      mobs: Math.max(prev?.mobs || 0, summary.mobs),
+      client_version: saveRow.client_version,
+      updated_at: now,
+    });
+  });
+  tx();
+  return { saveRow, summary };
+}
+
+function parseSavePayload(row) {
+  if (!row) return null;
+  try {
+    return JSON.parse(row.payload);
+  } catch (e) {
+    return null;
+  }
+}
 
 function jsonError(res, status, message) {
   return res.status(status).json({ ok: false, error: message });
@@ -138,12 +348,15 @@ function boardRows(mode, limit) {
   } else if (mode === "wealth") {
     order = "s.earned DESC, s.updated_at ASC";
     valueExpr = "s.earned";
+  } else if (mode === "mobs") {
+    order = "s.mobs DESC, s.updated_at ASC";
+    valueExpr = "s.mobs";
   } else {
     mode = "enchant";
   }
   const rows = db
     .prepare(
-      `SELECT u.nick AS name, ${valueExpr} AS value, s.max_plus, s.farm_power, s.earned, s.adena, s.updated_at
+      `SELECT u.nick AS name, ${valueExpr} AS value, s.max_plus, s.farm_power, s.earned, s.adena, s.mobs, s.updated_at
        FROM scores s JOIN users u ON u.id = s.user_id
        ORDER BY ${order}
        LIMIT ?`
@@ -157,6 +370,7 @@ function boardRows(mode, limit) {
     farmPower: r.farm_power,
     earned: r.earned,
     adena: r.adena,
+    mobs: r.mobs || 0,
     updatedAt: r.updated_at,
     mode,
   }));
@@ -164,7 +378,7 @@ function boardRows(mode, limit) {
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: "256kb" }));
+app.use(express.json({ limit: "2mb" }));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "soulforge-cloud", version: "0.31.0" });
@@ -236,6 +450,12 @@ app.post("/runs", (req, res) => {
     Math.floor(Number(body.earned ?? body.totals?.earned) || 0)
   );
   const adena = Math.max(0, Math.floor(Number(body.adena) || 0));
+  const mobs = Math.max(
+    0,
+    Math.floor(
+      Number(body.mobs ?? body.kills ?? body.totals?.gnomesCaught ?? body.achievements?.stats?.gnomesCaught) || 0
+    )
+  );
   const now = Date.now();
   const prev = db.prepare("SELECT * FROM scores WHERE user_id = ?").get(user.id);
   const next = {
@@ -244,6 +464,7 @@ app.post("/runs", (req, res) => {
     farm_power: Math.max(prev?.farm_power || 0, farmPower),
     earned: Math.max(prev?.earned || 0, earned),
     adena,
+    mobs: Math.max(prev?.mobs || 0, mobs),
     client_version: String(body.clientVersion || "").slice(0, 32),
     updated_at: now,
   };
@@ -251,11 +472,75 @@ app.post("/runs", (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/save", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const row = stmtGetSave.get(user.id);
+  if (!row) return res.json({ ok: true, empty: true });
+  const data = parseSavePayload(row);
+  if (!data) return jsonError(res, 500, "Повреждённый сейв на сервере");
+  res.json({
+    ok: true,
+    empty: false,
+    seq: row.seq,
+    savedAt: row.saved_at,
+    clientVersion: row.client_version,
+    data,
+    summary: {
+      charsCount: row.chars_count,
+      activeName: row.active_name,
+      activeLevel: row.active_level,
+      adena: row.adena,
+      mobs: row.mobs,
+      maxPlus: row.max_plus,
+      farmZone: row.farm_zone,
+    },
+  });
+});
+
+app.put("/save", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const body = req.body || {};
+  const data = body.data;
+  if (!data || typeof data !== "object") {
+    return jsonError(res, 400, "Нужен data (объект прогресса)");
+  }
+  const seq = Math.max(0, Math.floor(Number(body.seq) || 0));
+  const savedAt = Math.max(0, Math.floor(Number(body.savedAt) || Date.now()));
+  const prev = stmtGetSave.get(user.id);
+  if (prev && seq < (prev.seq || 0)) {
+    const prevData = parseSavePayload(prev);
+    return res.status(409).json({
+      ok: false,
+      error: "На сервере более новый сейв",
+      conflict: true,
+      seq: prev.seq,
+      savedAt: prev.saved_at,
+      data: prevData,
+    });
+  }
+  try {
+    if (typeof body.farmPower === "number") data.farmPower = body.farmPower;
+    const { summary } = persistPlayerSave(
+      user,
+      seq,
+      savedAt,
+      body.clientVersion,
+      data
+    );
+    res.json({ ok: true, seq, savedAt, summary });
+  } catch (e) {
+    console.error("PUT /save failed:", e);
+    return jsonError(res, 500, "Не удалось сохранить");
+  }
+});
+
 app.get("/leaderboard/:mode", (req, res) => {
   const mode = String(req.params.mode || "enchant").toLowerCase();
   const limit = Number(req.query.limit) || 50;
-  if (!["enchant", "power", "wealth", "default"].includes(mode)) {
-    return jsonError(res, 400, "mode: enchant | power | wealth");
+  if (!["enchant", "power", "wealth", "mobs", "default"].includes(mode)) {
+    return jsonError(res, 400, "mode: enchant | power | wealth | mobs");
   }
   const rows = boardRows(mode === "default" ? "enchant" : mode, limit);
   res.json(rows);
@@ -272,7 +557,8 @@ admin.get("/overview", (_req, res) => {
   const users = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
   const sessions = db.prepare("SELECT COUNT(*) AS n FROM sessions WHERE exp >= ?").get(Date.now()).n;
   const scores = db.prepare("SELECT COUNT(*) AS n FROM scores").get().n;
-  res.json({ ok: true, users, sessions, scores, db: path.basename(DB_PATH) });
+  const saves = stmtCountSaves.get().n;
+  res.json({ ok: true, users, sessions, scores, saves, db: path.basename(DB_PATH) });
 });
 
 admin.get("/users", (req, res) => {
@@ -285,10 +571,12 @@ admin.get("/users", (req, res) => {
     rows = db
       .prepare(
         `SELECT u.id, u.nick, u.created_at,
-                s.max_plus, s.farm_power, s.earned, s.adena, s.updated_at, s.client_version,
+                s.max_plus, s.farm_power, s.earned, s.adena, s.mobs, s.updated_at, s.client_version,
+                ps.chars_count, ps.active_name, ps.active_level, ps.farm_zone AS save_farm_zone,
                 (SELECT COUNT(*) FROM sessions ses WHERE ses.user_id = u.id AND ses.exp >= ?) AS sessions
          FROM users u
          LEFT JOIN scores s ON s.user_id = u.id
+         LEFT JOIN player_saves ps ON ps.user_id = u.id
          WHERE u.nick LIKE ? COLLATE NOCASE
          ORDER BY u.id DESC
          LIMIT ? OFFSET ?`
@@ -298,10 +586,12 @@ admin.get("/users", (req, res) => {
     rows = db
       .prepare(
         `SELECT u.id, u.nick, u.created_at,
-                s.max_plus, s.farm_power, s.earned, s.adena, s.updated_at, s.client_version,
+                s.max_plus, s.farm_power, s.earned, s.adena, s.mobs, s.updated_at, s.client_version,
+                ps.chars_count, ps.active_name, ps.active_level, ps.farm_zone AS save_farm_zone,
                 (SELECT COUNT(*) FROM sessions ses WHERE ses.user_id = u.id AND ses.exp >= ?) AS sessions
          FROM users u
          LEFT JOIN scores s ON s.user_id = u.id
+         LEFT JOIN player_saves ps ON ps.user_id = u.id
          ORDER BY u.id DESC
          LIMIT ? OFFSET ?`
       )
@@ -322,6 +612,7 @@ admin.put("/users/:id/score", (req, res) => {
     farm_power: Math.max(0, Math.floor(Number(body.farm_power) || 0)),
     earned: Math.max(0, Math.floor(Number(body.earned) || 0)),
     adena: Math.max(0, Math.floor(Number(body.adena) || 0)),
+    mobs: Math.max(0, Math.floor(Number(body.mobs) || 0)),
     client_version: String(body.client_version || "admin").slice(0, 32),
     updated_at: now,
   };
@@ -370,6 +661,7 @@ if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
     if (
       req.path.startsWith("/auth") ||
       req.path.startsWith("/runs") ||
+      req.path.startsWith("/save") ||
       req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/admin") ||
       req.path.startsWith("/db-admin")

@@ -195,21 +195,20 @@ function avatarStats() {
 
 
 
-function avatarFarmPower() {
-
-  const s = avatarStats();
-
-  const power = Math.round(
-
-    s.patk * 1.0 + s.matk * 0.72 + s.pdef * 0.36 + s.mdef * 0.36 + Math.max(0, (state.avatar?.level || 1) - 1) * 1.5 + s.farmBonus
-
-  );
-
-  return Math.max(1, power);
-
+function avatarIsMystic() {
+  return typeof isMysticArchetype === "function" && isMysticArchetype(state.avatar?.classId);
 }
 
-
+function avatarFarmPower() {
+  const s = avatarStats();
+  const mystic = avatarIsMystic();
+  const primary = mystic ? s.matk : s.patk;
+  const secondary = mystic ? s.patk : s.matk;
+  const power = Math.round(
+    primary * 1.0 + secondary * 0.72 + s.pdef * 0.36 + s.mdef * 0.36 + Math.max(0, (state.avatar?.level || 1) - 1) * 1.5 + s.farmBonus
+  );
+  return Math.max(1, power);
+}
 
 /** Бонус P.Atk от оружия; fixedPlus — принудительный уровень заточки (для базового HP). */
 function avatarWeaponPatkBonus(fixedPlus) {
@@ -225,6 +224,20 @@ function avatarWeaponPatkBonus(fixedPlus) {
   return patk;
 }
 
+/** Бонус M.Atk от оружия; fixedPlus — принудительный уровень заточки (для базового HP). */
+function avatarWeaponMatkBonus(fixedPlus) {
+  if (typeof iterEquippedGear !== "function") return 0;
+  let matk = 0;
+  iterEquippedGear().forEach(({ item }) => {
+    if (item.kind !== "weapon") return;
+    const w = WMAP[item.id];
+    if (!w) return;
+    const plus = fixedPlus !== undefined ? fixedPlus : (item.plus || 0);
+    matk += statAt(w.matk, w.ms, plus);
+  });
+  return matk;
+}
+
 function mineWeaponDamageScale(chapter) {
   return 0.22 + (chapter || 1) * 0.04;
 }
@@ -238,13 +251,32 @@ function avatarMinePatkForDamage(weaponPlus) {
   return basePatk + weaponPatk * mineWeaponDamageScale(ch);
 }
 
+function avatarMineMatkForDamage(weaponPlus) {
+  const s = avatarStats();
+  const weaponMatk = avatarWeaponMatkBonus(weaponPlus);
+  const baseMatk = Math.max(0, s.matk - avatarWeaponMatkBonus());
+  const zone = farmZoneById(state.farmZone || "banana_mine");
+  const ch = zone?.chapter || 1;
+  return baseMatk + weaponMatk * mineWeaponDamageScale(ch);
+}
+
+/** Сырой урон клика до chapterScale (воин — P.Atk, маг — M.Atk). */
+function avatarMineClickRaw(weaponPlus) {
+  const s = avatarStats();
+  const lvl = state.avatar?.level || 1;
+  if (avatarIsMystic()) {
+    const effMatk = avatarMineMatkForDamage(weaponPlus);
+    return effMatk * 1.0 + s.patk * 0.24 + lvl * 1.6;
+  }
+  const effPatk = avatarMinePatkForDamage(weaponPlus);
+  return effPatk * 1.0 + s.matk * 0.24 + lvl * 1.6;
+}
+
 /** Урон без учёта заточки — для расчёта HP (заточка тогда реально ускоряет убийство). */
 function avatarMineBaseClickDamage() {
   const zone = farmZoneById(state.farmZone || "banana_mine");
   const ch = zone?.chapter || 1;
-  const s = avatarStats();
-  const effPatk = avatarMinePatkForDamage(0);
-  const raw = effPatk * 1.0 + s.matk * 0.24 + (state.avatar?.level || 1) * 1.6;
+  const raw = avatarMineClickRaw(0);
   const chapterScale = 1 + (ch - 1) * 0.035;
   return Math.max(4, Math.round((raw * chapterScale) / 4.2));
 }
@@ -253,9 +285,7 @@ function avatarMineBaseClickDamage() {
 function avatarMineClickDamage() {
   const zone = farmZoneById(state.farmZone || "banana_mine");
   const ch = zone?.chapter || 1;
-  const s = avatarStats();
-  const effPatk = avatarMinePatkForDamage();
-  const raw = effPatk * 1.0 + s.matk * 0.24 + (state.avatar?.level || 1) * 1.6;
+  const raw = avatarMineClickRaw();
   const chapterScale = 1 + (ch - 1) * 0.035;
   return Math.max(4, Math.round((raw * chapterScale) / 4.2));
 }
@@ -274,13 +304,14 @@ function mineHitsToKill(type, zoneId) {
   const base = {
     normal: [7, 8, 9, 10, 11],
     golden: [13, 15, 17, 19, 22],
-    boss: [62, 72, 84, 94, 108],
+    // Гл.1 мягче: проходим около targetPower; дальше эскалация
+    boss: [44, 68, 80, 90, 104],
   };
   let hits = (base[type] || base.normal)[ci];
   const power = avatarFarmPower();
   const tgt = farmZoneTargetPower(zone);
   if (power < tgt) hits = Math.round(hits * (1 + ((tgt - power) / Math.max(1, tgt)) * 0.45));
-  return Math.max(type === "boss" ? 40 : type === "golden" ? 8 : 4, hits);
+  return Math.max(type === "boss" ? (ci === 0 ? 28 : 40) : type === "golden" ? 8 : 4, hits);
 }
 
 /** HP моба = базовый урон × число ударов (заточка снижает фактическое число кликов). */
@@ -293,7 +324,13 @@ function mineMobMaxHp(type, zoneId) {
     const boss = typeof zoneBossDef === "function" ? zoneBossDef(zoneId) : { hpMult: 14 };
     hp = Math.round(hp * Math.max(1, (boss.hpMult || 14) / 12));
   }
-  return Math.max(type === "boss" ? dmg * 40 : type === "golden" ? dmg * 8 : dmg * 4, hp);
+  const zone = farmZoneById(zoneId || state.farmZone || "banana_mine");
+  const ch = zone?.chapter || 1;
+  const bossFloorHits = type === "boss" ? (ch <= 1 ? 28 : 40) : 0;
+  return Math.max(
+    type === "boss" ? dmg * bossFloorHits : type === "golden" ? dmg * 8 : dmg * 4,
+    hp
+  );
 }
 
 
@@ -310,8 +347,11 @@ function expectedFarmPowerAtLevel(level) {
   const matk = race.matk + cls.matk + lb.atk;
   const pdef = race.pdef + cls.pdef + lb.def;
   const mdef = race.mdef + cls.mdef + lb.def;
+  const mystic = typeof isMysticArchetype === "function" && isMysticArchetype(a.classId);
+  const primary = mystic ? matk : patk;
+  const secondary = mystic ? patk : matk;
   return Math.round(
-    patk * 1.0 + matk * 0.72 + pdef * 0.36 + mdef * 0.36 + Math.max(0, level - 1) * 1.5 + dwarfMine
+    primary * 1.0 + secondary * 0.72 + pdef * 0.36 + mdef * 0.36 + Math.max(0, level - 1) * 1.5 + dwarfMine
   );
 }
 
@@ -373,10 +413,11 @@ function mineGoldenWeaponChance() {
   const lvl = state.avatar?.level || 1;
   const power = avatarFarmPower();
   const target = farmZoneTargetPower(zone);
-  let ch = 0.22 + chapter * 0.06 + Math.max(0, lvl - zone.reqLevel) * 0.025;
-  if (power >= target) ch += 0.08;
-  if (power >= target * 1.15) ch += 0.06;
-  return Math.min(0.9, ch);
+  // Было ~28–90% — слишком часто по флоту; цель ~8–20% на гл.1, потолок ~35%
+  let ch = 0.08 + chapter * 0.025 + Math.max(0, lvl - zone.reqLevel) * 0.01;
+  if (power >= target) ch += 0.03;
+  if (power >= target * 1.15) ch += 0.02;
+  return Math.min(0.35, ch);
 }
 
 
@@ -617,7 +658,9 @@ function avatarMineRewardMult(zoneId) {
 
   const s = avatarStats();
 
-  mult += Math.min(0.08, Math.max(0, s.patk - 28) * 0.0014);
+  const atk = avatarIsMystic() ? s.matk : s.patk;
+
+  mult += Math.min(0.08, Math.max(0, atk - 28) * 0.0014);
 
   const race = state.avatar?.raceId;
 
@@ -645,11 +688,12 @@ function renderAvatarStatsPanel() {
 
   const power = avatarFarmPower();
 
+  const mystic = avatarIsMystic();
   const rows = [
 
-    { k: "P.Atk", v: s.patk, tip: "Физ. урон — бонус adena при высокой силе фарма" },
+    { k: "P.Atk", v: s.patk, tip: mystic ? "Физ. урон — вторичный для мага (лучший билд — M.Atk)" : "Физ. урон — основной стат воина в шахте и силе фарма" },
 
-    { k: "M.Atk", v: s.matk, tip: "Маг. урон — влияет на силу фарма" },
+    { k: "M.Atk", v: s.matk, tip: mystic ? "Маг. урон — основной стат мага в шахте и силе фарма" : "Маг. урон — вторичный для воина (влияет слабее P.Atk)" },
 
     { k: "P.Def", v: s.pdef, tip: "Физ. защита — входит в силу фарма" },
 
