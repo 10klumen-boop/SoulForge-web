@@ -121,4 +121,21 @@ CREATE TABLE IF NOT EXISTS character_backups (
 CREATE INDEX IF NOT EXISTS idx_character_backups_user_char
   ON character_backups(user_id, character_id, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS balance_alerts (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  character_id VARCHAR(64),
+  char_name VARCHAR(48),
+  alert_type VARCHAR(48) NOT NULL,
+  severity VARCHAR(16) NOT NULL DEFAULT 'warn',
+  message TEXT NOT NULL,
+  event_type VARCHAR(32),
+  event_id BIGINT,
+  payload JSONB,
+  created_at BIGINT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_balance_alerts_created ON balance_alerts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_balance_alerts_severity ON balance_alerts(severity, created_at DESC);
+
 -- Optional later: finer-grained run_events stream (not used; character_events covers audit)

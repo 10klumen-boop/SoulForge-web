@@ -49,11 +49,11 @@ function lettersNick() {
   return s.slice(0, 16);
 }
 
-async function req(method, path, { body, token, expectStatus } = {}) {
+async function req(method, path, { body, token, headers: extraHeaders, expectStatus } = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
-    const headers = {};
+    const headers = { ...(extraHeaders || {}) };
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (token) headers.Authorization = `Bearer ${token}`;
     const res = await fetch(`${BASE}${path}`, {
@@ -375,6 +375,22 @@ async function stepNegatives() {
   ok("bad login → 401");
 }
 
+async function stepAdminAnalytics() {
+  const adminKey = process.env.SOULFORGE_ADMIN_KEY;
+  if (!adminKey) {
+    ok("admin/analytics (skip)", "no SOULFORGE_ADMIN_KEY");
+    return;
+  }
+  const h = { "X-Soulforge-Admin": adminKey };
+  const bal = await req("GET", "/admin/analytics/balance", { headers: h, expectStatus: 200 });
+  if (!bal.json?.ok || !Array.isArray(bal.json.farm)) throw new Error("balance dashboard failed");
+  ok("admin/analytics/balance", `farm zones=${bal.json.farm.length}`);
+
+  const alerts = await req("GET", "/admin/alerts?limit=5", { headers: h, expectStatus: 200 });
+  if (!alerts.json?.ok || !Array.isArray(alerts.json.rows)) throw new Error("alerts list failed");
+  ok("admin/alerts", `${alerts.json.rows.length} rows`);
+}
+
 async function main() {
   console.log(`SoulForge smoke → ${BASE}\n`);
   const steps = [
@@ -383,6 +399,7 @@ async function main() {
     ["admin/enabled", stepAdminEnabled],
     ["auth + runs", stepAuthAndRuns],
     ["cloud save", stepCloudSave],
+    ["admin analytics", stepAdminAnalytics],
     ["negatives", stepNegatives],
   ];
   for (const [label, fn] of steps) {

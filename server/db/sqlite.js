@@ -8,6 +8,11 @@ const {
   characterRowsFromData,
   scoreRowsFromData,
 } = require("./save-utils");
+const {
+  detectBalanceAlerts,
+  farmRowMetrics,
+  rowsToCsv,
+} = require("./balance-analytics");
 
 function ensureScoreColumn(db, name, ddl) {
   const cols = db.prepare("PRAGMA table_info(scores)").all();
@@ -193,6 +198,24 @@ function initSchema(db) {
     );
     CREATE INDEX IF NOT EXISTS idx_character_backups_user_char
       ON character_backups(user_id, character_id, created_at DESC);
+    CREATE TABLE IF NOT EXISTS balance_alerts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      character_id TEXT,
+      char_name TEXT,
+      alert_type TEXT NOT NULL,
+      severity TEXT NOT NULL DEFAULT 'warn',
+      message TEXT NOT NULL,
+      event_type TEXT,
+      event_id INTEGER,
+      payload TEXT,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_balance_alerts_created
+      ON balance_alerts(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_balance_alerts_severity
+      ON balance_alerts(severity, created_at DESC);
   `);
   db.pragma("foreign_keys = ON");
 }
@@ -219,6 +242,7 @@ const CHARACTER_EVENT_TYPES = new Set([
   "snapshot",
   "restore",
   "admin",
+  "balance_alert",
 ]);
 
 const BACKUP_KEEP_PER_CHAR = Math.max(
@@ -329,6 +353,15 @@ function createSqliteStore(opts) {
       user_id, character_id, char_name, event, payload, adena, client_at, created_at
     ) VALUES (
       @user_id, @character_id, @char_name, @event, @payload, @adena, @client_at, @created_at
+    )
+  `);
+  const stmtInsertBalanceAlert = db.prepare(`
+    INSERT INTO balance_alerts (
+      user_id, character_id, char_name, alert_type, severity, message,
+      event_type, event_id, payload, created_at
+    ) VALUES (
+      @user_id, @character_id, @char_name, @alert_type, @severity, @message,
+      @event_type, @event_id, @payload, @created_at
     )
   `);
   const stmtInsertBackup = db.prepare(`
@@ -669,6 +702,21 @@ function createSqliteStore(opts) {
           };
           const info = stmtInsertEvent.run(row);
           inserted.push({ id: info.lastInsertRowid, event, characterId });
+          const alerts = detectBalanceAlerts(event, row.payload);
+          for (const a of alerts) {
+            stmtInsertBalanceAlert.run({
+              user_id: userId,
+              character_id: characterId,
+              char_name: row.char_name,
+              alert_type: String(a.type).slice(0, 48),
+              severity: String(a.severity || "warn").slice(0, 16),
+              message: String(a.message).slice(0, 400),
+              event_type: event,
+              event_id: info.lastInsertRowid,
+              payload: row.payload,
+              created_at: now,
+            });
+          }
         }
       });
       tx();
@@ -869,6 +917,7 @@ function createSqliteStore(opts) {
         saves: stmtCountSaves.get().n,
         events: db.prepare("SELECT COUNT(*) AS n FROM character_events").get().n,
         backups: db.prepare("SELECT COUNT(*) AS n FROM character_backups").get().n,
+        alerts: db.prepare("SELECT COUNT(*) AS n FROM balance_alerts").get().n,
       };
     },
 
@@ -1131,6 +1180,204 @@ function createSqliteStore(opts) {
           `SELECT event, COUNT(*) AS n FROM character_events GROUP BY event ORDER BY n DESC`
         )
         .all();
+    },
+
+    getBalanceDashboard({ since, until }) {
+      const now = Date.now();
+      since = since != null ? Math.floor(Number(since)) : now - 7 * 86400000;
+      until = until != null ? Math.floor(Number(until)) : now;
+      const params = [since, until];
+
+      const farmRaw = db
+        .prepare(
+          `SELECT
+             COALESCE(json_extract(payload, '$.zoneId'), '—') AS zoneId,
+             COUNT(*) AS sessions,
+             SUM(COALESCE(CAST(json_extract(payload, '$.kills') AS INTEGER), 0)) AS kills,
+             SUM(COALESCE(CAST(json_extract(payload, '$.weapons') AS INTEGER), 0)) AS weapons,
+             SUM(COALESCE(CAST(json_extract(payload, '$.adenaGain') AS INTEGER), 0)) AS adenaGain,
+             SUM(COALESCE(CAST(json_extract(payload, '$.durationMs') AS INTEGER), 0)) AS durationMs
+           FROM character_events
+           WHERE event = 'farm_session' AND created_at >= ? AND created_at <= ?
+           GROUP BY zoneId
+           ORDER BY adenaGain DESC`
+        )
+        .all(...params);
+
+      const enchantRows = db
+        .prepare(
+          `SELECT event, COUNT(*) AS n
+           FROM character_events
+           WHERE event IN ('enchant_ok', 'enchant_fail', 'enchant_break')
+             AND created_at >= ? AND created_at <= ?
+           GROUP BY event`
+        )
+        .all(...params);
+      const enchantMap = Object.fromEntries(enchantRows.map((r) => [r.event, r.n]));
+      const enchantOk = enchantMap.enchant_ok || 0;
+      const enchantFail = enchantMap.enchant_fail || 0;
+      const enchantBreak = enchantMap.enchant_break || 0;
+      const enchantTotal = enchantOk + enchantFail + enchantBreak;
+
+      const enchantPlus = db
+        .prepare(
+          `SELECT CAST(json_extract(payload, '$.plus') AS INTEGER) AS plus, COUNT(*) AS n
+           FROM character_events
+           WHERE event = 'enchant_ok' AND created_at >= ? AND created_at <= ?
+             AND json_extract(payload, '$.plus') IS NOT NULL
+           GROUP BY plus
+           ORDER BY plus ASC`
+        )
+        .all(...params);
+
+      const quests = db
+        .prepare(
+          `SELECT
+             COALESCE(json_extract(payload, '$.zoneId'), '—') AS zoneId,
+             COALESCE(CAST(json_extract(payload, '$.step') AS INTEGER), 0) AS step,
+             COUNT(*) AS n
+           FROM character_events
+           WHERE event = 'quest_step' AND created_at >= ? AND created_at <= ?
+           GROUP BY zoneId, step
+           ORDER BY zoneId, step`
+        )
+        .all(...params);
+
+      const economy = db
+        .prepare(
+          `SELECT event, COUNT(*) AS n,
+             SUM(COALESCE(CAST(json_extract(payload, '$.adenaGain') AS INTEGER), 0)) AS adenaGain
+           FROM character_events
+           WHERE event IN ('sell_weapon', 'crystallize', 'sell_crystals', 'farm_session')
+             AND created_at >= ? AND created_at <= ?
+           GROUP BY event`
+        )
+        .all(...params);
+
+      const lootGrades = db
+        .prepare(
+          `SELECT
+             COALESCE(json_extract(payload, '$.source'), '—') AS source,
+             COALESCE(json_extract(payload, '$.grade'), '—') AS grade,
+             COUNT(*) AS n
+           FROM character_events
+           WHERE event = 'loot_weapon' AND created_at >= ? AND created_at <= ?
+           GROUP BY source, grade
+           ORDER BY n DESC`
+        )
+        .all(...params);
+
+      const alertCounts = db
+        .prepare(
+          `SELECT severity, COUNT(*) AS n FROM balance_alerts
+           WHERE created_at >= ? AND created_at <= ?
+           GROUP BY severity`
+        )
+        .all(...params);
+
+      return {
+        since,
+        until,
+        farm: farmRaw.map(farmRowMetrics),
+        enchant: {
+          ok: enchantOk,
+          fail: enchantFail,
+          break: enchantBreak,
+          failRate: enchantTotal > 0 ? Math.round(((enchantFail + enchantBreak) / enchantTotal) * 1000) / 10 : 0,
+          byPlus: enchantPlus.map((r) => ({ plus: r.plus, n: r.n })),
+        },
+        quests: quests.map((r) => ({ zoneId: r.zoneId, step: r.step, n: r.n })),
+        economy: economy.map((r) => ({ event: r.event, n: r.n, adenaGain: r.adenaGain || 0 })),
+        lootGrades: lootGrades.map((r) => ({ source: r.source, grade: r.grade, n: r.n })),
+        alerts: {
+          bySeverity: Object.fromEntries(alertCounts.map((r) => [r.severity, r.n])),
+          total: alertCounts.reduce((s, r) => s + r.n, 0),
+        },
+      };
+    },
+
+    exportBalanceCsv({ kind, since, until }) {
+      const dash = this.getBalanceDashboard({ since, until });
+      if (kind === "farm") {
+        return rowsToCsv(
+          ["zoneId", "sessions", "kills", "weapons", "adenaGain", "durationMs", "adenaPerHour", "killsPerSession"],
+          dash.farm
+        );
+      }
+      if (kind === "enchant") {
+        const rows = [
+          { metric: "ok", value: dash.enchant.ok },
+          { metric: "fail", value: dash.enchant.fail },
+          { metric: "break", value: dash.enchant.break },
+          { metric: "failRate_pct", value: dash.enchant.failRate },
+        ];
+        return rowsToCsv(["metric", "value"], rows);
+      }
+      if (kind === "enchant_plus") {
+        return rowsToCsv(["plus", "n"], dash.enchant.byPlus);
+      }
+      if (kind === "quests") {
+        return rowsToCsv(["zoneId", "step", "n"], dash.quests);
+      }
+      if (kind === "economy") {
+        return rowsToCsv(["event", "n", "adenaGain"], dash.economy);
+      }
+      if (kind === "loot") {
+        return rowsToCsv(["source", "grade", "n"], dash.lootGrades);
+      }
+      return rowsToCsv(["zoneId", "sessions", "kills", "adenaGain", "adenaPerHour"], dash.farm);
+    },
+
+    adminListAlerts({ severity, since, until, limit, offset }) {
+      limit = Math.min(200, Math.max(1, limit || 50));
+      offset = Math.max(0, offset || 0);
+      const where = [];
+      const params = [];
+      if (severity) {
+        where.push("a.severity = ?");
+        params.push(String(severity).slice(0, 16));
+      }
+      if (since) {
+        where.push("a.created_at >= ?");
+        params.push(Math.floor(Number(since)));
+      }
+      if (until) {
+        where.push("a.created_at <= ?");
+        params.push(Math.floor(Number(until)));
+      }
+      const sqlWhere = where.length ? "WHERE " + where.join(" AND ") : "";
+      const countRow = db
+        .prepare(
+          `SELECT COUNT(*) AS n FROM balance_alerts a JOIN users u ON u.id = a.user_id ${sqlWhere}`
+        )
+        .get(...params);
+      const rows = db
+        .prepare(
+          `SELECT a.id, a.user_id, u.nick, a.character_id, a.char_name, a.alert_type,
+                  a.severity, a.message, a.event_type, a.event_id, a.created_at
+           FROM balance_alerts a
+           JOIN users u ON u.id = a.user_id
+           ${sqlWhere}
+           ORDER BY a.created_at DESC
+           LIMIT ? OFFSET ?`
+        )
+        .all(...params, limit, offset);
+      return {
+        total: countRow?.n || 0,
+        rows: rows.map((r) => ({
+          id: r.id,
+          userId: r.user_id,
+          nick: r.nick,
+          characterId: r.character_id,
+          charName: r.char_name,
+          alertType: r.alert_type,
+          severity: r.severity,
+          message: r.message,
+          eventType: r.event_type,
+          eventId: r.event_id,
+          createdAt: r.created_at,
+        })),
+      };
     },
 
     updateUserPassword(userId, passHash) {

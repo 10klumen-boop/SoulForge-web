@@ -57,9 +57,9 @@ function grantBananLoot(loot) {
   if (loot.kind === "weapon") {
     const w = rollMineWeaponDrop();
     if (!w) return { ok: false, text: "—" };
-    const it = addToInventory(w.id, { source: "rare_loot", zoneId: state.farmZone || null });
+    const it = addToInventory(w.id, { source: "rare_loot", zoneId: state.farmZone || null, plus: loot.plus || 0 });
     if (!it) return { ok: false, text: "инвентарь полон", invFull: true };
-    it.plus = loot.plus;
+    if (loot.plus) it.plus = loot.plus;
     bumpWeaponRecord(w.id, loot.plus);
     return { ok: true, text: w.name + " +" + loot.plus, weapon: w };
   }

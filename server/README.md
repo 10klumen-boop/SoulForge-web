@@ -150,6 +150,7 @@ echo '15 3 * * * root /usr/local/bin/soulforge-backup-db' > /etc/cron.d/soulforg
 | `player_characters` | персонажи по слотам (денормализация из сейва) |
 | `character_events` | журнал ключевых действий персонажа (заточка, лут, сессия фарма, квесты…) |
 | `character_backups` | снапшоты `progress` персонажа при каждом `PUT /save` (хранение последних ~40) |
+| `balance_alerts` | автоматические флаги подозрительного баланса (B+ с золотого, +10 с golden, adena/мин…) |
 | `write_leases` | кто сейчас имеет право `PUT /save` (writerId вкладки) |
 
 Источник правды для игрока онлайн: **`PUT /save`** → `player_saves` (+ обновление `scores` и `player_characters`).
@@ -175,7 +176,16 @@ echo '15 3 * * * root /usr/local/bin/soulforge-backup-db' > /etc/cron.d/soulforg
 | `GET /leaderboard` | строки персонажей (`name`/`charName` + `nick`) | — |
 | Admin restore | подмена progress из `character_backups` + bump seq | — |
 
-Итого: **игровой прогресс** — `player_saves`. **Рейтинг** — на персонажа в `scores`. **Аудит** — `character_events` (ключевые действия, не каждый тап). **Откат героя** — `character_backups` (админка → «Бэкапы»).
+Итого: **игровой прогресс** — `player_saves`. **Рейтинг** — на персонажа в `scores`. **Аудит** — `character_events` (ключевые действия, не каждый тап). **Откат героя** — `character_backups` (админка → «Бэкапы»). **Баланс** — вкладка «Баланс» + `balance-queries.sql` + CSV export.
+
+## Аналитика баланса
+
+- **Админка** → вкладки **Баланс** (фарм/заточка/квесты/лут за 7–90 д) и **Алерты** (critical/warn/info).
+- **CSV:** `GET /admin/analytics/export?kind=farm|enchant|quests|economy|loot` (заголовок `X-Soulforge-Admin`).
+- **SQL:** [`server/scripts/balance-queries.sql`](scripts/balance-queries.sql) — те же метрики для Navicat.
+- **Алерты** создаются автоматически при `POST /events`: золотой дроп B+ в главе I, `+6/+10` с golden, adena/мин &gt; порога в `banana_mine`.
+
+Правила алертов: [`server/db/balance-analytics.js`](db/balance-analytics.js).
 
 ## Подготовка к PostgreSQL
 
@@ -207,4 +217,5 @@ echo '15 3 * * * root /usr/local/bin/soulforge-backup-db' > /etc/cron.d/soulforg
 - `GET /events`, `GET /backups` (Bearer) — свой журнал / список снапшотов
 - `GET /leaderboard/:mode` — `enchant` | `power` | `wealth` | `mobs` (имя героя + ник аккаунта)
 - Admin: `GET …/backups`, `POST …/backups/:id/restore` — откат персонажа
-- Admin UI `/db-admin` — вкладки Аккаунты / События / Бэкапы / Рейтинг, фильтры, карточка игрока
+- Admin UI `/db-admin` — вкладки Аккаунты / **Баланс** / **Алерты** / События / Бэкапы / Рейтинг
+- Admin: `GET /admin/analytics/balance` · `GET /admin/analytics/export` · `GET /admin/alerts`

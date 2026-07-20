@@ -450,6 +450,34 @@ admin.get("/events/types", (_req, res) => {
   res.json({ ok: true, rows: store.listEventTypes() });
 });
 
+admin.get("/analytics/balance", (req, res) => {
+  const since = req.query.since ? Number(req.query.since) : null;
+  const until = req.query.until ? Number(req.query.until) : null;
+  res.json({ ok: true, ...store.getBalanceDashboard({ since, until }) });
+});
+
+admin.get("/analytics/export", (req, res) => {
+  const kind = String(req.query.kind || "farm").slice(0, 24);
+  const since = req.query.since ? Number(req.query.since) : null;
+  const until = req.query.until ? Number(req.query.until) : null;
+  const csv = store.exportBalanceCsv({ kind, since, until });
+  const name = "soulforge-balance-" + kind + ".csv";
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="' + name + '"');
+  res.send("\uFEFF" + csv);
+});
+
+admin.get("/alerts", (req, res) => {
+  const result = store.adminListAlerts({
+    severity: String(req.query.severity || "").slice(0, 16) || null,
+    since: req.query.since ? Number(req.query.since) : null,
+    until: req.query.until ? Number(req.query.until) : null,
+    limit: Number(req.query.limit) || 50,
+    offset: Number(req.query.offset) || 0,
+  });
+  res.json({ ok: true, ...result });
+});
+
 admin.get("/backups", (req, res) => {
   const result = store.adminListBackups({
     nick: String(req.query.nick || req.query.q || "").trim() || null,

@@ -32,6 +32,7 @@ function addToInventory(weaponId, meta) {
       weaponId,
       weaponName: w?.name || weaponId,
       grade: w?.grade || null,
+      plus: meta?.plus != null ? Math.max(0, Math.floor(Number(meta.plus) || 0)) : 0,
       source: meta?.source || "unknown",
       zoneId: meta?.zoneId || state.farmZone || null,
     });
