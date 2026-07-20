@@ -65,8 +65,6 @@ document.addEventListener("keydown", (e) => {
   } else if (e.key === "Escape" && $("#screen-mine").classList.contains("active")) { stopMine(); renderMenu(); show("menu"); }
   else if (e.key === "Escape" && $("#screen-login")?.classList.contains("active")) {
     Audio2.click();
-    const cancel = document.getElementById("cloudCancelBtn");
-    if (cancel) cancel.click();
   }
   else if (e.key === "Escape" && $("#screen-menu").classList.contains("active")) { Audio2.click(); show("home"); }
   else if (e.key === "Escape" && ($("#screen-settings").classList.contains("active") || $("#screen-patch").classList.contains("active") || $("#screen-author").classList.contains("active"))) {
@@ -114,6 +112,9 @@ if (typeof wireMineStory === "function") wireMineStory();
 renderMenu();
 if (typeof applyVersionLabels === "function") applyVersionLabels();
 show("login");
+if (typeof tryResumeCloudSession === "function") {
+  tryResumeCloudSession().catch((e) => console.error("tryResumeCloudSession failed:", e));
+}
 if (typeof Audio2 !== "undefined") {
   if (Audio2.preload) Audio2.preload();
 }

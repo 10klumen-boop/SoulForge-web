@@ -688,7 +688,7 @@ function refreshProgressUI() {
 }
 
 migrateLegacySaveKeys();
-/** Гость до явного входа; аккаунт — после login/register или resume на экране входа. */
+/** До входа владелец null (guest); после login/register — ник аккаунта. */
 _saveOwner = null;
 let state = load();
 let cur = null;

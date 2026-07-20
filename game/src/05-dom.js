@@ -12,6 +12,9 @@ function fmtAdena(n) {
   return String(n);
 }
 function show(screen) {
+  if (typeof cloudGateScreen === "function" && !cloudGateScreen(screen)) {
+    screen = "login";
+  }
   $$(".screen").forEach((s) => s.classList.remove("active"));
   $("#screen-" + screen).classList.add("active");
   const app = gameDoc().querySelector(".app");
