@@ -3841,7 +3841,16 @@
     flex-direction: column;
     gap: 8px;
   }
-  .mine-farm-stats { margin-left: auto; color: var(--gold-soft); font-size: 12px; }
+  .mine-farm-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    color: var(--gold-soft);
+    font-size: 12px;
+  }
   .avatar-stat-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
     margin: 12px 0 10px;
@@ -4960,42 +4969,36 @@
       font-size: 12px;
     }
     .mine-story-bar {
-      padding: 4px 8px;
-      gap: 6px;
-    }
-    .mine-story-copy { display: none !important; }
-    .mine-story-btn {
-      width: 36px;
-      height: 36px;
-      min-width: 36px;
-      padding: 0;
-      font-size: 16px;
-      touch-action: manipulation;
+      display: none !important;
     }
     .mine-hud {
-      gap: 6px 10px;
-      padding: 6px 8px;
+      gap: 4px 8px;
+      padding: 4px 8px;
       font-size: 11px;
     }
     .mine-hud .mh { font-size: 11px; }
     .mine-hud .mh b { font-size: 12px; }
     .mine-hud .mine-farm-stats { display: none !important; }
-    .mine-session-loot .mine-loot-toggle { padding: 7px 12px 7px 10px; }
-    .mine-loot-body { left: 6px; right: 6px; max-height: min(42vh, 220px); }
+    .mine-session-loot .mine-loot-toggle { padding: 5px 10px 5px 8px; }
+    .mine-loot-lbl { font-size: 10px; }
+    .mine-loot-count { font-size: 10px; padding: 1px 5px; }
+    .mine-loot-body { left: 6px; right: 6px; max-height: min(36vh, 200px); }
     .mine-loot-name { max-width: 96px; }
     .mine-hud .mine-shot-toggle {
-      padding: 4px 10px 4px 5px;
-      min-height: 42px;
-      gap: 7px;
+      margin-left: 0;
+      padding: 3px 8px 3px 4px;
+      min-height: 34px;
+      gap: 5px;
+      border-radius: 8px;
     }
     .mine-hud .mine-shot-toggle .mine-shot-ico-wrap {
-      width: 34px;
-      height: 34px;
+      width: 26px;
+      height: 26px;
     }
-    .mine-hud .mine-shot-toggle .mine-shot-qty { font-size: 13px; }
+    .mine-hud .mine-shot-toggle .mine-shot-qty { font-size: 12px; }
     .mine-quest-hud {
-      padding: 4px 8px 6px;
-      font-size: 11px;
+      padding: 3px 8px 4px;
+      font-size: 10px;
       gap: 4px;
     }
     .mine-quest-hud .mine-quest-obj {
@@ -5012,24 +5015,59 @@
     .mine-banner .mb-t { font-size: 14px; }
     .mine-banner .mb-go { margin-left: 0; width: 100%; text-align: right; }
     .mine-stage {
-      min-height: min(58dvh, 480px);
+      min-height: min(62dvh, 520px);
       flex: 1;
     }
-    .mine-skill-bar { padding: 4px 8px 0; }
+    .mine-skill-bar { padding: 3px 8px 0; }
     .mine-skill-bar-inner {
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 5px;
     }
     .mine-skill-btn {
-      min-height: 40px;
-      padding: 6px 8px;
-      font-size: 12px;
+      position: relative;
+      justify-content: center;
+      min-height: 44px;
+      padding: 6px 4px;
+      font-size: 11px;
       touch-action: manipulation;
     }
-    .gnome.mine-solo .mine-solo-card,
-    .gnome.mine-solo.mob-sprite-kind .mine-solo-unit {
-      max-width: min(92vw, 280px);
+    .mine-skill-btn img { width: 30px; height: 30px; }
+    .mine-skill-name,
+    .mine-skill-key { display: none !important; }
+    .mine-skill-cd {
+      position: absolute;
+      right: 3px;
+      bottom: 2px;
+      font-size: 10px;
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0,0,0,.9);
     }
+    .gnome.mine-solo .mine-solo-card {
+      max-width: min(78vw, 200px);
+    }
+    .gnome.mine-solo .mob-portrait-frame { height: 112px; }
+    .gnome.mine-solo.golden .mob-portrait-frame { height: 120px; }
+    .gnome.mine-solo.boss .mob-portrait-frame { height: 128px; }
+    .gnome.mine-solo.mob-sprite-kind .mine-solo-unit {
+      width: 118px;
+      max-width: min(42vw, 130px);
+    }
+    .gnome.mine-solo.mob-sprite-kind.golden .mine-solo-unit {
+      width: 128px;
+      max-width: min(46vw, 140px);
+    }
+    .gnome.mine-solo.mob-sprite-kind.boss .mine-solo-unit {
+      width: 138px;
+      max-width: min(50vw, 150px);
+    }
+    .gnome.mine-solo.mob-sprite-kind .mob-sprite-stage { height: 108px; }
+    .gnome.mine-solo.mob-sprite-kind.golden .mob-sprite-stage { height: 116px; }
+    .gnome.mine-solo.mob-sprite-kind.boss .mob-sprite-stage { height: 124px; }
+    .gnome.mine-solo.mob-sprite-kind .mob-sprite-img { max-width: 102px; }
+    .gnome.mine-solo.mob-sprite-kind.golden .mob-sprite-img { max-width: 110px; }
+    .gnome.mine-solo.mob-sprite-kind.boss .mob-sprite-img { max-width: 118px; }
+    .gnome.mine-solo .mob-solo-name { font-size: 11px; }
+    .gnome.mine-solo.mob-sprite-kind .mob-solo-name { font-size: 11px; }
 
     /* Hero / story arc на хабе — короче */
     .hero-cycle,

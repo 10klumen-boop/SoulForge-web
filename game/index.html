@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m36" />
+<link rel="stylesheet" href="styles/main.css?v=m38" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -596,9 +596,11 @@
         </div>
       </div>
       <div class="mine-hud">
-        <div class="mh">Добыто за сессию: <b id="mineEarned">0</b> adena</div>
-        <div class="mh">Убито: <b id="mineCaught">0</b></div>
-        <div class="mh">Упущено: <b id="mineMissed">0</b></div>
+        <div class="mine-farm-stats">
+          <div class="mh">Добыто за сессию: <b id="mineEarned">0</b> adena</div>
+          <div class="mh">Убито: <b id="mineCaught">0</b></div>
+          <div class="mh">Упущено: <b id="mineMissed">0</b></div>
+        </div>
         <button type="button" class="mh mine-shot-toggle" id="mineShotToggle" title="Авто Soulshot / Spiritshot" aria-pressed="true">
           <span class="mine-shot-ico-wrap" aria-hidden="true">
             <img class="mine-shot-ico" id="mineShotIcon" src="icons/etc_spirit_bullet_blue_i00.png" alt="">
@@ -754,7 +756,7 @@
 <script src="src/08-menu.js"></script>
 <script src="src/09-inventory.js?v=56"></script>
 <script src="src/11-enchant.js?v=8"></script>
-<script src="src/12-mine.js?v=50"></script>
+<script src="src/12-mine.js?v=51"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/14-cloud.js?v=41"></script>
 <script src="src/15-game-log.js"></script>

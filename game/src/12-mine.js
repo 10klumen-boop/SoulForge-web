@@ -551,11 +551,33 @@ function mineSpawnField() {
   return mineArea();
 }
 
-function mineSoloPosition(field) {
+function mineSoloHalfSize(type) {
+  // Half-extents for translate(-50%,-50%) + idle bob, desktop-safe (mobile is smaller).
+  if (type === "boss") return { hw: 118, hh: 145 };
+  if (type === "golden") return { hw: 108, hh: 135 };
+  return { hw: 100, hh: 125 };
+}
+
+let mineSoloSlotLast = -1;
+
+function mineSoloPosition(field, type) {
   const stage = document.getElementById("mineStage") || field;
   const w = Math.max(stage?.clientWidth || 0, field?.clientWidth || 0, 280);
   const h = Math.max(stage?.clientHeight || 0, field?.clientHeight || 0, 200);
-  return { x: w / 2, y: h * 0.5 };
+  const { hw, hh } = mineSoloHalfSize(type);
+  const padX = Math.min(hw + 8, Math.floor(w * 0.42));
+  const padY = Math.min(hh + 10, Math.floor(h * 0.42));
+  const minX = padX;
+  const maxX = Math.max(minX, w - padX);
+  const midX = (minX + maxX) / 2;
+  const slots = [minX, midX, maxX];
+  let idx = Math.floor(Math.random() * 3);
+  if (idx === mineSoloSlotLast && slots.length > 1) {
+    idx = (idx + 1 + Math.floor(Math.random() * 2)) % 3;
+  }
+  mineSoloSlotLast = idx;
+  const y = Math.min(h - padY, Math.max(padY, h * 0.56));
+  return { x: slots[idx], y };
 }
 
 function pauseMineForOverlay() {
@@ -744,7 +766,7 @@ function mineMobLifetime(maxHp, damage, type) {
 function spawnSoloMob(field, type, opts) {
   opts = opts || {};
   const zoneId = currentMineZoneId();
-  const pos = mineSoloPosition(field);
+  const pos = mineSoloPosition(field, type);
   const g = document.createElement("div");
   g.className = "gnome mine-solo" + (type === "golden" ? " golden" : type === "boss" ? " boss" : "");
   g.style.left = pos.x + "px";
