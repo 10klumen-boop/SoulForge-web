@@ -750,7 +750,15 @@ const ZONE_RACE_BONUS = {
 };
 
 function currentAvatarRace() {
-  return state.avatar?.raceId || "human";
+  const r = String(state.avatar?.raceId || "human").toLowerCase();
+  if (r === "darkelf" || r === "dark-elf") return "dark_elf";
+  const ok = ["human", "elf", "dark_elf", "orc", "dwarf"];
+  return ok.includes(r) ? r : "human";
+}
+
+function normalizeAvatarRace() {
+  if (!state.avatar || typeof state.avatar !== "object") state.avatar = {};
+  state.avatar.raceId = currentAvatarRace();
 }
 
 /** Зона с учётом расы: название, hint, сюжет, иконка. */

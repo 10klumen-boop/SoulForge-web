@@ -320,9 +320,24 @@ function applyLoadedSave(loaded) {
     if (!(k in loaded)) delete state[k];
   });
   Object.assign(state, loaded);
-  if (typeof initCharacters === "function") initCharacters();
-  if (typeof loadActiveCharacter === "function") loadActiveCharacter();
+  if (typeof migrateCharactersStructure === "function") migrateCharactersStructure();
+  else if (typeof initCharacters === "function") initCharacters();
+
+  const rosterActive =
+    state.activeCharacterId &&
+    Array.isArray(state.characters) &&
+    state.characters.some((c) => c.id === state.activeCharacterId);
+  // Root progress in save envelope = active character (see exportGameData after flush).
+  // Slot progress can lag on another device — never let stale slot overwrite root on load.
+  if (rosterActive && typeof flushActiveCharacterToSlot === "function") {
+    flushActiveCharacterToSlot();
+  } else if (typeof loadActiveCharacter === "function") {
+    loadActiveCharacter();
+  }
+  if (typeof normalizeAvatarRace === "function") normalizeAvatarRace();
   if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();
+  if (typeof ensureStoryProgress === "function") ensureStoryProgress();
+  if (typeof migrateFarmZone === "function") migrateFarmZone();
   if (typeof refreshProgressUI === "function") refreshProgressUI();
   else {
     try {

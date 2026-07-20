@@ -1,6 +1,6 @@
 {
   "name": "soulforge-cloud",
-  "version": "0.36.2",
+  "version": "0.36.3",
   "private": true,
   "description": "SoulForge nick/password API + leaderboards",
   "main": "index.js",

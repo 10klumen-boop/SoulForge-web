@@ -47,7 +47,18 @@ const L2_LOC_NAMES = {
 };
 
 /** Cache-bust — менять после замены assets/locations|mobs */
-const MINE_ASSET_VER = 10;
+const MINE_ASSET_VER = 11;
+const _mineSpritePick = {};
+
+function resetMineSpritePick(zoneId) {
+  if (!zoneId) {
+    Object.keys(_mineSpritePick).forEach((k) => delete _mineSpritePick[k]);
+    return;
+  }
+  Object.keys(_mineSpritePick).forEach((k) => {
+    if (k.startsWith(zoneId + ":")) delete _mineSpritePick[k];
+  });
+}
 
 function mineAssetUrl(path) {
   if (!path) return path;
@@ -384,12 +395,17 @@ function mineTargetPool(type, zoneId) {
 }
 
 function pickMineTargetSprite(type, zoneId) {
+  zoneId = zoneId || (typeof currentMineZoneId === "function" ? currentMineZoneId() : state.farmZone) || "banana_mine";
   if (type === "boss") {
     const def = typeof zoneBossDef === "function" ? zoneBossDef(zoneId) : null;
     if (def?.mob) return mob(def.mob, "target-elite target-boss");
   }
   const pool = mineTargetPool(type, zoneId);
-  return pool[Math.floor(Math.random() * pool.length)];
+  if (!pool?.length) return MINE_DWARF_FALLBACK[type === "golden" ? "golden" : "normal"][0];
+  const key = zoneId + ":" + type;
+  const idx = (_mineSpritePick[key] || 0) % pool.length;
+  _mineSpritePick[key] = idx + 1;
+  return pool[idx];
 }
 
 function applyMineStageVisual(cfg, zoneId) {

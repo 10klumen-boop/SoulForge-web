@@ -115,6 +115,8 @@ function openMine() {
     const inner = document.getElementById("mineStageInner");
     if (inner) inner.className = "mine-stage-inner" + (cfg.overlay ? " " + cfg.overlay : "");
   }
+  if (typeof resetMineSpritePick === "function") resetMineSpritePick(zoneId);
+  if (typeof normalizeAvatarRace === "function") normalizeAvatarRace();
   const hintEl = document.getElementById("mineHint");
   if (hintEl) hintEl.textContent = cfg.hint || "Один враг на экране — уничтожь до конца таймера";
   mineActive = true;
