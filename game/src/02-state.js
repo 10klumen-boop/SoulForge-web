@@ -650,6 +650,11 @@ function save() {
   }
 }
 
+function ensureFreshAccountSave() {
+  applyLoadedSave(defaultState());
+  if (typeof save === "function") save();
+}
+
 function resetProgress() {
   const sk = saveKey();
   const tk = sealKey();

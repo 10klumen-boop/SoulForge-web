@@ -348,19 +348,6 @@ async function cloudAuthRequest(path, body) {
 }
 
 
-/** Если у ника ещё нет сейва — перенести guest-прогресс под ник (один раз). */
-function maybeMigrateGuestSaveToNick(nick) {
-  if (!nick) return false;
-  if (typeof hasStoredSaveFor !== "function" || typeof copyStoredSave !== "function") return false;
-  try {
-    if (hasStoredSaveFor(nick)) return false;
-    if (!hasStoredSaveFor(null)) return false;
-    return !!copyStoredSave(null, nick);
-  } catch (e) {
-    return false;
-  }
-}
-
 async function bindSaveToCloudNick(nick) {
   if (typeof switchSaveOwner !== "function") return;
   try {
@@ -376,8 +363,8 @@ async function cloudRegister(nick, password) {
   const r = await cloudAuthRequest("/auth/register", { nick: v.nick, password: v.password });
   if (r.ok && r.token) {
     writeCloudAuth({ nick: r.nick, token: r.token, exp: r.exp });
-    maybeMigrateGuestSaveToNick(r.nick);
     await bindSaveToCloudNick(r.nick);
+    if (typeof ensureFreshAccountSave === "function") ensureFreshAccountSave();
     const sync = await syncCloudProgress({ notify: true });
     if (!sync.ok) {
       if (!sync.readOnly) {
@@ -404,7 +391,6 @@ async function cloudLogin(nick, password) {
   const r = await cloudAuthRequest("/auth/login", { nick: v.nick, password: v.password });
   if (r.ok && r.token) {
     writeCloudAuth({ nick: r.nick, token: r.token, exp: r.exp });
-    maybeMigrateGuestSaveToNick(r.nick);
     await bindSaveToCloudNick(r.nick);
     const sync = await syncCloudProgress({ notify: true });
     if (!sync.ok) {
