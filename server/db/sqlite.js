@@ -364,6 +364,12 @@ function createSqliteStore(opts) {
       @event_type, @event_id, @payload, @created_at
     )
   `);
+  const stmtRecentAlertDup = db.prepare(`
+    SELECT id FROM balance_alerts
+    WHERE user_id = ? AND character_id = ? AND alert_type = ? AND message = ?
+      AND created_at >= ?
+    LIMIT 1
+  `);
   const stmtInsertBackup = db.prepare(`
     INSERT INTO character_backups (
       user_id, character_id, char_name, progress, seq, client_version, adena, level, saved_at, created_at
@@ -704,13 +710,23 @@ function createSqliteStore(opts) {
           inserted.push({ id: info.lastInsertRowid, event, characterId });
           const alerts = detectBalanceAlerts(event, row.payload);
           for (const a of alerts) {
+            const alertType = String(a.type).slice(0, 48);
+            const message = String(a.message).slice(0, 400);
+            const dup = stmtRecentAlertDup.get(
+              userId,
+              characterId,
+              alertType,
+              message,
+              now - 8000
+            );
+            if (dup) continue;
             stmtInsertBalanceAlert.run({
               user_id: userId,
               character_id: characterId,
               char_name: row.char_name,
-              alert_type: String(a.type).slice(0, 48),
+              alert_type: alertType,
               severity: String(a.severity || "warn").slice(0, 16),
-              message: String(a.message).slice(0, 400),
+              message,
               event_type: event,
               event_id: info.lastInsertRowid,
               payload: row.payload,

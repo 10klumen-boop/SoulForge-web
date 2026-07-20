@@ -230,6 +230,8 @@ function queuePendingEvent(ev) {
   writePendingEvents(list);
 }
 
+let _flushEventsBusy = false;
+
 /** Журнал действий персонажа → POST /events (не каждый тап). */
 function logCharacterEvent(event, payload, opts) {
   opts = opts || {};
@@ -252,26 +254,42 @@ async function flushPendingEvents() {
   if (!cloudEnabled() || !readCloudAuth()?.token) {
     return { flushed: 0, remaining: readPendingEvents().length };
   }
-  const pending = readPendingEvents();
-  if (!pending.length) return { flushed: 0, remaining: 0 };
-  const batch = pending.slice(0, 100);
-  const left = pending.slice(batch.length);
+  if (_flushEventsBusy) {
+    return { flushed: 0, remaining: readPendingEvents().length, busy: true };
+  }
+  _flushEventsBusy = true;
+  let flushedTotal = 0;
   try {
-    const res = await fetch(cloudApiUrl("/events"), {
-      method: "POST",
-      headers: authHeaders(true),
-      body: JSON.stringify({ events: batch }),
-    });
-    if (!res.ok) {
-      writePendingEvents(pending);
-      return { flushed: 0, remaining: pending.length, status: res.status };
+    while (true) {
+      const pending = readPendingEvents();
+      if (!pending.length) {
+        return { flushed: flushedTotal, remaining: 0 };
+      }
+      const batch = pending.slice(0, 100);
+      const left = pending.slice(batch.length);
+      // Снимаем batch до ответа — иначе параллельный flush шлёт дубли.
+      writePendingEvents(left);
+      try {
+        const res = await fetch(cloudApiUrl("/events"), {
+          method: "POST",
+          headers: authHeaders(true),
+          body: JSON.stringify({ events: batch }),
+        });
+        if (!res.ok) {
+          writePendingEvents(batch.concat(readPendingEvents()).slice(-200));
+          return { flushed: flushedTotal, remaining: readPendingEvents().length, status: res.status };
+        }
+        flushedTotal += batch.length;
+      } catch (e) {
+        writePendingEvents(batch.concat(readPendingEvents()).slice(-200));
+        return { flushed: flushedTotal, remaining: readPendingEvents().length, offline: true };
+      }
+      if (!left.length) {
+        return { flushed: flushedTotal, remaining: 0 };
+      }
     }
-    writePendingEvents(left);
-    if (left.length) flushPendingEvents().catch(() => {});
-    return { flushed: batch.length, remaining: left.length };
-  } catch (e) {
-    writePendingEvents(pending);
-    return { flushed: 0, remaining: pending.length, offline: true };
+  } finally {
+    _flushEventsBusy = false;
   }
 }
 

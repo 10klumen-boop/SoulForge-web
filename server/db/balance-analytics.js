@@ -5,6 +5,11 @@ const CH1_ZONES = new Set(["banana_mine"]);
 
 const HIGH_GRADES = new Set(["B", "A", "S"]);
 
+/** Мин. длительность сессии для farm_adena_fast (короткие сессии раздувают APM). */
+const FARM_APM_MIN_MS = 3 * 60 * 1000;
+/** Порог adena/мин в главе I после FARM_APM_MIN_MS. */
+const FARM_APM_WARN = 400000;
+
 function parsePayload(raw) {
   if (!raw) return {};
   if (typeof raw === "object") return raw;
@@ -23,6 +28,7 @@ function detectBalanceAlerts(event, payload) {
   const p = parsePayload(payload);
   const alerts = [];
   const zoneId = p.zoneId || p.zone || null;
+  const inCh1 = !!(zoneId && CH1_ZONES.has(zoneId));
 
   if (event === "loot_weapon") {
     const grade = String(p.grade || "").toUpperCase();
@@ -39,20 +45,21 @@ function detectBalanceAlerts(event, payload) {
     } else if (source === "golden" && plus >= 6) {
       alerts.push({
         type: "golden_mid_plus",
-        severity: "warn",
+        severity: inCh1 ? "warn" : "info",
         message: `+${plus} с золотого: ${name}`,
       });
     }
 
-    if (source === "golden" && HIGH_GRADES.has(grade)) {
+    // Высокий грейд с золотого — только глава I (в mid/late это ожидаемо).
+    if (source === "golden" && HIGH_GRADES.has(grade) && inCh1) {
       alerts.push({
         type: "golden_high_grade",
-        severity: zoneId && CH1_ZONES.has(zoneId) ? "critical" : "warn",
-        message: `Грейд ${grade} с золотого${zoneId ? " · " + zoneId : ""}: ${name}`,
+        severity: "critical",
+        message: `Грейд ${grade} с золотого · ${zoneId}: ${name}`,
       });
     }
 
-    if (source === "golden" && grade === "C" && zoneId && CH1_ZONES.has(zoneId)) {
+    if (source === "golden" && grade === "C" && inCh1) {
       alerts.push({
         type: "golden_c_ch1",
         severity: "warn",
@@ -84,15 +91,17 @@ function detectBalanceAlerts(event, payload) {
   }
 
   if (event === "farm_session") {
-    const dur = Math.max(1, Math.floor(Number(p.durationMs) || 0));
+    const dur = Math.max(0, Math.floor(Number(p.durationMs) || 0));
     const gain = Math.max(0, Math.floor(Number(p.adenaGain) || 0));
-    const apm = gain / (dur / 60000);
-    if (zoneId && CH1_ZONES.has(zoneId) && apm > 120000) {
-      alerts.push({
-        type: "farm_adena_fast",
-        severity: "warn",
-        message: `${Math.round(apm).toLocaleString("ru-RU")} adena/мин в ${zoneId}`,
-      });
+    if (inCh1 && dur >= FARM_APM_MIN_MS) {
+      const apm = gain / (dur / 60000);
+      if (apm > FARM_APM_WARN) {
+        alerts.push({
+          type: "farm_adena_fast",
+          severity: "warn",
+          message: `${Math.round(apm).toLocaleString("ru-RU")} adena/мин в ${zoneId} (≥${Math.round(FARM_APM_MIN_MS / 60000)} мин)`,
+        });
+      }
     }
   }
 
@@ -140,6 +149,8 @@ function rowsToCsv(columns, rows) {
 
 module.exports = {
   CH1_ZONES,
+  FARM_APM_MIN_MS,
+  FARM_APM_WARN,
   parsePayload,
   detectBalanceAlerts,
   farmRowMetrics,

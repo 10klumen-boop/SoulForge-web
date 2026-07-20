@@ -183,7 +183,7 @@ echo '15 3 * * * root /usr/local/bin/soulforge-backup-db' > /etc/cron.d/soulforg
 - **Админка** → вкладки **Баланс** (фарм/заточка/квесты/лут за 7–90 д) и **Алерты** (critical/warn/info).
 - **CSV:** `GET /admin/analytics/export?kind=farm|enchant|quests|economy|loot` (заголовок `X-Soulforge-Admin`).
 - **SQL:** [`server/scripts/balance-queries.sql`](scripts/balance-queries.sql) — те же метрики для Navicat.
-- **Алерты** создаются автоматически при `POST /events`: золотой дроп B+ в главе I, `+6/+10` с golden, adena/мин &gt; порога в `banana_mine`.
+- **Алерты** создаются автоматически при `POST /events`: золотой дроп B+ **только в главе I** (`banana_mine`), `+6/+10` с golden, adena/мин &gt; 400k при сессии ≥3 мин в `banana_mine`.
 
 Правила алертов: [`server/db/balance-analytics.js`](db/balance-analytics.js).
 
