@@ -1052,8 +1052,7 @@
   #screen-mine .mine-hud,
   #screen-mine .mine-story-bar,
   #screen-mine .mine-quest-hud,
-  #screen-mine .mine-session-loot,
-  #screen-mine .mine-skill-bar { flex-shrink: 0; }
+  #screen-mine .mine-session-loot { flex-shrink: 0; }
   @keyframes fade { from { opacity: 0; transform: translateY(8px);} to {opacity:1; transform:none;} }
 
   .hero { padding: 16px 20px 8px; }
@@ -3164,35 +3163,116 @@
   .story-backdrop.story-prelude-finale .story-title { color: var(--gold-soft); }
   .prelude-chaos-tease { margin-top: 10px; color: var(--text-dim); font-size: 13px; }
   .mine-skill-bar {
-    display: flex; flex-direction: column; gap: 6px; padding: 8px 16px 0; flex-shrink: 0;
-    background: linear-gradient(180deg, rgba(14,10,6,.5), transparent);
+    position: absolute;
+    z-index: 22;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: 0;
+    pointer-events: none;
   }
+  .mine-skill-bar[hidden] { display: none !important; }
+  .mine-skill-dock {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 5px 7px 7px;
+    border-radius: 12px;
+    border: 1px solid rgba(201,168,106,.38);
+    background: linear-gradient(180deg, rgba(30,22,14,.94), rgba(12,9,6,.97));
+    box-shadow: 0 12px 28px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+    user-select: none;
+  }
+  .mine-skill-drag {
+    height: 11px;
+    border-radius: 6px;
+    cursor: grab;
+    touch-action: none;
+    background:
+      linear-gradient(90deg, transparent 12%, rgba(201,168,106,.22) 12%, rgba(201,168,106,.22) 88%, transparent 88%),
+      radial-gradient(circle at 30% 50%, rgba(201,168,106,.55) 1.2px, transparent 1.4px),
+      radial-gradient(circle at 50% 50%, rgba(201,168,106,.55) 1.2px, transparent 1.4px),
+      radial-gradient(circle at 70% 50%, rgba(201,168,106,.55) 1.2px, transparent 1.4px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+    opacity: 0.75;
+  }
+  .mine-skill-drag:active,
+  .mine-skill-bar.is-dragging .mine-skill-drag { cursor: grabbing; opacity: 1; }
+  .mine-skill-bar.is-dragging { z-index: 30; }
   .mine-skill-bar-inner {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
   }
   .mine-skill-btn {
-    display: flex; align-items: center; gap: 8px; padding: 7px 10px;
-    border: 1px solid rgba(110,86,48,.65);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 1px solid rgba(110,86,48,.7);
     border-radius: 10px;
-    background: linear-gradient(180deg, rgba(32,22,14,.92), rgba(14,8,4,.88));
+    background: linear-gradient(180deg, rgba(36,26,16,.95), rgba(14,8,4,.92));
     box-shadow: inset 0 1px 0 rgba(231,207,149,.08), 0 2px 8px rgba(0,0,0,.35);
-    color: var(--txt); cursor: pointer; min-width: 0;
+    color: var(--txt);
+    cursor: pointer;
+    flex-shrink: 0;
     transition: border-color .15s, filter .15s, transform .1s;
   }
   .mine-skill-btn:hover:not(:disabled) {
     border-color: rgba(201,168,106,.55);
     filter: brightness(1.08);
   }
-  .mine-skill-btn:active:not(:disabled) { transform: scale(.98); }
-  .mine-skill-btn img { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; }
-  .mine-skill-btn.on-cd { opacity: .72; }
-  .mine-skill-btn.locked { opacity: .45; cursor: not-allowed; }
-  .mine-skill-name { font-size: 12px; font-weight: 600; flex: 1; text-align: left; }
-  .mine-skill-key {
-    font-size: 10px; color: var(--gold); border: 1px solid var(--edge2);
-    border-radius: 4px; padding: 1px 5px;
+  .mine-skill-btn:active:not(:disabled) { transform: scale(.96); }
+  .mine-skill-btn img {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    pointer-events: none;
   }
-  .mine-skill-cd { font-size: 11px; color: #ff9a7a; font-weight: 700; }
+  .mine-skill-btn.on-cd { opacity: .85; }
+  .mine-skill-btn.locked { opacity: .4; cursor: not-allowed; }
+  .mine-skill-name { display: none !important; }
+  .mine-skill-key {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 2;
+    min-width: 14px;
+    padding: 0 3px;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.35;
+    color: #1a120a;
+    text-align: center;
+    border-radius: 3px;
+    border: 1px solid rgba(90,70,40,.55);
+    background: linear-gradient(180deg, #e7cf95, #c9a86a);
+    box-shadow: 0 1px 2px rgba(0,0,0,.45);
+  }
+  .mine-skill-cd {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #ffd0c0;
+    background: rgba(0,0,0,.5);
+    text-shadow: 0 1px 3px rgba(0,0,0,.9);
+  }
   .gnome.mob-shielded .mine-solo-card::before {
     content: "🛡";
     position: absolute;
@@ -5018,30 +5098,29 @@
       min-height: min(62dvh, 520px);
       flex: 1;
     }
-    .mine-skill-bar { padding: 3px 8px 0; }
-    .mine-skill-bar-inner {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 5px;
+    .mine-skill-bar {
+      left: 50% !important;
+      right: auto !important;
+      top: auto !important;
+      bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+      transform: translateX(-50%) !important;
+      pointer-events: none;
     }
+    .mine-skill-drag { display: none !important; }
+    .mine-skill-key { display: none !important; }
+    .mine-skill-dock {
+      padding: 5px 6px;
+      border-radius: 10px;
+    }
+    .mine-skill-bar-inner { gap: 5px; }
     .mine-skill-btn {
-      position: relative;
-      justify-content: center;
-      min-height: 44px;
-      padding: 6px 4px;
-      font-size: 11px;
+      width: 46px;
+      height: 46px;
+      border-radius: 9px;
       touch-action: manipulation;
     }
-    .mine-skill-btn img { width: 30px; height: 30px; }
-    .mine-skill-name,
-    .mine-skill-key { display: none !important; }
-    .mine-skill-cd {
-      position: absolute;
-      right: 3px;
-      bottom: 2px;
-      font-size: 10px;
-      line-height: 1;
-      text-shadow: 0 1px 2px rgba(0,0,0,.9);
-    }
+    .mine-skill-btn img { width: 32px; height: 32px; }
+    .mine-skill-cd { font-size: 12px; }
     .gnome.mine-solo .mine-solo-card {
       max-width: min(78vw, 200px);
     }

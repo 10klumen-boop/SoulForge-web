@@ -272,6 +272,157 @@ function useCombatSkill(skillId) {
   return true;
 }
 
+const MINE_SKILL_BAR_POS_KEY = "sf_mine_skill_bar_pos_v1";
+let mineSkillBarDragBound = false;
+
+function mineSkillBarIsMobile() {
+  return typeof window.matchMedia === "function" &&
+    window.matchMedia("(max-width: 640px)").matches;
+}
+
+function clearMineSkillBarInlinePos(bar) {
+  if (!bar) return;
+  bar.style.left = "";
+  bar.style.bottom = "";
+  bar.style.top = "";
+  bar.style.right = "";
+  bar.style.transform = "";
+}
+
+function readMineSkillBarPos() {
+  try {
+    const raw = localStorage.getItem(MINE_SKILL_BAR_POS_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p || typeof p.leftPct !== "number" || typeof p.bottomPct !== "number") return null;
+    return {
+      leftPct: Math.min(92, Math.max(8, p.leftPct)),
+      bottomPct: Math.min(88, Math.max(4, p.bottomPct)),
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveMineSkillBarPos(leftPct, bottomPct) {
+  try {
+    localStorage.setItem(
+      MINE_SKILL_BAR_POS_KEY,
+      JSON.stringify({ leftPct, bottomPct })
+    );
+  } catch (_) {}
+}
+
+function applyMineSkillBarPos(bar) {
+  if (!bar) return;
+  if (mineSkillBarIsMobile()) {
+    clearMineSkillBarInlinePos(bar);
+    return;
+  }
+  const pos = readMineSkillBarPos();
+  if (!pos) {
+    clearMineSkillBarInlinePos(bar);
+    return;
+  }
+  bar.style.left = pos.leftPct + "%";
+  bar.style.bottom = pos.bottomPct + "%";
+  bar.style.top = "auto";
+  bar.style.right = "auto";
+  bar.style.transform = "translateX(-50%)";
+}
+
+function clampMineSkillBarToField(bar) {
+  if (mineSkillBarIsMobile()) {
+    clearMineSkillBarInlinePos(bar);
+    return;
+  }
+  const field = bar?.parentElement;
+  if (!bar || !field) return;
+  const fr = field.getBoundingClientRect();
+  const br = bar.getBoundingClientRect();
+  if (fr.width < 40 || fr.height < 40 || br.width < 8) return;
+  let left = br.left - fr.left + br.width / 2;
+  let bottom = fr.bottom - br.bottom;
+  const half = br.width / 2;
+  left = Math.min(fr.width - half - 4, Math.max(half + 4, left));
+  bottom = Math.min(fr.height - br.height - 4, Math.max(4, bottom));
+  const leftPct = (left / fr.width) * 100;
+  const bottomPct = (bottom / fr.height) * 100;
+  bar.style.left = leftPct + "%";
+  bar.style.bottom = bottomPct + "%";
+  bar.style.top = "auto";
+  bar.style.right = "auto";
+  bar.style.transform = "translateX(-50%)";
+  saveMineSkillBarPos(leftPct, bottomPct);
+}
+
+function bindMineSkillBarDrag(bar) {
+  if (!bar || mineSkillBarDragBound) return;
+  const handle = bar.querySelector(".mine-skill-drag");
+  if (!handle) return;
+  mineSkillBarDragBound = true;
+  let dragging = false;
+  let pointerId = null;
+  let startX = 0;
+  let startY = 0;
+  let originLeft = 0;
+  let originBottom = 0;
+
+  const onMove = (e) => {
+    if (!dragging || e.pointerId !== pointerId || mineSkillBarIsMobile()) return;
+    const field = bar.parentElement;
+    if (!field) return;
+    const fr = field.getBoundingClientRect();
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    let left = originLeft + dx;
+    let bottom = originBottom - dy;
+    const half = bar.offsetWidth / 2;
+    const h = bar.offsetHeight;
+    left = Math.min(fr.width - half - 4, Math.max(half + 4, left));
+    bottom = Math.min(fr.height - h - 4, Math.max(4, bottom));
+    bar.style.left = left + "px";
+    bar.style.bottom = bottom + "px";
+    bar.style.top = "auto";
+    bar.style.right = "auto";
+    bar.style.transform = "translateX(-50%)";
+  };
+
+  const onUp = (e) => {
+    if (!dragging || e.pointerId !== pointerId) return;
+    dragging = false;
+    pointerId = null;
+    bar.classList.remove("is-dragging");
+    try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    clampMineSkillBarToField(bar);
+  };
+
+  handle.addEventListener("pointerdown", (e) => {
+    if (mineSkillBarIsMobile()) return;
+    if (e.button != null && e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const field = bar.parentElement;
+    if (!field) return;
+    const fr = field.getBoundingClientRect();
+    const br = bar.getBoundingClientRect();
+    dragging = true;
+    pointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    originLeft = br.left - fr.left + br.width / 2;
+    originBottom = fr.bottom - br.bottom;
+    bar.classList.add("is-dragging");
+    try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  });
+}
+
 function renderMineSkillBar() {
   const bar = document.getElementById("mineSkillBar");
   if (!bar) return;
@@ -286,8 +437,21 @@ function renderMineSkillBar() {
     return;
   }
   bar.hidden = false;
-  bar.innerHTML = '<div class="mine-skill-bar-inner"></div>';
+  let dock = bar.querySelector(".mine-skill-dock");
+  if (!dock) {
+    bar.innerHTML =
+      '<div class="mine-skill-dock">' +
+      '<div class="mine-skill-drag" title="Перетащить плашку" aria-label="Перетащить"></div>' +
+      '<div class="mine-skill-bar-inner"></div>' +
+      "</div>";
+    dock = bar.querySelector(".mine-skill-dock");
+    mineSkillBarDragBound = false;
+    bindMineSkillBarDrag(bar);
+  }
+  applyMineSkillBarPos(bar);
   const inner = bar.querySelector(".mine-skill-bar-inner");
+  if (!inner) return;
+  inner.innerHTML = "";
   skills.forEach((skill) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -295,12 +459,17 @@ function renderMineSkillBar() {
     const ready = isCombatSkillUnlocked(skill) && cd <= 0;
     btn.className = "mine-skill-btn" + (ready ? "" : " on-cd") + (!isCombatSkillUnlocked(skill) ? " locked" : "");
     btn.disabled = !isCombatSkillUnlocked(skill);
-    btn.title = skill.desc + (isCombatSkillUnlocked(skill) ? "" : " · ур. " + skill.unlockLevel);
+    const keyHint = mineSkillBarIsMobile() ? "" : " [" + skill.hotkey + "]";
+    btn.title =
+      skill.name +
+      keyHint +
+      " · " +
+      skill.desc +
+      (isCombatSkillUnlocked(skill) ? "" : " · ур. " + skill.unlockLevel);
     btn.innerHTML =
       '<img src="' + skill.icon + '" alt="">' +
-      '<span class="mine-skill-name">' + skill.name + "</span>" +
-      '<span class="mine-skill-key">' + skill.hotkey + "</span>" +
-      (cd > 0 ? '<span class="mine-skill-cd">' + Math.ceil(cd / 1000) + "с</span>" : "");
+      (mineSkillBarIsMobile() ? "" : '<span class="mine-skill-key">' + skill.hotkey + "</span>") +
+      (cd > 0 ? '<span class="mine-skill-cd">' + Math.ceil(cd / 1000) + "</span>" : "");
     btn.onclick = () => useCombatSkill(skill.id);
     inner.appendChild(btn);
   });

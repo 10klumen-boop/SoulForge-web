@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m38" />
+<link rel="stylesheet" href="styles/main.css?v=m40" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -221,6 +221,12 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.39</p>
+        <ul>
+          <li><b>Умения на поле</b> — компактная плашка поверх боя: иконки и клавиши. На ПК можно перетащить; на телефоне зафиксирована снизу без клавиш.</li>
+          <li><b>Мобильный фарм</b> — скрыты лишние статы и кнопка главы, меньше спрайты мобов, дроп за сессию всплывает поверх поля.</li>
+          <li><b>Спавн мобов</b> — три точки на поле (лево / центр / право), без выхода за боевую зону.</li>
+        </ul>
         <p class="patch-ver">v0.36b</p>
         <ul>
           <li><b>Рейтинг по герою</b> — в таблице теперь имя персонажа, ник аккаунта рядом мельче. Несколько героев на одном аккаунте — отдельные места в топе.</li>
@@ -611,8 +617,8 @@
       </div>
       <div class="mine-session-loot" id="mineSessionLoot" hidden aria-label="Дроп за сессию"></div>
       <div class="mine-quest-hud" id="mineQuestHud" hidden></div>
-      <div class="mine-skill-bar" id="mineSkillBar" hidden></div>
       <div class="minefield" id="minefield">
+        <div class="mine-skill-bar" id="mineSkillBar" hidden aria-label="Боевые умения"></div>
         <div class="mine-stage" id="mineStage">
           <div class="mine-stage-inner" id="mineStageInner">
             <img class="mine-bg-img" id="mineBgImg" src="assets/mine_bg.png" alt="" aria-hidden="true">
@@ -745,7 +751,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js"></script>
-<script src="src/01-constants.js?v=37f"></script>
+<script src="src/01-constants.js?v=39"></script>
 <script src="src/28-starter-weapons.js"></script>
 <script src="src/02-state.js?v=43"></script>
 <script src="src/03-audio.js"></script>
@@ -776,7 +782,7 @@
 <script src="src/27-quests.js?v=41"></script>
 <script src="src/29-quest-journal.js"></script>
 <script src="src/30-prelude-finale.js"></script>
-<script src="src/31-combat-skills.js?v=4"></script>
+<script src="src/31-combat-skills.js?v=6"></script>
 <script src="src/32-debug-log.js"></script>
 <script src="src/24-avatar-stats.js?v=8"></script>
 <script src="src/99-bootstrap.js?v=41"></script>
