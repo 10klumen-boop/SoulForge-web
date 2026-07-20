@@ -143,11 +143,19 @@ function renderEnch(resetVerdict) {
   $("#enchBtn").disabled = busy || broken || maxed || !canAfford;
   $("#enchBtn").textContent = busy ? "Заточка…" : (broken ? "Разрушено" : (maxed ? (capPlus >= MAX_PLUS ? "Максимум +16" : "Максимум +15") : "Заточить ✦"));
 
-  const sellable = !broken && canSell(cur.plus) && !cur.equipped;
+  const sellable = !broken && canSellWeapon(w, cur.plus) && !cur.equipped;
   $("#sellBtn").disabled = !sellable;
-  $("#sellBtn").textContent = broken ? "Нечего продавать"
-    : (cur.equipped ? "Снимите оружие, чтобы продать"
-    : (canSell(cur.plus) ? `Продать +${cur.plus} за ${fmtAdena(sellValue(w, cur.plus))}` : "Продать (нужно +4)"));
+  if (broken) {
+    $("#sellBtn").textContent = "Нечего продавать";
+  } else if (cur.equipped) {
+    $("#sellBtn").textContent = "Снимите оружие, чтобы продать";
+  } else if (isNgSellWeapon(w)) {
+    $("#sellBtn").textContent = "Продать NG за " + fmtAdena(sellValue(w, cur.plus));
+  } else if (canSell(cur.plus)) {
+    $("#sellBtn").textContent = `Продать +${cur.plus} за ${fmtAdena(sellValue(w, cur.plus))}`;
+  } else {
+    $("#sellBtn").textContent = "Продать (нужно +4)";
+  }
 
   if (resetVerdict) setVerdict("Удачи, авантюрист!", "neutral");
   $("#adena").textContent = fmt(state.adena);
@@ -321,21 +329,18 @@ function newWeapon() { Audio2.click(); goInventory(); }
 
 function sellWeapon() {
   if (busy || !cur || cur.broken) return;
-  if (typeof weaponCanEnchant === "function" && !weaponCanEnchant(cur.weapon)) {
-    toast("Тренировочное оружие не продаётся", "warn");
-    return;
-  }
   if (cur.equipped) { toast("Сначала сними оружие в «Персонаж»", "warn"); return; }
-  if (!canSell(cur.plus)) { toast("Продать можно только с +4 и выше"); return; }
+  if (!canSellWeapon(cur.weapon, cur.plus)) { toast("Продать можно только с +4 и выше"); return; }
   const sv = sellValue(cur.weapon, cur.plus);
   state.adena += sv;
   state.totals.earned = (state.totals.earned || 0) + sv;
   Audio2.success();
   state.inventory = (state.inventory || []).filter((x) => x.uid !== cur.item.uid);
-  toast("Продано +" + cur.plus + " " + cur.weapon.name + " за " + fmt(sv) + " adena", "gold");
+  const plusLabel = isNgSellWeapon(cur.weapon) ? "" : (" +" + cur.plus);
+  toast("Продано" + plusLabel + " " + cur.weapon.name + " за " + fmt(sv) + " adena", "gold");
   if (typeof achStat === "function") achStat("weaponsSold", 1);
-  if (typeof achStatMax === "function") achStatMax("maxSoldPlus", cur.plus);
-  if (typeof onSellAvatarXp === "function") onSellAvatarXp(cur.plus);
+  if (typeof achStatMax === "function" && !isNgSellWeapon(cur.weapon)) achStatMax("maxSoldPlus", cur.plus);
+  if (typeof onSellAvatarXp === "function" && !isNgSellWeapon(cur.weapon)) onSellAvatarXp(cur.plus);
   save();
   $("#adena").textContent = fmt(state.adena);
   if (typeof checkAchievements === "function") checkAchievements();

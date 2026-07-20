@@ -89,10 +89,25 @@ function glowInfo(plus) {
   return { color: "#5fa8ff", op: 0, blur: 3 };
 }
 // Базовая рыночная цена оружия по грейду; цена резко растёт с заточкой.
-// Продажа доступна только выше безопасной зоны (с +4), иначе был бы «принтер денег».
+// Продажа грейдового — только выше безопасной зоны (с +4), иначе был бы «принтер денег».
+// NG (тренировочное) — фиксированная утилизация, чтобы не засорять инвентарь.
 const GRADE_VALUE = { D: 55_000, C: 280_000, B: 1_200_000, A: 5_000_000 };
+const NG_WEAPON_SELL = 1000;
 function canSell(plus) { return plus > safeLevel(); }
+function isNgSellWeapon(w) {
+  if (!w) return false;
+  if (w.grade === "NG") return true;
+  return typeof isNoGradeWeapon === "function" && isNoGradeWeapon(w);
+}
+function canSellWeapon(w, plus) {
+  if (!w) return false;
+  if (isNgSellWeapon(w)) return true;
+  return canSell(plus);
+}
 function sellValue(w, plus) {
+  if (isNgSellWeapon(w)) {
+    return playtestIncome(tuneInt("weapon.sell.NG", NG_WEAPON_SELL));
+  }
   const base = tune("weapon.sell." + w.grade, GRADE_VALUE[w.grade] || 55_000);
   const pow = tune("ench.sellPow", 1.25);
   return playtestIncome(Math.round(base * Math.pow(pow, plus)));

@@ -584,13 +584,13 @@ function appendInvItemSlot(grid, it, idx) {
     slot.className = "inv-slot filled g-" + (w.grade || "NG");
     const gradeTag = w.grade === "NG" ? "NG" : w.grade;
     slot.title = `${w.name} [${gradeTag}]${it.plus ? " +" + it.plus : ""}\nP.Atk ${fmt(p)} · M.Atk ${fmt(m)}` +
-      (ng ? "\nБез грейда — не точится" : "\nКлик — заточка · зажми и потяни на кристаллизацию · ПКМ");
+      (ng ? "\nNG — клик: продать за " + fmtAdena(typeof sellValue === "function" ? sellValue(w, 0) : 1000) : "\nКлик — заточка · зажми и потяни на кристаллизацию · ПКМ");
     slot.innerHTML = `<img src="${w.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">${it.plus ? `<span class="ip">+${it.plus}</span>` : ""}`;
     slot.onclick = () => {
       if (invClickBlocked()) return;
       Audio2.click();
       if (ng) {
-        toast("«" + w.name + "» без грейда — не точится", "warn");
+        sellNgWeaponFromInventory(it);
         return;
       }
       openEnchant(it);
@@ -694,6 +694,44 @@ function renderInventory() {
   fillInvGrid(grid, tabId, shown);
   gridPanel.appendChild(grid);
   list.appendChild(gridPanel);
+}
+
+async function sellNgWeaponFromInventory(it) {
+  if (!it || isAccessoryItem(it)) return;
+  const w = WMAP[it.id];
+  if (!w || (typeof isNgSellWeapon === "function" && !isNgSellWeapon(w))) return;
+  if (typeof isEquippedWeaponItem === "function" && isEquippedWeaponItem(it)) {
+    toast("Сначала сними оружие в «Персонаж»", "warn");
+    return;
+  }
+  const sv = typeof sellValue === "function" ? sellValue(w, it.plus || 0) : 1000;
+  const ok = await showConfirm({
+    title: "Продать NG",
+    message: "Продать «" + w.name + "» за " + fmtAdena(sv) + " adena?\nТренировочное оружие исчезнет из инвентаря.",
+    okText: "Продать",
+    cancelText: "Отмена",
+  });
+  if (!ok) return;
+  state.inventory = (state.inventory || []).filter((x) => x.uid !== it.uid);
+  state.adena += sv;
+  state.totals.earned = (state.totals.earned || 0) + sv;
+  if (typeof achStat === "function") achStat("weaponsSold", 1);
+  Audio2.success();
+  save();
+  $("#adena").textContent = fmt(state.adena);
+  renderInventory();
+  toast("Продано «" + w.name + "» за " + fmt(sv) + " adena", "gold");
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("sell_weapon", {
+      weaponId: w.id,
+      weaponName: w.name,
+      grade: "NG",
+      plus: 0,
+      adenaGain: sv,
+    });
+  }
+  if (typeof noteLeaderboardEvent === "function") noteLeaderboardEvent("sell");
+  if (typeof checkAchievements === "function") checkAchievements();
 }
 
 function sellCrystals() {
