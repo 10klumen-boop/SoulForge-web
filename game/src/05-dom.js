@@ -19,7 +19,7 @@ function show(screen) {
   $("#screen-" + screen).classList.add("active");
   const app = gameDoc().querySelector(".app");
   if (app) {
-    const titleScreens = ["login", "home", "settings", "patch", "author", "characters"];
+    const titleScreens = ["home", "settings", "patch", "author", "characters"];
     app.classList.toggle("hub-screen", screen === "menu");
     app.classList.toggle("title-screen", titleScreens.includes(screen));
     app.classList.toggle("login-screen", screen === "login");

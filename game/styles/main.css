@@ -3402,7 +3402,8 @@
     justify-content: center;
     overflow: visible;
   }
-  .shell:has(.app.title-screen) .game-log { display: none; }
+  .shell:has(.app.title-screen) .game-log,
+  .shell:has(.app.login-screen) .game-log { display: none; }
 
   .app.title-screen {
     flex: 0 0 auto;
@@ -3569,12 +3570,21 @@
     width: 100%;
   }
   .app.login-screen > .card {
+    flex: 1;
+    align-self: stretch;
+    height: auto;
+    max-height: none;
     background: transparent;
     border-color: transparent;
     box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     min-height: min(86vh, 760px);
+  }
+  .app.login-screen {
+    flex: 1;
+    align-self: stretch;
+    max-height: 100%;
   }
   .app.login-screen > .card::before { display: none; }
   .app.login-screen .topbar { display: none !important; }
