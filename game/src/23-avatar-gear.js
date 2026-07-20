@@ -19,6 +19,7 @@ function avatarGearSlotsForUi() {
 const WEAPON_GRADE_ENCH_MULT = { D: 0.6, C: 0.85, B: 1, A: 1.2 };
 
 let _avatarEquipSlot = null;
+let _avatarEquipFilter = { q: "", grade: "", aff: "" };
 
 function defaultAvatarGear() {
   return { weapon: null, earring_l: null, earring_r: null, ring_l: null, ring_r: null, necklace: null };
@@ -292,6 +293,76 @@ function listEquippableForSlot(slotId) {
   return (state.inventory || []).filter((it) => slotAcceptsItem(slotId, it));
 }
 
+function avatarEquipItemPower(it) {
+  if (!it || isAccessoryItem(it)) return 0;
+  const def = WMAP[it.id];
+  if (!def) return 0;
+  const plus = it.plus || 0;
+  const mystic = typeof avatarIsMystic === "function" && avatarIsMystic();
+  if (mystic && typeof mysticWeaponPower === "function") return mysticWeaponPower(def, plus);
+  if (typeof fighterWeaponPower === "function") return fighterWeaponPower(def, plus);
+  return typeof itemPower === "function" ? itemPower(it) : (def.patk || 0) + plus * (def.ps || 0);
+}
+
+function avatarEquipItemGrade(it) {
+  if (!it) return "";
+  if (isAccessoryItem(it)) return "epic";
+  const def = WMAP[it.id];
+  if (!def) return "";
+  if (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(def)) return "NG";
+  return def.grade || "";
+}
+
+function filteredEquippableForSlot(slotId) {
+  const q = (_avatarEquipFilter.q || "").trim().toLowerCase();
+  const grade = _avatarEquipFilter.grade || "";
+  const aff = _avatarEquipFilter.aff || "";
+  let options = listEquippableForSlot(slotId);
+  if (q) {
+    options = options.filter((it) => {
+      const def = invItemDef(it);
+      return def && String(def.name || "").toLowerCase().includes(q);
+    });
+  }
+  if (grade) {
+    options = options.filter((it) => avatarEquipItemGrade(it) === grade);
+  }
+  if (aff && slotId === "weapon") {
+    options = options.filter((it) => {
+      const def = WMAP[it.id];
+      return def && typeof weaponAffinity === "function" && weaponAffinity(def) === aff;
+    });
+  }
+  options.sort((a, b) => {
+    const pa = avatarEquipItemPower(a);
+    const pb = avatarEquipItemPower(b);
+    if (pb !== pa) return pb - pa;
+    const ga = avatarEquipItemGrade(a);
+    const gb = avatarEquipItemGrade(b);
+    const rank = { A: 4, B: 3, C: 2, D: 1, NG: 0, epic: 5 };
+    if ((rank[gb] || 0) !== (rank[ga] || 0)) return (rank[gb] || 0) - (rank[ga] || 0);
+    const na = invItemDef(a)?.name || "";
+    const nb = invItemDef(b)?.name || "";
+    return na.localeCompare(nb, "ru");
+  });
+  return options;
+}
+
+function syncAvatarEquipFilterUi(slotId) {
+  const tools = document.getElementById("avatarEquipTools");
+  const affBar = document.getElementById("avatarEquipAff");
+  const search = document.getElementById("avatarEquipSearch");
+  if (tools) tools.hidden = false;
+  if (affBar) affBar.hidden = slotId !== "weapon";
+  if (search && search.value !== (_avatarEquipFilter.q || "")) search.value = _avatarEquipFilter.q || "";
+  document.querySelectorAll("#avatarEquipGrades .avatar-equip-grade").forEach((btn) => {
+    btn.classList.toggle("sel", (btn.dataset.grade || "") === (_avatarEquipFilter.grade || ""));
+  });
+  document.querySelectorAll("#avatarEquipAff .avatar-equip-aff-btn").forEach((btn) => {
+    btn.classList.toggle("sel", (btn.dataset.aff || "") === (_avatarEquipFilter.aff || ""));
+  });
+}
+
 function renderAvatarGearSlots() {
   const left = document.getElementById("avatarGearLeft");
   const right = document.getElementById("avatarGearRight");
@@ -346,35 +417,49 @@ function openAvatarEquipPicker(slotId) {
   }
   Audio2.click();
   _avatarEquipSlot = slotId;
+  _avatarEquipFilter = { q: "", grade: "", aff: "" };
   const title = document.getElementById("avatarEquipTitle");
   if (title) title.textContent = slot.label || "Экипировка";
   const gear = ensureAvatarGear();
   const unequipBtn = document.getElementById("avatarEquipUnequip");
   if (unequipBtn) unequipBtn.hidden = !gear[slotId];
+  syncAvatarEquipFilterUi(slotId);
   renderAvatarEquipList();
   setAvatarEquipOpen(true);
+  const search = document.getElementById("avatarEquipSearch");
+  if (search) setTimeout(() => search.focus(), 30);
 }
 
 function renderAvatarEquipList() {
   const list = document.getElementById("avatarEquipList");
   if (!list || !_avatarEquipSlot) return;
   list.innerHTML = "";
-  const options = listEquippableForSlot(_avatarEquipSlot);
+  const options = filteredEquippableForSlot(_avatarEquipSlot);
+  const total = listEquippableForSlot(_avatarEquipSlot).length;
   if (!options.length) {
-    list.innerHTML = '<p class="avatar-equip-empty">Нет подходящих предметов в инвентаре.</p>';
+    const msg = total
+      ? "Ничего не найдено — сбрось фильтр или поиск."
+      : "Нет подходящих предметов в инвентаре.";
+    list.innerHTML = '<p class="avatar-equip-empty">' + msg + "</p>";
     return;
   }
-  options.forEach((it) => {
+  const bestPower = avatarEquipItemPower(options[0]);
+  options.forEach((it, idx) => {
     const def = invItemDef(it);
     if (!def) return;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "avatar-equip-opt" + (isAccessoryItem(it) ? " g-epic" : " g-" + def.grade);
+    const isBest = idx === 0 && bestPower > 0 && !isAccessoryItem(it);
+    btn.className =
+      "avatar-equip-opt" +
+      (isAccessoryItem(it) ? " g-epic" : " g-" + def.grade) +
+      (isBest ? " is-best" : "");
     const plus = it.plus ? " +" + it.plus : "";
+    const badge = isBest ? '<em class="avatar-equip-best">лучшее</em>' : "";
     btn.innerHTML =
       '<img src="' + def.icon + '" alt="">' +
-      "<div><strong>" + def.name + plus + "</strong>" +
-      "<span>" + (isAccessoryItem(it) ? (def.desc || "Эпический аксессуар") : "P.Atk " + fmt(statAt(def.patk, def.ps, it.plus || 0))) + "</span></div>";
+      "<div><strong>" + def.name + plus + badge + "</strong>" +
+      "<span>" + (isAccessoryItem(it) ? (def.desc || "Эпический аксессуар") : (typeof weaponEquipStatLabel === "function" ? weaponEquipStatLabel(def, it.plus || 0) : "P.Atk " + fmt(statAt(def.patk, def.ps, it.plus || 0)))) + "</span></div>";
     btn.onclick = () => {
       if (equipAvatarSlot(_avatarEquipSlot, it)) setAvatarEquipOpen(false);
     };
@@ -386,6 +471,9 @@ function wireAvatarGear() {
   const backdrop = document.getElementById("avatarEquipBackdrop");
   const closeBtn = document.getElementById("avatarEquipClose");
   const unequipBtn = document.getElementById("avatarEquipUnequip");
+  const search = document.getElementById("avatarEquipSearch");
+  const grades = document.getElementById("avatarEquipGrades");
+  const affBar = document.getElementById("avatarEquipAff");
   if (backdrop && !backdrop.dataset.wired) {
     backdrop.dataset.wired = "1";
     if (closeBtn) closeBtn.onclick = () => { Audio2.click(); setAvatarEquipOpen(false); };
@@ -397,5 +485,37 @@ function wireAvatarGear() {
     backdrop.addEventListener("click", (e) => {
       if (e.target === backdrop) setAvatarEquipOpen(false);
     });
+    if (search) {
+      search.addEventListener("input", () => {
+        _avatarEquipFilter.q = search.value || "";
+        renderAvatarEquipList();
+      });
+      search.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setAvatarEquipOpen(false);
+        }
+      });
+    }
+    if (grades) {
+      grades.addEventListener("click", (e) => {
+        const btn = e.target.closest(".avatar-equip-grade");
+        if (!btn) return;
+        Audio2.click();
+        _avatarEquipFilter.grade = btn.dataset.grade || "";
+        syncAvatarEquipFilterUi(_avatarEquipSlot);
+        renderAvatarEquipList();
+      });
+    }
+    if (affBar) {
+      affBar.addEventListener("click", (e) => {
+        const btn = e.target.closest(".avatar-equip-aff-btn");
+        if (!btn) return;
+        Audio2.click();
+        _avatarEquipFilter.aff = btn.dataset.aff || "";
+        syncAvatarEquipFilterUi(_avatarEquipSlot);
+        renderAvatarEquipList();
+      });
+    }
   }
 }

@@ -1,10 +1,11 @@
 function scrollFor(grade, typeId) {
   const t = SCROLL_TYPES.find((x) => x.id === typeId) || SCROLL_TYPES[0];
-  const icon = typeId === "blessed" ? BLESSED_ICON[grade] : SCROLL_ICON[grade];
+  const icon = typeof scrollTierIcon === "function" ? scrollTierIcon(t.id, grade) : SCROLL_ICON[grade];
   const base = tune("scroll.price." + grade, GRADE_BASE_PRICE[grade] || 50_000);
   const mult = tune("scroll.mult." + typeId, t.mult);
   return {
     id: t.id, name: t.name, behavior: t.behavior, desc: t.desc, icon,
+    tier: (typeof SCROLL_TIER !== "undefined" ? SCROLL_TIER[t.id] : 1) || 1,
     cost: Math.round(base * mult),
   };
 }
@@ -18,7 +19,7 @@ function defaultState() {
     adena: START_ADENA,
     farmZone: "banana_mine",
     storyProgress: { chaptersSeen: {}, unlocksShown: {} },
-    questProgress: { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {}, stepRewards: {} },
+    questProgress: { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {}, stepRewards: {}, bossQueued: {}, bossGrind: {} },
     records: {},
     totals: { tries: 0, fails: 0, earned: 0 },
     muted: false,
@@ -148,6 +149,8 @@ function mergeSavedData(data) {
     if (!st.questProgress.briefings) st.questProgress.briefings = {};
     if (!st.questProgress.chapterRewards) st.questProgress.chapterRewards = {};
     if (!st.questProgress.stepRewards) st.questProgress.stepRewards = {};
+    if (!st.questProgress.bossQueued) st.questProgress.bossQueued = {};
+    if (!st.questProgress.bossGrind) st.questProgress.bossGrind = {};
   }
   applyBalanceResetIfNeeded(st);
   if (typeof initCharacters === "function") initCharacters();

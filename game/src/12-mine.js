@@ -13,6 +13,89 @@ let mineWeaponsByGrade = null;
 /** Сводка сессии фарма (не логируем каждый тап). */
 let mineSession = null;
 
+const MINE_LOOT_GRADE_RANK = { epic: 5, A: 4, B: 3, C: 2, D: 1, NG: 0 };
+
+function mineSessionLootKey(entry) {
+  if (entry.kind === "weapon") return "w:" + entry.id + ":" + (entry.plus || 0);
+  if (entry.kind === "accessory") return "a:" + entry.id;
+  if (entry.kind === "shots") return "ss:" + (entry.shotKind || "soulshots") + ":" + entry.grade;
+  return "x:" + (entry.name || "?");
+}
+
+function trackMineSessionLoot(entry) {
+  if (!mineSession || !entry) return;
+  if (!mineSession.loot) mineSession.loot = {};
+  const key = mineSessionLootKey(entry);
+  const add = entry.qty || 1;
+  const row = mineSession.loot[key];
+  if (row) row.qty = (row.qty || 0) + add;
+  else mineSession.loot[key] = Object.assign({}, entry, { qty: add });
+  renderMineSessionLoot();
+}
+
+function mineSessionLootEl() {
+  if (typeof gameDoc === "function") return gameDoc().getElementById("mineSessionLoot");
+  return document.getElementById("mineSessionLoot");
+}
+
+function renderMineSessionLoot() {
+  const el = mineSessionLootEl();
+  if (!el) return;
+  const active = !!mineSession;
+  const rows = active && mineSession.loot ? Object.values(mineSession.loot) : [];
+  if (!active) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  el.hidden = false;
+  if (!rows.length) {
+    el.innerHTML = '<span class="mine-loot-lbl">Дроп за сессию:</span><span class="mine-loot-empty">пока нет предметов</span>';
+    return;
+  }
+  rows.sort((a, b) => {
+    const ga = MINE_LOOT_GRADE_RANK[a.grade] ?? 0;
+    const gb = MINE_LOOT_GRADE_RANK[b.grade] ?? 0;
+    if (gb !== ga) return gb - ga;
+    return String(a.name || "").localeCompare(String(b.name || ""), "ru");
+  });
+  el.innerHTML =
+    '<span class="mine-loot-lbl">Дроп за сессию:</span>' +
+    rows.map((row) => {
+      const grade = row.grade || "D";
+      const gClass = row.kind === "accessory" ? "g-epic" : "g-" + grade;
+      const plus = row.plus ? " +" + row.plus : "";
+      const qty = row.qty > 1 ? '<span class="mine-loot-qty">×' + row.qty + "</span>" : "";
+      const label = row.kind === "shots" ? row.name : (row.name || "?") + plus;
+      const icon = row.icon || "icons/char_menu.png?v=10";
+      return (
+        '<span class="mine-loot-chip ' + gClass + '" title="' + label.replace(/"/g, "&quot;") + '">' +
+        '<img src="' + icon + '" alt="" loading="lazy" draggable="false">' +
+        '<span class="mine-loot-name">' + label + "</span>" + qty +
+        "</span>"
+      );
+    }).join("");
+}
+
+function pickMineWeaponFromPool(pool) {
+  if (!pool?.length) return null;
+  const mystic = typeof avatarIsMystic === "function" && avatarIsMystic();
+  let total = 0;
+  const weights = pool.map((w) => {
+    const wt = mystic
+      ? Math.max(1, (w.matk || 0) * 2 + (w.ms || 0) * 8)
+      : Math.max(1, (w.patk || 0) * 2 + (w.ps || 0) * 8);
+    total += wt;
+    return wt;
+  });
+  let roll = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    roll -= weights[i];
+    if (roll <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+
 function rollMineWeaponDrop(zoneId) {
   zoneId = zoneId || (typeof currentMineZoneId === "function" ? currentMineZoneId() : (state.farmZone || "banana_mine"));
   if (!mineWeaponsByGrade) {
@@ -23,7 +106,7 @@ function rollMineWeaponDrop(zoneId) {
   for (const g of ["D", "C", "B", "A"]) total += mineDropWeight(g, zoneId);
   if (total <= 0) {
     const pool = mineWeaponsByGrade.D;
-    return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+    return pickMineWeaponFromPool(pool);
   }
   let roll = Math.random() * total;
   let grade = "D";
@@ -34,17 +117,21 @@ function rollMineWeaponDrop(zoneId) {
   const pool = mineWeaponsByGrade[grade];
   if (!pool || !pool.length) {
     for (const g of ["D", "C", "B", "A"]) {
-      if (mineWeaponsByGrade[g]?.length) return mineWeaponsByGrade[g][Math.floor(Math.random() * mineWeaponsByGrade[g].length)];
+      if (mineWeaponsByGrade[g]?.length) return pickMineWeaponFromPool(mineWeaponsByGrade[g]);
     }
     return null;
   }
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pickMineWeaponFromPool(pool);
 }
 
 function grantBananLoot(loot) {
   ensureWorkshopState();
   if (loot.kind === "soulshots") {
     state.shots.soul[loot.grade] = (state.shots.soul[loot.grade] || 0) + loot.qty;
+    return { ok: true, text: loot.label };
+  }
+  if (loot.kind === "spiritshots") {
+    state.shots.spirit[loot.grade] = (state.shots.spirit[loot.grade] || 0) + loot.qty;
     return { ok: true, text: loot.label };
   }
   if (loot.kind === "adena") {
@@ -128,12 +215,14 @@ function openMine() {
     kills: 0,
     weapons: 0,
     zoneId: state.farmZone || "banana_mine",
+    loot: {},
   };
   resetMineGuardSession();
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
   $("#mineEarned").textContent = "0";
   $("#mineCaught").textContent = "0";
   $("#mineMissed").textContent = "0";
+  renderMineSessionLoot();
   if (hintEl) hintEl.style.display = "";
   if (typeof renderMineHudStats === "function") renderMineHudStats();
   if (typeof renderMineQuestHud === "function") renderMineQuestHud();
@@ -150,7 +239,15 @@ function openMine() {
   if (typeof checkAchievements === "function") checkAchievements();
   if (typeof isZoneBossPending === "function" && isZoneBossPending(zoneId)) {
     const boss = typeof zoneBossDef === "function" ? zoneBossDef(zoneId) : null;
-    if (hintEl && boss) hintEl.textContent = "☠ " + boss.name + " — победи босса до конца таймера";
+    if (hintEl && boss) {
+      const grind = typeof zoneBossGrindKills === "function" ? zoneBossGrindKills(zoneId) : 0;
+      const need = typeof zoneBossGrindKillsNeeded === "function" ? zoneBossGrindKillsNeeded() : 12;
+      if (typeof isZoneBossQueued === "function" && isZoneBossQueued(zoneId)) {
+        hintEl.textContent = "☠ " + boss.name + " — скоро на поле. Не готов? Выйди и качай силу.";
+      } else {
+        hintEl.textContent = "☠ " + boss.name + " · зачистка " + grind + "/" + need + " — потом снова на поле";
+      }
+    }
     ensureMineSpawningSoon(600);
   } else {
     ensureMineSpawningSoon(450);
@@ -177,6 +274,14 @@ function stopMine() {
       weapons: mineSession.weapons || 0,
       adenaGain: Math.max(0, adenaNow - (mineSession.adena0 || 0)),
       durationMs: Date.now() - (mineSession.startedAt || Date.now()),
+      loot: mineSession.loot ? Object.values(mineSession.loot).map((r) => ({
+        kind: r.kind,
+        id: r.id,
+        name: r.name,
+        grade: r.grade,
+        plus: r.plus || 0,
+        qty: r.qty || 1,
+      })) : [],
     });
   }
   mineSession = null;
@@ -252,7 +357,7 @@ function hasBossOnField() {
 }
 
 function shouldSpawnZoneBoss(zoneId) {
-  return typeof isZoneBossPending === "function" && isZoneBossPending(zoneId || currentMineZoneId());
+  return typeof shouldOfferZoneBoss === "function" && shouldOfferZoneBoss(zoneId || currentMineZoneId());
 }
 
 function resumeMineSpawns() {
@@ -303,6 +408,10 @@ function rollBananLootTuned() {
   const r = Math.random() * 100;
   if (r < s) {
     const qty = tuneInt("banan.soulshots", 50_000);
+    const mystic = typeof mineShotKind === "function" && mineShotKind() === "spirit";
+    if (mystic) {
+      return { kind: "spiritshots", qty, grade: "D", label: "Spiritshot D ×" + fmt(qty) };
+    }
     return { kind: "soulshots", qty, grade: "D", label: "Soulshot D ×" + fmt(qty) };
   }
   if (r < s + a) {
@@ -343,41 +452,30 @@ function mineGoldenReward() {
 }
 
 function renderMineHudStats() {
-  const el = document.getElementById("mineFarmStats");
-  if (!el || typeof avatarFarmPower !== "function") return;
-  const power = avatarFarmPower();
-  const mult = typeof avatarMineRewardMult === "function" ? avatarMineRewardMult(state.farmZone || "banana_mine") : 1;
-  const zone = typeof farmZoneById === "function" ? farmZoneById(state.farmZone || "banana_mine") : null;
-  const tgt = typeof farmZoneTargetPower === "function" && zone ? farmZoneTargetPower(zone) : 0;
-  const drop = typeof mineDropGradeSummary === "function" ? mineDropGradeSummary() : "D";
-  const wch = typeof mineGoldenWeaponChance === "function" ? Math.round(mineGoldenWeaponChance() * 100) : 0;
-  let line = "Сила " + fmt(power);
-  if (tgt) line += "/" + fmt(tgt);
-  if (typeof avatarMineClickDamage === "function") line += " · урон " + fmt(avatarMineClickDamage());
-  if (typeof avatarMineEnchantDamageBonus === "function") {
-    const eb = avatarMineEnchantDamageBonus();
-    if (eb > 0) line += " (+" + eb + " заточка)";
-  }
-  line += " · +" + Math.round((mult - 1) * 100) + "% adena · дроп " + drop;
-  if (wch) line += " · оружие " + wch + "%";
-  el.textContent = line;
   syncMineShotHud();
 }
 
 function syncMineShotHud() {
   const btn = document.getElementById("mineShotToggle");
   const stockEl = document.getElementById("mineShotStock");
+  const iconEl = document.getElementById("mineShotIcon");
   if (!btn || !stockEl) return;
   if (typeof ensureWorkshopState === "function") ensureWorkshopState();
   const auto = state.autoShots !== false;
   const stock = typeof mineShotStock === "function" ? mineShotStock() : { kind: "soul", grade: "D", qty: 0 };
-  const label = stock.kind === "spirit" ? "SPS" : "SS";
+  const icon =
+    (typeof SHOT_ICON !== "undefined" && SHOT_ICON[stock.kind] && SHOT_ICON[stock.kind][stock.grade]) ||
+    "icons/etc_spirit_bullet_blue_i00.png";
+  if (iconEl && iconEl.getAttribute("src") !== icon) iconEl.src = icon;
   btn.classList.toggle("off", !auto);
+  btn.classList.toggle("on", auto);
   btn.classList.toggle("empty", !(stock.qty > 0));
-  stockEl.textContent = label + " " + stock.grade + " ×" + fmt(stock.qty) + (auto ? "" : " · OFF");
+  btn.setAttribute("aria-pressed", auto ? "true" : "false");
+  stockEl.textContent = stock.qty > 0 ? fmt(stock.qty) : "0";
+  const kindName = stock.kind === "spirit" ? "Spiritshot" : "Soulshot";
   btn.title = auto
-    ? ("Авто " + (stock.kind === "spirit" ? "Spiritshot" : "Soulshot") + " " + stock.grade + " · клик — выкл")
-    : "Авто-заряды выкл · урон ×0.5 · клик — вкл";
+    ? ("Авто " + kindName + " " + stock.grade + " · вкл · клик — выкл")
+    : ("Авто " + kindName + " " + stock.grade + " · выкл · урон ×0.5 · клик — вкл");
 }
 
 
@@ -452,17 +550,14 @@ function spawnGnome(forcedType) {
     return;
   }
   const zoneId = currentMineZoneId();
-  if (shouldSpawnZoneBoss(zoneId)) {
-    if (forcedType === "banan") {
-      toast("Сначала победи босса локации", "warn");
-      return;
-    }
-    if (!hasBossOnField()) spawnZoneBoss();
-    if (!hasBossOnField() && !hasCombatMobOnField()) queueNextMob(500);
-    return;
-  }
   if (hasBananOnField() && forcedType !== "banan") return;
   if (hasCombatMobOnField() && forcedType !== "banan") return;
+
+  if (!forcedType && shouldSpawnZoneBoss(zoneId) && !hasBossOnField()) {
+    spawnZoneBoss();
+    return;
+  }
+
   const field = mineSpawnField();
   if (!field) {
     queueNextMob(800);
@@ -501,7 +596,7 @@ function mobHpBarHtml(hp, maxHp) {
   return (
     '<div class="mob-hp-wrap">' +
     '<div class="mob-hp" aria-hidden="true"><span class="mob-hp-fill"></span></div>' +
-    '<span class="mob-hp-label">' + fmt(cur) + " / " + fmt(max) + "</span>" +
+    '<span class="mob-hp-label">' + fmtCombat(cur) + " / " + fmtCombat(max) + "</span>" +
     "</div>"
   );
 }
@@ -730,16 +825,21 @@ function spawnZoneBoss() {
     };
   }
   spawnSoloMob(field, "boss", { name: bossDef.name, sprite });
+  if (typeof markZoneBossOffered === "function") markZoneBossOffered(zoneId);
   const hintEl = document.getElementById("mineHint");
   if (hintEl) hintEl.style.display = "none";
   if (typeof gameLog === "function") gameLog("☠ " + bossDef.name + " явился на поле!", "warn");
 }
 
 function missBoss(g) {
+  const zoneId = currentMineZoneId();
   removeGnome(g);
   const n = (parseInt($("#mineMissed").textContent) || 0) + 1;
   $("#mineMissed").textContent = n;
-  toast("Босс сбежал — успей до конца таймера!", "warn");
+  if (typeof resetZoneBossGrind === "function") resetZoneBossGrind(zoneId);
+  const need = typeof zoneBossGrindKillsNeeded === "function" ? zoneBossGrindKillsNeeded() : 12;
+  toast("Босс ушёл — качайся и затачивай. После " + need + " зачисток он вернётся.", "warn");
+  if (typeof renderMineQuestHud === "function") renderMineQuestHud();
   queueNextMob(900);
 }
 
@@ -749,7 +849,7 @@ function updateMobHpBar(g) {
   if (!g._maxHp) return;
   const hp = Math.max(0, g._hp ?? g._maxHp);
   if (fill) fill.style.width = Math.max(0, (hp / g._maxHp) * 100) + "%";
-  if (label) label.textContent = fmt(hp) + " / " + fmt(g._maxHp);
+  if (label) label.textContent = fmtCombat(hp) + " / " + fmtCombat(g._maxHp);
 }
 
 function tapBanan(g, e) {
@@ -792,6 +892,37 @@ function catchBanan(g) {
     const msg = res.epic ? "ЛЕГЕНДА! Редкий гном: " + res.text : "Редкий гном: " + res.text;
     toast(msg, res.epic ? "success" : "loot");
     floatText(x, y, res.text, color);
+    if (loot.kind === "weapon" && res.weapon) {
+      trackMineSessionLoot({
+        kind: "weapon",
+        id: res.weapon.id,
+        name: res.weapon.name,
+        grade: res.weapon.grade,
+        icon: res.weapon.icon,
+        plus: loot.plus || 0,
+      });
+    } else if (loot.kind === "earring") {
+      const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[ZAKEN_EARRING_ID] : null;
+      if (def) {
+        trackMineSessionLoot({
+          kind: "accessory",
+          id: ZAKEN_EARRING_ID,
+          name: def.name,
+          grade: "epic",
+          icon: def.icon,
+        });
+      }
+    } else if (loot.kind === "soulshots" || loot.kind === "spiritshots") {
+      const spirit = loot.kind === "spiritshots";
+      trackMineSessionLoot({
+        kind: "shots",
+        shotKind: loot.kind,
+        grade: loot.grade,
+        name: (spirit ? "SpS " : "SS ") + loot.grade,
+        icon: typeof ORE !== "undefined" && ORE.soul ? ORE.soul.icon : "icons/char_menu.png?v=10",
+        qty: loot.qty || 1,
+      });
+    }
   } else {
     toast("Редкий гном… но " + res.text, "warn");
     floatText(x, y, res.text, "#ff6b6b");
@@ -842,7 +973,7 @@ function catchGnome(g, e) {
   g.classList.add("mob-hit");
   setTimeout(() => g.classList.remove("mob-hit"), 90);
   updateMobHpBar(g);
-  floatText(dropAt.x, dropAt.y - 12, "-" + applied, "#ff9a8a");
+  floatText(dropAt.x, dropAt.y - 12, "-" + fmtCombat(applied), "#ff9a8a");
   mineBurst(dropAt.x, dropAt.y, type === "golden" ? "#ffc46b" : "#c8a882", 5);
   if (g._hp > 0) {
     if (typeof checkMobEnrage === "function") checkMobEnrage(g);
@@ -856,8 +987,12 @@ function finishMobKill(g, type, dropAt, guard) {
   const zoneId = typeof currentMineZoneId === "function" ? currentMineZoneId() : (state.farmZone || "banana_mine");
   if (type === "boss") {
     if (typeof onZoneBossDefeated === "function") onZoneBossDefeated(zoneId);
-  } else if (typeof onQuestMobKill === "function") {
-    onQuestMobKill(zoneId, type);
+  } else {
+    if (typeof onQuestMobKill === "function") onQuestMobKill(zoneId, type);
+    if (typeof isZoneBossPending === "function" && isZoneBossPending(zoneId)) {
+      if (typeof addZoneBossGrindKill === "function") addZoneBossGrindKill(zoneId);
+      if (typeof renderMineQuestHud === "function") renderMineQuestHud();
+    }
   }
   const rewardKind = type === "boss" ? "treasure" : type === "golden" ? "treasure" : "coin";
   Audio2.mineKill();
@@ -900,7 +1035,24 @@ function finishMobKill(g, type, dropAt, guard) {
   if (guard && guard.bySkill && typeof floatText === "function") {
     floatText(dropAt.x, dropAt.y - 48, "скилл-финиш", "#9ad4ff");
   }
+  if (weaponDrop) {
+    spawnWeaponDrop(dropAt.x, dropAt.y - 18, weaponDrop);
+    floatText(dropAt.x, dropAt.y - 56, weaponDrop.name, weaponDrop.glow || color);
+    mineBurst(dropAt.x, dropAt.y - 18, weaponDrop.glow || color, 16);
+    trackMineSessionLoot({
+      kind: "weapon",
+      id: weaponDrop.id,
+      name: weaponDrop.name,
+      grade: weaponDrop.grade,
+      icon: weaponDrop.icon,
+      plus: 0,
+    });
+  }
   if (reward <= 0) {
+    if (mineSession) {
+      mineSession.kills = (mineSession.kills || 0) + 1;
+      if (weaponDrop) mineSession.weapons = (mineSession.weapons || 0) + 1;
+    }
     queueNextMob(type === "boss" ? 850 : 520);
     return;
   }
@@ -916,11 +1068,6 @@ function finishMobKill(g, type, dropAt, guard) {
   spawnAdenaDrop(dropAt.x, dropAt.y, reward, dropGolden);
   floatText(dropAt.x, dropAt.y - 32, "+" + fmtAdena(reward), color, { adena: true });
   mineBurst(dropAt.x, dropAt.y, color, type === "golden" || type === "boss" ? 22 : 14);
-  if (weaponDrop) {
-    spawnWeaponDrop(dropAt.x, dropAt.y - 18, weaponDrop);
-    floatText(dropAt.x, dropAt.y - 56, weaponDrop.name, weaponDrop.glow || color);
-    mineBurst(dropAt.x, dropAt.y - 18, weaponDrop.glow || color, 16);
-  }
   if (typeof achStat === "function") {
     achStat("gnomesCaught", 1);
     if (type === "golden") achStat("goldenGnomes", 1);

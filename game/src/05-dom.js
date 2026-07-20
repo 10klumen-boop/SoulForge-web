@@ -5,6 +5,9 @@ function gameDoc() {
 const $ = (s) => gameDoc().querySelector(s);
 const $$ = (s) => gameDoc().querySelectorAll(s);
 const fmt = (n) => Math.round(n).toLocaleString("ru-RU");
+/** Только UI: урон/HP мобов ×10 (визуальные нули), на расчёты не влияет. */
+const COMBAT_DISPLAY_SCALE = 10;
+const fmtCombat = (n) => fmt((Math.round(Number(n) || 0)) * COMBAT_DISPLAY_SCALE);
 function fmtAdena(n) {
   if (n >= 1e9) return (n/1e9).toFixed(2).replace(/\.?0+$/,"") + "kkk";
   if (n >= 1e6) return (n/1e6).toFixed(n % 1e6 ? 1 : 0) + "kk";

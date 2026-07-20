@@ -174,16 +174,15 @@ function avatarProgress() {
   return { level, xp, need, pct: need ? Math.min(100, (xp / need) * 100) : 0 };
 }
 
-/** Бонус к шансу заточки с +4: с 10 уровня, до +0.5% на 20. Воин/орк/гном — чуть раньше (с 9). */
+/** Бонус к шансу заточки с +4: с 9 уровня, до +0.5% на 20. */
 function avatarEnchantBonus(plus, behavior) {
   if (behavior === "guarantee" || plus < safeLevel()) return 0;
   migrateAvatar();
   const lvl = state.avatar.level || 1;
-  const minLvl = typeof isMysticArchetype === "function" && isMysticArchetype(state.avatar.classId) ? 10 : 9;
+  const minLvl = 9;
   if (lvl < minLvl) return 0;
-  const cap = typeof isMysticArchetype === "function" && isMysticArchetype(state.avatar.classId) ? 0.004 : 0.005;
-  const start = minLvl - 1;
-  return Math.min(cap, (lvl - start) * 0.0005);
+  const cap = 0.005;
+  return Math.min(cap, (lvl - (minLvl - 1)) * 0.0005);
 }
 
 function needsAvatarSetup() {
@@ -404,7 +403,10 @@ function renderAvatarSetupStep() {
 
   const backBtn = document.getElementById("avatarSetupBack");
   const nextBtn = document.getElementById("avatarSetupNext");
-  if (backBtn) backBtn.hidden = draft.step <= 1;
+  if (backBtn) {
+    backBtn.hidden = false;
+    backBtn.textContent = draft.step <= 1 ? "В меню" : "Назад";
+  }
   if (nextBtn) {
     nextBtn.textContent = draft.step >= 4 ? "Создать персонажа" : "Далее";
   }
@@ -579,9 +581,28 @@ function avatarSetupNext() {
 }
 
 function avatarSetupBack() {
-  if (_avatarSetupDraft.step <= 1) return;
+  if (_avatarSetupDraft.step <= 1) {
+    cancelAvatarSetup();
+    return;
+  }
   _avatarSetupDraft.step--;
   renderAvatarSetupStep();
+}
+
+function cancelAvatarSetup() {
+  setAvatarSetupOpen(false);
+  _avatarSetupDraft = { step: 1, raceId: null, classId: null, genderId: null };
+  const inp = document.getElementById("avatarNameInput");
+  if (inp) inp.value = "";
+  if (typeof flushActiveCharacterToSlot === "function") flushActiveCharacterToSlot();
+  if (typeof save === "function") save();
+  if (typeof renderCharacterRoster === "function") {
+    renderCharacterRoster();
+    if (typeof show === "function") show("characters");
+  } else if (typeof show === "function") {
+    show("home");
+  }
+  if (typeof renderMenu === "function") renderMenu();
 }
 
 function maybeShowAvatarSetup() {
@@ -642,6 +663,9 @@ function wireAvatar() {
     backdrop.dataset.wired = "1";
     if (nextBtn) nextBtn.onclick = () => { Audio2.click(); avatarSetupNext(); };
     if (backBtn) backBtn.onclick = () => { Audio2.click(); avatarSetupBack(); };
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) cancelAvatarSetup();
+    });
     if (inp) {
       inp.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && _avatarSetupDraft.step === 4) {

@@ -893,6 +893,7 @@ function renderStoryPanel(opts) {
       questRef.hidden = false;
     } else questRef.hidden = true;
   }
+  if (typeof armStoryOkButton === "function") armStoryOkButton();
 }
 
 function zoneStoryBeat(zoneId, race) {
@@ -1168,7 +1169,13 @@ function renderMineStoryBar(zoneId) {
   if (questEl) {
     if (typeof isZoneBossPending === "function" && isZoneBossPending(zoneId)) {
       const boss = typeof zoneBossDef === "function" ? zoneBossDef(zoneId) : { name: "Босс" };
-      questEl.textContent = "☠ " + boss.name + " — босс локации";
+      const grind = typeof zoneBossGrindKills === "function" ? zoneBossGrindKills(zoneId) : 0;
+      const need = typeof zoneBossGrindKillsNeeded === "function" ? zoneBossGrindKillsNeeded() : 12;
+      if (typeof isZoneBossQueued === "function" && isZoneBossQueued(zoneId)) {
+        questEl.textContent = "☠ " + boss.name + " — скоро на поле";
+      } else {
+        questEl.textContent = "☠ " + boss.name + " · качайся " + grind + "/" + need;
+      }
       questEl.hidden = false;
     } else if (typeof isZoneChapterComplete === "function" && isZoneChapterComplete(zoneId)) {
       questEl.textContent = "глава завершена ✓";

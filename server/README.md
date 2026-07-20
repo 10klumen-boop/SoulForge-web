@@ -1,4 +1,4 @@
-# SoulForge cloud API
+.# SoulForge cloud API
 
 Ник + пароль, SQLite, рейтинги `enchant` / `power` / `wealth`.
 Node отдаёт статику `../game` и JSON API на одном origin.

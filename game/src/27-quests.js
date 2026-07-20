@@ -1,6 +1,8 @@
 // ===== Prelude: цепочки квестов, боссы локаций, прогресс =====
 
 const QUESTS_PER_ZONE = 3;
+/** Зачисток на поле после неудачи с боссом — затем он снова явится */
+const ZONE_BOSS_GRIND_KILLS = 12;
 
 /** Убийств по шагам: [зачистка, элита, финал] — подтягивает lvl/силу к боссу и частично к гейту след. зоны */
 function zoneQuestKillTargets(chapter) {
@@ -80,7 +82,7 @@ function questStepId(zoneId, step) {
 
 function ensureQuestProgress() {
   if (!state.questProgress || typeof state.questProgress !== "object") {
-    state.questProgress = { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {}, stepRewards: {} };
+    state.questProgress = { completed: {}, kills: {}, goldenKills: {}, bosses: {}, briefings: {}, chapterRewards: {}, stepRewards: {}, bossQueued: {}, bossGrind: {} };
   }
   const q = state.questProgress;
   if (!q.completed) q.completed = {};
@@ -90,6 +92,8 @@ function ensureQuestProgress() {
   if (!q.briefings) q.briefings = {};
   if (!q.chapterRewards) q.chapterRewards = {};
   if (!q.stepRewards) q.stepRewards = {};
+  if (!q.bossQueued) q.bossQueued = {};
+  if (!q.bossGrind) q.bossGrind = {};
 }
 
 function prevFarmZone(zone) {
@@ -187,6 +191,56 @@ function isZoneBossPending(zoneId) {
   return allZoneQuestsComplete(zoneId) && !isZoneBossDefeated(zoneId);
 }
 
+function zoneBossGrindKills(zoneId) {
+  ensureQuestProgress();
+  return Math.max(0, Math.floor(Number(state.questProgress.bossGrind?.[zoneId]) || 0));
+}
+
+function zoneBossGrindKillsNeeded() {
+  return ZONE_BOSS_GRIND_KILLS;
+}
+
+function resetZoneBossGrind(zoneId) {
+  ensureQuestProgress();
+  if (!state.questProgress.bossGrind) state.questProgress.bossGrind = {};
+  state.questProgress.bossGrind[zoneId] = 0;
+}
+
+function addZoneBossGrindKill(zoneId) {
+  ensureQuestProgress();
+  if (!state.questProgress.bossGrind) state.questProgress.bossGrind = {};
+  state.questProgress.bossGrind[zoneId] = zoneBossGrindKills(zoneId) + 1;
+}
+
+function isZoneBossQueued(zoneId) {
+  ensureQuestProgress();
+  return !!state.questProgress.bossQueued?.[zoneId];
+}
+
+function setZoneBossQueued(zoneId, queued) {
+  ensureQuestProgress();
+  if (!state.questProgress.bossQueued) state.questProgress.bossQueued = {};
+  if (queued) state.questProgress.bossQueued[zoneId] = true;
+  else delete state.questProgress.bossQueued[zoneId];
+}
+
+/** Босс явится на поле (первый раз после квестов или после N зачисток). */
+function shouldOfferZoneBoss(zoneId) {
+  if (!isZoneBossPending(zoneId)) return false;
+  return isZoneBossQueued(zoneId) || zoneBossGrindKills(zoneId) >= ZONE_BOSS_GRIND_KILLS;
+}
+
+function markZoneBossOffered(zoneId) {
+  setZoneBossQueued(zoneId, false);
+  resetZoneBossGrind(zoneId);
+}
+
+function queueZoneBossSpawn(zoneId) {
+  if (!isZoneBossPending(zoneId)) return;
+  setZoneBossQueued(zoneId, true);
+  resetZoneBossGrind(zoneId);
+}
+
 function isZoneChapterComplete(zoneId) {
   return allZoneQuestsComplete(zoneId) && isZoneBossDefeated(zoneId);
 }
@@ -219,6 +273,8 @@ function markQuestStepComplete(questId) {
 function markZoneBossDefeated(zoneId) {
   ensureQuestProgress();
   state.questProgress.bosses[zoneId] = true;
+  setZoneBossQueued(zoneId, false);
+  resetZoneBossGrind(zoneId);
 }
 
 function questBriefingSeen(questId) {
@@ -275,8 +331,9 @@ function onQuestMobKill(zoneId, mobType) {
       }
     } else {
       const boss = zoneBossDef(zoneId);
+      queueZoneBossSpawn(zoneId);
       if (typeof gameLog === "function") {
-        gameLog("Все поручения выполнены" + (loot?.summary ? " (" + loot.summary + ")" : "") + " — на поле явится " + boss.name, "success");
+        gameLog("Все поручения выполнены" + (loot?.summary ? " (" + loot.summary + ")" : "") + " — на поле явится " + boss.name + ". Не готов — выходи качать силу", "success");
       }
       if (typeof toast === "function") {
         toast("☠ Босс: " + boss.name + lootBit, "warn");
@@ -408,6 +465,8 @@ function repairQuestProgressIntegrity() {
         delete q.briefings[step.id];
       });
       delete q.bosses[zone.id];
+      delete q.bossQueued?.[zone.id];
+      delete q.bossGrind?.[zone.id];
       dirty = true;
       return;
     }
@@ -421,6 +480,10 @@ function repairQuestProgressIntegrity() {
     if (!allZoneQuestsComplete(zone.id) && q.bosses[zone.id]) {
       delete q.bosses[zone.id];
       dirty = true;
+    }
+    if (!isZoneBossPending(zone.id)) {
+      if (q.bossQueued?.[zone.id]) { delete q.bossQueued[zone.id]; dirty = true; }
+      if (q.bossGrind?.[zone.id]) { delete q.bossGrind[zone.id]; dirty = true; }
     }
   });
   if (dirty) save();
@@ -550,11 +613,16 @@ function renderMineQuestHud() {
   const zoneId = state.farmZone || "banana_mine";
   if (isZoneBossPending(zoneId)) {
     const boss = zoneBossDef(zoneId);
+    const grind = zoneBossGrindKills(zoneId);
+    const need = zoneBossGrindKillsNeeded();
     el.hidden = false;
     el.className = "mine-quest-hud mine-quest-boss";
+    const obj = isZoneBossQueued(zoneId)
+      ? "Босс скоро на поле — не готов? Выйди и качай силу"
+      : "Качайся на поле · до босса " + grind + "/" + need;
     el.innerHTML =
       '<span class="mine-quest-npc">☠ ' + boss.name +
-      '</span><span class="mine-quest-obj">Босс локации — победи, чтобы открыть следующую главу</span>';
+      '</span><span class="mine-quest-obj">' + obj + " — победа откроет следующую главу</span>";
     return;
   }
   el.className = "mine-quest-hud";

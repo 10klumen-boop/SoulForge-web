@@ -22,11 +22,9 @@ const CLASS_STAT_BONUS = {
 
   fighter: { patk: 3, matk: 0, pdef: 2, mdef: 0 },
 
-  mystic: { patk: 0, matk: 3, pdef: 0, mdef: 2 },
+  mystic: { patk: 0, matk: 4, pdef: 0, mdef: 2 },
 
 };
-
-
 
 function avatarLevelStatBonus(level) {
 
@@ -135,9 +133,12 @@ function avatarStatBonusesFromGear() {
 
       const p = item.plus || 0;
 
-      out.patk += statAt(w.patk, w.ps, p);
-
-      out.matk += statAt(w.matk, w.ms, p);
+      if (avatarIsMystic()) {
+        out.matk += mysticWeaponPower(w, p);
+      } else {
+        out.patk += fighterWeaponPower(w, p);
+        out.matk += statAt(w.matk, w.ms, p);
+      }
 
       return;
 
@@ -205,10 +206,22 @@ function avatarIsMystic() {
   return typeof isMysticArchetype === "function" && isMysticArchetype(state.avatar?.classId);
 }
 
+/** Подпись основного стата оружия в списках экипировки / инвентаря. */
+function weaponEquipStatLabel(w, plus) {
+  if (!w) return "";
+  const p = plus || 0;
+  if (avatarIsMystic()) {
+    const weak = weaponAffinityMult(w, true) < 1 ? " · слабо" : "";
+    return "M.Atk " + fmt(mysticWeaponPower(w, p)) + weak + " · " + weaponAffinityShort(w);
+  }
+  const weak = weaponAffinityMult(w, false) < 1 ? " · слабо" : "";
+  return "P.Atk " + fmt(fighterWeaponPower(w, p)) + weak + " · " + weaponAffinityShort(w);
+}
+
 function avatarFarmPower() {
   const s = avatarStats();
   const mystic = avatarIsMystic();
-  const primary = mystic ? s.matk : s.patk;
+  const primary = mystic ? s.matk * 1.06 : s.patk;
   const secondary = mystic ? s.patk : s.matk;
   const power = Math.round(
     primary * 1.0 + secondary * 0.72 + s.pdef * 0.36 + s.mdef * 0.36 + Math.max(0, (state.avatar?.level || 1) - 1) * 1.5 + s.farmBonus
@@ -218,6 +231,7 @@ function avatarFarmPower() {
 
 /** Бонус P.Atk от оружия; fixedPlus — принудительный уровень заточки (для базового HP). */
 function avatarWeaponPatkBonus(fixedPlus) {
+  if (avatarIsMystic()) return 0;
   if (typeof iterEquippedGear !== "function") return 0;
   let patk = 0;
   iterEquippedGear().forEach(({ item }) => {
@@ -225,7 +239,7 @@ function avatarWeaponPatkBonus(fixedPlus) {
     const w = WMAP[item.id];
     if (!w) return;
     const plus = fixedPlus !== undefined ? fixedPlus : (item.plus || 0);
-    patk += statAt(w.patk, w.ps, plus);
+    patk += fighterWeaponPower(w, plus);
   });
   return patk;
 }
@@ -239,13 +253,16 @@ function avatarWeaponMatkBonus(fixedPlus) {
     const w = WMAP[item.id];
     if (!w) return;
     const plus = fixedPlus !== undefined ? fixedPlus : (item.plus || 0);
-    matk += statAt(w.matk, w.ms, plus);
+    matk += avatarIsMystic() ? mysticWeaponPower(w, plus) : statAt(w.matk, w.ms, plus);
   });
   return matk;
 }
 
 function mineWeaponDamageScale(chapter) {
-  return 0.22 + (chapter || 1) * 0.04;
+  const ch = chapter || 1;
+  const base = 0.22 + ch * 0.04;
+  if (typeof avatarIsMystic === "function" && avatarIsMystic()) return base + 0.16;
+  return base;
 }
 
 function avatarMinePatkForDamage(weaponPlus) {
@@ -272,7 +289,7 @@ function avatarMineClickRaw(weaponPlus) {
   const lvl = state.avatar?.level || 1;
   if (avatarIsMystic()) {
     const effMatk = avatarMineMatkForDamage(weaponPlus);
-    return effMatk * 1.0 + s.patk * 0.24 + lvl * 1.6;
+    return effMatk * 1.1 + s.patk * 0.28 + lvl * 1.75;
   }
   const effPatk = avatarMinePatkForDamage(weaponPlus);
   return effPatk * 1.0 + s.matk * 0.24 + lvl * 1.6;
@@ -697,7 +714,7 @@ function renderAvatarStatsPanel() {
   const mystic = avatarIsMystic();
   const rows = [
 
-    { k: "P.Atk", v: s.patk, tip: mystic ? "Физ. урон — вторичный для мага (лучший билд — M.Atk)" : "Физ. урон — основной стат воина в шахте и силе фарма" },
+    { k: "P.Atk", v: s.patk, tip: mystic ? "Физ. урон — вторичный для мага" : "Физ. урон — основной стат воина в шахте и силе фарма" },
 
     { k: "M.Atk", v: s.matk, tip: mystic ? "Маг. урон — основной стат мага в шахте и силе фарма" : "Маг. урон — вторичный для воина (влияет слабее P.Atk)" },
 

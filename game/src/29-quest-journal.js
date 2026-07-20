@@ -372,7 +372,13 @@ function renderQuestJournal() {
     bossRow.innerHTML =
       '<span class="qj-step-n">☠</span>' +
       '<span class="qj-step-title">' + boss.name + "</span>" +
-      '<span class="qj-status">' + (complete ? "✓" : bossPending ? "на поле" : "—") + "</span>";
+      '<span class="qj-status">' + (complete ? "✓" : bossPending
+        ? (typeof isZoneBossQueued === "function" && isZoneBossQueued(zone.id)
+          ? "скоро"
+          : (typeof zoneBossGrindKills === "function"
+            ? zoneBossGrindKills(zone.id) + "/" + (typeof zoneBossGrindKillsNeeded === "function" ? zoneBossGrindKillsNeeded() : 12)
+            : "качайся"))
+        : "—") + "</span>";
     stepsEl.appendChild(bossRow);
     card.appendChild(stepsEl);
     const actions = document.createElement("div");
@@ -381,7 +387,7 @@ function renderQuestJournal() {
       const playBtn = document.createElement("button");
       playBtn.type = "button";
       playBtn.className = "btn btn-primary btn-sm";
-      playBtn.textContent = complete ? "На поле" : bossPending ? "К боссу" : "На поле";
+      playBtn.textContent = complete ? "На поле" : bossPending ? "Качаться" : "На поле";
       playBtn.onclick = () => {
         Audio2.click();
         if (typeof selectFarmZone === "function") selectFarmZone(zone.id);

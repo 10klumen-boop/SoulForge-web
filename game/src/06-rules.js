@@ -2,10 +2,71 @@
 // Цикл: шахта → заточка/продажа → мастерская (кристаллы + руда → заряды).
 // Золотой гном: небольшой бонус adena + дроп оружия (основная ценность). Ачивки — доп. буст.
 function statAt(base, step, plus) { return base + step * plus; }
+
+/** Оружие: физическое (воин) / магическое (мистик) / универсальное. */
+const WEAPON_AFFINITY_OFF_MULT = 0.42;
+const WEAPON_AFFINITY_HYBRID_MULT = 0.78;
+
+function weaponAffinity(w) {
+  if (!w) return "physical";
+  if (w.weaponKind === "magical" || w.affinity === "magical") return "magical";
+  if (w.weaponKind === "physical" || w.affinity === "physical") return "physical";
+  if (w.weaponKind === "hybrid" || w.affinity === "hybrid") return "hybrid";
+  if (w.id === "ng_wand_of_adept") return "magical";
+  if (w.id === "ng_short_sword") return "physical";
+  return "physical";
+}
+
+function weaponAffinityMult(w, forMystic) {
+  const aff = weaponAffinity(w);
+  if (forMystic) {
+    if (aff === "magical") return 1;
+    if (aff === "physical") return WEAPON_AFFINITY_OFF_MULT;
+    return WEAPON_AFFINITY_HYBRID_MULT;
+  }
+  if (aff === "physical") return 1;
+  if (aff === "magical") return WEAPON_AFFINITY_OFF_MULT;
+  return WEAPON_AFFINITY_HYBRID_MULT;
+}
+
+function fighterWeaponPower(w, plus) {
+  if (!w) return 0;
+  return Math.round(statAt(w.patk, w.ps, plus || 0) * weaponAffinityMult(w, false));
+}
+
+function mysticWeaponPower(w, plus) {
+  if (!w) return 0;
+  const aff = weaponAffinity(w);
+  const step = aff === "magical" ? Math.max(w.ms || 0, w.ps || 0) : (w.ms || 0);
+  return Math.round(statAt(w.matk, step, plus || 0) * weaponAffinityMult(w, true));
+}
+
+function mysticWeaponPowerStep(w) {
+  if (!w) return 0;
+  const aff = weaponAffinity(w);
+  const baseStep = aff === "magical" ? Math.max(w.ms || 0, w.ps || 0) : (w.ms || 0);
+  return Math.round(baseStep * weaponAffinityMult(w, true));
+}
+
+function weaponAffinityShort(w) {
+  const aff = weaponAffinity(w);
+  if (aff === "magical") return "маг.";
+  if (aff === "physical") return "физ.";
+  return "унив.";
+}
 function successChance(plus, behavior) {
   if (behavior === "guarantee") return 1;
   const safe = safeLevel();
   if (plus < safe) return 1;
+  if (behavior === "destruction") {
+    const base = tune("ench.destructionChanceBase", 0.16);
+    const step = tune("ench.destructionChanceStep", 0.02);
+    const min = tune("ench.destructionChanceMin", 0.03);
+    let ch = Math.max(min, base - (plus - safe) * step);
+    if (typeof avatarEnchantBonus === "function") ch = Math.min(1, ch + avatarEnchantBonus(plus, behavior));
+    if (typeof avatarGearEnchantBonus === "function") ch = Math.min(1, ch + avatarGearEnchantBonus(plus, behavior));
+    return ch;
+  }
   const base = tune("ench.chanceBase", 0.72);
   const step = tune("ench.chanceStep", 0.048);
   const min = tune("ench.chanceMin", 0.12);
@@ -13,6 +74,13 @@ function successChance(plus, behavior) {
   if (typeof avatarEnchantBonus === "function") ch = Math.min(1, ch + avatarEnchantBonus(plus, behavior));
   if (typeof avatarGearEnchantBonus === "function") ch = Math.min(1, ch + avatarGearEnchantBonus(plus, behavior));
   return ch;
+}
+
+function scrollMaxPlus(scrollId) {
+  if (scrollId === "destruction") {
+    return typeof DESTRUCTION_MAX_PLUS !== "undefined" ? DESTRUCTION_MAX_PLUS : 15;
+  }
+  return MAX_PLUS;
 }
 // Свечение: +4..+15 — синее (от бледного к яркому), +16 — красное.
 function glowInfo(plus) {

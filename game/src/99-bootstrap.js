@@ -54,6 +54,12 @@ document.addEventListener("keydown", (e) => {
   const storyOpen = document.getElementById("storyBackdrop") && !document.getElementById("storyBackdrop").hidden;
   const avatarSetupOpen = document.getElementById("avatarSetupBackdrop") && !document.getElementById("avatarSetupBackdrop").hidden;
   const avatarEquipOpen = document.getElementById("avatarEquipBackdrop") && !document.getElementById("avatarEquipBackdrop").hidden;
+  if (e.key === "Escape" && avatarSetupOpen) {
+    e.preventDefault();
+    if (typeof Audio2 !== "undefined") Audio2.click();
+    if (typeof avatarSetupBack === "function") avatarSetupBack();
+    return;
+  }
   if (modalOpen || achModalOpen || achRewardOpen || storyOpen || avatarSetupOpen || avatarEquipOpen) return;
   if ($("#screen-ench").classList.contains("active")) {
     if (e.code === "Space") { e.preventDefault(); doEnchant(); }

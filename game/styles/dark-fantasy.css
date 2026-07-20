@@ -440,7 +440,7 @@ body {
   box-shadow: 0 0 32px rgba(138, 40, 40, 0.15), 0 24px 64px rgba(0, 0, 0, 0.8);
 }
 .ach-modal-rays {
-  background: conic-gradient(from 0deg, transparent, rgba(138, 40, 40, 0.08), transparent, rgba(80, 32, 32, 0.06), transparent);
+  background: radial-gradient(ellipse 90% 65% at 50% 18%, rgba(138, 40, 40, 0.14), transparent 68%);
 }
 .ach-modal-ico {
   background: linear-gradient(160deg, #0a0806, #161412);

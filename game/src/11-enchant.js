@@ -19,7 +19,10 @@ function renderScrolls() {
   const grade = cur.weapon.grade;
   SCROLL_TYPES.forEach((t) => {
     const s = scrollFor(grade, t.id);
-    const el = document.createElement("div"); el.className = "scroll-opt" + (cur.scroll === s.id ? " sel" : "");
+    const tier = s.tier || 1;
+    const el = document.createElement("div");
+    el.className = "scroll-opt scroll-tier-" + tier + (cur.scroll === s.id ? " sel" : "");
+    el.dataset.tier = String(tier);
     el.innerHTML = `<div class="si"><img src="${s.icon}" alt="" onerror="this.style.visibility='hidden'"></div>` +
       `<div class="sm"><div class="st">${s.name} <span class="grade g-${grade}">${grade}</span></div><div class="sd">${s.desc}</div></div>` +
       `<div class="sc">${fmtAdena(s.cost)}<small>adena</small></div>`;
@@ -100,30 +103,45 @@ function renderEnch(resetVerdict) {
 
   const p = broken ? 0 : statAt(w.patk, w.ps, cur.plus);
   const m = broken ? 0 : statAt(w.matk, w.ms, cur.plus);
+  const patkBox = $("#patk")?.closest(".box");
+  if (patkBox) patkBox.hidden = false;
   $("#patk").innerHTML = `${fmt(p)} <small>${cur.plus > 0 ? "+" + w.ps * cur.plus : ""}</small>`;
   $("#matk").innerHTML = `${fmt(m)} <small>${cur.plus > 0 ? "+" + w.ms * cur.plus : ""}</small>`;
 
   const sc = scrollFor(w.grade, cur.scroll);
   const chance = successChance(cur.plus, sc.behavior);
   const safe = cur.plus < safeLevel();
+  const capPlus = typeof scrollMaxPlus === "function" ? scrollMaxPlus(cur.scroll) : MAX_PLUS;
   $("#oddsVal").textContent = broken ? "—" : Math.round(chance * 100) + "%" + (safe ? " (безопасно)" : "");
   $("#costVal").textContent = fmtAdena(sc.cost);
 
-  const maxed = cur.plus >= MAX_PLUS;
+  const maxed = cur.plus >= capPlus;
   const note = $("#safeNote");
   if (broken) { note.textContent = "Оружие разрушено — возьми новое"; note.style.color = "var(--red)"; }
-  else if (maxed) { note.textContent = "+16 — максимальная заточка!"; note.style.color = "var(--red)"; }
+  else if (maxed && capPlus >= MAX_PLUS) { note.textContent = "+16 — максимальная заточка!"; note.style.color = "var(--red)"; }
+  else if (maxed && sc.behavior === "destruction") { note.textContent = "Свиток разрушения — максимум +15"; note.style.color = "var(--gold-soft)"; }
   else if (safe) { note.textContent = "+0…+3 — безопасная заточка"; note.style.color = "var(--green)"; }
   else if (sc.behavior === "guarantee") { note.textContent = "Кристальный свиток — гарантированный успех"; note.style.color = "var(--blue)"; }
+  else if (sc.behavior === "destruction") { note.textContent = "Свиток разрушения — низкий шанс, провал не ломает (до +15)"; note.style.color = "var(--gold-soft)"; }
   else if (sc.behavior === "reset") { note.textContent = "Риск: провал откатит до +0"; note.style.color = "var(--gold-soft)"; }
   else { note.textContent = "Риск: провал разрушит оружие"; note.style.color = "var(--red)"; }
+  if (!broken && !maxed) {
+    const mystic = typeof avatarIsMystic === "function" && avatarIsMystic();
+    if (mystic && typeof weaponAffinity === "function" && weaponAffinity(w) === "physical") {
+      note.textContent = "Физическое оружие — для мага слабее";
+      note.style.color = "var(--gold-soft)";
+    } else if (!mystic && typeof weaponAffinity === "function" && weaponAffinity(w) === "magical") {
+      note.textContent = "Магическое оружие — для воина слабее";
+      note.style.color = "var(--gold-soft)";
+    }
+  }
 
   $("#pMax").textContent = "+" + weaponRecord(w.id);
   $("#pSpent").textContent = fmtAdena(cur.item.spent || 0);
 
   const canAfford = state.adena >= sc.cost;
   $("#enchBtn").disabled = busy || broken || maxed || !canAfford;
-  $("#enchBtn").textContent = busy ? "Заточка…" : (broken ? "Разрушено" : (maxed ? "Максимум +16" : "Заточить ✦"));
+  $("#enchBtn").textContent = busy ? "Заточка…" : (broken ? "Разрушено" : (maxed ? (capPlus >= MAX_PLUS ? "Максимум +16" : "Максимум +15") : "Заточить ✦"));
 
   const sellable = !broken && canSell(cur.plus) && !cur.equipped;
   $("#sellBtn").disabled = !sellable;
@@ -153,7 +171,9 @@ function enchFlash(kind, glowColor) {
 let busy = false;
 function doEnchant() {
   if (busy || (typeof isGamePaused === "function" && isGamePaused())) return;
-  if (!cur || cur.broken || cur.plus >= MAX_PLUS) return;
+  if (!cur || cur.broken) return;
+  const capPlus = typeof scrollMaxPlus === "function" ? scrollMaxPlus(cur.scroll) : MAX_PLUS;
+  if (cur.plus >= capPlus) return;
   const sc = scrollFor(cur.weapon.grade, cur.scroll);
   if (state.adena < sc.cost) { toast("Недостаточно adena!", "warn"); return; }
   busy = true;
@@ -178,16 +198,20 @@ function doEnchant() {
       stage.classList.add("success");
       const gi = glowInfo(cur.plus);
       enchFlash("success", gi.color);
-      const maxed = cur.plus >= MAX_PLUS; maxed ? Audio2.jackpot() : Audio2.success();
+      const maxed = cur.plus >= capPlus;
+      maxed ? Audio2.jackpot() : Audio2.success();
       enchantFirework(gi.color, maxed ? 52 : 36);
-      playEnchantPlusPop(cur.plus, { maxed });
+      playEnchantPlusPop(cur.plus, { maxed: maxed && capPlus >= MAX_PLUS });
       animMs = 520;
       setTimeout(() => stage.classList.remove("success"), animMs);
       setTimeout(() => stage.classList.remove("success-flash"), 880);
-      setVerdict(maxed ? "+16 МАКСИМУМ — ЛЕГЕНДА!" : (cur.plus >= 12 ? "Великолепно! +" + cur.plus : "Успех! +" + cur.plus), "good");
+      setVerdict(
+        maxed && capPlus >= MAX_PLUS ? "+16 МАКСИМУМ — ЛЕГЕНДА!" : (cur.plus >= 12 ? "Великолепно! +" + cur.plus : "Успех! +" + cur.plus),
+        "good"
+      );
       gameLog(
-        (maxed ? "ЛЕГЕНДА! " : "") + cur.weapon.name + " [" + cur.weapon.grade + "] → +" + cur.plus,
-        maxed ? "success" : "enchant"
+        (maxed && capPlus >= MAX_PLUS ? "ЛЕГЕНДА! " : "") + cur.weapon.name + " [" + cur.weapon.grade + "] → +" + cur.plus,
+        maxed && capPlus >= MAX_PLUS ? "success" : "enchant"
       );
       notifyWeaponRecord(cur.weapon, cur.plus);
       if (typeof logCharacterEvent === "function") {
@@ -220,6 +244,22 @@ function doEnchant() {
             scroll: sc.id,
             cost: sc.cost,
             behavior: "reset",
+          });
+        }
+      } else if (sc.behavior === "destruction") {
+        const plusBefore = cur.plus;
+        setVerdict("Провал — оружие цело (+" + cur.plus + ")", "bad");
+        gameLog("Провал (разруш.): " + cur.weapon.name + " +" + plusBefore + " — без изменений", "fail");
+        shards(cur.weapon.glow, 10);
+        if (typeof logCharacterEvent === "function") {
+          logCharacterEvent("enchant_fail", {
+            weaponId: cur.weapon.id,
+            weaponName: cur.weapon.name,
+            grade: cur.weapon.grade,
+            plusBefore,
+            scroll: sc.id,
+            cost: sc.cost,
+            behavior: "destruction",
           });
         }
       } else {

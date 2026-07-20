@@ -1,4 +1,114 @@
 // ===== Инвентарь игрока =====
+
+const INV_GRADE_RANK = { NG: 0, D: 1, C: 2, B: 3, A: 4, S: 5 };
+
+const INV_TABS = [
+  { id: "all", label: "Все" },
+  { id: "A", label: "A" },
+  { id: "B", label: "B" },
+  { id: "C", label: "C" },
+  { id: "D", label: "D" },
+  { id: "NG", label: "NG" },
+  { id: "epic", label: "★" },
+];
+
+function ensureInvTab() {
+  if (state.invTab && INV_TABS.some((t) => t.id === state.invTab)) return;
+  if (state.invGradeFilter && !state.invGradeFilter.all) {
+    const keys = ["A", "B", "C", "D", "NG", "epic"].filter((k) => state.invGradeFilter[k]);
+    if (keys.length === 1) {
+      state.invTab = keys[0];
+      delete state.invGradeFilter;
+      return;
+    }
+  }
+  state.invTab = "all";
+  delete state.invGradeFilter;
+}
+
+function inventoryTabId() {
+  ensureInvTab();
+  return state.invTab;
+}
+
+function inventoryItemGradeKey(it) {
+  if (isAccessoryItem(it)) return "epic";
+  const def = invItemDef(it);
+  if (!def) return null;
+  if (def.grade === "NG" || (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(def))) return "NG";
+  return def.grade || "NG";
+}
+
+function inventoryItemMatchesTab(it, tabId) {
+  if (tabId === "all") return true;
+  const key = inventoryItemGradeKey(it);
+  return key != null && key === tabId;
+}
+
+function setInvTab(id) {
+  if (!INV_TABS.some((t) => t.id === id)) return;
+  state.invTab = id;
+  delete state.invGradeFilter;
+  save();
+}
+
+function countInvTabItems(tabId) {
+  const inv = state.inventory || [];
+  return inv.slice(0, INV_CAP).filter((it) => inventoryItemMatchesTab(it, tabId)).length;
+}
+
+function inventorySortMode() {
+  return "grade";
+}
+
+function inventoryItemPower(it, def) {
+  if (!def || isAccessoryItem(it)) return 0;
+  const plus = it.plus || 0;
+  const p = typeof statAt === "function" ? statAt(def.patk, def.ps, plus) : (def.patk || 0);
+  const m = typeof statAt === "function" ? statAt(def.matk, def.ms, plus) : (def.matk || 0);
+  if (typeof mysticWeaponPower === "function" && typeof avatarIsMystic === "function" && avatarIsMystic()) {
+    return mysticWeaponPower(def, plus);
+  }
+  if (typeof fighterWeaponPower === "function") return fighterWeaponPower(def, plus);
+  return Math.max(p, m);
+}
+
+function compareInventoryItems(a, b, mode) {
+  const aa = isAccessoryItem(a), ab = isAccessoryItem(b);
+  if (aa !== ab) return aa ? 1 : -1;
+  const da = invItemDef(a), db = invItemDef(b);
+  if (!da && !db) return 0;
+  if (!da) return 1;
+  if (!db) return -1;
+  if (mode === "name") {
+    return String(da.name || "").localeCompare(String(db.name || ""), "ru", { sensitivity: "base" });
+  }
+  const plusA = a.plus || 0, plusB = b.plus || 0;
+  const gradeA = INV_GRADE_RANK[da.grade] ?? 0;
+  const gradeB = INV_GRADE_RANK[db.grade] ?? 0;
+  const powerA = inventoryItemPower(a, da);
+  const powerB = inventoryItemPower(b, db);
+  if (mode === "grade") {
+    if (gradeB !== gradeA) return gradeB - gradeA;
+    if (plusB !== plusA) return plusB - plusA;
+  } else if (mode === "plus") {
+    if (plusB !== plusA) return plusB - plusA;
+    if (gradeB !== gradeA) return gradeB - gradeA;
+  } else if (mode === "power") {
+    if (powerB !== powerA) return powerB - powerA;
+    if (plusB !== plusA) return plusB - plusA;
+  }
+  return String(da.name || "").localeCompare(String(db.name || ""), "ru", { sensitivity: "base" });
+}
+
+function applyInventorySort(mode) {
+  mode = mode || inventorySortMode();
+  state.invSort = "grade";
+  if (state.inventory && state.inventory.length > 1) {
+    state.inventory.sort((a, b) => compareInventoryItems(a, b, mode));
+  }
+}
+
 function inventoryCount() {
   return state.inventory ? state.inventory.length : 0;
 }
@@ -22,6 +132,7 @@ function addToInventory(weaponId, meta) {
   }
   const it = { uid: uid(), id: weaponId, plus: 0, spent: 0 };
   state.inventory.push(it);
+  if (typeof markWeaponCollected === "function") markWeaponCollected(weaponId);
   if (isInventoryFull() && typeof achStat === "function") achStat("invFullOnce", 1);
   save();
   renderMenu();
@@ -121,42 +232,140 @@ function openInventory() { renderInventory(); show("inv"); Audio2.open(); }
 function goInventory() { renderInventory(); renderMenu(); show("inv"); }
 
 let dragSrc = null;
-/** @type {{ idx: number, t: number, x: number, y: number } | null} */
-let dragMeta = null;
+/** @type {{ idx: number, x: number, y: number, armed: boolean, pointerId: number } | null} */
+let invPointerDrag = null;
+/** @type {HTMLElement | null} */
+let invDragGhost = null;
+let invSuppressClickUntil = 0;
 let lastWheelAt = 0;
 
 document.addEventListener(
   "wheel",
-  () => {
+  (e) => {
+    if (!e || (e.deltaY === 0 && e.deltaX === 0)) return;
     lastWheelAt = Date.now();
-    if (dragSrc == null && !dragMeta) return;
-    dragSrc = null;
-    dragMeta = null;
-    $$(".inv-slot.dragover,.inv-slot.dragging").forEach((s) => s.classList.remove("dragover", "dragging"));
-    const cz = document.getElementById("invCrystallize");
-    if (cz) setCrystallizeIco(cz, "normal");
+    if (!invPointerDrag) return;
+    finishInvPointerDrag(null);
   },
   { passive: true, capture: true }
 );
 
+function pointInElement(e, el) {
+  if (!el || !e) return false;
+  const r = el.getBoundingClientRect();
+  const x = e.clientX != null ? e.clientX : 0;
+  const y = e.clientY != null ? e.clientY : 0;
+  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
+function invCrystallizeZone() {
+  return document.getElementById("invCrystallize");
+}
+
+function updateInvCrystHover(e) {
+  const cz = invCrystallizeZone();
+  if (!cz || !invPointerDrag || !invPointerDrag.armed) return;
+  setCrystallizeIco(cz, pointInElement(e, cz) ? "drag" : "normal");
+}
+
+function removeInvDragGhost() {
+  if (invDragGhost) {
+    invDragGhost.remove();
+    invDragGhost = null;
+  }
+}
+
+function moveInvDragGhost(e) {
+  if (!invDragGhost || !e) return;
+  invDragGhost.style.left = e.clientX + "px";
+  invDragGhost.style.top = e.clientY + "px";
+}
+
+function createInvDragGhost(it, slot) {
+  removeInvDragGhost();
+  const def = invItemDef(it);
+  if (!def) return;
+  const grade = def.grade || "NG";
+  const ghost = document.createElement("div");
+  ghost.className = "inv-drag-ghost g-" + grade;
+  ghost.innerHTML =
+    '<img src="' + def.icon + '" alt="" draggable="false">' +
+    (it.plus ? '<span class="ip">+' + it.plus + "</span>" : "");
+  document.body.appendChild(ghost);
+  invDragGhost = ghost;
+  if (slot) {
+    const r = slot.getBoundingClientRect();
+    ghost.style.left = r.left + r.width / 2 + "px";
+    ghost.style.top = r.top + r.height / 2 + "px";
+  }
+}
+
+function armInvPointerDrag(e) {
+  if (!invPointerDrag || invPointerDrag.armed) return;
+  invPointerDrag.armed = true;
+  dragSrc = invPointerDrag.idx;
+  const slot = document.querySelector('.inv-slot[data-inv-idx="' + invPointerDrag.idx + '"]');
+  if (slot) slot.classList.add("dragging");
+  const inv = state.inventory || [];
+  const it = inv[invPointerDrag.idx];
+  if (it) createInvDragGhost(it, slot);
+  moveInvDragGhost(e);
+  const cz = invCrystallizeZone();
+  if (cz) setCrystallizeIco(cz, pointInElement(e, cz) ? "drag" : "normal");
+}
+
+function finishInvPointerDrag(e) {
+  const pd = invPointerDrag;
+  invPointerDrag = null;
+  dragSrc = null;
+  if (pd && pd.armed) {
+    invSuppressClickUntil = Date.now() + 320;
+    const cz = invCrystallizeZone();
+    if (cz && e && pointInElement(e, cz)) {
+      const inv = state.inventory || [];
+      const it = inv[pd.idx];
+      if (it && !isAccessoryItem(it)) crystallizeAt(pd.idx);
+    }
+  }
+  clearInvDragUi();
+}
+
+document.addEventListener("pointermove", (e) => {
+  if (!invPointerDrag || invPointerDrag.pointerId !== e.pointerId) return;
+  if (invPointerDrag.armed) {
+    e.preventDefault();
+    moveInvDragGhost(e);
+    updateInvCrystHover(e);
+    return;
+  }
+  const dx = e.clientX - invPointerDrag.x;
+  const dy = e.clientY - invPointerDrag.y;
+  if (dx * dx + dy * dy < 36) return;
+  e.preventDefault();
+  armInvPointerDrag(e);
+});
+
+document.addEventListener("pointerup", (e) => {
+  if (!invPointerDrag || invPointerDrag.pointerId !== e.pointerId) return;
+  finishInvPointerDrag(e);
+}, true);
+
+document.addEventListener("pointercancel", (e) => {
+  if (!invPointerDrag || invPointerDrag.pointerId !== e.pointerId) return;
+  finishInvPointerDrag(null);
+}, true);
+
 function clearInvDragUi() {
   dragSrc = null;
-  dragMeta = null;
+  invPointerDrag = null;
+  removeInvDragGhost();
   $$(".inv-slot.dragover,.inv-slot.dragging").forEach((s) => s.classList.remove("dragover", "dragging"));
-  const cz = document.getElementById("invCrystallize");
+  const cz = invCrystallizeZone();
   if (cz) setCrystallizeIco(cz, "normal");
 }
 
-/** Скролл/жест трекпада часто стартует «ложный» HTML5-drag — отсекаем. */
-function isAccidentalInvDrag(e) {
-  if (Date.now() - lastWheelAt < 220) return true;
-  if (!dragMeta) return true;
-  if (Date.now() - dragMeta.t < 140) return true;
-  const x = e && typeof e.clientX === "number" ? e.clientX : dragMeta.x;
-  const y = e && typeof e.clientY === "number" ? e.clientY : dragMeta.y;
-  const dx = x - dragMeta.x;
-  const dy = y - dragMeta.y;
-  return dx * dx + dy * dy < 100; // <10px — не считаем переносом
+function invClickBlocked() {
+  return Date.now() < invSuppressClickUntil || invPointerDrag != null || dragSrc != null;
 }
 
 function setCrystallizeIco(zone, state) {
@@ -214,103 +423,36 @@ async function crystallizeAt(idx) {
   renderInventory();
 }
 
-function dragIndexFromEvent(e) {
-  if (dragSrc != null) return dragSrc;
-  try {
-    const dt = e.dataTransfer;
-    if (!dt) return null;
-    const raw = dt.getData("application/x-soulforge-inv") || dt.getData("text/plain");
-    if (raw === "" || raw == null) return null;
-    const n = parseInt(raw, 10);
-    return Number.isFinite(n) ? n : null;
-  } catch (_) {
-    return null;
-  }
-}
-
 function attachCrystallizeZone(zone) {
   setCrystallizeIco(zone, "normal");
-  zone.addEventListener("mouseenter", () => { if (dragSrc == null) setCrystallizeIco(zone, "over"); });
-  zone.addEventListener("mouseleave", () => { if (dragSrc == null) setCrystallizeIco(zone, "normal"); });
-  const allowDrop = (e) => {
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-    setCrystallizeIco(zone, "drag");
+  zone.addEventListener("mouseenter", () => { if (!invPointerDrag) setCrystallizeIco(zone, "over"); });
+  zone.addEventListener("mouseleave", () => { if (!invPointerDrag) setCrystallizeIco(zone, "normal"); });
+  zone.addEventListener("pointerup", (e) => {
+    if (!invPointerDrag || !invPointerDrag.armed || invPointerDrag.pointerId !== e.pointerId) return;
+    finishInvPointerDrag(e);
+  });
+}
+
+function attachInvSlotCryst(slot, idx) {
+  slot.dataset.invIdx = String(idx);
+  slot.classList.add("inv-draggable");
+  const endPointer = (e) => {
+    if (!invPointerDrag || invPointerDrag.pointerId !== e.pointerId) return;
+    finishInvPointerDrag(e);
   };
-  zone.addEventListener("dragenter", allowDrop);
-  zone.addEventListener("dragover", allowDrop);
-  zone.addEventListener("dragleave", (e) => {
-    if (zone.contains(e.relatedTarget)) return;
-    setCrystallizeIco(zone, "normal");
+  slot.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0 || invClickBlocked()) return;
+    if (Date.now() - lastWheelAt < 60) return;
+    invPointerDrag = {
+      idx,
+      x: e.clientX,
+      y: e.clientY,
+      armed: false,
+      pointerId: e.pointerId,
+    };
   });
-  zone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    setCrystallizeIco(zone, "normal");
-    const idx = dragIndexFromEvent(e);
-    const accidental = isAccidentalInvDrag(e);
-    clearInvDragUi();
-    if (idx == null || accidental) return;
-    const inv = state.inventory || [];
-    const it = inv[idx];
-    if (!it) return;
-    if (isAccessoryItem(it)) {
-      toast("Аксессуары нельзя кристаллизовать", "warn");
-      return;
-    }
-    crystallizeAt(idx);
-  });
-}
-
-function reorderInventory(from, to) {
-  const inv = state.inventory; if (!inv || from == null) return;
-  if (to === "end") {
-    if (from >= inv.length - 1) return;
-    const [m] = inv.splice(from, 1); inv.push(m);
-  } else {
-    if (to === from) return;
-    const a = inv[from]; inv[from] = inv[to]; inv[to] = a;
-  }
-  save(); renderInventory();
-}
-
-function attachDnD(slot, idx) {
-  slot.setAttribute("draggable", "true");
-  slot.draggable = true;
-  slot.addEventListener("dragstart", (e) => {
-    // Двухпальцевый скролл на Mac часто стартует drag — отменяем
-    if (Date.now() - lastWheelAt < 220) {
-      e.preventDefault();
-      clearInvDragUi();
-      return;
-    }
-    dragSrc = idx;
-    dragMeta = { idx, t: Date.now(), x: e.clientX || 0, y: e.clientY || 0 };
-    slot.classList.add("dragging");
-    e.dataTransfer.effectAllowed = "move";
-    try {
-      e.dataTransfer.setData("text/plain", String(idx));
-      e.dataTransfer.setData("application/x-soulforge-inv", String(idx));
-    } catch (_) {}
-  });
-  slot.addEventListener("dragend", () => {
-    clearInvDragUi();
-  });
-  slot.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    slot.classList.add("dragover");
-  });
-  slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
-  slot.addEventListener("drop", (e) => {
-    e.preventDefault();
-    slot.classList.remove("dragover");
-    const from = dragIndexFromEvent(e);
-    const accidental = isAccidentalInvDrag(e);
-    clearInvDragUi();
-    if (from == null || accidental) return;
-    reorderInventory(from, idx);
-  });
-  // ПКМ / двухпальцевый клик Mac → кристаллизация (с подтверждением).
-  // Обычный скролл сюда не попадает; drag-на-зону защищён isAccidentalInvDrag.
+  slot.addEventListener("pointerup", endPointer);
+  slot.addEventListener("pointercancel", endPointer);
   slot.addEventListener("contextmenu", (e) => {
     const inv = state.inventory || [];
     const it = inv[idx];
@@ -346,7 +488,7 @@ function renderEquippedWeaponSlot(list) {
     '<img src="' + w.icon + '" alt="" loading="lazy" draggable="false" onerror="this.style.visibility=\'hidden\'">' +
     (it.plus ? '<span class="ip">+' + it.plus + "</span>" : "");
   slot.onclick = () => {
-    if (dragSrc != null) return;
+    if (invClickBlocked()) return;
     Audio2.click();
     if (ng) {
       toast("«" + w.name + "» без грейда — не точится", "warn");
@@ -360,18 +502,127 @@ function renderEquippedWeaponSlot(list) {
   meta.innerHTML =
     '<span class="g-' + (w.grade || "NG") + '">' + w.name + "</span>" +
     (it.plus ? " +" + it.plus : "") +
-    " · P.Atk " + fmt(p);
+    " · " + (typeof weaponEquipStatLabel === "function" ? weaponEquipStatLabel(w, it.plus || 0) : "P.Atk " + fmt(p));
   block.appendChild(meta);
   list.appendChild(block);
   return true;
+}
+
+function buildInvTabs(tabId) {
+  const tabs = document.createElement("div");
+  tabs.className = "inv-tabs";
+  tabs.setAttribute("role", "tablist");
+  tabs.setAttribute("aria-label", "Вкладки инвентаря по грейду");
+  INV_TABS.forEach((t) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const gradeClass = t.id !== "all" && t.id !== "epic" ? " g-" + t.id : "";
+    const active = tabId === t.id;
+    btn.className = "inv-tab" + gradeClass + (active ? " active" : "");
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", active ? "true" : "false");
+    const n = countInvTabItems(t.id);
+    btn.innerHTML = t.id !== "all" && n
+      ? `${t.label} <span class="inv-tab-n">(${n})</span>`
+      : t.label;
+    btn.title = t.id === "all"
+      ? "Все предметы"
+      : t.id === "epic"
+        ? "Эпические аксессуары"
+        : "Только грейд " + t.label;
+    btn.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      setInvTab(t.id);
+      renderInventory();
+    };
+    tabs.appendChild(btn);
+  });
+  return tabs;
+}
+
+function appendInvEmptySlot(grid) {
+  const empty = document.createElement("div");
+  empty.className = "inv-slot empty";
+  grid.appendChild(empty);
+}
+
+function fillInvGrid(grid, tabId, shown) {
+  if (tabId === "all") {
+    for (let idx = 0; idx < INV_CAP; idx++) {
+      const it = shown[idx];
+      if (it) appendInvItemSlot(grid, it, idx);
+      else appendInvEmptySlot(grid);
+    }
+    return;
+  }
+  const packed = shown
+    .map((it, idx) => ({ it, idx }))
+    .filter((row) => inventoryItemMatchesTab(row.it, tabId));
+  for (let i = 0; i < INV_CAP; i++) {
+    if (packed[i]) appendInvItemSlot(grid, packed[i].it, packed[i].idx);
+    else appendInvEmptySlot(grid);
+  }
+}
+
+function appendInvItemSlot(grid, it, idx) {
+  normalizeInvItem(it);
+  const def = invItemDef(it);
+  if (!def) {
+    appendInvEmptySlot(grid);
+    return;
+  }
+  const slot = document.createElement("div");
+  if (isAccessoryItem(it)) {
+    slot.className = "inv-slot filled g-epic";
+    slot.title = def.name + "\nЭпическая бижутерия · клик — детали · надень в «Персонаж»";
+    slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
+    slot.onclick = () => { if (invClickBlocked()) return; Audio2.click(); openAccessory(it); };
+  } else {
+    const w = def;
+    const p = statAt(w.patk, w.ps, it.plus), m = statAt(w.matk, w.ms, it.plus);
+    const ng = w.grade === "NG" || (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(w));
+    slot.className = "inv-slot filled g-" + (w.grade || "NG");
+    const gradeTag = w.grade === "NG" ? "NG" : w.grade;
+    slot.title = `${w.name} [${gradeTag}]${it.plus ? " +" + it.plus : ""}\nP.Atk ${fmt(p)} · M.Atk ${fmt(m)}` +
+      (ng ? "\nБез грейда — не точится" : "\nКлик — заточка · зажми и потяни на кристаллизацию · ПКМ");
+    slot.innerHTML = `<img src="${w.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">${it.plus ? `<span class="ip">+${it.plus}</span>` : ""}`;
+    slot.onclick = () => {
+      if (invClickBlocked()) return;
+      Audio2.click();
+      if (ng) {
+        toast("«" + w.name + "» без грейда — не точится", "warn");
+        return;
+      }
+      openEnchant(it);
+    };
+    if (!ng) attachInvSlotCryst(slot, idx);
+  }
+  grid.appendChild(slot);
 }
 
 function renderInventory() {
   const list = $("#invList"); list.innerHTML = "";
   if (!state.crystals) state.crystals = { D: 0, C: 0, B: 0, A: 0 };
   const inv = state.inventory || [];
+  const tabId = inventoryTabId();
+  const sortMode = inventorySortMode();
+  if (inv.length > 1) {
+    applyInventorySort(sortMode);
+  }
+
+  const shown = inv.slice(0, INV_CAP);
+  const visible = shown
+    .map((it, idx) => ({ it, idx }))
+    .filter((row) => inventoryItemMatchesTab(row.it, tabId));
+
   const bar = document.createElement("div"); bar.className = "inv-bar";
-  bar.innerHTML = `Инвентарь <span>(${inv.length}/${INV_CAP})</span>`;
+  const title = document.createElement("div");
+  title.className = "inv-bar-title";
+  const countLabel = tabId !== "all"
+    ? `${visible.length} из ${inv.length}/${INV_CAP}`
+    : `${inv.length}/${INV_CAP}`;
+  title.innerHTML = `Инвентарь <span>(${countLabel})</span>`;
+  bar.appendChild(title);
   list.appendChild(bar);
 
   const res = document.createElement("div");
@@ -414,7 +665,7 @@ function renderInventory() {
   cz.className = "inv-crystallize";
   cz.id = "invCrystallize";
   cz.innerHTML = `<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="${CRYSTALLIZE_ICON.normal}" alt="" draggable="false"></div>` +
-    `<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Перетащи оружие на иконку или ПКМ по слоту — разобьётся в кристаллы</span></div>`;
+    `<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Зажми оружие и потяни на иконку · или ПКМ по слоту</span></div>`;
   attachCrystallizeZone(cz);
   list.appendChild(cz);
 
@@ -434,64 +685,15 @@ function renderInventory() {
 
   if (!inv.length) return;
 
-  const grid = document.createElement("div"); grid.className = "inv-grid";
-  const shown = inv.slice(0, INV_CAP);
-  shown.forEach((it, idx) => {
-    normalizeInvItem(it);
-    const def = invItemDef(it);
-    if (!def) return;
-    const slot = document.createElement("div");
-    if (isAccessoryItem(it)) {
-      slot.className = "inv-slot filled g-epic";
-      slot.setAttribute("draggable", "true");
-      slot.draggable = true;
-      slot.title = def.name + "\nЭпическая бижутерия · клик — детали · надень в «Персонаж»";
-      slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
-      slot.onclick = () => { if (dragSrc != null) return; Audio2.click(); openAccessory(it); };
-    } else {
-      const w = def;
-      const p = statAt(w.patk, w.ps, it.plus), m = statAt(w.matk, w.ms, it.plus);
-      const ng = w.grade === "NG" || (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(w));
-      slot.className = "inv-slot filled g-" + (w.grade || "NG");
-      if (ng) {
-        slot.draggable = false;
-        slot.removeAttribute("draggable");
-      } else {
-        slot.setAttribute("draggable", "true");
-        slot.draggable = true;
-      }
-      const gradeTag = w.grade === "NG" ? "NG" : w.grade;
-      slot.title = `${w.name} [${gradeTag}]${it.plus ? " +" + it.plus : ""}\nP.Atk ${fmt(p)} · M.Atk ${fmt(m)}` +
-        (ng ? "\nБез грейда — не точится" : "\nКлик — заточка · перетащи / ПКМ — кристаллизация");
-      slot.innerHTML = `<img src="${w.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">${it.plus ? `<span class="ip">+${it.plus}</span>` : ""}`;
-      slot.onclick = () => {
-        if (dragSrc != null) return;
-        Audio2.click();
-        if (ng) {
-          toast("«" + w.name + "» без грейда — не точится", "warn");
-          return;
-        }
-        openEnchant(it);
-      };
-    }
-    if (slot.getAttribute("draggable") === "true" || slot.draggable === true) attachDnD(slot, idx);
-    grid.appendChild(slot);
-  });
-  for (let i = shown.length; i < INV_CAP; i++) {
-    const empty = document.createElement("div"); empty.className = "inv-slot empty";
-    empty.addEventListener("dragover", (e) => { if (dragSrc == null) return; e.preventDefault(); empty.classList.add("dragover"); });
-    empty.addEventListener("dragleave", () => empty.classList.remove("dragover"));
-    empty.addEventListener("drop", (e) => {
-      e.preventDefault(); empty.classList.remove("dragover");
-      const from = dragSrc;
-      const accidental = isAccidentalInvDrag(e);
-      clearInvDragUi();
-      if (from == null || accidental || isInventoryFull()) return;
-      reorderInventory(from, "end");
-    });
-    grid.appendChild(empty);
-  }
-  list.appendChild(grid);
+  const gridPanel = document.createElement("div");
+  gridPanel.className = "inv-grid-panel";
+  gridPanel.appendChild(buildInvTabs(tabId));
+
+  const grid = document.createElement("div");
+  grid.className = "inv-grid";
+  fillInvGrid(grid, tabId, shown);
+  gridPanel.appendChild(grid);
+  list.appendChild(gridPanel);
 }
 
 function sellCrystals() {

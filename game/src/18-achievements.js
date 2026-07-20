@@ -1,5 +1,49 @@
 // ===== Достижения: curated-набор + QA-чеклист плейтеста (только dev) =====
 const ACH_ICON = "assets/ui/bloodhood_icon02_crop.png";
+const ACH_ICON_VER = 3;
+
+/** AI badge icons — py game/tools/fetch_achievement_icons.py --from-assets */
+const ACH_ICON_MAP = {
+  first_field: "mine_tier1", first_kill: "mine_tier1",
+  miner10: "mine_tier2", miner25: "mine_tier2",
+  miner50: "mine_veteran", golden_gnome: "mine_gold", golden5: "mine_gold",
+  banan_hunter: "mine_rare", boss_slayer: "mine_boss",
+  first_enchant: "enchant_start", first_plus4: "enchant_risk", plus6: "enchant_steady",
+  plus8: "enchant_lucky", plus12: "enchant_glory", legend16: "enchant_legend",
+  enchanter100: "enchant_grind", stubborn50: "enchant_stubborn",
+  seller: "eco_trade", sell_plus4: "eco_risk", sell_high: "eco_premium",
+  rich1m: "eco_million", rich10m: "eco_wealthy", rich100m: "eco_magnate",
+  crystal_merchant: "eco_crystal",
+  soul_awake: "story_soul", first_quest: "story_quest", level5: "story_growth",
+  story_arc_half: "story_arc", prelude_quests_complete: "story_prelude",
+  story_arc_complete: "story_finale",
+  first_craft: "craft_apprentice", crafter100: "craft_master",
+  coll_d_1: "coll_d_first", coll_d_10: "coll_d_hunter", coll_d_25: "coll_d_arsenal",
+  coll_c_1: "coll_c_first", coll_c_10: "coll_c_hunter", coll_c_25: "coll_c_arsenal",
+  coll_b_1: "coll_b_first", coll_b_10: "coll_b_hunter", coll_b_25: "coll_b_arsenal",
+  coll_a_1: "coll_a_first", coll_a_10: "coll_a_hunter", coll_a_25: "coll_a_arsenal",
+  hidden_autoclicker: "secret_iron", hidden_phantom_click: "secret_phantom",
+  hidden_spectator: "secret_spectator", hidden_night_smith: "secret_night",
+  hidden_banan_escape: "secret_escape", hidden_completionist: "secret_complete",
+};
+
+const ACH_ICON_WIKI = new Set([
+  "chapter1_done", "story_elven_ruins", "story_orc_barracks", "story_dark_cavern",
+  "zaken_earring", "hidden_a_arsenal",
+]);
+
+function achIconPath(stem) {
+  return "icons/achievements/" + stem + ".png?v=" + ACH_ICON_VER;
+}
+
+function resolveAchIcon(ach) {
+  if (!ach) return ACH_ICON;
+  if (ACH_ICON_WIKI.has(ach.id) && ach.icon) return ach.icon;
+  const stem = ACH_ICON_MAP[ach.id];
+  if (stem) return achIconPath(stem);
+  if (ach.hidden) return achIconPath("secret_complete");
+  return ach.icon || ACH_ICON;
+}
 
 const ACH_CATEGORIES = [
   { id: "all", label: "Все" },
@@ -8,6 +52,7 @@ const ACH_CATEGORIES = [
   { id: "economy", label: "Экономика" },
   { id: "story", label: "Сюжет" },
   { id: "craft", label: "Мастерская" },
+  { id: "collection", label: "Коллекции" },
   { id: "secret", label: "Секретные" },
 ];
 
@@ -461,9 +506,130 @@ const ACHIEVEMENTS = [
     progress: (c) => achProg(c.shotsCrafted, 100),
     reward: { adena: 15_000, ore: { spirit: 60 } },
   },
+  // —— collection (уникальные виды оружия в инвентаре / экипировке) ——
+  {
+    id: "coll_d_1",
+    category: "collection",
+    title: "Первая D",
+    desc: "Собери 1 вид оружия грейда D",
+    icon: "icons/etc_crystal_blue_i00.png",
+    test: (c) => c.collD >= 1,
+    progress: (c) => achProg(c.collD, 1),
+    reward: { adena: 2_000, ore: { soul: 10 } },
+  },
+  {
+    id: "coll_d_10",
+    category: "collection",
+    title: "Охотник D",
+    desc: "Собери 10 разных оружий грейда D",
+    icon: "icons/etc_crystal_blue_i00.png",
+    test: (c) => c.collD >= 10,
+    progress: (c) => achProg(c.collD, 10),
+    reward: { adena: 8_000, ore: { soul: 25 } },
+  },
+  {
+    id: "coll_d_25",
+    category: "collection",
+    title: "Арсенал D",
+    desc: "Собери все разные оружия грейда D",
+    icon: "icons/etc_crystal_blue_i00.png",
+    test: (c) => c.collDTotal > 0 && c.collD >= c.collDTotal,
+    progress: (c) => achProg(c.collD, c.collDTotal),
+    reward: { adena: 40_000, ore: { soul: 80 } },
+  },
+  {
+    id: "coll_c_1",
+    category: "collection",
+    title: "Первая C",
+    desc: "Собери 1 вид оружия грейда C",
+    icon: "icons/etc_crystal_green_i00.png",
+    test: (c) => c.collC >= 1,
+    progress: (c) => achProg(c.collC, 1),
+    reward: { adena: 5_000, ore: { soul: 15 } },
+  },
+  {
+    id: "coll_c_10",
+    category: "collection",
+    title: "Охотник C",
+    desc: "Собери 10 разных оружий грейда C",
+    icon: "icons/etc_crystal_green_i00.png",
+    test: (c) => c.collC >= 10,
+    progress: (c) => achProg(c.collC, 10),
+    reward: { adena: 15_000, ore: { soul: 35 } },
+  },
+  {
+    id: "coll_c_25",
+    category: "collection",
+    title: "Арсенал C",
+    desc: "Собери все разные оружия грейда C",
+    icon: "icons/etc_crystal_green_i00.png",
+    test: (c) => c.collCTotal > 0 && c.collC >= c.collCTotal,
+    progress: (c) => achProg(c.collC, c.collCTotal),
+    reward: { adena: 60_000, ore: { soul: 100 } },
+  },
+  {
+    id: "coll_b_1",
+    category: "collection",
+    title: "Первая B",
+    desc: "Собери 1 вид оружия грейда B",
+    icon: "icons/etc_crystal_red_i00.png",
+    test: (c) => c.collB >= 1,
+    progress: (c) => achProg(c.collB, 1),
+    reward: { adena: 10_000, ore: { spirit: 15 } },
+  },
+  {
+    id: "coll_b_10",
+    category: "collection",
+    title: "Охотник B",
+    desc: "Собери 10 разных оружий грейда B",
+    icon: "icons/etc_crystal_red_i00.png",
+    test: (c) => c.collB >= 10,
+    progress: (c) => achProg(c.collB, 10),
+    reward: { adena: 25_000, ore: { spirit: 35 } },
+  },
+  {
+    id: "coll_b_25",
+    category: "collection",
+    title: "Арсенал B",
+    desc: "Собери все разные оружия грейда B",
+    icon: "icons/etc_crystal_red_i00.png",
+    test: (c) => c.collBTotal > 0 && c.collB >= c.collBTotal,
+    progress: (c) => achProg(c.collB, c.collBTotal),
+    reward: { adena: 80_000, ore: { spirit: 100 } },
+  },
+  {
+    id: "coll_a_1",
+    category: "collection",
+    title: "Первая A",
+    desc: "Собери 1 вид оружия грейда A",
+    icon: "icons/etc_crystal_silver_i00.png",
+    test: (c) => c.collA >= 1,
+    progress: (c) => achProg(c.collA, 1),
+    reward: { adena: 20_000, ore: { spirit: 25 } },
+  },
+  {
+    id: "coll_a_10",
+    category: "collection",
+    title: "Охотник A",
+    desc: "Собери 10 разных оружий грейда A",
+    icon: "icons/etc_crystal_silver_i00.png",
+    test: (c) => c.collA >= 10,
+    progress: (c) => achProg(c.collA, 10),
+    reward: { adena: 50_000, ore: { spirit: 60 } },
+  },
+  {
+    id: "coll_a_25",
+    category: "collection",
+    title: "Арсенал A",
+    desc: "Собери все разные оружия грейда A",
+    icon: "icons/etc_crystal_silver_i00.png",
+    test: (c) => c.collATotal > 0 && c.collA >= c.collATotal,
+    progress: (c) => achProg(c.collA, c.collATotal),
+    reward: { adena: 150_000, ore: { spirit: 150 } },
+  },
 ];
 
-const ACH_SECRET_ICON = "icons/etc_talisman_i00.png";
+const ACH_SECRET_ICON = achIconPath("secret_complete");
 
 const HIDDEN_ACHIEVEMENTS = [
   {
@@ -521,6 +687,16 @@ const HIDDEN_ACHIEVEMENTS = [
     rewardImage: "assets/achievements/secret_reward.jpg",
     test: () => allPublicAchievementsUnlocked(),
     reward: { adena: 100_000, ore: { soul: 150, spirit: 80 } },
+  },
+  {
+    id: "hidden_a_arsenal",
+    hidden: true,
+    title: "Повелитель A",
+    desc: "Собери в коллекцию каждое оружие грейда A — награда Закена",
+    icon: "icons/accessory_blessed_earring_of_zaken_i00.png",
+    test: (c) => c.aGradeCollectionComplete,
+    progress: (c) => achProg(c.collA, c.collATotal),
+    reward: { collectible: "zaken_blessed_earring" },
   },
 ];
 
@@ -597,6 +773,63 @@ function achInventoryWeapons() {
   return (state.inventory || []).filter((it) => !isAccessoryItem(it)).length;
 }
 
+function ensureWeaponCollection() {
+  ensureAchievementsState();
+  if (!state.achievements.stats.weaponsCollected) state.achievements.stats.weaponsCollected = {};
+}
+
+function isCollectibleWeaponId(weaponId) {
+  const w = WMAP[weaponId];
+  return !!(w && typeof weaponCanEnchant === "function" && weaponCanEnchant(w));
+}
+
+function markWeaponCollected(weaponId) {
+  if (!weaponId || !isCollectibleWeaponId(weaponId)) return false;
+  ensureWeaponCollection();
+  const bag = state.achievements.stats.weaponsCollected;
+  if (bag[weaponId]) return false;
+  bag[weaponId] = true;
+  return true;
+}
+
+function migrateWeaponCollection() {
+  ensureWeaponCollection();
+  let changed = false;
+  const touch = (id) => {
+    if (markWeaponCollected(id)) changed = true;
+  };
+  (state.inventory || []).forEach((it) => {
+    if (!it || isAccessoryItem(it)) return;
+    touch(it.id);
+  });
+  const gear = state.avatar?.gear;
+  if (gear?.weapon?.id) touch(gear.weapon.id);
+  if (changed) save();
+  return changed;
+}
+
+function achUniqueWeaponsByGrade(grade) {
+  ensureWeaponCollection();
+  const bag = state.achievements.stats.weaponsCollected || {};
+  let n = 0;
+  for (const id of Object.keys(bag)) {
+    if (WMAP[id]?.grade === grade) n++;
+  }
+  return n;
+}
+
+function achGradeWeaponCatalog(grade) {
+  return WEAPONS.filter((w) => w.grade === grade && isCollectibleWeaponId(w.id));
+}
+
+function achAllGradeCollected(grade) {
+  const catalog = achGradeWeaponCatalog(grade);
+  if (!catalog.length) return false;
+  ensureWeaponCollection();
+  const bag = state.achievements.stats.weaponsCollected || {};
+  return catalog.every((w) => !!bag[w.id]);
+}
+
 function achQuestStepsDone() {
   ensureQuestProgress();
   const done = state.questProgress.completed || {};
@@ -606,6 +839,7 @@ function achQuestStepsDone() {
 function achievementContext() {
   ensureWorkshopState();
   ensureAchievementsState();
+  migrateWeaponCollection();
   const t = state.totals || {};
   const m = state.materials || {};
   const s = state.achievements.stats;
@@ -640,6 +874,15 @@ function achievementContext() {
     totalCrystals: achTotalCrystals(),
     invWeapons: achInventoryWeapons(),
     recordsCount: achRecordsCount(),
+    collD: achUniqueWeaponsByGrade("D"),
+    collC: achUniqueWeaponsByGrade("C"),
+    collB: achUniqueWeaponsByGrade("B"),
+    collA: achUniqueWeaponsByGrade("A"),
+    collDTotal: achGradeWeaponCatalog("D").length,
+    collCTotal: achGradeWeaponCatalog("C").length,
+    collBTotal: achGradeWeaponCatalog("B").length,
+    collATotal: achGradeWeaponCatalog("A").length,
+    aGradeCollectionComplete: achAllGradeCollected("A"),
     hasZaken: hasZakenCollectible(),
     mineGuardPenalties: s.mineGuardPenalties || 0,
     mineGuardSynthetic: s.mineGuardSynthetic || 0,
@@ -666,6 +909,10 @@ function formatAchReward(reward) {
     if (reward.ore.soul) parts.push("Soul Ore ×" + fmt(reward.ore.soul));
     if (reward.ore.spirit) parts.push("Spirit Ore ×" + fmt(reward.ore.spirit));
   }
+  if (reward.collectible && typeof COLLECTIBLES !== "undefined") {
+    const def = COLLECTIBLES[reward.collectible];
+    if (def) parts.push(def.name);
+  }
   return parts.join(" · ");
 }
 
@@ -681,6 +928,9 @@ function grantAchReward(reward) {
     if (reward.ore.soul) state.materials.soul = (state.materials.soul || 0) + reward.ore.soul;
     if (reward.ore.spirit) state.materials.spirit = (state.materials.spirit || 0) + reward.ore.spirit;
   }
+  if (reward.collectible && typeof grantCollectible === "function") {
+    grantCollectible(reward.collectible, reward.collectibleQty || 1);
+  }
 }
 
 function toastAchievement(ach) {
@@ -693,6 +943,25 @@ let gamePauseDepth = 0;
 let achModalQueue = [];
 let achModalDraining = false;
 let achModalKeyHandler = null;
+
+const OVERLAY_OK_ARM_MS = 650;
+
+function armOverlayOkButton(btn, lockedClass, ms) {
+  if (!btn) return;
+  const delay = ms == null ? OVERLAY_OK_ARM_MS : ms;
+  if (btn._armTimer) clearTimeout(btn._armTimer);
+  btn.classList.add(lockedClass);
+  btn.setAttribute("aria-disabled", "true");
+  btn._armTimer = setTimeout(() => {
+    btn._armTimer = null;
+    btn.classList.remove(lockedClass);
+    btn.removeAttribute("aria-disabled");
+  }, delay);
+}
+
+function isOverlayOkLocked(btn, lockedClass) {
+  return !!(btn && btn.classList.contains(lockedClass));
+}
 
 function isGamePaused() {
   return gamePaused;
@@ -755,8 +1024,8 @@ function setGamePaused(paused) {
 }
 
 function achModalIcon(ach) {
-  if (ach.hidden) return ACH_SECRET_ICON;
-  return ach.icon || ACH_ICON;
+  if (ach.hidden && !state.achievements?.unlocked?.[ach.id]) return ACH_SECRET_ICON;
+  return resolveAchIcon(ach);
 }
 
 function presentAchievementModal(ach, remaining) {
@@ -803,14 +1072,25 @@ function presentAchievementModal(ach, remaining) {
       if (e.key === "Enter" || e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
+        if (isOverlayOkLocked(okBtn, "ach-modal-btn--locked")) return;
         Audio2.click();
         close();
       }
     };
-    okBtn.onclick = () => { Audio2.click(); close(); };
-    backdrop.onclick = (e) => { if (e.target === backdrop) { Audio2.click(); close(); } };
+    okBtn.onclick = () => {
+      if (isOverlayOkLocked(okBtn, "ach-modal-btn--locked")) return;
+      Audio2.click();
+      close();
+    };
+    backdrop.onclick = (e) => {
+      if (e.target !== backdrop) return;
+      if (isOverlayOkLocked(okBtn, "ach-modal-btn--locked")) return;
+      Audio2.click();
+      close();
+    };
     document.addEventListener("keydown", achModalKeyHandler);
     backdrop.hidden = false;
+    armOverlayOkButton(okBtn, "ach-modal-btn--locked");
     if (typeof Audio2 !== "undefined") {
       if (secret && Audio2.jackpot) Audio2.jackpot();
       else if (Audio2.success) Audio2.success();
@@ -851,14 +1131,25 @@ function presentAchievementReward(ach) {
       if (e.key === "Enter" || e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
+        if (isOverlayOkLocked(okBtn, "ach-reward-btn--locked")) return;
         Audio2.click();
         close();
       }
     };
-    okBtn.onclick = () => { Audio2.click(); close(); };
-    backdrop.onclick = (e) => { if (e.target === backdrop) { Audio2.click(); close(); } };
+    okBtn.onclick = () => {
+      if (isOverlayOkLocked(okBtn, "ach-reward-btn--locked")) return;
+      Audio2.click();
+      close();
+    };
+    backdrop.onclick = (e) => {
+      if (e.target !== backdrop) return;
+      if (isOverlayOkLocked(okBtn, "ach-reward-btn--locked")) return;
+      Audio2.click();
+      close();
+    };
     document.addEventListener("keydown", keyHandler);
     backdrop.hidden = false;
+    armOverlayOkButton(okBtn, "ach-reward-btn--locked");
     if (typeof Audio2 !== "undefined" && Audio2.jackpot) Audio2.jackpot();
     okBtn.focus();
   });
@@ -1042,7 +1333,7 @@ function renderAchCard(ach, unlocked, ctx) {
     (secret ? " secret" : "") +
     (lockedSecret ? " secret-locked" : "");
   const rw = unlocked ? formatAchReward(ach.reward) : lockedSecret ? "" : formatAchReward(ach.reward);
-  const icon = lockedSecret ? ACH_SECRET_ICON : ach.icon || ACH_ICON;
+  const icon = lockedSecret ? ACH_SECRET_ICON : resolveAchIcon(ach);
   const title = lockedSecret ? "???" : ach.title;
   const desc = lockedSecret ? "Секретное достижение — откроется после выполнения" : ach.desc;
   let progressHtml = "";

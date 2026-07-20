@@ -16,6 +16,7 @@ const STARTER_WEAPONS = [
     icon: "icons/weapon_small_sword_i00.png",
     starter: true,
     noEnchant: true,
+    weaponKind: "physical",
   },
   {
     id: "ng_wand_of_adept",
@@ -31,6 +32,7 @@ const STARTER_WEAPONS = [
     icon: "icons/weapon_apprentices_wand_i00.png",
     starter: true,
     noEnchant: true,
+    weaponKind: "magical",
   },
 ];
 

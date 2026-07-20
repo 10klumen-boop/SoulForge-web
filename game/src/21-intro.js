@@ -131,6 +131,30 @@ function isStoryBackdropOpen() {
   return !!(backdrop && !backdrop.hidden);
 }
 
+const STORY_OK_ARM_MS = 650;
+let storyOkArmTimer = null;
+
+function isStoryOkLocked() {
+  const btn = document.getElementById("storyOk");
+  return !!(btn && btn.classList.contains("story-ok--locked"));
+}
+
+function armStoryOkButton(ms) {
+  const btn = document.getElementById("storyOk");
+  if (!btn) return;
+  if (storyOkArmTimer) {
+    clearTimeout(storyOkArmTimer);
+    storyOkArmTimer = null;
+  }
+  btn.classList.add("story-ok--locked");
+  btn.setAttribute("aria-disabled", "true");
+  storyOkArmTimer = setTimeout(() => {
+    storyOkArmTimer = null;
+    btn.classList.remove("story-ok--locked");
+    btn.removeAttribute("aria-disabled");
+  }, ms == null ? STORY_OK_ARM_MS : ms);
+}
+
 function setIntroOpen(open) {
   const backdrop = document.getElementById("storyBackdrop");
   if (!backdrop) return;
@@ -139,6 +163,7 @@ function setIntroOpen(open) {
   backdrop.className = "story-backdrop race-" + race + (open ? "" : "");
   if (open) {
     if (typeof setGamePaused === "function") setGamePaused(true);
+    if (typeof armStoryOkButton === "function") armStoryOkButton();
   } else if (typeof syncGamePauseState === "function") {
     syncGamePauseState();
   } else if (typeof setGamePaused === "function") {
@@ -238,10 +263,14 @@ function wireIntro() {
   if (!backdrop || backdrop.dataset.wired) return;
   backdrop.dataset.wired = "1";
 
-  btn.onclick = () => dismissIntro(!!backdrop.dataset.firstRun);
+  btn.onclick = () => {
+    if (isStoryOkLocked()) return;
+    dismissIntro(!!backdrop.dataset.firstRun);
+  };
   backdrop.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === "Escape") {
       e.preventDefault();
+      if (isStoryOkLocked()) return;
       dismissIntro(!!backdrop.dataset.firstRun);
     }
   });

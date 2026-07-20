@@ -66,9 +66,9 @@ const COMBAT_SKILLS = {
       cdMs: 9000,
       hotkey: "Q",
       hotkeyCode: "KeyQ",
-      desc: "Магический залп по цели (×2.8 урона).",
+      desc: "Магический залп по цели (×3.0 урона).",
       effect: "directHit",
-      mult: 2.8,
+      mult: 3.0,
       fxColor: "#6ec4ff",
     },
     {
@@ -76,13 +76,13 @@ const COMBAT_SKILLS = {
       name: "Магический фокус",
       icon: "icons/skill1297.png?v=2",
       unlockLevel: 8,
-      cdMs: 14000,
+      cdMs: 13000,
       hotkey: "E",
       hotkeyCode: "KeyE",
-      desc: "6 сек: +55% урона от кликов.",
+      desc: "7.5 сек: +78% урона от кликов.",
       effect: "damageBuff",
-      duration: 6000,
-      mult: 1.55,
+      duration: 7500,
+      mult: 1.78,
       fxColor: "#b8a0ff",
     },
     {
@@ -93,9 +93,11 @@ const COMBAT_SKILLS = {
       cdMs: 12000,
       hotkey: "R",
       hotkeyCode: "KeyR",
-      desc: "2.5 сек: таймер врага останавливается.",
-      effect: "timerFreeze",
+      desc: "2.5 сек: таймер врага останавливается + залп (4×45% урона).",
+      effect: "freezeMulti",
       duration: 2500,
+      hits: 4,
+      mult: 0.45,
       fxColor: "#8ad4ff",
     },
     {
@@ -106,10 +108,10 @@ const COMBAT_SKILLS = {
       cdMs: 16000,
       hotkey: "F",
       hotkeyCode: "KeyF",
-      desc: "Удар ×1.8 и +3 сек к таймеру цели.",
+      desc: "Удар ×2.2 и +3.5 сек к таймеру цели.",
       effect: "drainHit",
-      mult: 1.8,
-      healMs: 3000,
+      mult: 2.2,
+      healMs: 3500,
       fxColor: "#c8a0ff",
     },
   ],
@@ -189,7 +191,7 @@ function applyDirectMobHit(g, mult, opts) {
   g.classList.add("mob-hit");
   setTimeout(() => g.classList.remove("mob-hit"), 90);
   updateMobHpBar(g);
-  floatText(dropAt.x, dropAt.y - 12, "-" + applied, opts.color || "#9ad4ff");
+  floatText(dropAt.x, dropAt.y - 12, "-" + fmtCombat(applied), opts.color || "#9ad4ff");
   mineBurst(dropAt.x, dropAt.y, opts.color || "#7eb8ff", 4);
   checkMobEnrage(g);
   if (g._hp > 0) return true;
@@ -209,7 +211,7 @@ function useCombatSkill(skillId) {
   if (typeof isGamePaused === "function" && isGamePaused()) return false;
   if (combatSkillCooldownLeft(skillId) > 0) return false;
   const mob = activeCombatMob();
-  const noTargetOk = skill.effect === "timerSlow" || skill.effect === "damageBuff" || skill.effect === "timerFreeze";
+  const noTargetOk = skill.effect === "timerSlow" || skill.effect === "damageBuff" || skill.effect === "timerFreeze" || skill.effect === "freezeMulti";
   if (!mob && !noTargetOk && skill.effect !== "drainHit") {
     if (typeof toast === "function") toast("Нет цели на поле", "warn");
     return false;
@@ -226,8 +228,18 @@ function useCombatSkill(skillId) {
   } else if (skill.effect === "timerSlow") {
     mineSkillRuntime.buffs.timerSlowUntil = Date.now() + (skill.duration || 4000);
     if (typeof toast === "function") toast(skill.name + ": таймер замедлен", "info");
-  } else if (skill.effect === "timerFreeze") {
+  } else if (skill.effect === "timerFreeze" || skill.effect === "freezeMulti") {
     mineSkillRuntime.buffs.timerFreezeUntil = Date.now() + (skill.duration || 2500);
+    if (skill.effect === "freezeMulti" && mob) {
+      const hits = skill.hits || 4;
+      const mult = skill.mult || 0.45;
+      const color = skill.fxColor || "#8ad4ff";
+      for (let i = 0; i < hits; i++) {
+        setTimeout(() => {
+          if (mineGnomes.has(mob)) applyDirectMobHit(mob, mult, { color });
+        }, i * 90);
+      }
+    }
     if (typeof toast === "function") toast(skill.name + ": время остановилось", "info");
   } else if (skill.effect === "damageBuff") {
     mineSkillRuntime.buffs.damageMult = skill.mult || 1.5;

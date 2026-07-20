@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m12" />
+<link rel="stylesheet" href="styles/main.css?v=m34" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -130,7 +130,7 @@
         <button class="back" data-to="home">← Главное меню</button>
         <h2>Персонажи</h2>
       </div>
-      <div class="char-menu-body sf-scroll sub-screen-body">
+      <div class="char-menu-body sub-screen-body">
         <p class="char-menu-hint" id="charMenuHint">Выбери героя, создай нового или удали слот · до 5 персонажей</p>
         <div class="char-roster" id="charRoster" role="listbox" aria-label="Слоты персонажей"></div>
         <button type="button" class="char-menu-create" id="charMenuCreateBtn">+ Новый персонаж</button>
@@ -599,11 +599,15 @@
         <div class="mh">Добыто за сессию: <b id="mineEarned">0</b> adena</div>
         <div class="mh">Убито: <b id="mineCaught">0</b></div>
         <div class="mh">Упущено: <b id="mineMissed">0</b></div>
-        <div class="mh mine-farm-stats" id="mineFarmStats">—</div>
-        <button type="button" class="mh mine-shot-toggle" id="mineShotToggle" title="Авто Soulshot / Spiritshot">
-          Auto SS <b id="mineShotStock">—</b>
+        <button type="button" class="mh mine-shot-toggle" id="mineShotToggle" title="Авто Soulshot / Spiritshot" aria-pressed="true">
+          <span class="mine-shot-ico-wrap" aria-hidden="true">
+            <img class="mine-shot-ico" id="mineShotIcon" src="icons/etc_spirit_bullet_blue_i00.png" alt="">
+            <span class="mine-shot-shine"></span>
+          </span>
+          <b class="mine-shot-qty" id="mineShotStock">—</b>
         </button>
       </div>
+      <div class="mine-session-loot" id="mineSessionLoot" hidden aria-label="Дроп за сессию"></div>
       <div class="mine-quest-hud" id="mineQuestHud" hidden></div>
       <div class="mine-skill-bar" id="mineSkillBar" hidden></div>
       <div class="minefield" id="minefield">
@@ -624,6 +628,23 @@
   <div class="avatar-equip-box" role="dialog" aria-modal="true" aria-labelledby="avatarEquipTitle">
     <h3 id="avatarEquipTitle">Экипировка</h3>
     <p class="avatar-equip-hint">Выбери предмет из инвентаря для этого слота.</p>
+    <div class="avatar-equip-tools" id="avatarEquipTools">
+      <input type="search" class="avatar-equip-search" id="avatarEquipSearch" placeholder="Поиск по имени…" autocomplete="off" spellcheck="false">
+      <div class="avatar-equip-grades" id="avatarEquipGrades" role="group" aria-label="Грейд">
+        <button type="button" class="avatar-equip-grade sel" data-grade="">Все</button>
+        <button type="button" class="avatar-equip-grade" data-grade="A">A</button>
+        <button type="button" class="avatar-equip-grade" data-grade="B">B</button>
+        <button type="button" class="avatar-equip-grade" data-grade="C">C</button>
+        <button type="button" class="avatar-equip-grade" data-grade="D">D</button>
+        <button type="button" class="avatar-equip-grade" data-grade="NG">NG</button>
+      </div>
+      <div class="avatar-equip-aff" id="avatarEquipAff" role="group" aria-label="Тип" hidden>
+        <button type="button" class="avatar-equip-aff-btn sel" data-aff="">Все типы</button>
+        <button type="button" class="avatar-equip-aff-btn" data-aff="magical">Маг.</button>
+        <button type="button" class="avatar-equip-aff-btn" data-aff="physical">Физ.</button>
+        <button type="button" class="avatar-equip-aff-btn" data-aff="hybrid">Унив.</button>
+      </div>
+    </div>
     <div class="avatar-equip-list" id="avatarEquipList"></div>
     <div class="avatar-equip-actions">
       <button type="button" class="btn btn-ghost" id="avatarEquipUnequip">Снять</button>
@@ -657,7 +678,7 @@
     </div>
 
     <div class="avatar-setup-actions">
-      <button type="button" class="btn btn-ghost" id="avatarSetupBack" hidden>Назад</button>
+      <button type="button" class="btn btn-ghost" id="avatarSetupBack">В меню</button>
       <button type="button" class="btn btn-primary story-ok" id="avatarSetupNext">Далее</button>
     </div>
   </div>
@@ -673,8 +694,10 @@
     <p class="story-eyebrow" id="storyEyebrow">SoulForge</p>
     <p class="story-lead" id="storyLead" hidden></p>
     <div class="story-quest-ref" id="storyQuestRef" hidden></div>
-    <div class="story-body sf-scroll" id="storyBody"></div>
-    <button type="button" class="btn btn-primary story-ok" id="storyOk">В кузницу</button>
+    <div class="story-body" id="storyBody"></div>
+  </div>
+  <div class="story-actions">
+    <button type="button" class="btn btn-primary story-ok story-ok--locked" id="storyOk" aria-disabled="true">В кузницу</button>
   </div>
 </div>
 <div class="modal-backdrop" id="modalBackdrop" hidden>
@@ -697,7 +720,9 @@
     <p class="ach-modal-desc" id="achModalDesc"></p>
     <div class="ach-modal-reward" id="achModalReward"></div>
     <div class="ach-modal-queue" id="achModalQueue" hidden></div>
-    <button type="button" class="btn btn-primary ach-modal-btn" id="achModalOk">Отлично!</button>
+  </div>
+  <div class="ach-modal-actions">
+    <button type="button" class="btn btn-primary ach-modal-btn ach-modal-btn--locked" id="achModalOk" aria-disabled="true">Отлично!</button>
   </div>
 </div>
 <div class="ach-reward-backdrop" id="achRewardBackdrop" hidden>
@@ -710,47 +735,49 @@
     <div class="ach-reward-frame">
       <img class="ach-reward-img" id="achRewardImg" src="" alt="">
     </div>
-    <button type="button" class="btn btn-primary ach-reward-btn" id="achRewardOk">Закрыть</button>
+  </div>
+  <div class="ach-reward-actions">
+    <button type="button" class="btn btn-primary ach-reward-btn ach-reward-btn--locked" id="achRewardOk" aria-disabled="true">Закрыть</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js"></script>
-<script src="src/01-constants.js?v=37a"></script>
+<script src="src/01-constants.js?v=37f"></script>
 <script src="src/28-starter-weapons.js"></script>
-<script src="src/02-state.js?v=41"></script>
+<script src="src/02-state.js?v=43"></script>
 <script src="src/03-audio.js"></script>
 <script src="src/04-settings.js"></script>
-<script src="src/05-dom.js?v=39"></script>
-<script src="src/06-rules.js"></script>
+<script src="src/05-dom.js?v=40"></script>
+<script src="src/06-rules.js?v=4"></script>
 <script src="src/07-workshop.js"></script>
 <script src="src/08-menu.js"></script>
-<script src="src/09-inventory.js"></script>
-<script src="src/11-enchant.js"></script>
-<script src="src/12-mine.js?v=39"></script>
+<script src="src/09-inventory.js?v=55"></script>
+<script src="src/11-enchant.js?v=7"></script>
+<script src="src/12-mine.js?v=48"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/14-cloud.js?v=41"></script>
 <script src="src/15-game-log.js"></script>
 <script src="src/16-accessory.js"></script>
-<script src="src/18-achievements.js"></script>
+<script src="src/18-achievements.js?v=6"></script>
 <script src="src/19-mine-guard.js"></script>
 <script src="src/19-home.js"></script>
 <script src="src/20-author.js"></script>
-<script src="src/21-intro.js"></script>
+<script src="src/21-intro.js?v=2"></script>
 <script src="src/33-ui-icons.js"></script>
 <script src="src/34-avatar-portraits.js"></script>
-<script src="src/35-characters.js?v=39"></script>
-<script src="src/22-avatar.js"></script>
-<script src="src/23-avatar-gear.js"></script>
-<script src="src/25-story-zones.js"></script>
+<script src="src/35-characters.js?v=40"></script>
+<script src="src/22-avatar.js?v=3"></script>
+<script src="src/23-avatar-gear.js?v=2"></script>
+<script src="src/25-story-zones.js?v=2"></script>
 <script src="src/26-mine-visuals.js?v=39"></script>
-<script src="src/27-quests.js?v=40"></script>
+<script src="src/27-quests.js?v=41"></script>
 <script src="src/29-quest-journal.js"></script>
 <script src="src/30-prelude-finale.js"></script>
-<script src="src/31-combat-skills.js"></script>
+<script src="src/31-combat-skills.js?v=3"></script>
 <script src="src/32-debug-log.js"></script>
-<script src="src/24-avatar-stats.js"></script>
-<script src="src/99-bootstrap.js?v=40"></script>
+<script src="src/24-avatar-stats.js?v=8"></script>
+<script src="src/99-bootstrap.js?v=41"></script>
 
 </body>
 </html>
