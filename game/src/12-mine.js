@@ -12,6 +12,8 @@ const ZAKEN_EARRING_ID = "zaken_blessed_earring";
 let mineWeaponsByGrade = null;
 /** Сводка сессии фарма (не логируем каждый тап). */
 let mineSession = null;
+/** Панель «Дроп за сессию» раскрыта. */
+let mineSessionLootOpen = false;
 
 const MINE_LOOT_GRADE_RANK = { epic: 5, A: 4, B: 3, C: 2, D: 1, NG: 0 };
 
@@ -38,6 +40,10 @@ function mineSessionLootEl() {
   return document.getElementById("mineSessionLoot");
 }
 
+function mineSessionLootKindsCount(rows) {
+  return rows.reduce((n, r) => n + (r.qty > 1 ? r.qty : 1), 0);
+}
+
 function renderMineSessionLoot() {
   const el = mineSessionLootEl();
   if (!el) return;
@@ -46,21 +52,37 @@ function renderMineSessionLoot() {
   if (!active) {
     el.hidden = true;
     el.innerHTML = "";
+    el.classList.remove("is-open");
+    mineSessionLootOpen = false;
     return;
   }
   el.hidden = false;
-  if (!rows.length) {
-    el.innerHTML = '<span class="mine-loot-lbl">Дроп за сессию:</span><span class="mine-loot-empty">пока нет предметов</span>';
-    return;
-  }
   rows.sort((a, b) => {
     const ga = MINE_LOOT_GRADE_RANK[a.grade] ?? 0;
     const gb = MINE_LOOT_GRADE_RANK[b.grade] ?? 0;
     if (gb !== ga) return gb - ga;
     return String(a.name || "").localeCompare(String(b.name || ""), "ru");
   });
-  el.innerHTML =
-    '<span class="mine-loot-lbl">Дроп за сессию:</span>' +
+  const totalQty = mineSessionLootKindsCount(rows);
+
+  if (!rows.length) {
+    el.classList.remove("is-open");
+    mineSessionLootOpen = false;
+    el.innerHTML =
+      '<div class="mine-loot-toggle is-static">' +
+      '<span class="mine-loot-title">' +
+      '<span class="mine-loot-lbl">Дроп за сессию</span>' +
+      "</span>" +
+      '<span class="mine-loot-empty">пока нет предметов</span>' +
+      "</div>";
+    return;
+  }
+
+  const open = !!mineSessionLootOpen;
+  el.classList.toggle("is-open", open);
+
+  const bodyHtml =
+    '<div class="mine-loot-body">' +
     rows.map((row) => {
       const grade = row.grade || "D";
       const gClass = row.kind === "accessory" ? "g-epic" : "g-" + grade;
@@ -74,7 +96,28 @@ function renderMineSessionLoot() {
         '<span class="mine-loot-name">' + label + "</span>" + qty +
         "</span>"
       );
-    }).join("");
+    }).join("") +
+    "</div>";
+
+  el.innerHTML =
+    '<button type="button" class="mine-loot-toggle" id="mineSessionLootToggle" aria-expanded="' +
+    (open ? "true" : "false") + '">' +
+    '<span class="mine-loot-chevron" aria-hidden="true"></span>' +
+    '<span class="mine-loot-title">' +
+    '<span class="mine-loot-lbl">Дроп за сессию</span>' +
+    '<span class="mine-loot-count">' + totalQty + "</span>" +
+    "</span>" +
+    "</button>" +
+    bodyHtml;
+
+  const btn = el.querySelector("#mineSessionLootToggle");
+  if (btn) {
+    btn.onclick = () => {
+      mineSessionLootOpen = !mineSessionLootOpen;
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      renderMineSessionLoot();
+    };
+  }
 }
 
 function pickMineWeaponFromPool(pool) {
@@ -217,6 +260,7 @@ function openMine() {
     zoneId: state.farmZone || "banana_mine",
     loot: {},
   };
+  mineSessionLootOpen = false;
   resetMineGuardSession();
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
   $("#mineEarned").textContent = "0";
