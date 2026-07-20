@@ -3556,17 +3556,31 @@
   }
 
   /* ===== Login screen (L2-style) ===== */
+  body:has(.app.login-screen) {
+    background: #040302;
+  }
   body:has(.app.login-screen)::before {
-    background: url("../assets/ui/login_bg.png?v=1") center 42% / cover no-repeat;
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: url("../assets/ui/login_bg.png?v=2") center 42% / cover no-repeat;
     transform: scale(1.02);
     animation: none;
   }
   body:has(.app.login-screen)::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
     background:
       linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.08) 40%, rgba(0,0,0,.55) 100%),
       radial-gradient(ellipse 90% 70% at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 100%);
   }
   .shell:has(.app.login-screen) {
+    position: relative;
+    z-index: 1;
     max-width: min(1100px, calc(100vw - 24px));
     width: 100%;
   }

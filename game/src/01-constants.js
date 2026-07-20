@@ -1,7 +1,7 @@
 const CATEGORIES = window.CATEGORIES || [];
 const WEAPONS = window.WEAPONS || [];
 /** Версия клиента — патчноут, главное меню, cloud API */
-const GAME_VERSION = "0.36i";
+const GAME_VERSION = "0.36j";
 /** Кэш фона главного меню (assets/ui/home_bg.png) */
 const HOME_BG_VER = 1;
 const WMAP = {}; WEAPONS.forEach((w) => { WMAP[w.id] = w; });
