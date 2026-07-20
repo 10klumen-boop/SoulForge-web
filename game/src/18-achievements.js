@@ -909,8 +909,10 @@ function checkAchievements(opts) {
     $("#adena").textContent = fmt(state.adena);
     notifyAchievements(newly, opts);
     renderMenu();
-    if ($("#screen-ach").classList.contains("active")) renderAchievements();
-    if ($("#screen-inv").classList.contains("active")) renderInventory();
+    const achScreen = $("#screen-ach");
+    const invScreen = $("#screen-inv");
+    if (achScreen?.classList.contains("active")) renderAchievements();
+    if (invScreen?.classList.contains("active")) renderInventory();
   }
   return newly;
 }
@@ -930,8 +932,10 @@ function checkPlaytestChecklist(ctx) {
 
 function refreshAchievementUi() {
   renderMenu();
-  if ($("#screen-ach").classList.contains("active")) renderAchievements();
-  if ($("#screen-inv").classList.contains("active")) renderInventory();
+  const achScreen = $("#screen-ach");
+  const invScreen = $("#screen-inv");
+  if (achScreen?.classList.contains("active")) renderAchievements();
+  if (invScreen?.classList.contains("active")) renderInventory();
   if (typeof renderDevSecretAchievements === "function") renderDevSecretAchievements();
 }
 

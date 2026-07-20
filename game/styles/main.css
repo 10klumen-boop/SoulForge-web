@@ -986,7 +986,8 @@
   .app > .card:has(#screen-inv.active),
   .app > .card:has(#screen-shop.active),
   .app > .card:has(#screen-ench.active),
-  .app > .card:has(#screen-acc.active) {
+  .app > .card:has(#screen-acc.active),
+  .app.sub-screen > .card {
     flex: 1;
     min-height: 0;
     overflow: hidden;

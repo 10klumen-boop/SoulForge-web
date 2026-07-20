@@ -429,7 +429,8 @@ function goQuestJournal() {
 }
 
 function wireQuestJournal() {
-  const tile = document.getElementById("questTile");
+  const doc = typeof gameDoc === "function" ? gameDoc() : document;
+  const tile = doc.getElementById("questTile");
   if (tile && !tile.dataset.wired) {
     tile.dataset.wired = "1";
     tile.onclick = () => openQuestJournal();

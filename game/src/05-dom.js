@@ -16,14 +16,25 @@ function show(screen) {
     screen = "login";
   }
   $$(".screen").forEach((s) => s.classList.remove("active"));
-  $("#screen-" + screen).classList.add("active");
+  const target = $("#screen-" + screen);
+  if (!target) return;
+  target.classList.add("active");
   const app = gameDoc().querySelector(".app");
+  const subScreens = new Set(["mine", "ach", "avatar", "quests", "inv", "shop", "ench", "acc"]);
   if (app) {
     const titleScreens = ["home", "settings", "patch", "author", "characters"];
     app.classList.toggle("hub-screen", screen === "menu");
     app.classList.toggle("title-screen", titleScreens.includes(screen));
     app.classList.toggle("login-screen", screen === "login");
+    app.classList.toggle("sub-screen", subScreens.has(screen));
   }
+  const card = app?.querySelector(".card");
+  if (card) card.scrollTop = 0;
+  target.querySelectorAll(
+    ".sf-scroll, .ach-scroll, .wlist, .wsbody, .ench, .avatar-screen, .quest-journal-list"
+  ).forEach((el) => {
+    el.scrollTop = 0;
+  });
   if (typeof Audio2 !== "undefined" && Audio2.setScreen) {
     Audio2.setScreen(screen);
   }
