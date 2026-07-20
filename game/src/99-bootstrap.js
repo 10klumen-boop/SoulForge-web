@@ -101,6 +101,7 @@ if (typeof migrateAvatar === "function") migrateAvatar();
 if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();
 if (typeof ensureStoryProgress === "function") ensureStoryProgress();
 if (typeof migrateQuestProgress === "function") migrateQuestProgress();
+if (typeof repairQuestProgressIntegrity === "function") repairQuestProgressIntegrity();
 if (typeof migrateChapterRewards === "function") migrateChapterRewards();
 if (typeof migratePreludeFinale === "function") migratePreludeFinale();
 if (typeof wireCombatSkills === "function") wireCombatSkills();

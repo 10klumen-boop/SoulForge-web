@@ -111,6 +111,16 @@ function zoneBossDef(zoneId) {
   return ZONE_BOSSES[zoneId] || { name: "Хозяин земли", mob: "relic-werewolf", hpMult: 14, rewardMult: 2.5 };
 }
 
+function questStepDef(questId) {
+  for (const zone of FARM_ZONES) {
+    if (!zone.active) continue;
+    const steps = zoneQuestSteps(zone.id);
+    const found = steps.find((s) => s.id === questId);
+    if (found) return found;
+  }
+  return null;
+}
+
 function zoneQuestSteps(zoneId, race) {
   const zone = farmZoneById(zoneId);
   if (!zone) return [];
@@ -165,7 +175,7 @@ function isQuestStepObjectivesMet(def) {
 }
 
 function allZoneQuestsComplete(zoneId) {
-  return zoneQuestSteps(zoneId).every((q) => isQuestStepComplete(q.id));
+  return zoneQuestSteps(zoneId).every((q) => isQuestStepComplete(q.id) && isQuestStepObjectivesMet(q));
 }
 
 function isZoneBossDefeated(zoneId) {
@@ -199,8 +209,11 @@ function activeZoneQuest(zoneId) {
 function markQuestStepComplete(questId) {
   ensureQuestProgress();
   state.questProgress.completed[questId] = true;
-  delete state.questProgress.kills[questId];
-  delete state.questProgress.goldenKills[questId];
+  const def = questStepDef(questId);
+  if (def) {
+    state.questProgress.kills[questId] = def.kills;
+    if (def.goldenKills) state.questProgress.goldenKills[questId] = def.goldenKills;
+  }
 }
 
 function markZoneBossDefeated(zoneId) {
@@ -382,13 +395,12 @@ function repairQuestProgressIntegrity() {
   FARM_ZONES.forEach((zone) => {
     if (!zone.active) return;
     const steps = zoneQuestSteps(zone.id);
-    let anyComplete = false;
-    let anyKills = false;
-    steps.forEach((step) => {
-      if (isQuestStepComplete(step.id)) anyComplete = true;
-      if (questKillsDone(step.id) > 0 || questGoldenKillsDone(step.id) > 0) anyKills = true;
-    });
-    if (anyComplete && !anyKills && !isZoneBossDefeated(zone.id)) {
+    const allFlagged = steps.every((step) => isQuestStepComplete(step.id));
+    const totalKills = steps.reduce(
+      (n, step) => n + questKillsDone(step.id) + questGoldenKillsDone(step.id),
+      0
+    );
+    if (allFlagged && totalKills === 0 && !isZoneBossDefeated(zone.id)) {
       steps.forEach((step) => {
         delete q.completed[step.id];
         delete q.kills[step.id];
@@ -397,7 +409,16 @@ function repairQuestProgressIntegrity() {
       });
       delete q.bosses[zone.id];
       dirty = true;
-    } else if (!allZoneQuestsComplete(zone.id) && q.bosses[zone.id]) {
+      return;
+    }
+    steps.forEach((step) => {
+      if (!isQuestStepComplete(step.id)) return;
+      if (isQuestStepObjectivesMet(step)) return;
+      q.kills[step.id] = step.kills;
+      if (step.goldenKills) q.goldenKills[step.id] = step.goldenKills;
+      dirty = true;
+    });
+    if (!allZoneQuestsComplete(zone.id) && q.bosses[zone.id]) {
       delete q.bosses[zone.id];
       dirty = true;
     }
