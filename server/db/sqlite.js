@@ -297,7 +297,7 @@ function createSqliteStore(opts) {
     DELETE FROM scores
     WHERE user_id = ?
       AND character_id NOT IN (
-        SELECT slot_id FROM player_characters WHERE user_id = ?
+        SELECT slot_id FROM player_characters WHERE user_id = ? AND created = 1
       )
   `);
   const stmtGetSave = db.prepare("SELECT * FROM player_saves WHERE user_id = ?");

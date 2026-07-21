@@ -1,7 +1,7 @@
 const CATEGORIES = window.CATEGORIES || [];
 const WEAPONS = window.WEAPONS || [];
 /** Версия клиента — патчноут, главное меню, cloud API */
-const GAME_VERSION = "0.39.1";
+const GAME_VERSION = "0.39.2";
 /** Кэш фона главного меню (assets/ui/home_bg.png) */
 const HOME_BG_VER = 1;
 const WMAP = {}; WEAPONS.forEach((w) => { WMAP[w.id] = w; });
@@ -42,8 +42,8 @@ const DESTRUCTION_MAX_PLUS = 15;
 const SCROLL_TYPES = [
   { id:"regular", name:"Свиток заточки",        mult:1,  behavior:"break",       desc:"Провал на +3 и выше — оружие рассыпается в кристаллы" },
   { id:"blessed", name:"Благословенный свиток",  mult:4,  behavior:"reset",       desc:"Провал — заточка сбрасывается до +0, оружие цело" },
-  { id:"destruction", name:"Свиток разрушения",  mult:60, behavior:"destruction", desc:"Низкий шанс до +15 — провал не ломает оружие" },
-  { id:"crystal", name:"Кристальный свиток",     mult:360, behavior:"guarantee", desc:"100% успех на любом уровне, но очень дорого" },
+  { id:"destruction", name:"Свиток разрушения",  mult:30, behavior:"destruction", desc:"Низкий шанс до +15 — провал не ломает оружие" },
+  { id:"crystal", name:"Кристальный свиток",     mult:150, behavior:"guarantee", desc:"100% успех на любом уровне, но очень дорого" },
 ];
 const SAFE_LEVEL = 3;
 const START_ADENA_BASE = 25_000;

@@ -98,7 +98,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "soulforge-cloud", version: "0.39.1", db: dbInfo.driver });
+  res.json({ ok: true, service: "soulforge-cloud", version: "0.39.2", db: dbInfo.driver });
 });
 
 app.post("/auth/register", (req, res) => {

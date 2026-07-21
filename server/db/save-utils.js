@@ -47,6 +47,7 @@ function scoreRowsFromData(userId, nick, data) {
   if (chars.length) {
     for (const slot of chars) {
       if (!slot || !slot.id) continue;
+      if (!slot.progress?.avatar?.created) continue;
       const isActive = String(slot.id) === String(activeId) || (!activeId && slot === chars[0]);
       const m = scoreMetricsFromProgress(slot.progress, {
         farmPower: isActive ? rootFarm : undefined,
