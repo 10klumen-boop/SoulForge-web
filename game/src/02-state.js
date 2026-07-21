@@ -37,6 +37,8 @@ function defaultState() {
     shots: { soul: { D: 0, C: 0, B: 0, A: 0 }, spirit: { D: 0, C: 0, B: 0, A: 0 } },
     autoShots: true,
     achievements: { unlocked: {}, stats: {} },
+    passiveIncome: { lastCollectAt: 0, warehouseLv: 0 },
+    autoClicker: { until: 0, enabled: true, pauseStartedAt: 0 },
     devTune: {},
     balanceResetVer: BALANCE_RESET_VER,
   };
@@ -73,6 +75,7 @@ function freshCharacterProgressSnapshot() {
     "avatar", "adena", "farmZone", "storyProgress", "questProgress",
     "records", "totals", "storySeen", "inventory", "crystals",
     "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
+    "passiveIncome", "autoClicker",
   ];
   const p = {};
   keys.forEach((k) => { p[k] = JSON.parse(JSON.stringify(d[k])); });
@@ -330,7 +333,9 @@ function applyLoadedSave(loaded) {
     state.activeCharacterId &&
     Array.isArray(state.characters) &&
     state.characters.some((c) => c.id === state.activeCharacterId);
-  if (typeof reconcileActiveCharacterProgress === "function") {
+  if (typeof ProgressStore !== "undefined" && typeof ProgressStore.sync === "function") {
+    ProgressStore.sync();
+  } else if (typeof reconcileActiveCharacterProgress === "function") {
     reconcileActiveCharacterProgress();
   } else if (rosterActive && typeof flushActiveCharacterToSlot === "function") {
     flushActiveCharacterToSlot();
@@ -342,6 +347,9 @@ function applyLoadedSave(loaded) {
   if (typeof migrateStarterWeapon === "function") migrateStarterWeapon();
   if (typeof ensureStoryProgress === "function") ensureStoryProgress();
   if (typeof migrateFarmZone === "function") migrateFarmZone();
+  if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();
+  if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
+  if (typeof collectPassiveIncome === "function") collectPassiveIncome({ queueNotice: true });
   if (typeof refreshProgressUI === "function") refreshProgressUI();
   else {
     try {
@@ -643,7 +651,14 @@ function load() {
 }
 
 function save() {
-  if (typeof flushActiveCharacterToSlot === "function") flushActiveCharacterToSlot();
+  if (typeof touchPassiveHeartbeat === "function") {
+    try { touchPassiveHeartbeat(); } catch (e) {}
+  }
+  if (typeof ProgressStore !== "undefined" && typeof ProgressStore.flush === "function") {
+    ProgressStore.flush();
+  } else if (typeof flushActiveCharacterToSlot === "function") {
+    flushActiveCharacterToSlot();
+  }
   const seq = maxStoredSeq() + 1;
   const env = makeEnvelope(exportGameData(state), seq, Date.now());
   persistEnvelope(env);

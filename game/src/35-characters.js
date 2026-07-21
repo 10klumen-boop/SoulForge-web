@@ -1,11 +1,9 @@
 // ===== Несколько персонажей: слоты, выбор, отдельный прогресс =====
 
 const CHARACTER_MAX_SLOTS = 5;
-const CHARACTER_PROGRESS_KEYS = [
-  "avatar", "adena", "farmZone", "storyProgress", "questProgress",
-  "records", "totals", "storySeen", "inventory", "crystals",
-  "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
-];
+// ===== Несколько персонажей: слоты, выбор, отдельный прогресс =====
+// CHARACTER_PROGRESS_KEYS и ProgressStore вынесены в progress-store.js.
+
 
 function newCharacterId() {
   return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -43,6 +41,11 @@ function resetEmptySlotProgress(slot) {
 
 function syncUiAfterCharacterSwap() {
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
+  if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();
+  if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
+  if (typeof collectPassiveIncome === "function") {
+    try { collectPassiveIncome({ queueNotice: false }); } catch (e) {}
+  }
   if (typeof renderAvatarHub === "function") renderAvatarHub();
   if (typeof renderAvatarSkillsPanel === "function") renderAvatarSkillsPanel();
   if (typeof renderMineSkillBar === "function") renderMineSkillBar();
@@ -398,3 +401,7 @@ function wireCharacterMenu() {
 }
 
 initCharacters();
+
+// ===== ProgressStore API: единая точка записи в активный прогресс =====
+// Цель: любая запись в progress-ключи root-state проходит через ProgressStore,
+// который сразу flush'ит изменения в активный character-слот и триггерит cloud save.

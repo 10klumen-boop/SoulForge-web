@@ -1,426 +1,52 @@
-// ===== Боевые скиллы на поле задания (класс + уровень) =====
+// ===== Боевые скиллы: UI (рендер скилл-бара, панели аватара) =====
+// Core logic (useCombatSkill, combatSkillCooldownLeft, mineSkillClickMult)
+// вынесено в combat-skills-core.js.
 
-const COMBAT_SKILLS = {
-  fighter: [
-    {
-      id: "power_strike",
-      name: "Мощный удар",
-      icon: "icons/skill0029.png?v=2",
-      unlockLevel: 4,
-      cdMs: 8500,
-      hotkey: "Q",
-      hotkeyCode: "KeyQ",
-      desc: "Следующий удар наносит ×2.5 урона.",
-      effect: "nextHit",
-      mult: 2.5,
-      fxColor: "#ffb07a",
-    },
-    {
-      id: "iron_shell",
-      name: "Железная стойка",
-      icon: "icons/skill0279.png?v=2",
-      unlockLevel: 8,
-      cdMs: 13000,
-      hotkey: "E",
-      hotkeyCode: "KeyE",
-      desc: "4 сек: таймер врага течёт вдвое медленнее.",
-      effect: "timerSlow",
-      duration: 4000,
-      fxColor: "#c8d0dc",
-    },
-    {
-      id: "cleave",
-      name: "Рассечение",
-      icon: "icons/skill0008.png?v=2",
-      unlockLevel: 12,
-      cdMs: 11000,
-      hotkey: "R",
-      hotkeyCode: "KeyR",
-      desc: "Пять ударов по цели (50% урона каждый).",
-      effect: "multiHit",
-      hits: 5,
-      mult: 0.5,
-      fxColor: "#ff9a6a",
-    },
-    {
-      id: "blood_rage",
-      name: "Кровавый раж",
-      icon: "icons/skill0176.png?v=2",
-      unlockLevel: 16,
-      cdMs: 18000,
-      hotkey: "F",
-      hotkeyCode: "KeyF",
-      desc: "8 сек: +85% урона от кликов.",
-      effect: "damageBuff",
-      duration: 8000,
-      mult: 1.85,
-      fxColor: "#ff6a5a",
-    },
-  ],
-  mystic: [
-    {
-      id: "soul_burst",
-      name: "Всплеск души",
-      icon: "icons/skill1184.png?v=2",
-      unlockLevel: 4,
-      cdMs: 9000,
-      hotkey: "Q",
-      hotkeyCode: "KeyQ",
-      desc: "Магический залп по цели (×3.0 урона).",
-      effect: "directHit",
-      mult: 3.0,
-      fxColor: "#6ec4ff",
-    },
-    {
-      id: "arcane_focus",
-      name: "Магический фокус",
-      icon: "icons/skill1297.png?v=2",
-      unlockLevel: 8,
-      cdMs: 13000,
-      hotkey: "E",
-      hotkeyCode: "KeyE",
-      desc: "7.5 сек: +78% урона от кликов.",
-      effect: "damageBuff",
-      duration: 7500,
-      mult: 1.78,
-      fxColor: "#b8a0ff",
-    },
-    {
-      id: "ice_shackles",
-      name: "Ледяные оковы",
-      icon: "icons/skill1435.png?v=2",
-      unlockLevel: 12,
-      cdMs: 12000,
-      hotkey: "R",
-      hotkeyCode: "KeyR",
-      desc: "2.5 сек: таймер врага останавливается + залп (4×45% урона).",
-      effect: "freezeMulti",
-      duration: 2500,
-      hits: 4,
-      mult: 0.45,
-      fxColor: "#8ad4ff",
-    },
-    {
-      id: "soul_drain",
-      name: "Поглощение души",
-      icon: "icons/skill1147.png?v=2",
-      unlockLevel: 16,
-      cdMs: 16000,
-      hotkey: "F",
-      hotkeyCode: "KeyF",
-      desc: "Удар ×2.2 и +3.5 сек к таймеру цели.",
-      effect: "drainHit",
-      mult: 2.2,
-      healMs: 3500,
-      fxColor: "#c8a0ff",
-    },
-  ],
-};
-
-let mineSkillRuntime = { cds: {}, buffs: {} };
-
-function resetMineSkillRuntime() {
-  mineSkillRuntime = {
-    cds: {},
-    buffs: { nextHitMult: 1, damageMult: 1, damageUntil: 0, timerSlowUntil: 0, timerFreezeUntil: 0 },
-  };
-}
-
-function combatSkillsForClass(classId) {
-  const arch = typeof isMysticArchetype === "function" && isMysticArchetype(classId) ? "mystic" : "fighter";
-  return COMBAT_SKILLS[arch] || COMBAT_SKILLS.fighter;
-}
-
-function combatSkillsForAvatar() {
-  if (!state.avatar?.created) return [];
-  return combatSkillsForClass(state.avatar.classId || "fighter");
-}
-
-function isCombatSkillUnlocked(skill) {
-  if (!skill || !state.avatar?.created) return false;
-  return (state.avatar.level || 1) >= (skill.unlockLevel || 99);
-}
-
-function combatSkillCooldownLeft(skillId) {
-  const end = mineSkillRuntime.cds[skillId] || 0;
-  return Math.max(0, end - Date.now());
-}
-
-function mineSkillClickMult() {
-  let m = 1;
-  if (mineSkillRuntime.buffs.nextHitMult > 1) {
-    m *= mineSkillRuntime.buffs.nextHitMult;
-    mineSkillRuntime.buffs.nextHitMult = 1;
+function syncMineSkillBtn(btn, skill) {
+  const cd = combatSkillCooldownLeft(skill.id);
+  const unlocked = isCombatSkillUnlocked(skill);
+  const ready = unlocked && cd <= 0;
+  btn.className =
+    "mine-skill-btn" + (ready ? "" : " on-cd") + (unlocked ? "" : " locked");
+  btn.disabled = !unlocked;
+  const keyHint = mineSkillBarIsMobile() ? "" : " [" + skill.hotkey + "]";
+  btn.title =
+    skill.name +
+    keyHint +
+    " · " +
+    skill.desc +
+    (unlocked ? "" : " · ур. " + skill.unlockLevel);
+  let img = btn.querySelector("img");
+  if (!img) {
+    img = document.createElement("img");
+    img.alt = "";
+    btn.appendChild(img);
   }
-  if (mineSkillRuntime.buffs.damageUntil > Date.now()) {
-    m *= mineSkillRuntime.buffs.damageMult || 1;
-  }
-  return m;
-}
+  if (img.getAttribute("src") !== skill.icon) img.src = skill.icon;
 
-function mineSkillTimerFreezeActive() {
-  return mineSkillRuntime.buffs.timerFreezeUntil > Date.now();
-}
-
-function mineSkillTimerDrainAdjust() {
-  const now = Date.now();
-  if (mineSkillRuntime.buffs.timerFreezeUntil > now) return 0;
-  if (mineSkillRuntime.buffs.timerSlowUntil > now) return -0.42;
-  return 0;
-}
-
-function activeCombatMob() {
-  for (const g of mineGnomes) {
-    if (g._type !== "banan") return g;
-  }
-  return null;
-}
-
-function applyDirectMobHit(g, mult, opts) {
-  opts = opts || {};
-  if (!mineGnomes.has(g) || g._type === "banan") return false;
-  const type = g._type || "normal";
-  const dropAt = gnomeDropPoint(g);
-  const dmg = typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 8;
-  let applied = Math.max(1, Math.round(dmg * (mult || 1)));
-  if (typeof applyMineShotDamageMult === "function") applied = applyMineShotDamageMult(applied);
-  else applied = Math.max(1, Math.round(applied * 0.5));
-  applied = applyMobShieldDamage(g, applied);
-  g._hp = (g._hp ?? g._maxHp) - applied;
-  if (typeof Audio2 !== "undefined" && Audio2.mineHit) Audio2.mineHit();
-  g.classList.add("mob-hit");
-  setTimeout(() => g.classList.remove("mob-hit"), 90);
-  updateMobHpBar(g);
-  floatText(dropAt.x, dropAt.y - 12, "-" + fmtCombat(applied), opts.color || "#9ad4ff");
-  mineBurst(dropAt.x, dropAt.y, opts.color || "#7eb8ff", 4);
-  checkMobEnrage(g);
-  if (g._hp > 0) return true;
-  const finishMult = typeof tune === "function" ? tune("mine.skillFinishMult", 1.35) : 1.35;
-  finishMobKill(g, type, dropAt, { mult: finishMult, ok: true, bySkill: true });
-  return true;
-}
-
-function useCombatSkill(skillId) {
-  const skills = combatSkillsForAvatar();
-  const skill = skills.find((s) => s.id === skillId);
-  if (!skill || !isCombatSkillUnlocked(skill)) {
-    if (typeof toast === "function") toast("Скилл ещё не открыт", "warn");
-    return false;
-  }
-  if (!mineActive) return false;
-  if (typeof isGamePaused === "function" && isGamePaused()) return false;
-  if (combatSkillCooldownLeft(skillId) > 0) return false;
-  const mob = activeCombatMob();
-  const noTargetOk = skill.effect === "timerSlow" || skill.effect === "damageBuff" || skill.effect === "timerFreeze" || skill.effect === "freezeMulti";
-  if (!mob && !noTargetOk && skill.effect !== "drainHit") {
-    if (typeof toast === "function") toast("Нет цели на поле", "warn");
-    return false;
-  }
-  if ((skill.effect === "multiHit" || skill.effect === "directHit" || skill.effect === "drainHit") && !mob) {
-    if (typeof toast === "function") toast("Нет цели на поле", "warn");
-    return false;
-  }
-  mineSkillRuntime.cds[skillId] = Date.now() + skill.cdMs;
-  if (typeof Audio2 !== "undefined") Audio2.click();
-  if (skill.effect === "nextHit") {
-    mineSkillRuntime.buffs.nextHitMult = skill.mult || 2;
-    if (typeof toast === "function") toast(skill.name + ": следующий удар усилен", "info");
-  } else if (skill.effect === "timerSlow") {
-    mineSkillRuntime.buffs.timerSlowUntil = Date.now() + (skill.duration || 4000);
-    if (typeof toast === "function") toast(skill.name + ": таймер замедлен", "info");
-  } else if (skill.effect === "timerFreeze" || skill.effect === "freezeMulti") {
-    mineSkillRuntime.buffs.timerFreezeUntil = Date.now() + (skill.duration || 2500);
-    if (skill.effect === "freezeMulti" && mob) {
-      const hits = skill.hits || 4;
-      const mult = skill.mult || 0.45;
-      const color = skill.fxColor || "#8ad4ff";
-      for (let i = 0; i < hits; i++) {
-        setTimeout(() => {
-          if (mineGnomes.has(mob)) applyDirectMobHit(mob, mult, { color });
-        }, i * 90);
-      }
-    }
-    if (typeof toast === "function") toast(skill.name + ": время остановилось", "info");
-  } else if (skill.effect === "damageBuff") {
-    mineSkillRuntime.buffs.damageMult = skill.mult || 1.5;
-    mineSkillRuntime.buffs.damageUntil = Date.now() + (skill.duration || 6000);
-    if (typeof toast === "function") toast(skill.name + ": урон усилен", "info");
-  } else if (skill.effect === "multiHit" && mob) {
-    const hits = skill.hits || 3;
-    const mult = skill.mult || 0.65;
-    const color = skill.fxColor || "#ff9a6a";
-    for (let i = 0; i < hits; i++) {
-      setTimeout(() => {
-        if (mineGnomes.has(mob)) applyDirectMobHit(mob, mult, { color });
-      }, i * 90);
-    }
-    if (typeof toast === "function") toast(skill.name + "!", "info");
-  } else if (skill.effect === "directHit" && mob) {
-    applyDirectMobHit(mob, skill.mult || 2.5, { color: skill.fxColor || "#6ec4ff" });
-    if (typeof toast === "function") toast(skill.name + "!", "info");
-  } else if (skill.effect === "drainHit" && mob) {
-    applyDirectMobHit(mob, skill.mult || 1.8, { color: skill.fxColor || "#c8a0ff" });
-    if (mob._enraged) {
-      if (typeof toast === "function") toast(skill.name + ": в ярости время не вернуть", "warn");
-    } else if (typeof extendMobTimer === "function") {
-      extendMobTimer(mob, skill.healMs || 3000);
-      if (typeof toast === "function") toast(skill.name + ": душа поглощена", "info");
-    }
-  }
-  renderMineSkillBar();
-  renderAvatarSkillsPanel();
-  return true;
-}
-
-const MINE_SKILL_BAR_POS_KEY = "sf_mine_skill_bar_pos_v1";
-let mineSkillBarDragBound = false;
-
-function mineSkillBarIsMobile() {
-  return typeof window.matchMedia === "function" &&
-    window.matchMedia("(max-width: 640px)").matches;
-}
-
-function clearMineSkillBarInlinePos(bar) {
-  if (!bar) return;
-  bar.style.left = "";
-  bar.style.bottom = "";
-  bar.style.top = "";
-  bar.style.right = "";
-  bar.style.transform = "";
-}
-
-function readMineSkillBarPos() {
-  try {
-    const raw = localStorage.getItem(MINE_SKILL_BAR_POS_KEY);
-    if (!raw) return null;
-    const p = JSON.parse(raw);
-    if (!p || typeof p.leftPct !== "number" || typeof p.bottomPct !== "number") return null;
-    return {
-      leftPct: Math.min(92, Math.max(8, p.leftPct)),
-      bottomPct: Math.min(88, Math.max(4, p.bottomPct)),
-    };
-  } catch (_) {
-    return null;
-  }
-}
-
-function saveMineSkillBarPos(leftPct, bottomPct) {
-  try {
-    localStorage.setItem(
-      MINE_SKILL_BAR_POS_KEY,
-      JSON.stringify({ leftPct, bottomPct })
-    );
-  } catch (_) {}
-}
-
-function applyMineSkillBarPos(bar) {
-  if (!bar) return;
+  let keyEl = btn.querySelector(".mine-skill-key");
   if (mineSkillBarIsMobile()) {
-    clearMineSkillBarInlinePos(bar);
-    return;
+    if (keyEl) keyEl.remove();
+  } else {
+    if (!keyEl) {
+      keyEl = document.createElement("span");
+      keyEl.className = "mine-skill-key";
+      btn.appendChild(keyEl);
+    }
+    keyEl.textContent = skill.hotkey;
   }
-  const pos = readMineSkillBarPos();
-  if (!pos) {
-    clearMineSkillBarInlinePos(bar);
-    return;
+
+  let cdEl = btn.querySelector(".mine-skill-cd");
+  if (cd > 0) {
+    if (!cdEl) {
+      cdEl = document.createElement("span");
+      cdEl.className = "mine-skill-cd";
+      btn.appendChild(cdEl);
+    }
+    cdEl.textContent = String(Math.ceil(cd / 1000));
+  } else if (cdEl) {
+    cdEl.remove();
   }
-  bar.style.left = pos.leftPct + "%";
-  bar.style.bottom = pos.bottomPct + "%";
-  bar.style.top = "auto";
-  bar.style.right = "auto";
-  bar.style.transform = "translateX(-50%)";
-}
-
-function clampMineSkillBarToField(bar) {
-  if (mineSkillBarIsMobile()) {
-    clearMineSkillBarInlinePos(bar);
-    return;
-  }
-  const field = bar?.parentElement;
-  if (!bar || !field) return;
-  const fr = field.getBoundingClientRect();
-  const br = bar.getBoundingClientRect();
-  if (fr.width < 40 || fr.height < 40 || br.width < 8) return;
-  let left = br.left - fr.left + br.width / 2;
-  let bottom = fr.bottom - br.bottom;
-  const half = br.width / 2;
-  left = Math.min(fr.width - half - 4, Math.max(half + 4, left));
-  bottom = Math.min(fr.height - br.height - 4, Math.max(4, bottom));
-  const leftPct = (left / fr.width) * 100;
-  const bottomPct = (bottom / fr.height) * 100;
-  bar.style.left = leftPct + "%";
-  bar.style.bottom = bottomPct + "%";
-  bar.style.top = "auto";
-  bar.style.right = "auto";
-  bar.style.transform = "translateX(-50%)";
-  saveMineSkillBarPos(leftPct, bottomPct);
-}
-
-function bindMineSkillBarDrag(bar) {
-  if (!bar || mineSkillBarDragBound) return;
-  const handle = bar.querySelector(".mine-skill-drag");
-  if (!handle) return;
-  mineSkillBarDragBound = true;
-  let dragging = false;
-  let pointerId = null;
-  let startX = 0;
-  let startY = 0;
-  let originLeft = 0;
-  let originBottom = 0;
-
-  const onMove = (e) => {
-    if (!dragging || e.pointerId !== pointerId || mineSkillBarIsMobile()) return;
-    const field = bar.parentElement;
-    if (!field) return;
-    const fr = field.getBoundingClientRect();
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    let left = originLeft + dx;
-    let bottom = originBottom - dy;
-    const half = bar.offsetWidth / 2;
-    const h = bar.offsetHeight;
-    left = Math.min(fr.width - half - 4, Math.max(half + 4, left));
-    bottom = Math.min(fr.height - h - 4, Math.max(4, bottom));
-    bar.style.left = left + "px";
-    bar.style.bottom = bottom + "px";
-    bar.style.top = "auto";
-    bar.style.right = "auto";
-    bar.style.transform = "translateX(-50%)";
-  };
-
-  const onUp = (e) => {
-    if (!dragging || e.pointerId !== pointerId) return;
-    dragging = false;
-    pointerId = null;
-    bar.classList.remove("is-dragging");
-    try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
-    window.removeEventListener("pointermove", onMove);
-    window.removeEventListener("pointerup", onUp);
-    window.removeEventListener("pointercancel", onUp);
-    clampMineSkillBarToField(bar);
-  };
-
-  handle.addEventListener("pointerdown", (e) => {
-    if (mineSkillBarIsMobile()) return;
-    if (e.button != null && e.button !== 0) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const field = bar.parentElement;
-    if (!field) return;
-    const fr = field.getBoundingClientRect();
-    const br = bar.getBoundingClientRect();
-    dragging = true;
-    pointerId = e.pointerId;
-    startX = e.clientX;
-    startY = e.clientY;
-    originLeft = br.left - fr.left + br.width / 2;
-    originBottom = fr.bottom - br.bottom;
-    bar.classList.add("is-dragging");
-    try { handle.setPointerCapture(e.pointerId); } catch (_) {}
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-  });
 }
 
 function renderMineSkillBar() {
@@ -451,27 +77,25 @@ function renderMineSkillBar() {
   applyMineSkillBarPos(bar);
   const inner = bar.querySelector(".mine-skill-bar-inner");
   if (!inner) return;
-  inner.innerHTML = "";
+
+  const wanted = skills.map((s) => s.id).join(",");
+  if (inner.dataset.skillIds !== wanted) {
+    inner.dataset.skillIds = wanted;
+    inner.innerHTML = "";
+    skills.forEach((skill) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.skillId = skill.id;
+      bindMineSkillBtn(btn, skill.id);
+      syncMineSkillBtn(btn, skill);
+      inner.appendChild(btn);
+    });
+    return;
+  }
+
   skills.forEach((skill) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    const cd = combatSkillCooldownLeft(skill.id);
-    const ready = isCombatSkillUnlocked(skill) && cd <= 0;
-    btn.className = "mine-skill-btn" + (ready ? "" : " on-cd") + (!isCombatSkillUnlocked(skill) ? " locked" : "");
-    btn.disabled = !isCombatSkillUnlocked(skill);
-    const keyHint = mineSkillBarIsMobile() ? "" : " [" + skill.hotkey + "]";
-    btn.title =
-      skill.name +
-      keyHint +
-      " · " +
-      skill.desc +
-      (isCombatSkillUnlocked(skill) ? "" : " · ур. " + skill.unlockLevel);
-    btn.innerHTML =
-      '<img src="' + skill.icon + '" alt="">' +
-      (mineSkillBarIsMobile() ? "" : '<span class="mine-skill-key">' + skill.hotkey + "</span>") +
-      (cd > 0 ? '<span class="mine-skill-cd">' + Math.ceil(cd / 1000) + "</span>" : "");
-    btn.onclick = () => useCombatSkill(skill.id);
-    inner.appendChild(btn);
+    const btn = inner.querySelector('[data-skill-id="' + skill.id + '"]');
+    if (btn) syncMineSkillBtn(btn, skill);
   });
 }
 

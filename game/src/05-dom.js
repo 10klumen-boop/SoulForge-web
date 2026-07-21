@@ -50,19 +50,26 @@ function show(screen) {
 }
 
 let _confirmResolve = null;
+let _confirmEscapeAsOk = false;
 
 function closeConfirm(result) {
   const backdrop = document.getElementById("modalBackdrop");
   if (!backdrop || backdrop.hidden) return;
   backdrop.hidden = true;
   document.removeEventListener("keydown", _confirmKeyHandler);
+  _confirmEscapeAsOk = false;
   const resolve = _confirmResolve;
   _confirmResolve = null;
   if (resolve) resolve(!!result);
 }
 
 function _confirmKeyHandler(e) {
-  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); Audio2.click(); closeConfirm(false); }
+  if (e.key === "Escape") {
+    e.preventDefault();
+    e.stopPropagation();
+    Audio2.click();
+    closeConfirm(_confirmEscapeAsOk);
+  }
   if (e.key === "Enter") { e.preventDefault(); Audio2.click(); closeConfirm(true); }
 }
 
@@ -85,6 +92,8 @@ function showConfirm(opts) {
       try { stale(false); } catch (_) {}
     }
     _confirmResolve = resolve;
+    const hideCancel = !!opts.hideCancel;
+    _confirmEscapeAsOk = hideCancel;
 
     titleEl.textContent = opts.title || "Подтверждение";
     if (opts.html) bodyEl.innerHTML = opts.html;
@@ -96,16 +105,21 @@ function showConfirm(opts) {
     cancelBtn.textContent = opts.cancelText || "Отмена";
     okBtn.className = "btn " + (opts.danger ? "btn-danger" : "btn-primary");
     cancelBtn.className = "btn btn-ghost";
+    cancelBtn.hidden = hideCancel;
 
     const onOk = () => { Audio2.click(); closeConfirm(true); };
     const onCancel = () => { Audio2.click(); closeConfirm(false); };
     okBtn.onclick = onOk;
     cancelBtn.onclick = onCancel;
-    backdrop.onclick = (e) => { if (e.target === backdrop) onCancel(); };
+    backdrop.onclick = (e) => {
+      if (e.target !== backdrop) return;
+      if (hideCancel) onOk();
+      else onCancel();
+    };
 
     backdrop.hidden = false;
     document.addEventListener("keydown", _confirmKeyHandler);
-    cancelBtn.focus();
+    (hideCancel ? okBtn : cancelBtn).focus();
   });
 }
 

@@ -3164,7 +3164,7 @@
   .prelude-chaos-tease { margin-top: 10px; color: var(--text-dim); font-size: 13px; }
   .mine-skill-bar {
     position: absolute;
-    z-index: 22;
+    z-index: 40;
     left: 50%;
     bottom: 14px;
     transform: translateX(-50%);
@@ -3306,6 +3306,66 @@
     box-shadow: 0 0 10px rgba(255,80,48,.45);
   }
   .avatar-skills-panel { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--edge2); }
+  .avatar-boost-panel {
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--edge2);
+  }
+  .avatar-boost-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+  }
+  .avatar-boost-ico {
+    width: 44px; height: 44px; flex-shrink: 0; object-fit: contain;
+    image-rendering: auto;
+    border-radius: 8px;
+    background: linear-gradient(160deg, #1a120a, #0c0906);
+    border: 1px solid #3a2c1a;
+    box-shadow: inset 0 0 0 1px rgba(255,210,120,.08), 0 4px 10px rgba(0,0,0,.35);
+    padding: 3px;
+  }
+  .avatar-boost-titles { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .avatar-boost-head b { color: var(--gold-soft); font-size: 15px; font-family: var(--font-display); }
+  .avatar-boost-meta { font-size: 12px; color: var(--txt-dim); }
+  .avatar-boost-line { font-size: 12px; color: var(--txt-dim); margin: 0 0 8px; }
+  .avatar-boost-line b { color: #9be6a6; }
+  .avatar-boost-status { font-size: 12px; margin: 0 0 8px; font-weight: 600; }
+  .avatar-boost-status--ok { color: #9be6a6; }
+  .avatar-boost-status--warn { color: #e8b06a; }
+  .avatar-boost-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .avatar-boost-max { font-size: 12px; color: var(--gold-soft); }
+  .btn-inline-ico {
+    width: 18px; height: 18px; object-fit: contain; margin-right: 6px;
+    vertical-align: -4px; image-rendering: auto;
+  }
+  .btn-sm { padding: 8px 12px; font-size: 13px; border-radius: 10px; flex: 0 0 auto; }
+  .auto-clicker-packs { margin-bottom: 6px; }
+  .mine-autoclicker-hud {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 12px 8px; padding: 6px 10px; border-radius: 8px;
+    background: rgba(0,0,0,.35); border: 1px solid var(--edge2);
+    color: var(--gold-soft); font-size: 12px; font-weight: 600;
+  }
+  .mine-autoclicker-hud.is-on { color: #9be6a6; border-color: rgba(155,230,166,.35); }
+  .mine-autoclicker-ico { width: 22px; height: 22px; object-fit: contain; image-rendering: auto; }
+  .passive-earn {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+    padding: 6px 0 4px;
+  }
+  .passive-earn-ico {
+    width: 72px; height: 72px; object-fit: contain; image-rendering: auto;
+    border-radius: 12px;
+    background: linear-gradient(160deg, #24180e, #100b06);
+    border: 1px solid #4a3820;
+    box-shadow: 0 8px 24px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,210,120,.1);
+    padding: 8px; margin-bottom: 4px;
+  }
+  .passive-earn-kicker {
+    margin: 0; font-size: 13px; color: var(--txt-dim); letter-spacing: .02em;
+  }
+  .passive-earn-amount {
+    margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 800;
+    color: var(--gold-soft); line-height: 1.15;
+  }
+  .passive-earn-amount span { font-size: 16px; font-weight: 600; color: #c9a86a; }
+  .passive-earn-meta { margin: 2px 0 0; font-size: 13px; color: var(--txt-dim); }
   .avatar-skills-title { font-size: 14px; color: var(--gold-soft); margin-bottom: 4px; }
   .avatar-skills-hint { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; }
   .avatar-skill-row {
@@ -5102,25 +5162,38 @@
       left: 50% !important;
       right: auto !important;
       top: auto !important;
-      bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+      bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
       transform: translateX(-50%) !important;
+      z-index: 40;
       pointer-events: none;
     }
     .mine-skill-drag { display: none !important; }
     .mine-skill-key { display: none !important; }
     .mine-skill-dock {
-      padding: 5px 6px;
-      border-radius: 10px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      pointer-events: auto;
     }
-    .mine-skill-bar-inner { gap: 5px; }
+    .mine-skill-bar-inner { gap: 8px; }
     .mine-skill-btn {
-      width: 46px;
-      height: 46px;
-      border-radius: 9px;
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      min-height: 56px;
+      border-radius: 12px;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      /* расширяем зону нажатия без визуального роста */
+      box-shadow: inset 0 1px 0 rgba(231,207,149,.08), 0 2px 8px rgba(0,0,0,.35);
     }
-    .mine-skill-btn img { width: 32px; height: 32px; }
-    .mine-skill-cd { font-size: 12px; }
+    .mine-skill-btn::before {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 16px;
+    }
+    .mine-skill-btn img { width: 36px; height: 36px; pointer-events: none; }
+    .mine-skill-cd { font-size: 14px; pointer-events: none; }
     .gnome.mine-solo .mine-solo-card {
       max-width: min(78vw, 200px);
     }

@@ -1,11 +1,10 @@
-// ===== Экономика: базовые константы (devTune может переопределять в рантайме) =====
+// ===== Экономика: логика и правила =====
+// Константы баланса (affinity, GRADE_VALUE, CRYSTAL_*, COLLECTIBLES и т.д.)
+// вынесены в data/enchant-balance.js.
 // Цикл: шахта → заточка/продажа → мастерская (кристаллы + руда → заряды).
 // Золотой гном: небольшой бонус adena + дроп оружия (основная ценность). Ачивки — доп. буст.
 function statAt(base, step, plus) { return base + step * plus; }
 
-/** Оружие: физическое (воин) / магическое (мистик) / универсальное. */
-const WEAPON_AFFINITY_OFF_MULT = 0.42;
-const WEAPON_AFFINITY_HYBRID_MULT = 0.78;
 
 function weaponAffinity(w) {
   if (!w) return "physical";
@@ -91,8 +90,7 @@ function glowInfo(plus) {
 // Базовая рыночная цена оружия по грейду; цена резко растёт с заточкой.
 // Продажа грейдового — только выше безопасной зоны (с +4), иначе был бы «принтер денег».
 // NG (тренировочное) — фиксированная утилизация, чтобы не засорять инвентарь.
-const GRADE_VALUE = { D: 55_000, C: 280_000, B: 1_200_000, A: 5_000_000 };
-const NG_WEAPON_SELL = 1000;
+// GRADE_VALUE и NG_WEAPON_SELL в data/enchant-balance.js.
 function canSell(plus) { return plus > safeLevel(); }
 function isNgSellWeapon(w) {
   if (!w) return false;
@@ -108,26 +106,12 @@ function sellValue(w, plus) {
   if (isNgSellWeapon(w)) {
     return playtestIncome(tuneInt("weapon.sell.NG", NG_WEAPON_SELL));
   }
-  const base = tune("weapon.sell." + w.grade, GRADE_VALUE[w.grade] || 55_000);
+  const base = tune("weapon.sell." + w.grade, GRADE_VALUE[w.grade] || 220_000);
   const pow = tune("ench.sellPow", 1.25);
   return playtestIncome(Math.round(base * Math.pow(pow, plus)));
 }
 // Кристаллы, выпадающие при разрушении оружия (иконки и цвета — с masterwork.wiki)
-const CRYSTAL_VALUE = { D: 45, C: 200, B: 650, A: 2_100 };
-const CRYSTAL_COLOR = { D: "#5fb8ff", C: "#5fcf6b", B: "#ff3b3b", A: "#cfd6e6" };
-const CRYSTAL_ICON = {
-  D: "icons/etc_crystal_blue_i00.png",
-  C: "icons/etc_crystal_green_i00.png",
-  B: "icons/etc_crystal_red_i00.png",
-  A: "icons/etc_crystal_silver_i00.png",
-};
-const CRYSTALLIZE_ICON = {
-  normal: "assets/ui/inventory_recipe.png?v=10",
-  over: "assets/ui/inventory_recipe_over.png?v=10",
-  drag: "assets/ui/inventory_recipe_drag.png?v=10",
-};
-// Базовое число кристаллов (w.cc) растёт с заточкой — ~+10% за каждый +1.
-const CRYSTAL_PLUS_MULT = 1.10;
+// CRYSTAL_*, CRYSTALLIZE_ICON в data/enchant-balance.js.
 
 function crystalBase(weapon) {
   if (weapon && weapon.cc) return weapon.cc;
@@ -149,10 +133,7 @@ function crystalsTotalValue() {
   return t;
 }
 
-const ADENA_ICON = "icons/etc_adena_i00.png";
-const FUNPAY_ICON = "icons/etc_pig_coin_i00.png";
-const FUNPAY_WIPE_CHANCE = 0.5;
-const FUNPAY_REWARD = 2_500_000;
+// ADENA_ICON, FUNPAY_ICON, FUNPAY_* в data/enchant-balance.js.
 
 function tune(key, fallback) {
   if (fallback === undefined && typeof TUNE_DEFAULTS !== "undefined") fallback = TUNE_DEFAULTS[key];
@@ -176,44 +157,7 @@ function funpayReward() {
   return tuneInt("funpay.reward", FUNPAY_REWARD);
 }
 
-const COLLECTIBLES = {
-  zaken_blessed_earring: {
-    id: "zaken_blessed_earring",
-    name: "Благословенная серьга ЗакАна",
-    icon: "icons/accessory_blessed_earring_of_zaken_i00.png",
-    epic: true,
-    slot: "earring",
-    desc: "Эпическая серьга. На персонаже: +0.25% к шансу заточки с +4.",
-    bonuses: { enchant: 0.0025, mdef: 4 },
-  },
-  baium_ring: {
-    id: "baium_ring",
-    name: "Кольцо Баюма",
-    icon: "icons/accessory_ring_of_baium_i00.png",
-    epic: true,
-    slot: "ring",
-    desc: "Эпическое кольцо. На персонаже: +0.15% к заточке, +8% adena в шахте.",
-    bonuses: { enchant: 0.0015, mineAdena: 0.08, patk: 6 },
-  },
-  antharas_earring: {
-    id: "antharas_earring",
-    name: "Серьга Антараса",
-    icon: "icons/accessory_earring_of_antaras_i00.png",
-    epic: true,
-    slot: "earring",
-    desc: "Эпическая серьга. На персонаже: +0.35% к шансу заточки с +4.",
-    bonuses: { enchant: 0.0035, matk: 8 },
-  },
-  valakas_necklace: {
-    id: "valakas_necklace",
-    name: "Ожерелье Валакаса",
-    icon: "icons/accessory_necklace_of_valakas_i00.png",
-    epic: true,
-    slot: "necklace",
-    desc: "Эпическое ожерелье. На персонаже: +0.2% к заточке, +12% опыта души.",
-    bonuses: { enchant: 0.002, avatarXp: 0.12, pdef: 5, mdef: 5 },
-  },
-};
+// COLLECTIBLES в data/enchant-balance.js.
 
 function migrateCollectibles() {
   if (!state.collectibles) return;
@@ -232,6 +176,10 @@ function bumpWeaponRecord(weaponId, plus) {
   if (!state.records) state.records = {};
   const p = Math.max(0, plus | 0);
   if (p <= (state.records[weaponId] || 0)) return false;
-  state.records[weaponId] = p;
+  if (typeof ProgressStore !== "undefined" && typeof ProgressStore.update === "function") {
+    ProgressStore.update("records", (r) => ({ ...r, [weaponId]: p }));
+  } else {
+    state.records[weaponId] = p;
+  }
   return true;
 }

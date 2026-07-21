@@ -2,7 +2,7 @@
 let curAcc = null;
 
 function removeInvItem(uid) {
-  state.inventory = (state.inventory || []).filter((x) => x.uid !== uid);
+  ProgressStore.set("inventory", (state.inventory || []).filter((x) => x.uid !== uid));
   save();
 }
 
@@ -73,8 +73,8 @@ async function funpayAccessory() {
     toast("FunPay: провал — весь прогресс уничтожен!", "fail");
   } else {
     const reward = playtestIncome(funpayReward());
-    state.adena = (state.adena || 0) + reward;
-    state.totals.earned = (state.totals.earned || 0) + reward;
+    ProgressStore.update("adena", (a) => (a || 0) + reward);
+    ProgressStore.update("totals", (t) => ({ ...(t || { tries: 0, fails: 0, earned: 0 }), earned: (t?.earned || 0) + reward }));
     Audio2.coin();
     save();
     $("#adena").textContent = fmt(state.adena);

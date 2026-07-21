@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m40" />
+<link rel="stylesheet" href="styles/main.css?v=m43" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -221,6 +221,13 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.40</p>
+        <ul>
+          <li><b>Пассивный доход</b> — адена оффлайн (кап по главам + склад). Панель на Персонаже; при «Играть» — модалка со суммой.</li>
+          <li><b>Автоудар</b> — пакеты 15/30/60 мин, быстрый темп на поле задания, HUD в шахте.</li>
+          <li><b>Экономика</b> — больше адены с мобов; продажа оружия ×2; золотые мобы ~5%, адена ×2; Banana jackpot 500kk.</li>
+          <li><b>Фиксы</b> — ачивка только по кнопке; NG-продажа не крутит «Торговец»; без шипящего ambient на вкладках хаба.</li>
+        </ul>
         <p class="patch-ver">v0.39.2</p>
         <ul>
           <li><b>Рейтинг</b> — пустые слоты персонажей больше не попадают в таблицу.</li>
@@ -481,6 +488,8 @@
             </div>
             <p class="avatar-farm-hint">Зону выбирай в меню — здесь только статы и экипировка.</p>
             <p class="avatar-perk" id="avatarPerk"></p>
+            <div class="avatar-boost-panel" id="passiveIncomePanel" hidden></div>
+            <div class="avatar-boost-panel" id="autoClickerPanel" hidden></div>
             <div class="avatar-skills-panel" id="avatarSkillsPanel"></div>
           </div>
         </div>
@@ -626,6 +635,7 @@
       </div>
       <div class="mine-session-loot" id="mineSessionLoot" hidden aria-label="Дроп за сессию"></div>
       <div class="mine-quest-hud" id="mineQuestHud" hidden></div>
+      <div class="mine-autoclicker-hud" id="mineAutoClickerHud" hidden></div>
       <div class="minefield" id="minefield">
         <div class="mine-skill-bar" id="mineSkillBar" hidden aria-label="Боевые умения"></div>
         <div class="mine-stage" id="mineStage">
@@ -760,41 +770,78 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js"></script>
-<script src="src/01-constants.js?v=391"></script>
-<script src="src/28-starter-weapons.js"></script>
-<script src="src/02-state.js?v=43"></script>
-<script src="src/03-audio.js"></script>
+<script src="src/01-constants.js?v=400"></script>
+<script src="src/28-starter-weapons.js?v=2"></script>
+<script src="src/02-state.js?v=45"></script>
+<script src="src/data/audio-data.js?v=2"></script>
+<script src="src/03-audio.js?v=3"></script>
 <script src="src/04-settings.js"></script>
-<script src="src/05-dom.js?v=40"></script>
-<script src="src/06-rules.js?v=5"></script>
-<script src="src/07-workshop.js"></script>
+<script src="src/05-dom.js?v=41"></script>
+<script src="src/data/enchant-balance.js?v=3"></script>
+<script src="src/06-rules.js?v=9"></script>
+<script src="src/data/workshop-balance.js?v=2"></script>
+<script src="src/workshop-core.js"></script>
+<script src="src/07-workshop.js?v=3"></script>
+<script src="src/data/farm-balance.js?v=5"></script>
 <script src="src/08-menu.js"></script>
-<script src="src/09-inventory.js?v=56"></script>
-<script src="src/11-enchant.js?v=8"></script>
-<script src="src/12-mine.js?v=51"></script>
+<script src="src/09-inventory.js?v=58"></script>
+<script src="src/enchant-ui.js"></script>
+<script src="src/inventory-ui.js?v=2"></script>
+<script src="src/data/dev-data.js"></script>
+<script src="src/dev-core.js"></script>
+<script src="src/11-enchant.js?v=11"></script>
+<script src="src/mine-ui.js"></script>
+<script src="src/mine-core.js?v=5"></script>
 <script src="src/13-portable-save.js"></script>
-<script src="src/14-cloud.js?v=42"></script>
+<script src="src/cloud-core.js"></script>
+<script src="src/cloud-ui.js"></script>
+<script src="src/progress-store.js"></script>
 <script src="src/15-game-log.js"></script>
-<script src="src/16-accessory.js"></script>
-<script src="src/18-achievements.js?v=6"></script>
+<script src="src/16-accessory.js?v=2"></script>
+<script src="src/data/achievement-data.js"></script>
+<script src="src/achievements-core.js?v=3"></script>
+<script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
-<script src="src/19-home.js"></script>
+<script src="src/19-home.js?v=2"></script>
 <script src="src/20-author.js"></script>
-<script src="src/21-intro.js?v=2"></script>
+<script src="src/data/prologue-data.js"></script>
+<script src="src/intro-core.js"></script>
+<script src="src/21-intro.js?v=5"></script>
 <script src="src/33-ui-icons.js"></script>
 <script src="src/34-avatar-portraits.js"></script>
-<script src="src/35-characters.js?v=41"></script>
-<script src="src/22-avatar.js?v=4"></script>
-<script src="src/23-avatar-gear.js?v=2"></script>
-<script src="src/25-story-zones.js?v=2"></script>
-<script src="src/26-mine-visuals.js?v=39"></script>
-<script src="src/27-quests.js?v=41"></script>
-<script src="src/29-quest-journal.js"></script>
-<script src="src/30-prelude-finale.js"></script>
-<script src="src/31-combat-skills.js?v=6"></script>
+<script src="src/35-characters.js?v=44"></script>
+<script src="src/data/avatar-data.js"></script>
+<script src="src/avatar-core.js"></script>
+<script src="src/22-avatar.js?v=8"></script>
+<script src="src/avatar-gear-core.js"></script>
+<script src="src/23-avatar-gear.js?v=4"></script>
+<script src="src/data/story-zones-data.js?v=3"></script>
+<script src="src/story-zones-core.js?v=2"></script>
+<script src="src/25-story-zones.js?v=6"></script>
+<script src="src/data/mine-visuals-data.js"></script>
+<script src="src/26-mine-visuals.js?v=40"></script>
+<script src="src/data/quest-data.js"></script>
+<script src="src/quest-core.js"></script>
+<script src="src/27-quests.js?v=44"></script>
+<script src="src/data/zone-chapter-rewards.js"></script>
+<script src="src/quest-journal-core.js"></script>
+<script src="src/29-quest-journal.js?v=4"></script>
+<script src="src/prelude-finale-core.js"></script>
+<script src="src/30-prelude-finale.js?v=3"></script>
+<script src="src/data/combat-skills-data.js"></script>
+<script src="src/combat-skills-core.js"></script>
+<script src="src/31-combat-skills.js?v=9"></script>
 <script src="src/32-debug-log.js"></script>
-<script src="src/24-avatar-stats.js?v=8"></script>
-<script src="src/99-bootstrap.js?v=41"></script>
+<script src="src/avatar-math.js?v=4"></script>
+<script src="src/avatar-stats-core.js"></script>
+<script src="src/24-avatar-stats.js?v=11"></script>
+<script src="src/data/passive-income-balance.js?v=2"></script>
+<script src="src/passive-income-core.js?v=2"></script>
+<script src="src/passive-income-ui.js?v=2"></script>
+<script src="src/data/auto-clicker-balance.js?v=3"></script>
+<script src="src/auto-clicker-core.js?v=3"></script>
+<script src="src/auto-clicker-ui.js?v=2"></script>
+<script src="src/99-bootstrap.js?v=43"></script>
 
 </body>
 </html>

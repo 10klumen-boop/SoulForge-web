@@ -76,7 +76,7 @@ function grantStarterWeapon(classId) {
   if (!def) return null;
   const item = { uid: uid(), id, plus: 0, spent: 0, kind: "weapon", starter: true };
   gear.weapon = typeof avatarGearSnapshot === "function" ? avatarGearSnapshot(item) : item;
-  if (state.avatar) state.avatar.starterGranted = true;
+  if (state.avatar) ProgressStore.update("avatar", (a) => ({ ...(a || {}), starterGranted: true }));
   if (typeof renderAvatarGearSlots === "function") renderAvatarGearSlots();
   return gear.weapon;
 }
@@ -85,7 +85,7 @@ function ensureStarterWeapon() {
   if (!state.avatar?.created) return null;
   const gear = typeof ensureAvatarGear === "function" ? ensureAvatarGear() : null;
   if (gear?.weapon) {
-    if (!state.avatar.starterGranted) state.avatar.starterGranted = true;
+    if (!state.avatar.starterGranted) ProgressStore.update("avatar", (a) => ({ ...(a || {}), starterGranted: true }));
     return gear.weapon;
   }
   // Уже выдавали / сняли в инвентарь — не ре-экипировать (иначе дюп NG)
@@ -97,12 +97,12 @@ function migrateStarterWeapon() {
   if (!state.avatar?.created) return;
   const gear = ensureAvatarGear();
   if (gear?.weapon && !state.avatar.starterGranted) {
-    state.avatar.starterGranted = true;
+    ProgressStore.update("avatar", (a) => ({ ...(a || {}), starterGranted: true }));
     save();
     return;
   }
   if (inventoryHasStarterWeapon(state.avatar.classId) && !state.avatar.starterGranted) {
-    state.avatar.starterGranted = true;
+    ProgressStore.update("avatar", (a) => ({ ...(a || {}), starterGranted: true }));
     save();
     return;
   }

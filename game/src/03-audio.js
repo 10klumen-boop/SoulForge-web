@@ -1,56 +1,8 @@
-// ===== Звук: L2 Interlude samples + OST + каналы громкости =====
+// ===== ╨Ч╨▓╤Г╨║: L2 Interlude samples + OST + ╨║╨░╨╜╨░╨╗╤Л ╨│╤А╨╛╨╝╨║╨╛╤Б╤В╨╕ =====
 const Audio2 = (() => {
-  const BASE = { ui: 0.55, sfx: 0.72, amb: 0.24, dwarf: 0.88, mine: 0.48, music: 0.4 };
-  const SOUND_VER = 8;
+  const BASE = AUDIO_BASE;
+  const FILES = AUDIO_FILES;
 
-  const v = (path) => path + "?v=" + SOUND_VER;
-
-  const FILES = {
-    music: {
-      menu: v("assets/sounds/music/menu_theme.m4a"),
-    },
-    ui: {
-      click: v("assets/sounds/ui/click.wav"),
-      coin: v("assets/sounds/ui/coin.wav"),
-      open: v("assets/sounds/ui/open.wav"),
-    },
-    sfx: {
-      charge: v("assets/sounds/sfx/enchant_charge.wav"),
-      success: v("assets/sounds/sfx/enchant_success.wav"),
-      fail: v("assets/sounds/sfx/enchant_fail.wav"),
-      jackpot: v("assets/sounds/sfx/jackpot.wav"),
-      treasure: v("assets/sounds/sfx/treasure.wav"),
-      quest: v("assets/sounds/sfx/quest.wav"),
-      levelup: v("assets/sounds/sfx/levelup.wav"),
-      mineHit: [
-        v("assets/sounds/sfx/mine_hit.wav"),
-        v("assets/sounds/sfx/mine_hit_2.wav"),
-        v("assets/sounds/sfx/mine_hit_3.wav"),
-      ],
-      mineKill: v("assets/sounds/sfx/mine_kill.wav"),
-    },
-    amb: {
-      mine: v("assets/sounds/ambient/mine.wav"),
-      indoor: v("assets/sounds/ambient/indoor.wav"),
-    },
-    dwarf: {
-      M: v("assets/sounds/dwarf/M.wav"),
-      F: v("assets/sounds/dwarf/F.wav"),
-    },
-  };
-
-  // OST только на title-экранах; хаб игры (menu) — без музыки
-  const MUSIC_SCREENS = new Set(["login", "home", "settings", "patch", "author", "characters"]);
-  const SCREEN_AMB = {
-    mine: "mine",
-    inv: "indoor",
-    ench: "indoor",
-    shop: "indoor",
-    ach: "indoor",
-    acc: "indoor",
-    quests: "indoor",
-    avatar: "indoor",
-  };
 
   let ctx;
   const sampleOk = {};
@@ -233,10 +185,6 @@ const Audio2 = (() => {
   let ambKey = null;
   let dwarfVoice = null;
 
-  const DWARF_CATCH = {
-    rate: 1.85,
-    rewardDelayMs: 520,
-  };
 
   function fadeElVolume(el, target, timerRef, step = 0.022) {
     if (!el) return;

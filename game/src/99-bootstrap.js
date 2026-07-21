@@ -116,6 +116,11 @@ if (typeof applyUiIconsToFarmZones === "function") applyUiIconsToFarmZones();
 if (typeof applyUiIconsToQuestNpcs === "function") applyUiIconsToQuestNpcs();
 if (typeof wireStoryArcBar === "function") wireStoryArcBar();
 if (typeof wireMineStory === "function") wireMineStory();
+if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();
+if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
+if (typeof collectPassiveIncome === "function") {
+  try { collectPassiveIncome({ queueNotice: true }); } catch (e) { console.error("collectPassiveIncome failed:", e); }
+}
 renderMenu();
 if (typeof applyVersionLabels === "function") applyVersionLabels();
 show("login");
