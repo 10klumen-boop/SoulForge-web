@@ -1,7 +1,7 @@
 // ===== Пассивный доход: UI (панель на экране Персонаж + модалка при «Играть») =====
 
 const PASSIVE_INCOME_ICON = "icons/etc_adena_i00.png";
-const PASSIVE_WAREHOUSE_ICON = "assets/ui/inventory_book_crop.png?v=10";
+const PASSIVE_WAREHOUSE_ICON = "icons/warehouse_chest.png?v=1";
 
 function formatPassiveDuration(sec) {
   sec = Math.max(0, Math.floor(sec || 0));

@@ -238,10 +238,17 @@ function equipAvatarSlot(slotId, invItem) {
   }
   const taken = removeInvByUid(invItem.uid);
   if (!taken) return false;
-  gear[slotId] = avatarGearSnapshot(taken);
+  const snap = avatarGearSnapshot(taken);
+  ProgressStore.update("avatar", (a) => {
+    const next = { ...(a || {}) };
+    const gear = { ...(next.gear || defaultAvatarGear()) };
+    gear[slotId] = snap;
+    next.gear = gear;
+    return next;
+  });
   save();
   Audio2.success();
-  const def = avatarGearItemDef(gear[slotId]);
+  const def = avatarGearItemDef(snap);
   const slotLabel = AVATAR_GEAR_SLOTS.find((s) => s.id === slotId)?.label || "Слот";
   toast("Надето: " + (def?.name || "?") + " · " + slotLabel, "success");
   renderAvatarGearSlots();
@@ -261,7 +268,13 @@ function unequipAvatarSlot(slotId) {
     toast("Инвентарь полон", "warn");
     return false;
   }
-  gear[slotId] = null;
+  ProgressStore.update("avatar", (a) => {
+    const next = { ...(a || {}) };
+    const gear = { ...(next.gear || defaultAvatarGear()) };
+    gear[slotId] = null;
+    next.gear = gear;
+    return next;
+  });
   save();
   Audio2.click();
   const def = avatarGearItemDef(item);

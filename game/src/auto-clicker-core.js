@@ -127,6 +127,7 @@ function toggleAutoClickerEnabled() {
   if (typeof save === "function") save();
   if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
   if (typeof renderAutoClickerPanel === "function") renderAutoClickerPanel();
+  if (typeof renderAutoClickerHud === "function") renderAutoClickerHud();
   return state.autoClicker.enabled !== false;
 }
 

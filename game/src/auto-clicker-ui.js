@@ -1,6 +1,6 @@
 // ===== Автокликер: UI (панель на экране Персонаж + HUD на поле) =====
 
-const AUTO_CLICKER_ICON = "icons/etc_scroll_of_return_i00.png";
+const AUTO_CLICKER_ICON = "icons/auto_strike.png?v=1";
 
 function formatAutoClickerRemaining(ms) {
   ms = Math.max(0, Math.floor(ms || 0));
@@ -75,15 +75,33 @@ function renderAutoClickerPanel(opts) {
 function renderAutoClickerHud() {
   const hud = document.getElementById("mineAutoClickerHud");
   if (!hud) return;
+  if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
   const rem = typeof autoClickerRemainingMs === "function" ? autoClickerRemainingMs() : 0;
   const active = typeof autoClickerIsActive === "function" ? autoClickerIsActive() : false;
+  const enabled = state.autoClicker?.enabled !== false;
   if (rem <= 0) {
     hud.hidden = true;
     return;
   }
   hud.hidden = false;
-  hud.innerHTML =
-    '<img class="mine-autoclicker-ico" src="' + AUTO_CLICKER_ICON + '" alt="">' +
-    "<span>Автоудар " + formatAutoClickerRemaining(rem) + (active ? "" : " (выкл)") + "</span>";
   hud.classList.toggle("is-on", !!active);
+  hud.classList.toggle("is-paused", rem > 0 && !enabled);
+  hud.setAttribute("aria-pressed", active ? "true" : "false");
+  hud.title = enabled ? "Нажми, чтобы выключить автоудар" : "Нажми, чтобы включить автоудар";
+
+  const label = document.getElementById("mineAutoClickerLabel");
+  const hint = document.getElementById("mineAutoClickerToggleHint");
+  if (label) label.textContent = "Автоудар " + formatAutoClickerRemaining(rem);
+  if (hint) hint.textContent = enabled ? "Вкл" : "Выкл";
+
+  if (!hud.dataset.wired) {
+    hud.dataset.wired = "1";
+    hud.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof autoClickerRemainingMs === "function" && autoClickerRemainingMs() <= 0) return;
+      if (typeof toggleAutoClickerEnabled === "function") toggleAutoClickerEnabled();
+      renderAutoClickerHud();
+    });
+  }
 }

@@ -3,6 +3,54 @@
 
 
 let busy = false;
+
+/** Записать plus/spent экипированного или инвентарного оружия через ProgressStore (не in-place). */
+function syncEnchantItemToStore() {
+  if (!cur || !cur.item) return;
+  if (cur.equipped) {
+    const uid = cur.item.uid;
+    const id = cur.item.id;
+    const plus = cur.plus | 0;
+    const spent = cur.item.spent || 0;
+    const starter = !!cur.item.starter;
+    const broken = !!cur.broken;
+    ProgressStore.update("avatar", (a) => {
+      const next = { ...(a || {}) };
+      const gear = {
+        ...(next.gear || (typeof defaultAvatarGear === "function" ? defaultAvatarGear() : {})),
+      };
+      if (broken) {
+        gear.weapon = null;
+      } else {
+        gear.weapon = {
+          uid,
+          id,
+          plus,
+          spent,
+          kind: "weapon",
+          starter,
+        };
+      }
+      next.gear = gear;
+      return next;
+    });
+    if (!broken && typeof equippedWeaponItem === "function") {
+      const live = equippedWeaponItem();
+      if (live) cur.item = live;
+    }
+    return;
+  }
+  if (cur.broken) return;
+  const uid = cur.item.uid;
+  const plus = cur.plus | 0;
+  const spent = cur.item.spent || 0;
+  ProgressStore.update("inventory", (inv) =>
+    (inv || []).map((it) => (it.uid === uid ? { ...it, plus, spent } : it))
+  );
+  const live = (state.inventory || []).find((it) => it.uid === uid);
+  if (live) cur.item = live;
+}
+
 function doEnchant() {
   if (busy || (typeof isGamePaused === "function" && isGamePaused())) return;
   if (!cur || cur.broken) return;
@@ -102,9 +150,7 @@ function doEnchant() {
         notifyWeaponRecord(cur.weapon, cur.plus);
         cur.broken = true;
         if (typeof achStat === "function") achStat("weaponsBroken", 1);
-        if (cur.equipped && typeof ensureAvatarGear === "function") {
-          ensureAvatarGear().weapon = null;
-        } else {
+        if (!cur.equipped) {
           ProgressStore.set("inventory", (state.inventory || []).filter((x) => x.uid !== cur.item.uid));
         }
         const grade = cur.weapon.grade;
@@ -137,6 +183,8 @@ function doEnchant() {
         }
       }
     }
+    // Сначала в store (экип живёт в avatar.gear), потом XP — иначе clone avatar откатывает plus.
+    syncEnchantItemToStore();
     if (typeof onEnchantAvatarXp === "function") {
       onEnchantAvatarXp(win, cur.plus, sc.behavior, !!cur.broken);
     }

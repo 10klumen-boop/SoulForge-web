@@ -4,10 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>SoulForge Lineage 2 — Enchant Sim</title>
+<link rel="icon" href="favicon.png?v=1" type="image/png" sizes="32x32" />
+<link rel="icon" href="favicon-48.png?v=1" type="image/png" sizes="48x48" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1" sizes="180x180" />
+<link rel="manifest" href="site.webmanifest?v=1" />
+<meta name="theme-color" content="#120c08" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m43" />
+<link rel="stylesheet" href="styles/main.css?v=m44" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -635,7 +640,11 @@
       </div>
       <div class="mine-session-loot" id="mineSessionLoot" hidden aria-label="Дроп за сессию"></div>
       <div class="mine-quest-hud" id="mineQuestHud" hidden></div>
-      <div class="mine-autoclicker-hud" id="mineAutoClickerHud" hidden></div>
+      <button type="button" class="mine-autoclicker-hud" id="mineAutoClickerHud" hidden title="Вкл / выкл автоудар" aria-pressed="false">
+        <img class="mine-autoclicker-ico" src="icons/auto_strike.png?v=1" alt="" aria-hidden="true">
+        <span class="mine-autoclicker-label" id="mineAutoClickerLabel">Автоудар</span>
+        <span class="mine-autoclicker-toggle" id="mineAutoClickerToggleHint">Выкл</span>
+      </button>
       <div class="minefield" id="minefield">
         <div class="mine-skill-bar" id="mineSkillBar" hidden aria-label="Боевые умения"></div>
         <div class="mine-stage" id="mineStage">
@@ -789,7 +798,7 @@
 <script src="src/inventory-ui.js?v=2"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js"></script>
-<script src="src/11-enchant.js?v=11"></script>
+<script src="src/11-enchant.js?v=12"></script>
 <script src="src/mine-ui.js"></script>
 <script src="src/mine-core.js?v=5"></script>
 <script src="src/13-portable-save.js"></script>
@@ -813,7 +822,7 @@
 <script src="src/data/avatar-data.js"></script>
 <script src="src/avatar-core.js"></script>
 <script src="src/22-avatar.js?v=8"></script>
-<script src="src/avatar-gear-core.js"></script>
+<script src="src/avatar-gear-core.js?v=2"></script>
 <script src="src/23-avatar-gear.js?v=4"></script>
 <script src="src/data/story-zones-data.js?v=3"></script>
 <script src="src/story-zones-core.js?v=2"></script>
@@ -837,10 +846,10 @@
 <script src="src/24-avatar-stats.js?v=11"></script>
 <script src="src/data/passive-income-balance.js?v=2"></script>
 <script src="src/passive-income-core.js?v=2"></script>
-<script src="src/passive-income-ui.js?v=2"></script>
+<script src="src/passive-income-ui.js?v=3"></script>
 <script src="src/data/auto-clicker-balance.js?v=3"></script>
-<script src="src/auto-clicker-core.js?v=3"></script>
-<script src="src/auto-clicker-ui.js?v=2"></script>
+<script src="src/auto-clicker-core.js?v=4"></script>
+<script src="src/auto-clicker-ui.js?v=4"></script>
 <script src="src/99-bootstrap.js?v=43"></script>
 
 </body>
