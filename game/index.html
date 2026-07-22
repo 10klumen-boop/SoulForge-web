@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>SoulForge Lineage 2 — Enchant Sim</title>
 <link rel="icon" href="favicon.png?v=1" type="image/png" sizes="32x32" />
 <link rel="icon" href="favicon-48.png?v=1" type="image/png" sizes="48x48" />
@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m44" />
+<link rel="stylesheet" href="styles/main.css?v=m45" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -51,8 +51,7 @@
       </div>
       <div class="topbar-hub-meta" id="hubCorner"></div>
       <div class="wallet"><img src="icons/etc_adena_i00.png" alt="" class="wallet-ico"><div><div class="lbl">Adena</div><div class="coin"><span id="adena">0</span></div></div></div>
-      <button class="iconbtn dev-toggle" id="devToggle" title="Dev-панель (Ctrl+Shift+D)" hidden>🛠</button>
-      <input type="file" id="saveFileInput" accept=".sfsave,application/octet-stream" hidden />
+<input type="file" id="saveFileInput" accept=".sfsave,application/octet-stream" hidden />
       <button class="iconbtn" id="resetBtn" title="Сброс прогресса">⟲</button>
     </div>
   </div>
@@ -659,133 +658,6 @@
       </div>
     </section>
   </div>
-  <aside class="dev-panel" id="devPanel" hidden aria-label="Dev-панель">
-  <div class="dev-panel-head">
-    <span class="dev-panel-title">Dev · отладка</span>
-    <button type="button" class="dev-panel-close" id="devPanelClose" title="Закрыть (Esc)">×</button>
-  </div>
-  <div class="dev-tabs" id="devTabs">
-    <button type="button" class="dev-tab sel" data-tab="cheats">Читы</button>
-    <button type="button" class="dev-tab" data-tab="world">Мир</button>
-    <button type="button" class="dev-tab" data-tab="weapons">Оружие</button>
-    <button type="button" class="dev-tab" data-tab="log">Лог</button>
-  </div>
-  <div class="dev-panel-body">
-    <div class="dev-panel-view" id="devViewCheats">
-      <details class="dev-section" open>
-        <summary>Adena</summary>
-        <div class="dev-adena" id="devAdenaBlock">
-          <div class="dev-adena-head">Баланс <span id="devAdenaCur">0</span></div>
-          <div class="dev-adena-presets" id="devAdenaPresets"></div>
-          <div class="dev-adena-custom">
-            <input type="text" class="dev-adena-input" id="devAdenaInput" placeholder="1kk, 10kk…" inputmode="numeric" autocomplete="off">
-            <button type="button" class="dev-adena-go" id="devAdenaGo" title="Начислить">+</button>
-          </div>
-        </div>
-      </details>
-      <details class="dev-section" open>
-        <summary>Опыт души</summary>
-        <div class="dev-avatar-xp" id="devAvatarXpBlock">
-          <div class="dev-adena-head">Персонаж <span id="devAvatarXpCur">—</span></div>
-          <div class="dev-adena-presets" id="devAvatarXpPresets"></div>
-          <div class="dev-adena-custom">
-            <input type="text" class="dev-adena-input" id="devAvatarXpInput" placeholder="100, 500…" inputmode="numeric" autocomplete="off">
-            <button type="button" class="dev-adena-go" id="devAvatarXpGo" title="Начислить">+</button>
-          </div>
-        </div>
-      </details>
-      <details class="dev-section" open>
-        <summary>Квесты</summary>
-        <div class="dev-quests" id="devQuestBlock">
-          <div class="dev-adena-head">Текущая зона <span id="devQuestCur">—</span></div>
-          <div class="dev-adena-presets" id="devQuestActions"></div>
-          <div class="dev-quest-zones" id="devQuestZones"></div>
-        </div>
-      </details>
-      <details class="dev-section" open>
-        <summary>Баланс и шахта</summary>
-        <div class="dev-tune" id="devTuneBlock"></div>
-        <div class="dev-mine" id="devMineBlock">
-          <button type="button" class="dev-banan-btn" id="devSpawnBanan">⛏ Спавн Банана</button>
-          <button type="button" class="dev-secret-btn ghost" id="devForceBalanceWipe">Force balance wipe</button>
-          <span class="dev-mine-hint">Нужна открытая шахта · wipe сбрасывает экономику/ачивки</span>
-        </div>
-      </details>
-      <details class="dev-section">
-        <summary>Коллекционные предметы</summary>
-        <div class="dev-collect" id="devCollectBlock">
-          <button type="button" class="dev-collect-btn" id="devGrantZakenEarring">
-            <img src="icons/accessory_blessed_earring_of_zaken_i00.png" alt="">
-            <span>Благословенная серьга Закена</span>
-            <b class="dev-collect-n" id="devZakenCount">0</b>
-          </button>
-        </div>
-      </details>
-      <details class="dev-section" open>
-        <summary>Достижения</summary>
-        <div class="dev-secret-ach" id="devAchBlock">
-          <div class="dev-secret-ach-head">
-            <span>Плейтест</span>
-            <b id="devPlaytestAchCount">0 / 8</b>
-          </div>
-          <div class="dev-adena-presets" id="devAchPresets"></div>
-          <div class="dev-secret-ach-head">
-            <span>Секретные</span>
-            <b id="devSecretAchCount">0 / 6</b>
-          </div>
-          <div class="dev-secret-ach-list" id="devSecretAchList"></div>
-          <div class="dev-secret-ach-actions">
-            <button type="button" class="dev-secret-btn" id="devUnlockPlaytestAch">Плейтест ✓</button>
-            <button type="button" class="dev-secret-btn" id="devUnlockAllSecretAch">Секреты</button>
-            <button type="button" class="dev-secret-btn ghost" id="devResetSecretAch">Сброс секретов</button>
-            <button type="button" class="dev-secret-btn ghost" id="devResetAllAch">Сброс всех</button>
-          </div>
-        </div>
-      </details>
-    </div>
-    <div class="dev-panel-view" id="devViewWorld" hidden>
-      <p class="dev-panel-note">Иконки UI с masterwork.wiki — расы, классы, локации, квест-NPC.</p>
-      <input class="search dev-search dev-world-search" id="devWorldSearch" placeholder="Поиск по названию или пути…" autocomplete="off">
-      <div class="dev-world-list sf-scroll" id="devWorldList"></div>
-    </div>
-    <div class="dev-panel-view" id="devViewWeapons" hidden>
-      <div class="dev-weapon-cats" id="devViewWeaponCats">
-        <p class="dev-panel-note">Категории — клик откроет список для спавна в инвентарь.</p>
-        <div class="dev-panel-grid" id="devGrid"></div>
-      </div>
-      <div class="dev-weapon-list" id="devViewList" hidden>
-        <button type="button" class="dev-panel-back" id="devListBack">← Категории</button>
-        <h3 class="dev-list-title" id="devListTitle">Оружие</h3>
-        <div class="dev-filterbar">
-          <div class="grade-filters" id="devGradeFilters">
-            <button type="button" class="gf sel" data-g="all">Все</button>
-            <button type="button" class="gf" data-g="A">A</button>
-            <button type="button" class="gf" data-g="B">B</button>
-            <button type="button" class="gf" data-g="C">C</button>
-            <button type="button" class="gf" data-g="D">D</button>
-          </div>
-          <input class="search dev-search" id="devSearchInput" placeholder="Поиск…" />
-        </div>
-        <div class="dev-wlist" id="devWlist"></div>
-      </div>
-    </div>
-    <div class="dev-panel-view" id="devViewLog" hidden>
-      <div class="dev-debug" id="devDebugBlock">
-        <div class="dev-debug-head">
-          <span>Debug log</span>
-          <b id="devDebugCount">0</b>
-        </div>
-        <div class="dev-debug-actions">
-          <button type="button" class="dev-secret-btn" id="devDebugCopy">Копировать</button>
-          <button type="button" class="dev-secret-btn ghost" id="devDebugDownload">.txt</button>
-          <button type="button" class="dev-secret-btn ghost" id="devDebugClear">Очистить</button>
-          <button type="button" class="dev-secret-btn ghost" id="devDebugVerboseMine">Шахта: выкл</button>
-        </div>
-        <div class="dev-debug-feed sf-scroll" id="devDebugFeed"></div>
-      </div>
-    </div>
-  </div>
-  </aside>
 </div>
 </div>
 <div class="avatar-equip-backdrop" id="avatarEquipBackdrop" hidden>
@@ -917,17 +789,15 @@
 <script src="src/data/enchant-balance.js?v=3"></script>
 <script src="src/06-rules.js?v=9"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
-<script src="src/workshop-core.js"></script>
+<script src="src/workshop-core.js?v=2"></script>
 <script src="src/07-workshop.js?v=3"></script>
 <script src="src/data/farm-balance.js?v=5"></script>
-<script src="src/17-dev-tune.js?v=7"></script>
 <script src="src/08-menu.js"></script>
 <script src="src/09-inventory.js?v=58"></script>
 <script src="src/enchant-ui.js"></script>
 <script src="src/inventory-ui.js?v=2"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js"></script>
-<script src="src/10-dev.js?v=3"></script>
 <script src="src/11-enchant.js?v=12"></script>
 <script src="src/mine-ui.js"></script>
 <script src="src/mine-core.js?v=5"></script>
@@ -964,7 +834,7 @@
 <script src="src/27-quests.js?v=44"></script>
 <script src="src/data/zone-chapter-rewards.js"></script>
 <script src="src/quest-journal-core.js"></script>
-<script src="src/29-quest-journal.js?v=4"></script>
+<script src="src/29-quest-journal.js?v=5"></script>
 <script src="src/prelude-finale-core.js"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
 <script src="src/data/combat-skills-data.js"></script>
@@ -980,7 +850,7 @@
 <script src="src/data/auto-clicker-balance.js?v=3"></script>
 <script src="src/auto-clicker-core.js?v=4"></script>
 <script src="src/auto-clicker-ui.js?v=4"></script>
-<script src="src/99-bootstrap.js?v=43"></script>
+<script src="src/99-bootstrap.js?v=44"></script>
 
 </body>
 </html>

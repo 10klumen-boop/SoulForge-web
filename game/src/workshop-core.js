@@ -49,13 +49,15 @@ function mineShotStock() {
 /**
  * Множитель урона клика/скилла: с авто-зарядами и наличием склада ×1, иначе ×0.5.
  * При успешном расходе списывает 1 заряд грейда оружия.
+ * Без экипированного оружия заряды не тратятся (нечего «заряжать»).
  */
 function applyMineShotDamageMult(baseDmg) {
   ensureWorkshopState();
+  const hasWeapon = typeof equippedWeaponItem === "function" && !!equippedWeaponItem();
   const stock = mineShotStock();
   const auto = state.autoShots !== false;
   let mult = 0.5;
-  if (auto && stock.qty > 0) {
+  if (hasWeapon && auto && stock.qty > 0) {
     ProgressStore.update("shots", (s) => {
       const next = { soul: { ...s?.soul }, spirit: { ...s?.spirit } };
       next[stock.kind][stock.grade] = stock.qty - 1;

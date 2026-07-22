@@ -178,4 +178,11 @@ document.addEventListener(
   document.addEventListener("mousedown", blockNavBtn, { capture: true });
   document.addEventListener("mouseup", blockNavBtn, { capture: true });
 })();
+
+// iOS Safari: pinch zoom (gesture*) — double-tap закрыт через touch-action: manipulation
+(function blockIosPageZoom() {
+  const stop = (e) => e.preventDefault();
+  document.addEventListener("gesturestart", stop, { passive: false });
+  document.addEventListener("gesturechange", stop, { passive: false });
+})();
 })();

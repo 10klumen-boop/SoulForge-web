@@ -121,18 +121,29 @@ function renderQuestJournal() {
       stepsEl.appendChild(row);
     });
     const boss = typeof zoneBossDef === "function" ? zoneBossDef(zone.id) : { name: "Босс" };
+    const bossDone = typeof isZoneBossDefeated === "function" && isZoneBossDefeated(zone.id);
     const bossRow = document.createElement("div");
-    bossRow.className = "qj-step qj-boss" + (complete ? " done" : bossPending ? " current" : "");
+    bossRow.className = "qj-step qj-boss" + (bossDone ? " done" : bossPending ? " current" : "");
+    let bossStatus = "—";
+    let bossStatusClass = "qj-status";
+    if (bossDone) {
+      bossStatus = "✓";
+      bossStatusClass += " done";
+    } else if (bossPending) {
+      bossStatusClass += " active";
+      if (typeof isZoneBossQueued === "function" && isZoneBossQueued(zone.id)) {
+        bossStatus = "скоро";
+      } else if (typeof zoneBossGrindKills === "function") {
+        const need = typeof zoneBossGrindKillsNeeded === "function" ? zoneBossGrindKillsNeeded() : 12;
+        bossStatus = zoneBossGrindKills(zone.id) + "/" + need;
+      } else {
+        bossStatus = "качайся";
+      }
+    }
     bossRow.innerHTML =
       '<span class="qj-step-n">☠</span>' +
       '<span class="qj-step-title">' + boss.name + "</span>" +
-      '<span class="qj-status">' + (complete ? "✓" : bossPending
-        ? (typeof isZoneBossQueued === "function" && isZoneBossQueued(zone.id)
-          ? "скоро"
-          : (typeof zoneBossGrindKills === "function"
-            ? zoneBossGrindKills(zone.id) + "/" + (typeof zoneBossGrindKillsNeeded === "function" ? zoneBossGrindKillsNeeded() : 12)
-            : "качайся"))
-        : "—") + "</span>";
+      '<span class="' + bossStatusClass + '">' + bossStatus + "</span>";
     stepsEl.appendChild(bossRow);
     card.appendChild(stepsEl);
     const actions = document.createElement("div");

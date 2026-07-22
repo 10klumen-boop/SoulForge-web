@@ -17,8 +17,20 @@ global.renderInventory = () => {};
 global.achStat = () => {};
 global.checkAchievements = () => {};
 global.isMysticArchetype = (classId) => classId === "mystic" || classId === "shaman";
+/** По умолчанию без оружия; тесты с расходом сосок подставляют мок сами. */
 global.equippedWeaponItem = () => null;
 global.Audio2 = { click: () => {}, success: () => {}, coin: () => {} };
+
+function withEquippedGradeD(fn) {
+  const prev = global.equippedWeaponItem;
+  global.equippedWeaponItem = () => ({ uid: "w1", id: "test_d", plus: 0 });
+  global.WMAP = { test_d: { id: "test_d", grade: "D", name: "Test D" } };
+  try {
+    fn();
+  } finally {
+    global.equippedWeaponItem = prev;
+  }
+}
 
 loadScripts([
   "src/01-constants.js",
@@ -116,17 +128,31 @@ function runTests() {
     resetState();
     state.shots.soul.D = 5;
     state.avatar.classId = "fighter";
-    const dmg = applyMineShotDamageMult(100);
-    assert.strictEqual(state.shots.soul.D, 4);
-    assert.strictEqual(dmg, 100);
+    withEquippedGradeD(() => {
+      const dmg = applyMineShotDamageMult(100);
+      assert.strictEqual(state.shots.soul.D, 4);
+      assert.strictEqual(dmg, 100);
+    });
   });
 
   test("applyMineShotDamageMult halves damage when out of shots", () => {
     resetState();
     state.shots.soul.D = 0;
     state.avatar.classId = "fighter";
+    withEquippedGradeD(() => {
+      const dmg = applyMineShotDamageMult(100);
+      assert.strictEqual(state.shots.soul.D, 0);
+      assert.strictEqual(dmg, 50);
+    });
+  });
+
+  test("applyMineShotDamageMult does not consume shots without weapon", () => {
+    resetState();
+    state.shots.soul.D = 5;
+    state.avatar.classId = "fighter";
+    global.equippedWeaponItem = () => null;
     const dmg = applyMineShotDamageMult(100);
-    assert.strictEqual(state.shots.soul.D, 0);
+    assert.strictEqual(state.shots.soul.D, 5);
     assert.strictEqual(dmg, 50);
   });
 
