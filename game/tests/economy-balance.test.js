@@ -1,0 +1,54 @@
+// ===== Unit-тесты: economy-balance.js (P1 якоря дохода) =====
+const assert = require("assert");
+const { loadScripts } = require("./setup");
+
+loadScripts(["src/data/economy-balance.js"]);
+
+function runTests() {
+  let passed = 0;
+  let failed = 0;
+
+  function test(name, fn) {
+    try {
+      fn();
+      passed++;
+      console.log("  ✓ " + name);
+    } catch (e) {
+      failed++;
+      console.error("  ✗ " + name);
+      console.error("    " + e.message);
+    }
+  }
+
+  console.log("\n--- economy balance ---");
+
+  test("farm anchors match roadmap midpoints", () => {
+    assert.deepStrictEqual(ECONOMY.farmAdenaPerHour, [150_000, 300_000, 525_000, 825_000, 1_200_000]);
+  });
+
+  test("step adena is minutes/60 of farm/hour", () => {
+    assert.strictEqual(economyStepAdena(1, 1), 25_000);
+    assert.strictEqual(economyStepAdena(1, 2), 30_000);
+    assert.strictEqual(economyStepAdena(1, 3), 40_000);
+    assert.strictEqual(economyStepAdena(2, 1), 50_000);
+  });
+
+  test("chapter adena is 45 min of farm/hour", () => {
+    assert.strictEqual(economyChapterAdena(1), 112_500);
+    assert.strictEqual(economyChapterAdena(5), 900_000);
+  });
+
+  test("ach adena scaler grows early/mid without exploding prestige", () => {
+    assert.strictEqual(economyScaleAchAdena(500), 1_000);
+    assert.strictEqual(economyScaleAchAdena(8_000), 24_000);
+    assert.strictEqual(economyScaleAchAdena(25_000), 100_000);
+    assert.strictEqual(economyScaleAchAdena(50_000), 200_000);
+    assert.strictEqual(economyScaleAchAdena(150_000), 375_000);
+  });
+
+  console.log("\n--- summary ---");
+  console.log("passed: " + passed + ", failed: " + failed);
+  if (failed > 0) process.exit(1);
+}
+
+runTests();

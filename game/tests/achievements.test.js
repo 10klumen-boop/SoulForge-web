@@ -21,6 +21,7 @@ global.ProgressStore = {
 
 loadScripts([
   "src/data/achievement-data.js",
+  "src/data/economy-balance.js",
   "src/achievements-core.js",
 ]);
 

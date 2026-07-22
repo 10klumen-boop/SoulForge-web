@@ -212,7 +212,13 @@ function achievementContext() {
 function formatAchReward(reward) {
   if (!reward) return "";
   const parts = [];
-  if (reward.adena) parts.push(fmtAdena(playtestIncome(reward.adena)) + " adena");
+  if (reward.adena) {
+    const adena =
+      typeof economyScaleAchAdena === "function"
+        ? economyScaleAchAdena(reward.adena)
+        : reward.adena;
+    parts.push(fmtAdena(playtestIncome(adena)) + " adena");
+  }
   if (reward.ore) {
     if (reward.ore.soul) parts.push("Soul Ore ×" + fmt(reward.ore.soul));
     if (reward.ore.spirit) parts.push("Spirit Ore ×" + fmt(reward.ore.spirit));
@@ -229,7 +235,11 @@ function grantAchReward(reward) {
   ensureWorkshopState();
   // Adena ачивок не идёт в totals.earned — иначе rich* фармятся сами с себя
   if (reward.adena) {
-    const adena = playtestIncome(reward.adena);
+    const raw =
+      typeof economyScaleAchAdena === "function"
+        ? economyScaleAchAdena(reward.adena)
+        : reward.adena;
+    const adena = playtestIncome(raw);
     ProgressStore.update("adena", (a) => (a || 0) + adena);
   }
   if (reward.ore) {

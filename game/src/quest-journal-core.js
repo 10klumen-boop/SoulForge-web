@@ -5,18 +5,19 @@
 // ===== Журнал квестов, награды за главы =====
 // ZONE_CHAPTER_REWARDS вынесен в data/zone-chapter-rewards.js
 
-/** Награда за шаг поручения (меньше главы; растёт с главой и номером шага). */
+/** Награда за шаг поручения (якорь ECONOMY: ~10–16 мин фарма главы). */
 function zoneQuestStepRewardDef(zoneId, step) {
   const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
   const ch = Math.min(5, Math.max(1, zone?.chapter || 1));
   const s = Math.min(3, Math.max(1, Number(step) || 1));
-  const adenaBase = [2800, 3500, 5200, 7200, 9500][ch - 1];
-  const stepMult = [1, 1.25, 1.55][s - 1];
-  const adena = Math.round(adenaBase * stepMult);
-  const soul = Math.max(1, Math.round([5, 5, 7, 9, 12][ch - 1] * [0.85, 1, 1.2][s - 1]));
+  const adena =
+    typeof economyStepAdena === "function"
+      ? economyStepAdena(ch, s)
+      : Math.round([25_000, 48_000, 95_000, 150_000, 230_000][ch - 1] * [1, 1.2, 1.6][s - 1]);
+  const soul = Math.max(1, Math.round([12, 18, 26, 36, 48][ch - 1] * [0.85, 1, 1.25][s - 1]));
   let spirit = 0;
   if (ch >= 2) {
-    spirit = Math.round([0, 2, 3, 5, 7][ch - 1] * [0.6, 0.9, 1.15][s - 1]);
+    spirit = Math.round([0, 6, 10, 16, 22][ch - 1] * [0.7, 1, 1.25][s - 1]);
   }
   const crystals = {};
   if (s === 3) {
@@ -113,7 +114,19 @@ function isChapterRewardClaimed(zoneId) {
 }
 
 function zoneChapterRewardDef(zoneId) {
-  return ZONE_CHAPTER_REWARDS[zoneId] || { adena: 15_000, soul: 10, spirit: 0, crystals: { D: 1 }, lines: [] };
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  const ch = zone?.chapter || 1;
+  const fallbackAdena =
+    typeof economyChapterAdena === "function" ? economyChapterAdena(ch) : 112_500;
+  return (
+    ZONE_CHAPTER_REWARDS[zoneId] || {
+      adena: fallbackAdena,
+      soul: 20,
+      spirit: 0,
+      crystals: { D: 1 },
+      lines: [],
+    }
+  );
 }
 
 function applyChapterReward(zoneId, opts) {

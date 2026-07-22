@@ -14,6 +14,7 @@ global.zoneRaceView = (id) => ({ name: id, storyTag: "Глава I" });
 
 loadScripts([
   "src/data/story-zones-data.js",
+  "src/data/economy-balance.js",
   "src/data/zone-chapter-rewards.js",
   "src/01-constants.js",
   "src/progress-store.js",
@@ -54,6 +55,23 @@ function runTests() {
     const r2 = zoneQuestStepRewardDef("banana_mine", 3);
     assert.ok(r2.adena >= r1.adena);
     assert.ok(r2.soul >= r1.soul);
+  });
+
+  test("P1 calibration: ch1 steps ≈ 25k / 30k / 40k", () => {
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).adena, 25_000);
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 2).adena, 30_000);
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 3).adena, 40_000);
+  });
+
+  test("P1 calibration: ch1 chapter clear ≈ 112.5k", () => {
+    assert.strictEqual(zoneChapterRewardDef("banana_mine").adena, 112_500);
+    assert.strictEqual(economyChapterAdena(1), 112_500);
+  });
+
+  test("P1 calibration: later chapters outpace earlier", () => {
+    assert.ok(economyStepAdena(5, 1) > economyStepAdena(1, 1));
+    assert.ok(economyChapterAdena(5) > economyChapterAdena(1));
+    assert.ok(zoneChapterRewardDef("dwarven_depths").adena >= 900_000);
   });
 
   test("zoneQuestStepRewardDef gives crystal on step 3", () => {
