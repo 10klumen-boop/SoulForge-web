@@ -6,9 +6,10 @@ const BANAN_HITS = 10;
 const BANAN_TIME_MS = 9000;
 const ZAKEN_EARRING_ID = "zaken_blessed_earring";
 
-/** Базовый дроп adena с обычного / золотого моба (до прогресс-скейла и avatarMineRewardMult). */
-const MINE_ADENA_REWARD = { min: 3_600, max: 8_640 };
-const MINE_ADENA_GOLDEN = { min: 23_040, max: 51_840 };
+/** Базовый дроп adena с обычного / золотого моба (до прогресс-скейла и avatarMineRewardMult).
+ *  Калибровка P1: при автоклике ~1700 киллов/час и mult≈0.86 → ~150k adena/час на гл.I. */
+const MINE_ADENA_REWARD = { min: 55, max: 110 };
+const MINE_ADENA_GOLDEN = { min: 340, max: 680 };
 
 /** Шанс золотого моба (единый по всем главам). */
 const MINE_GOLDEN_CHANCE = 0.05; // 5%

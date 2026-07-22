@@ -38,6 +38,11 @@ function runTests() {
     assert.strictEqual(economyChapterAdena(5), 900_000);
   });
 
+  test("passive is 10% of farm/hour", () => {
+    assert.ok(Math.abs(economyPassiveAdenaPerSec(1) - 150_000 / 3600 * 0.1) < 1e-9);
+    assert.ok(Math.abs(economyChapterFarmMult(5) - 8) < 1e-9);
+  });
+
   test("ach adena scaler grows early/mid without exploding prestige", () => {
     assert.strictEqual(economyScaleAchAdena(500), 1_000);
     assert.strictEqual(economyScaleAchAdena(8_000), 24_000);

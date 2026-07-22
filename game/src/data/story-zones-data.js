@@ -351,7 +351,7 @@ const FARM_ZONES = [
       overlay: "mine-zone-elven",
       spawnMs: 1160,
       goldenChance: 0.05,
-      rewardScale: 1.1,
+      rewardScale: 1,
     },
     raceSkin: {
       human: {
@@ -452,7 +452,7 @@ const FARM_ZONES = [
       overlay: "mine-zone-orc",
       spawnMs: 1320,
       goldenChance: 0.05,
-      rewardScale: 1.15,
+      rewardScale: 1,
     },
     raceSkin: {
       human: {
@@ -553,7 +553,7 @@ const FARM_ZONES = [
       overlay: "mine-zone-dark",
       spawnMs: 1210,
       goldenChance: 0.05,
-      rewardScale: 1.12,
+      rewardScale: 1,
     },
     raceSkin: {
       human: {
@@ -654,7 +654,7 @@ const FARM_ZONES = [
       overlay: "mine-zone-dwarf",
       spawnMs: 1270,
       goldenChance: 0.05,
-      rewardScale: 1.2,
+      rewardScale: 1,
     },
     raceSkin: {
       human: {

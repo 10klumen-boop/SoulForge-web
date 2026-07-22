@@ -315,14 +315,18 @@ function farmZoneTargetPower(zone) {
 
 
 
-/** Базовый рост adena по главе и уровню (до бонуса силы). */
+/** Базовый рост adena по главе и уровню (до бонуса силы).
+ *  Кривая главы = ECONOMY.farmAdenaPerHour относительно гл.I. */
 function mineProgressAdenaScale(zoneId) {
   zoneId = zoneId || state.farmZone || "banana_mine";
   const zone = farmZoneById(zoneId);
   const chapter = zone.chapter || 1;
   const lvl = state.avatar?.level || 1;
-  const chapterMult = [1, 1.14, 1.32, 1.52, 1.74][chapter - 1] || 1;
-  const lvlMult = 1 + Math.max(0, lvl - 1) * 0.032;
+  const chapterMult =
+    typeof economyChapterFarmMult === "function"
+      ? economyChapterFarmMult(chapter)
+      : ([1, 2, 3.5, 5.5, 8][chapter - 1] || 1);
+  const lvlMult = 1 + Math.max(0, lvl - 1) * 0.02;
   return chapterMult * lvlMult;
 }
 

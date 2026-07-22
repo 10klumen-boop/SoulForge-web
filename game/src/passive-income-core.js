@@ -70,15 +70,21 @@ function passiveRatePerSec() {
     ? farmZoneById(state.farmZone || "banana_mine")
     : { chapter: 1 };
   const chapter = Math.max(1, Math.min(5, zone.chapter || 1));
+  const baseFallback = PASSIVE_INCOME.baseAdenaPerSec;
+  const baseFromEconomy =
+    typeof economyPassiveAdenaPerSec === "function" ? economyPassiveAdenaPerSec(1) : baseFallback;
   const base = typeof tune === "function"
-    ? tune("passive.baseAdenaPerSec", PASSIVE_INCOME.baseAdenaPerSec)
-    : PASSIVE_INCOME.baseAdenaPerSec;
+    ? tune("passive.baseAdenaPerSec", baseFromEconomy)
+    : baseFromEconomy;
   const powerDiv = typeof tune === "function"
     ? tune("passive.powerDiv", PASSIVE_INCOME.powerDiv)
     : PASSIVE_INCOME.powerDiv;
   const power = typeof avatarFarmPower === "function" ? avatarFarmPower() : 0;
   const mults = PASSIVE_INCOME.chapterMult || [1];
-  const chMult = mults[chapter - 1] || mults[mults.length - 1] || 1;
+  const chMult =
+    typeof economyChapterFarmMult === "function"
+      ? economyChapterFarmMult(chapter)
+      : (mults[chapter - 1] || mults[mults.length - 1] || 1);
   return Math.max(0, base * (1 + power / Math.max(1, powerDiv)) * chMult);
 }
 

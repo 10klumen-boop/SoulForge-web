@@ -35,6 +35,7 @@ global.tune = (k, fb) => fb;
 global.tuneInt = (k, fb) => fb;
 
 loadScripts([
+  "src/data/economy-balance.js",
   "src/data/passive-income-balance.js",
   "src/passive-income-core.js",
 ]);
@@ -103,9 +104,24 @@ function runTests() {
 
   test("warehouseNextPrice follows ladder", () => {
     state.passiveIncome = { lastCollectAt: Date.now(), warehouseLv: 0 };
-    assert.strictEqual(warehouseNextPrice(), 150_000);
+    assert.strictEqual(warehouseNextPrice(), 80_000);
     state.passiveIncome.warehouseLv = 4;
     assert.strictEqual(warehouseNextPrice(), null);
+  });
+
+  test("P1: passive rate ≈ 10% of ch1 farm anchor at power 0", () => {
+    global.avatarFarmPower = () => 0;
+    state.farmZone = "banana_mine";
+    const rate = passiveRatePerSec();
+    const expected = economyPassiveAdenaPerSec(1);
+    assert.ok(Math.abs(rate - expected) < 0.05, "rate=" + rate + " expected=" + expected);
+  });
+
+  test("P1: passive scales with chapter farm mult", () => {
+    global.avatarFarmPower = () => 0;
+    state.farmZone = "e"; // chapter 5
+    const rate = passiveRatePerSec();
+    assert.ok(Math.abs(rate - economyPassiveAdenaPerSec(5)) < 0.1, "rate=" + rate);
   });
 
   console.log("\n--- summary ---");
