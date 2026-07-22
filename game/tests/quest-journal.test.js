@@ -1,6 +1,6 @@
 // ===== Unit-тесты: quest-journal-core.js (награды за шаги и главы) =====
 const assert = require("assert");
-const { loadScripts } = require("./setup");
+const { loadScripts, loadGameJsonDataSync } = require("./setup");
 
 // Моки для quest-journal-core.js
 global.$ = () => ({ textContent: "" });
@@ -12,12 +12,12 @@ global.save = () => {};
 global.farmZoneById = (id) => (global.FARM_ZONES || []).find((z) => z.id === id) || { chapter: 1 };
 global.zoneRaceView = (id) => ({ name: id, storyTag: "Глава I" });
 
+loadGameJsonDataSync();
 loadScripts([
-  "src/data/story-zones-data.js",
   "src/data/economy-balance.js",
-  "src/data/zone-chapter-rewards.js",
   "src/01-constants.js",
   "src/progress-store.js",
+  "src/data/quest-data.js",
   "src/quest-core.js",
   "src/quest-journal-core.js",
 ]);

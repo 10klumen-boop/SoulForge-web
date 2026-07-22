@@ -1,13 +1,7 @@
 // ===== Unit-тесты: achievements-core.js (минимальный набор) =====
 const assert = require("assert");
-const { loadScripts } = require("./setup");
+const { loadScripts, loadGameJsonDataSync } = require("./setup");
 
-global.ALL_ACHIEVEMENTS = [
-  { id: "first_click", category: "progress", reward: {} },
-  { id: "first_enchant", category: "progress", reward: {} },
-];
-global.HIDDEN_ACHIEVEMENTS = [];
-global.PLAYTEST_CHECKLIST = [];
 global.state = { achievements: { unlocked: {}, stats: {} } };
 global.save = () => {};
 global.gameLog = () => {};
@@ -24,6 +18,8 @@ loadScripts([
   "src/data/economy-balance.js",
   "src/achievements-core.js",
 ]);
+loadGameJsonDataSync();
+rebuildAchievementsFromMeta();
 
 function runTests() {
   let passed = 0;
@@ -69,6 +65,18 @@ function runTests() {
 
   test("achRecordsCount returns 0 initially", () => {
     assert.strictEqual(achRecordsCount(), 0);
+  });
+
+  test("hybrid: achievements meta bound with test()", () => {
+    assert.ok(ACHIEVEMENTS.length > 40);
+    assert.ok(ACH_CATEGORIES.length >= 5, "categories hydrated from JSON");
+    assert.ok(typeof ACH_SECRET_ICON === "string" && ACH_SECRET_ICON.length > 0);
+    assert.ok(Object.keys(ACH_ICON_MAP).length > 10);
+    const first = ACHIEVEMENTS.find((a) => a.id === "first_field");
+    assert.ok(first && first.title && first.reward);
+    assert.strictEqual(typeof first.test, "function");
+    assert.strictEqual(first.test({ mineVisits: 1 }), true);
+    assert.strictEqual(first.test({ mineVisits: 0 }), false);
   });
 
   console.log("\n--- summary ---");

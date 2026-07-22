@@ -1,38 +1,267 @@
-// ===== Данные: достижения, иконки, категории, QA-чеклист =====
-// Вынесено из 18-achievements.js, чтобы добавлять ачивки без правки движка.
+﻿// ===== Данные достижений: логика test/progress + hydrate из json/achievements.json =====
+// Мета (title/desc/reward/иконки/категории) — в JSON. Правь контент там.
 
-const ACH_ICON = "assets/ui/bloodhood_icon02_crop.png";
-const ACH_ICON_VER = 3;
+function achProg(cur, max) {
+  max = Math.max(1, max || 1);
+  return { current: Math.min(Math.max(0, cur || 0), max), max };
+}
 
-/** AI badge icons — py game/tools/fetch_achievement_icons.py --from-assets */
-const ACH_ICON_MAP = {
-  first_field: "mine_tier1", first_kill: "mine_tier1",
-  miner10: "mine_tier2", miner25: "mine_tier2",
-  miner50: "mine_veteran", golden_gnome: "mine_gold", golden5: "mine_gold",
-  banan_hunter: "mine_rare", boss_slayer: "mine_boss",
-  first_enchant: "enchant_start", first_plus4: "enchant_risk", plus6: "enchant_steady",
-  plus8: "enchant_lucky", plus12: "enchant_glory", legend16: "enchant_legend",
-  enchanter100: "enchant_grind", stubborn50: "enchant_stubborn",
-  seller: "eco_trade", sell_plus4: "eco_risk", sell_high: "eco_premium",
-  rich1m: "eco_million", rich10m: "eco_wealthy", rich100m: "eco_magnate",
-  crystal_merchant: "eco_crystal",
-  soul_awake: "story_soul", first_quest: "story_quest", level5: "story_growth",
-  story_arc_half: "story_arc", prelude_quests_complete: "story_prelude",
-  story_arc_complete: "story_finale",
-  first_craft: "craft_apprentice", crafter100: "craft_master",
-  coll_d_1: "coll_d_first", coll_d_10: "coll_d_hunter", coll_d_25: "coll_d_arsenal",
-  coll_c_1: "coll_c_first", coll_c_10: "coll_c_hunter", coll_c_25: "coll_c_arsenal",
-  coll_b_1: "coll_b_first", coll_b_10: "coll_b_hunter", coll_b_25: "coll_b_arsenal",
-  coll_a_1: "coll_a_first", coll_a_10: "coll_a_hunter", coll_a_25: "coll_a_arsenal",
-  hidden_autoclicker: "secret_iron", hidden_phantom_click: "secret_phantom",
-  hidden_spectator: "secret_spectator", hidden_night_smith: "secret_night",
-  hidden_banan_escape: "secret_escape", hidden_completionist: "secret_complete",
+const ACH_LOGIC = {
+  first_field: {
+    test: (c) => c.mineVisits >= 1,
+    progress: (c) => achProg(c.mineVisits, 1),
+  },
+  first_kill: {
+    test: (c) => c.gnomesCaught >= 1,
+    progress: (c) => achProg(c.gnomesCaught, 1),
+  },
+  miner10: {
+    test: (c) => c.gnomesCaught >= 10,
+    progress: (c) => achProg(c.gnomesCaught, 10),
+  },
+  miner25: {
+    test: (c) => c.gnomesCaught >= 25,
+    progress: (c) => achProg(c.gnomesCaught, 25),
+  },
+  miner50: {
+    test: (c) => c.gnomesCaught >= 50,
+    progress: (c) => achProg(c.gnomesCaught, 50),
+  },
+  golden_gnome: {
+    test: (c) => c.goldenGnomes >= 1,
+    progress: (c) => achProg(c.goldenGnomes, 1),
+  },
+  golden5: {
+    test: (c) => c.goldenGnomes >= 5,
+    progress: (c) => achProg(c.goldenGnomes, 5),
+  },
+  banan_hunter: {
+    test: (c) => c.bananWins >= 1,
+  },
+  boss_slayer: {
+    test: (c) => c.bossKills >= 1,
+  },
+  first_enchant: {
+    test: (c) => c.tries >= 1,
+    progress: (c) => achProg(c.tries, 1),
+  },
+  first_plus4: {
+    test: (c) => c.maxPlus >= 4,
+    progress: (c) => achProg(c.maxPlus, 4),
+  },
+  plus6: {
+    test: (c) => c.maxPlus >= 6,
+    progress: (c) => achProg(c.maxPlus, 6),
+  },
+  plus8: {
+    test: (c) => c.maxPlus >= 8,
+    progress: (c) => achProg(c.maxPlus, 8),
+  },
+  plus12: {
+    test: (c) => c.maxPlus >= 12,
+    progress: (c) => achProg(c.maxPlus, 12),
+  },
+  legend16: {
+    test: (c) => c.maxPlus >= MAX_PLUS,
+    progress: (c) => achProg(c.maxPlus, MAX_PLUS),
+  },
+  enchanter100: {
+    test: (c) => c.tries >= 100,
+    progress: (c) => achProg(c.tries, 100),
+  },
+  stubborn50: {
+    test: (c) => c.fails >= 50,
+    progress: (c) => achProg(c.fails, 50),
+  },
+  seller: {
+    test: (c) => c.weaponsSold >= 1,
+    progress: (c) => achProg(c.weaponsSold, 1),
+  },
+  sell_plus4: {
+    test: (c) => c.maxSoldPlus >= 4,
+    progress: (c) => achProg(c.maxSoldPlus, 4),
+  },
+  sell_high: {
+    test: (c) => c.maxSoldPlus >= 12,
+    progress: (c) => achProg(c.maxSoldPlus, 12),
+  },
+  rich1m: {
+    test: (c) => c.earned >= 1_000_000,
+    progress: (c) => achProg(c.earned, 1_000_000),
+  },
+  rich10m: {
+    test: (c) => c.earned >= 10_000_000,
+    progress: (c) => achProg(c.earned, 10_000_000),
+  },
+  rich100m: {
+    test: (c) => c.earned >= 100_000_000,
+    progress: (c) => achProg(c.earned, 100_000_000),
+  },
+  crystal_merchant: {
+    test: (c) => c.crystalsSold >= 1,
+  },
+  zaken_earring: {
+    test: (c) => c.hasZaken,
+  },
+  soul_awake: {
+    test: (c) => c.avatarCreated,
+    progress: (c) => achProg(c.avatarCreated ? 1 : 0, 1),
+  },
+  first_quest: {
+    test: (c) => c.questSteps >= 1,
+    progress: (c) => achProg(c.questSteps, 1),
+  },
+  level5: {
+    test: (c) => c.avatarLevel >= 5,
+    progress: (c) => achProg(c.avatarLevel, 5),
+  },
+  chapter1_done: {
+    test: (c) => c.chapter1Complete,
+  },
+  story_elven_ruins: {
+    test: (c) => c.storyElvenRuins,
+  },
+  story_orc_barracks: {
+    test: (c) => c.storyOrcBarracks,
+  },
+  story_dark_cavern: {
+    test: (c) => c.storyDarkCavern,
+  },
+  story_arc_half: {
+    test: (c) => c.storyChaptersRead >= 3,
+    progress: (c) => achProg(c.storyChaptersRead, 3),
+  },
+  prelude_quests_complete: {
+    test: (c) => c.preludeChaptersComplete >= 5,
+    progress: (c) => achProg(c.preludeChaptersComplete, 5),
+  },
+  story_arc_complete: {
+    test: (c) => c.storyChaptersRead >= 5,
+    progress: (c) => achProg(c.storyChaptersRead, 5),
+  },
+  first_craft: {
+    test: (c) => c.shotsCrafted >= 1,
+  },
+  crafter100: {
+    test: (c) => c.shotsCrafted >= 100,
+    progress: (c) => achProg(c.shotsCrafted, 100),
+  },
+  coll_d_1: {
+    test: (c) => c.collD >= 1,
+    progress: (c) => achProg(c.collD, 1),
+  },
+  coll_d_10: {
+    test: (c) => c.collD >= 10,
+    progress: (c) => achProg(c.collD, 10),
+  },
+  coll_d_25: {
+    test: (c) => c.collDTotal > 0 && c.collD >= c.collDTotal,
+    progress: (c) => achProg(c.collD, c.collDTotal),
+  },
+  coll_c_1: {
+    test: (c) => c.collC >= 1,
+    progress: (c) => achProg(c.collC, 1),
+  },
+  coll_c_10: {
+    test: (c) => c.collC >= 10,
+    progress: (c) => achProg(c.collC, 10),
+  },
+  coll_c_25: {
+    test: (c) => c.collCTotal > 0 && c.collC >= c.collCTotal,
+    progress: (c) => achProg(c.collC, c.collCTotal),
+  },
+  coll_b_1: {
+    test: (c) => c.collB >= 1,
+    progress: (c) => achProg(c.collB, 1),
+  },
+  coll_b_10: {
+    test: (c) => c.collB >= 10,
+    progress: (c) => achProg(c.collB, 10),
+  },
+  coll_b_25: {
+    test: (c) => c.collBTotal > 0 && c.collB >= c.collBTotal,
+    progress: (c) => achProg(c.collB, c.collBTotal),
+  },
+  coll_a_1: {
+    test: (c) => c.collA >= 1,
+    progress: (c) => achProg(c.collA, 1),
+  },
+  coll_a_10: {
+    test: (c) => c.collA >= 10,
+    progress: (c) => achProg(c.collA, 10),
+  },
+  coll_a_25: {
+    test: (c) => c.collATotal > 0 && c.collA >= c.collATotal,
+    progress: (c) => achProg(c.collA, c.collATotal),
+  },
+  hidden_autoclicker: {
+    test: (c) => c.mineGuardPenalties >= 1,
+  },
+  hidden_phantom_click: {
+    test: (c) => c.mineGuardSynthetic >= 1,
+  },
+  hidden_spectator: {
+    test: (c) => c.gnomesMissed >= 30,
+    progress: (c) => achProg(c.gnomesMissed, 30),
+  },
+  hidden_night_smith: {
+    test: (c) => c.nightEnchants >= 1,
+  },
+  hidden_banan_escape: {
+    test: (c) => c.bananEscaped >= 1,
+  },
+  hidden_completionist: {
+    test: () => typeof allPublicAchievementsUnlocked === "function" && allPublicAchievementsUnlocked(),
+  },
+  hidden_a_arsenal: {
+    test: (c) => c.aGradeCollectionComplete,
+    progress: (c) => achProg(c.collA, c.collATotal),
+  },
+  pt_soul: {
+    test: (c) => c.avatarCreated,
+    progress: (c) => achProg(c.avatarCreated ? 1 : 0, 1),
+  },
+  pt_field: {
+    test: (c) => c.mineVisits >= 1,
+    progress: (c) => achProg(c.mineVisits, 1),
+  },
+  pt_strike: {
+    test: (c) => c.gnomesCaught >= 1,
+    progress: (c) => achProg(c.gnomesCaught, 1),
+  },
+  pt_hammer: {
+    test: (c) => c.tries >= 1,
+    progress: (c) => achProg(c.tries, 1),
+  },
+  pt_trade: {
+    test: (c) => c.weaponsSold >= 1,
+    progress: (c) => achProg(c.weaponsSold, 1),
+  },
+  pt_grow: {
+    test: (c) => c.avatarLevel >= 5,
+    progress: (c) => achProg(c.avatarLevel, 5),
+  },
+  pt_boss: {
+    test: (c) => c.bossKills >= 1,
+    progress: (c) => achProg(c.bossKills, 1),
+  },
+  pt_chapter: {
+    test: (c) => c.chapter1Complete,
+    progress: (c) => achProg(c.chapter1Complete ? 1 : 0, 1),
+  },
 };
 
-const ACH_ICON_WIKI = new Set([
-  "chapter1_done", "story_elven_ruins", "story_orc_barracks", "story_dark_cavern",
-  "zaken_earring", "hidden_a_arsenal",
-]);
+let ACH_ICON = "assets/ui/bloodhood_icon02_crop.png";
+let ACH_ICON_VER = 3;
+let ACH_ICON_MAP = {};
+let ACH_ICON_WIKI = new Set();
+let ACH_CATEGORIES = [];
+let ACH_REWARD_IMAGE = "assets/achievements/secret_reward.jpg";
+let ACH_SECRET_ICON = "icons/achievements/secret_complete.png?v=3";
+let ACHIEVEMENTS = [];
+let HIDDEN_ACHIEVEMENTS = [];
+let PLAYTEST_CHECKLIST = [];
+let ALL_ACHIEVEMENTS = [];
 
 function achIconPath(stem) {
   return "icons/achievements/" + stem + ".png?v=" + ACH_ICON_VER;
@@ -43,669 +272,51 @@ function resolveAchIcon(ach) {
   if (ACH_ICON_WIKI.has(ach.id) && ach.icon) return ach.icon;
   const stem = ACH_ICON_MAP[ach.id];
   if (stem) return achIconPath(stem);
-  if (ach.hidden) return achIconPath("secret_complete");
+  if (ach.hidden) return ACH_SECRET_ICON;
   return ach.icon || ACH_ICON;
 }
 
-const ACH_CATEGORIES = [
-  { id: "all", label: "Все" },
-  { id: "mine", label: "Задания" },
-  { id: "enchant", label: "Заточка" },
-  { id: "economy", label: "Экономика" },
-  { id: "story", label: "Сюжет" },
-  { id: "craft", label: "Мастерская" },
-  { id: "collection", label: "Коллекции" },
-  { id: "secret", label: "Секретные" },
-];
-
-function achProg(cur, max) {
-  max = Math.max(1, max || 1);
-  return { current: Math.min(Math.max(0, cur || 0), max), max };
+function bindAchievementMeta(meta) {
+  if (!meta || !meta.id) return null;
+  const logic = ACH_LOGIC[meta.id] || {};
+  const out = Object.assign({}, meta);
+  out.test = logic.test || function () { return false; };
+  if (logic.progress) out.progress = logic.progress;
+  return out;
 }
 
-/** QA-чеклист: только FEATURE_DEV_PANEL, без наград игроку. */
-const PLAYTEST_CHECKLIST = [
-  {
-    id: "pt_soul",
-    category: "playtest",
-    title: "Душа пробуждена",
-    desc: "Создай персонажа",
-    icon: "icons/skill1921.png",
-    test: (c) => c.avatarCreated,
-    progress: (c) => achProg(c.avatarCreated ? 1 : 0, 1),
-  },
-  {
-    id: "pt_field",
-    category: "playtest",
-    title: "Первый выход",
-    desc: "Зайди в задание (шахту)",
-    icon: "assets/ui/menubutton2_crop.png",
-    test: (c) => c.mineVisits >= 1,
-    progress: (c) => achProg(c.mineVisits, 1),
-  },
-  {
-    id: "pt_strike",
-    category: "playtest",
-    title: "Первый удар",
-    desc: "Убей 1 цель в задании",
-    icon: "icons/weapon_long_sword_i00.png",
-    test: (c) => c.gnomesCaught >= 1,
-    progress: (c) => achProg(c.gnomesCaught, 1),
-  },
-  {
-    id: "pt_hammer",
-    category: "playtest",
-    title: "На наковальню",
-    desc: "Сделай 1 попытку заточки",
-    icon: "icons/etc_scroll_of_enchant_weapon_i01.png",
-    test: (c) => c.tries >= 1,
-    progress: (c) => achProg(c.tries, 1),
-  },
-  {
-    id: "pt_trade",
-    category: "playtest",
-    title: "Первый лот",
-    desc: "Продай заточенное оружие",
-    icon: "icons/weapon_elven_sword_i00.png",
-    test: (c) => c.weaponsSold >= 1,
-    progress: (c) => achProg(c.weaponsSold, 1),
-  },
-  {
-    id: "pt_grow",
-    category: "playtest",
-    title: "Рост души",
-    desc: "Достигни 5 уровня персонажа",
-    icon: "icons/etc_feather_gold_i00.png",
-    test: (c) => c.avatarLevel >= 5,
-    progress: (c) => achProg(c.avatarLevel, 5),
-  },
-  {
-    id: "pt_boss",
-    category: "playtest",
-    title: "Поверженный страж",
-    desc: "Победи босса локации",
-    icon: "icons/etc_scroll_of_enchant_weapon_i03.png",
-    test: (c) => c.bossKills >= 1,
-    progress: (c) => achProg(c.bossKills, 1),
-  },
-  {
-    id: "pt_chapter",
-    category: "playtest",
-    title: "Глава завершена",
-    desc: "Закрой первую главу (квесты + босс)",
-    icon: "icons/etc_scroll_of_enchant_weapon_i02.png",
-    test: (c) => c.chapter1Complete,
-    progress: (c) => achProg(c.chapter1Complete ? 1 : 0, 1),
-  },
-];
-
-const ACHIEVEMENTS = [
-  // —— mine ——
-  {
-    id: "first_field",
-    category: "mine",
-    title: "Первый выход",
-    desc: "Зайди в задание",
-    icon: "assets/ui/menubutton2_crop.png",
-    test: (c) => c.mineVisits >= 1,
-    progress: (c) => achProg(c.mineVisits, 1),
-    reward: { adena: 500 },
-  },
-  {
-    id: "first_kill",
-    category: "mine",
-    title: "Первая кровь",
-    desc: "Убей 1 цель в задании",
-    icon: "icons/weapon_long_sword_i00.png",
-    test: (c) => c.gnomesCaught >= 1,
-    progress: (c) => achProg(c.gnomesCaught, 1),
-    reward: { adena: 500 },
-  },
-  {
-    id: "miner10",
-    category: "mine",
-    title: "Охотник задания",
-    desc: "Убей 10 целей",
-    icon: "icons/quest_journal.png",
-    test: (c) => c.gnomesCaught >= 10,
-    progress: (c) => achProg(c.gnomesCaught, 10),
-    reward: { adena: 2_000 },
-  },
-  {
-    id: "miner25",
-    category: "mine",
-    title: "След на поле",
-    desc: "Убей 25 целей",
-    icon: "icons/skill1903.png",
-    test: (c) => c.gnomesCaught >= 25,
-    progress: (c) => achProg(c.gnomesCaught, 25),
-    reward: { adena: 8_000, ore: { soul: 20 } },
-  },
-  {
-    id: "miner50",
-    category: "mine",
-    title: "Полевой боец",
-    desc: "Убей 50 целей",
-    icon: "icons/skill1902.png",
-    test: (c) => c.gnomesCaught >= 50,
-    progress: (c) => achProg(c.gnomesCaught, 50),
-    reward: { adena: 15_000, ore: { soul: 40 } },
-  },
-  {
-    id: "golden_gnome",
-    category: "mine",
-    title: "Золотая лихорадка",
-    desc: "Поймай золотую цель",
-    icon: "icons/etc_crystal_gold_i00.png",
-    test: (c) => c.goldenGnomes >= 1,
-    progress: (c) => achProg(c.goldenGnomes, 1),
-    reward: { adena: 8_000, ore: { soul: 30 } },
-  },
-  {
-    id: "golden5",
-    category: "mine",
-    title: "Золотая серия",
-    desc: "Поймай 5 золотых целей",
-    icon: "icons/etc_coins_gold_i00.png",
-    test: (c) => c.goldenGnomes >= 5,
-    progress: (c) => achProg(c.goldenGnomes, 5),
-    reward: { adena: 25_000, ore: { soul: 80 } },
-  },
-  {
-    id: "banan_hunter",
-    category: "mine",
-    title: "Укротитель редкого",
-    desc: "Победи редкого гнома",
-    icon: "icons/etc_mineral_special_i00.png",
-    test: (c) => c.bananWins >= 1,
-    reward: { adena: 50_000, ore: { soul: 100, spirit: 40 } },
-  },
-  {
-    id: "boss_slayer",
-    category: "mine",
-    title: "Страж пал",
-    desc: "Победи босса локации",
-    icon: "icons/skill0279.png",
-    test: (c) => c.bossKills >= 1,
-    reward: { adena: 20_000, ore: { soul: 50 } },
-  },
-  // —— enchant ——
-  {
-    id: "first_enchant",
-    category: "enchant",
-    title: "Первый удар молота",
-    desc: "Сделай 1 попытку заточки",
-    icon: "icons/etc_scroll_of_enchant_weapon_i01.png",
-    test: (c) => c.tries >= 1,
-    progress: (c) => achProg(c.tries, 1),
-    reward: { adena: 500 },
-  },
-  {
-    id: "first_plus4",
-    category: "enchant",
-    title: "Рискованный кузнец",
-    desc: "Заточи оружие до +4",
-    icon: "icons/etc_scroll_of_enchant_weapon_i02.png",
-    test: (c) => c.maxPlus >= 4,
-    progress: (c) => achProg(c.maxPlus, 4),
-    reward: { adena: 2_500, ore: { soul: 15 } },
-  },
-  {
-    id: "plus6",
-    category: "enchant",
-    title: "Твёрдая рука",
-    desc: "Заточи оружие до +6",
-    icon: "icons/etc_scroll_of_enchant_weapon_i02.png",
-    test: (c) => c.maxPlus >= 6,
-    progress: (c) => achProg(c.maxPlus, 6),
-    reward: { adena: 8_000, ore: { spirit: 20 } },
-  },
-  {
-    id: "plus8",
-    category: "enchant",
-    title: "На удачу",
-    desc: "Достигни +8 на любом оружии",
-    icon: "icons/etc_scroll_of_enchant_weapon_i03.png",
-    test: (c) => c.maxPlus >= 8,
-    progress: (c) => achProg(c.maxPlus, 8),
-    reward: { adena: 15_000, ore: { spirit: 40 } },
-  },
-  {
-    id: "plus12",
-    category: "enchant",
-    title: "Один шаг до славы",
-    desc: "Достигни +12 на любом оружии",
-    icon: "icons/etc_blessed_scrl_of_ench_wp_b_i03.png",
-    test: (c) => c.maxPlus >= 12,
-    progress: (c) => achProg(c.maxPlus, 12),
-    reward: { adena: 50_000, ore: { soul: 80 } },
-  },
-  {
-    id: "legend16",
-    category: "enchant",
-    title: "ЛЕГЕНДА +16",
-    desc: "Заточи оружие до максимума (+16)",
-    icon: "icons/etc_blessed_scrl_of_ench_wp_a_i04.png",
-    test: (c) => c.maxPlus >= MAX_PLUS,
-    progress: (c) => achProg(c.maxPlus, MAX_PLUS),
-    reward: { adena: 150_000, ore: { soul: 200, spirit: 100 } },
-  },
-  {
-    id: "enchanter100",
-    category: "enchant",
-    title: "Старатель",
-    desc: "100 попыток заточки",
-    icon: "icons/skill1085.png",
-    test: (c) => c.tries >= 100,
-    progress: (c) => achProg(c.tries, 100),
-    reward: { adena: 12_000, ore: { soul: 40 } },
-  },
-  {
-    id: "stubborn50",
-    category: "enchant",
-    title: "Не сдаётся",
-    desc: "50 провалов заточки",
-    icon: "icons/etc_broken_crystal_red_i00.png",
-    test: (c) => c.fails >= 50,
-    progress: (c) => achProg(c.fails, 50),
-    reward: { adena: 8_000, ore: { spirit: 40 } },
-  },
-  // —— economy ——
-  {
-    id: "seller",
-    category: "economy",
-    title: "Торговец",
-    desc: "Продай заточенное оружие",
-    icon: "icons/weapon_elven_sword_i00.png",
-    test: (c) => c.weaponsSold >= 1,
-    progress: (c) => achProg(c.weaponsSold, 1),
-    reward: { adena: 1_500 },
-  },
-  {
-    id: "sell_plus4",
-    category: "economy",
-    title: "Первый риск-лот",
-    desc: "Продай оружие с заточкой +4 или выше",
-    icon: "icons/weapon_elven_long_sword_i00.png",
-    test: (c) => c.maxSoldPlus >= 4,
-    progress: (c) => achProg(c.maxSoldPlus, 4),
-    reward: { adena: 2_500 },
-  },
-  {
-    id: "sell_high",
-    category: "economy",
-    title: "Премиум-лот",
-    desc: "Продай оружие с заточкой +12 или выше",
-    icon: "icons/weapon_sword_of_magic_fog_i00.png",
-    test: (c) => c.maxSoldPlus >= 12,
-    progress: (c) => achProg(c.maxSoldPlus, 12),
-    reward: { adena: 50_000, ore: { soul: 60 } },
-  },
-  {
-    id: "rich1m",
-    category: "economy",
-    title: "Первый миллион",
-    desc: "Заработай 1 000 000 adena за всё время",
-    icon: "icons/etc_adena_i00.png",
-    test: (c) => c.earned >= 1_000_000,
-    progress: (c) => achProg(c.earned, 1_000_000),
-    reward: { adena: 25_000, ore: { soul: 40 } },
-  },
-  {
-    id: "rich10m",
-    category: "economy",
-    title: "Десятка миллионов",
-    desc: "Заработай 10 000 000 adena за всё время",
-    icon: "icons/etc_adena_i00.png",
-    test: (c) => c.earned >= 10_000_000,
-    progress: (c) => achProg(c.earned, 10_000_000),
-    reward: { adena: 40_000, ore: { soul: 60 } },
-  },
-  {
-    id: "rich100m",
-    category: "economy",
-    title: "Магнат",
-    desc: "Заработай 100 000 000 adena за всё время",
-    icon: "icons/etc_coins_gold_i00.png",
-    test: (c) => c.earned >= 100_000_000,
-    progress: (c) => achProg(c.earned, 100_000_000),
-    reward: { adena: 100_000, ore: { soul: 150, spirit: 80 } },
-  },
-  {
-    id: "crystal_merchant",
-    category: "economy",
-    title: "Скупщик кристаллов",
-    desc: "Продай кристаллы из инвентаря",
-    icon: "icons/etc_crystal_blue_i00.png",
-    test: (c) => c.crystalsSold >= 1,
-    reward: { adena: 2_000 },
-  },
-  {
-    id: "zaken_earring",
-    category: "economy",
-    title: "Добыча Закена",
-    desc: "Получи Blessed Earring of Zaken",
-    icon: "icons/accessory_blessed_earring_of_zaken_i00.png",
-    test: (c) => c.hasZaken,
-    reward: { adena: 80_000, ore: { soul: 120 } },
-  },
-  // —— story ——
-  {
-    id: "soul_awake",
-    category: "story",
-    title: "Душа пробуждена",
-    desc: "Создай персонажа",
-    icon: "icons/skill1921.png",
-    test: (c) => c.avatarCreated,
-    progress: (c) => achProg(c.avatarCreated ? 1 : 0, 1),
-    reward: { adena: 500 },
-  },
-  {
-    id: "first_quest",
-    category: "story",
-    title: "Первое поручение",
-    desc: "Закрой 1 шаг квеста",
-    icon: "icons/quest_journal.png",
-    test: (c) => c.questSteps >= 1,
-    progress: (c) => achProg(c.questSteps, 1),
-    reward: { adena: 1_500 },
-  },
-  {
-    id: "level5",
-    category: "story",
-    title: "Рост души",
-    desc: "Достигни 5 уровня персонажа",
-    icon: "icons/etc_feather_gold_i00.png",
-    test: (c) => c.avatarLevel >= 5,
-    progress: (c) => achProg(c.avatarLevel, 5),
-    reward: { adena: 5_000, ore: { soul: 15 } },
-  },
-  {
-    id: "chapter1_done",
-    category: "story",
-    title: "Глава I закрыта",
-    desc: "Закрой первую главу (квесты + босс)",
-    icon: "icons/zones/banana_mine_human.png",
-    test: (c) => c.chapter1Complete,
-    reward: { adena: 5_000, ore: { soul: 20 } },
-  },
-  {
-    id: "story_elven_ruins",
-    category: "story",
-    title: "Эхо наковальни",
-    desc: "Открыть главу II — Эльфийские руины",
-    icon: "icons/zones/elven_ruins_elf.png",
-    test: (c) => c.storyElvenRuins,
-    reward: { adena: 15_000, ore: { spirit: 30 } },
-  },
-  {
-    id: "story_orc_barracks",
-    category: "story",
-    title: "Граница Эльмора",
-    desc: "Открыть главу III",
-    icon: "icons/zones/orc_barracks_orc.png",
-    test: (c) => c.storyOrcBarracks,
-    reward: { adena: 20_000, ore: { spirit: 25 } },
-  },
-  {
-    id: "story_dark_cavern",
-    category: "story",
-    title: "Тень между лесами",
-    desc: "Открыть главу IV",
-    icon: "icons/zones/dark_cavern_dark_elf.png",
-    test: (c) => c.storyDarkCavern,
-    reward: { adena: 30_000 },
-  },
-  {
-    id: "story_arc_half",
-    category: "story",
-    title: "Три главы Prelude",
-    desc: "Прочитать 3 главы сюжетных линий",
-    icon: "icons/etc_spellbook_blue_i00.png",
-    test: (c) => c.storyChaptersRead >= 3,
-    progress: (c) => achProg(c.storyChaptersRead, 3),
-    reward: { adena: 25_000, ore: { soul: 50 } },
-  },
-  {
-    id: "prelude_quests_complete",
-    category: "story",
-    title: "Хроника Prelude",
-    desc: "Пройти все 5 глав заданий",
-    icon: "icons/etc_spellbook_red_i00.png",
-    test: (c) => c.preludeChaptersComplete >= 5,
-    progress: (c) => achProg(c.preludeChaptersComplete, 5),
-    reward: { adena: 100_000, ore: { soul: 120, spirit: 60 } },
-  },
-  {
-    id: "story_arc_complete",
-    category: "story",
-    title: "Путь народа",
-    desc: "Прочитать все 5 глав Prelude",
-    icon: "icons/etc_feather_gold_i00.png",
-    test: (c) => c.storyChaptersRead >= 5,
-    progress: (c) => achProg(c.storyChaptersRead, 5),
-    reward: { adena: 80_000, ore: { soul: 100, spirit: 50 } },
-  },
-  // —— craft ——
-  {
-    id: "first_craft",
-    category: "craft",
-    title: "Подмастерье",
-    desc: "Скрафти первую партию зарядов",
-    icon: "icons/etc_spirit_bullet_blue_i00.png",
-    test: (c) => c.shotsCrafted >= 1,
-    reward: { adena: 1_500, ore: { spirit: 20 } },
-  },
-  {
-    id: "crafter100",
-    category: "craft",
-    title: "Мастер зарядов",
-    desc: "Скрафти 100 зарядов (суммарно)",
-    icon: "icons/etc_spirit_bullet_silver_i00.png",
-    test: (c) => c.shotsCrafted >= 100,
-    progress: (c) => achProg(c.shotsCrafted, 100),
-    reward: { adena: 15_000, ore: { spirit: 60 } },
-  },
-  // —— collection ——
-  {
-    id: "coll_d_1",
-    category: "collection",
-    title: "Первая D",
-    desc: "Собери 1 вид оружия грейда D",
-    icon: "icons/etc_crystal_blue_i00.png",
-    test: (c) => c.collD >= 1,
-    progress: (c) => achProg(c.collD, 1),
-    reward: { adena: 2_000, ore: { soul: 10 } },
-  },
-  {
-    id: "coll_d_10",
-    category: "collection",
-    title: "Охотник D",
-    desc: "Собери 10 разных оружий грейда D",
-    icon: "icons/etc_crystal_blue_i00.png",
-    test: (c) => c.collD >= 10,
-    progress: (c) => achProg(c.collD, 10),
-    reward: { adena: 8_000, ore: { soul: 25 } },
-  },
-  {
-    id: "coll_d_25",
-    category: "collection",
-    title: "Арсенал D",
-    desc: "Собери все разные оружия грейда D",
-    icon: "icons/etc_crystal_blue_i00.png",
-    test: (c) => c.collDTotal > 0 && c.collD >= c.collDTotal,
-    progress: (c) => achProg(c.collD, c.collDTotal),
-    reward: { adena: 40_000, ore: { soul: 80 } },
-  },
-  {
-    id: "coll_c_1",
-    category: "collection",
-    title: "Первая C",
-    desc: "Собери 1 вид оружия грейда C",
-    icon: "icons/etc_crystal_green_i00.png",
-    test: (c) => c.collC >= 1,
-    progress: (c) => achProg(c.collC, 1),
-    reward: { adena: 5_000, ore: { soul: 15 } },
-  },
-  {
-    id: "coll_c_10",
-    category: "collection",
-    title: "Охотник C",
-    desc: "Собери 10 разных оружий грейда C",
-    icon: "icons/etc_crystal_green_i00.png",
-    test: (c) => c.collC >= 10,
-    progress: (c) => achProg(c.collC, 10),
-    reward: { adena: 15_000, ore: { soul: 35 } },
-  },
-  {
-    id: "coll_c_25",
-    category: "collection",
-    title: "Арсенал C",
-    desc: "Собери все разные оружия грейда C",
-    icon: "icons/etc_crystal_green_i00.png",
-    test: (c) => c.collCTotal > 0 && c.collC >= c.collCTotal,
-    progress: (c) => achProg(c.collC, c.collCTotal),
-    reward: { adena: 60_000, ore: { soul: 100 } },
-  },
-  {
-    id: "coll_b_1",
-    category: "collection",
-    title: "Первая B",
-    desc: "Собери 1 вид оружия грейда B",
-    icon: "icons/etc_crystal_red_i00.png",
-    test: (c) => c.collB >= 1,
-    progress: (c) => achProg(c.collB, 1),
-    reward: { adena: 10_000, ore: { spirit: 15 } },
-  },
-  {
-    id: "coll_b_10",
-    category: "collection",
-    title: "Охотник B",
-    desc: "Собери 10 разных оружий грейда B",
-    icon: "icons/etc_crystal_red_i00.png",
-    test: (c) => c.collB >= 10,
-    progress: (c) => achProg(c.collB, 10),
-    reward: { adena: 25_000, ore: { spirit: 35 } },
-  },
-  {
-    id: "coll_b_25",
-    category: "collection",
-    title: "Арсенал B",
-    desc: "Собери все разные оружия грейда B",
-    icon: "icons/etc_crystal_red_i00.png",
-    test: (c) => c.collBTotal > 0 && c.collB >= c.collBTotal,
-    progress: (c) => achProg(c.collB, c.collBTotal),
-    reward: { adena: 80_000, ore: { spirit: 100 } },
-  },
-  {
-    id: "coll_a_1",
-    category: "collection",
-    title: "Первая A",
-    desc: "Собери 1 вид оружия грейда A",
-    icon: "icons/etc_crystal_silver_i00.png",
-    test: (c) => c.collA >= 1,
-    progress: (c) => achProg(c.collA, 1),
-    reward: { adena: 20_000, ore: { spirit: 25 } },
-  },
-  {
-    id: "coll_a_10",
-    category: "collection",
-    title: "Охотник A",
-    desc: "Собери 10 разных оружий грейда A",
-    icon: "icons/etc_crystal_silver_i00.png",
-    test: (c) => c.collA >= 10,
-    progress: (c) => achProg(c.collA, 10),
-    reward: { adena: 50_000, ore: { spirit: 60 } },
-  },
-  {
-    id: "coll_a_25",
-    category: "collection",
-    title: "Арсенал A",
-    desc: "Собери все разные оружия грейда A",
-    icon: "icons/etc_crystal_silver_i00.png",
-    test: (c) => c.collATotal > 0 && c.collA >= c.collATotal,
-    progress: (c) => achProg(c.collA, c.collATotal),
-    reward: { adena: 150_000, ore: { spirit: 150 } },
-  },
-];
-
-const ACH_SECRET_ICON = achIconPath("secret_complete");
-
-const HIDDEN_ACHIEVEMENTS = [
-  {
-    id: "hidden_autoclicker",
-    hidden: true,
-    title: "Железная хватка",
-    desc: "Шахта распознала автокликер и снизила награду",
-    icon: "icons/weapon_iron_glove_i00.png",
-    test: (c) => c.mineGuardPenalties >= 1,
-    reward: { adena: 2_000, ore: { spirit: 15 } },
-  },
-  {
-    id: "hidden_phantom_click",
-    hidden: true,
-    title: "Фантомный палец",
-    desc: "Попытка кликнуть «не своей» рукой в шахте",
-    icon: "icons/skill1086.png",
-    test: (c) => c.mineGuardSynthetic >= 1,
-    reward: { adena: 1_500, ore: { soul: 10 } },
-  },
-  {
-    id: "hidden_spectator",
-    hidden: true,
-    title: "Зритель в шахте",
-    desc: "Пропусти 30 целей, так и не кликнув",
-    icon: "icons/etc_feather_gold_i00.png",
-    test: (c) => c.gnomesMissed >= 30,
-    progress: (c) => achProg(c.gnomesMissed, 30),
-    reward: { adena: 3_000, ore: { soul: 20 } },
-  },
-  {
-    id: "hidden_night_smith",
-    hidden: true,
-    title: "Полночный кузнец",
-    desc: "Заточи оружие между полуночью и 5 утра",
-    icon: "icons/skill1083.png",
-    test: (c) => c.nightEnchants >= 1,
-    reward: { adena: 5_000, ore: { spirit: 25 } },
-  },
-  {
-    id: "hidden_banan_escape",
-    hidden: true,
-    title: "Ушёл в тень",
-    desc: "Дай редкому гному сбежать",
-    icon: "icons/etc_letter_red_i00.png",
-    test: (c) => c.bananEscaped >= 1,
-    reward: { adena: 2_500, ore: { soul: 15 } },
-  },
-  {
-    id: "hidden_completionist",
-    hidden: true,
-    title: "Полная коллекция",
-    desc: "Открой все обычные достижения",
-    icon: ACH_SECRET_ICON,
-    rewardImage: "assets/achievements/secret_reward.jpg",
-    test: () => allPublicAchievementsUnlocked(),
-    reward: { adena: 100_000, ore: { soul: 150, spirit: 80 } },
-  },
-  {
-    id: "hidden_a_arsenal",
-    hidden: true,
-    title: "Повелитель A",
-    desc: "Собери в коллекцию каждое оружие грейда A — награда Закена",
-    icon: "icons/accessory_blessed_earring_of_zaken_i00.png",
-    test: (c) => c.aGradeCollectionComplete,
-    progress: (c) => achProg(c.collA, c.collATotal),
-    reward: { collectible: "zaken_blessed_earring" },
-  },
-];
-
-const ACH_REWARD_IMAGE = "assets/achievements/secret_reward.jpg";
-
-function enrichAchievementsMeta() {
-  HIDDEN_ACHIEVEMENTS.forEach((a) => {
-    a.category = "secret";
-  });
+function bindAchievementList(list) {
+  return (list || []).map(bindAchievementMeta).filter(Boolean);
 }
 
-const ALL_ACHIEVEMENTS = ACHIEVEMENTS.concat(HIDDEN_ACHIEVEMENTS);
+/** Подтянуть meta с globalThis (JSON) в let-биндинги — window.* и let не одно и то же. */
+function hydrateAchievementGlobalsFromJson() {
+  const g = typeof globalThis !== "undefined" ? globalThis : window;
+  if (typeof g.ACH_ICON === "string") ACH_ICON = g.ACH_ICON;
+  if (typeof g.ACH_ICON_VER === "number") ACH_ICON_VER = g.ACH_ICON_VER;
+  if (g.ACH_ICON_MAP && typeof g.ACH_ICON_MAP === "object") ACH_ICON_MAP = g.ACH_ICON_MAP;
+  if (Array.isArray(g.ACH_CATEGORIES)) ACH_CATEGORIES = g.ACH_CATEGORIES;
+  if (typeof g.ACH_REWARD_IMAGE === "string") ACH_REWARD_IMAGE = g.ACH_REWARD_IMAGE;
+  const wiki = g.ACH_ICON_WIKI;
+  if (Array.isArray(wiki)) ACH_ICON_WIKI = new Set(wiki);
+  else if (wiki instanceof Set) ACH_ICON_WIKI = wiki;
+  else ACH_ICON_WIKI = new Set();
+  ACH_SECRET_ICON = achIconPath("secret_complete");
+}
+
+/** Собрать ACHIEVEMENTS / HIDDEN / PLAYTEST / ALL из *_META (после loadGameJsonData). */
+function rebuildAchievementsFromMeta() {
+  const g = typeof globalThis !== "undefined" ? globalThis : window;
+  const meta = g.ACHIEVEMENTS_META;
+  if (!meta || !Array.isArray(meta)) {
+    console.warn("rebuildAchievementsFromMeta: ACHIEVEMENTS_META missing");
+    return false;
+  }
+  hydrateAchievementGlobalsFromJson();
+  ACHIEVEMENTS = bindAchievementList(meta);
+  HIDDEN_ACHIEVEMENTS = bindAchievementList(g.HIDDEN_ACHIEVEMENTS_META);
+  HIDDEN_ACHIEVEMENTS.forEach((a) => { a.category = "secret"; });
+  PLAYTEST_CHECKLIST = bindAchievementList(g.PLAYTEST_CHECKLIST_META);
+  ALL_ACHIEVEMENTS = ACHIEVEMENTS.concat(HIDDEN_ACHIEVEMENTS);
+  return true;
+}

@@ -1,6 +1,6 @@
 // ===== Unit-тесты: enchant successChance, exportGameData, avatar math =====
 const assert = require("assert");
-const { loadScripts } = require("./setup");
+const { loadScripts, loadGameJsonDataSync } = require("./setup");
 
 // Моки для avatar-math.js (зависимости от gear/UI модулей)
 global.isMysticArchetype = (classId) => classId === "mystic" || classId === "shaman";
@@ -9,12 +9,12 @@ global.avatarGearMineAdenaMult = () => 1;
 global.zoneBossDef = () => ({ hpMult: 14 });
 global.farmZoneById = (id) => FARM_ZONES.find((z) => z.id === id) || FARM_ZONES[0];
 
+loadGameJsonDataSync();
 loadScripts([
   "src/01-constants.js",
   "src/data/enchant-balance.js",
   "src/06-rules.js",
   "src/02-state.js",
-  "src/data/story-zones-data.js",
   "src/avatar-math.js",
 ]);
 

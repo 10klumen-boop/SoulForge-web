@@ -1,5 +1,12 @@
 (async function boot() {
   try {
+    if (typeof loadGameJsonData === "function") await loadGameJsonData();
+    if (typeof rebuildAchievementsFromMeta === "function") rebuildAchievementsFromMeta();
+  } catch (e) {
+    console.error("loadGameJsonData failed:", e);
+    if (typeof toast === "function") toast("Не удалось загрузить данные игры", "warn");
+  }
+  try {
     if (typeof hydrateDesktopSave === "function") await hydrateDesktopSave();
   } catch (e) {
     console.error("hydrateDesktopSave failed:", e);

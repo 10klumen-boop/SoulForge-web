@@ -2,7 +2,7 @@
 // Цель — убедиться, что все скрипты в правильном порядке не падают на этапе инициализации.
 const fs = require("fs");
 const path = require("path");
-const { loadScripts } = require("./setup");
+const { loadScripts, loadGameJsonDataSync } = require("./setup");
 
 // Минимальные DOM-моки для bootstrap
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
@@ -114,10 +114,12 @@ global.state = {
 };
 
 console.log("\n--- bundle load ---");
+loadGameJsonDataSync();
 console.log("Loading " + scriptSrcs.length + " scripts from index.html");
 
 try {
   loadScripts(scriptSrcs);
+  if (typeof rebuildAchievementsFromMeta === "function") rebuildAchievementsFromMeta();
   console.log("  ✓ bundle loaded without errors");
   console.log("\n--- summary ---");
   console.log("passed: 1, failed: 0");

@@ -85,9 +85,36 @@ function loadScripts(paths) {
   const path = require("path");
   const vm = require("vm");
   const code = paths
-    .map((p) => fs.readFileSync(path.join(__dirname, "..", p), "utf8"))
+    .map((p) => {
+      const abs = path.join(__dirname, "..", p);
+      if (p.endsWith(".json")) {
+        const data = JSON.parse(fs.readFileSync(abs, "utf8"));
+        return Object.keys(data)
+          .map((k) => "var " + k + " = " + JSON.stringify(data[k]) + ";")
+          .join("\n");
+      }
+      return fs.readFileSync(abs, "utf8");
+    })
     .join("\n;\n");
   vm.runInThisContext(code, { filename: "test-bundle.js" });
 }
 
-module.exports = { loadScripts };
+/** Синхронно применить контентные JSON в global (для unit-тестов). */
+function loadGameJsonDataSync() {
+  const fs = require("fs");
+  const path = require("path");
+  const packs = [
+    "src/data/json/story-zones.json",
+    "src/data/json/quest-content.json",
+    "src/data/json/zone-chapter-rewards.json",
+    "src/data/json/achievements.json",
+  ];
+  packs.forEach((rel) => {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", rel), "utf8"));
+    Object.keys(data).forEach((k) => {
+      global[k] = data[k];
+    });
+  });
+}
+
+module.exports = { loadScripts, loadGameJsonDataSync };

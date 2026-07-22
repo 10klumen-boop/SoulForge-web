@@ -4093,7 +4093,8 @@
     position: relative;
     z-index: 1;
     max-width: min(520px, calc(100vw - 48px));
-    height: auto;
+    /* Полная высота + flex-center: карточка по центру окна (не «убегает» вверх) */
+    height: calc(100vh - 48px);
     max-height: calc(100vh - 48px);
     align-items: center;
     justify-content: center;
@@ -4105,6 +4106,7 @@
   .app.title-screen {
     flex: 0 0 auto;
     align-self: center;
+    width: 100%;
     max-height: calc(100vh - 48px);
     overflow: visible;
   }

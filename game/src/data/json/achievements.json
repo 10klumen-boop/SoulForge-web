@@ -1,0 +1,863 @@
+{
+  "ACH_ICON": "assets/ui/bloodhood_icon02_crop.png",
+  "ACH_ICON_VER": 3,
+  "ACH_ICON_MAP": {
+    "first_field": "mine_tier1",
+    "first_kill": "mine_tier1",
+    "miner10": "mine_tier2",
+    "miner25": "mine_tier2",
+    "miner50": "mine_veteran",
+    "golden_gnome": "mine_gold",
+    "golden5": "mine_gold",
+    "banan_hunter": "mine_rare",
+    "boss_slayer": "mine_boss",
+    "first_enchant": "enchant_start",
+    "first_plus4": "enchant_risk",
+    "plus6": "enchant_steady",
+    "plus8": "enchant_lucky",
+    "plus12": "enchant_glory",
+    "legend16": "enchant_legend",
+    "enchanter100": "enchant_grind",
+    "stubborn50": "enchant_stubborn",
+    "seller": "eco_trade",
+    "sell_plus4": "eco_risk",
+    "sell_high": "eco_premium",
+    "rich1m": "eco_million",
+    "rich10m": "eco_wealthy",
+    "rich100m": "eco_magnate",
+    "crystal_merchant": "eco_crystal",
+    "soul_awake": "story_soul",
+    "first_quest": "story_quest",
+    "level5": "story_growth",
+    "story_arc_half": "story_arc",
+    "prelude_quests_complete": "story_prelude",
+    "story_arc_complete": "story_finale",
+    "first_craft": "craft_apprentice",
+    "crafter100": "craft_master",
+    "coll_d_1": "coll_d_first",
+    "coll_d_10": "coll_d_hunter",
+    "coll_d_25": "coll_d_arsenal",
+    "coll_c_1": "coll_c_first",
+    "coll_c_10": "coll_c_hunter",
+    "coll_c_25": "coll_c_arsenal",
+    "coll_b_1": "coll_b_first",
+    "coll_b_10": "coll_b_hunter",
+    "coll_b_25": "coll_b_arsenal",
+    "coll_a_1": "coll_a_first",
+    "coll_a_10": "coll_a_hunter",
+    "coll_a_25": "coll_a_arsenal",
+    "hidden_autoclicker": "secret_iron",
+    "hidden_phantom_click": "secret_phantom",
+    "hidden_spectator": "secret_spectator",
+    "hidden_night_smith": "secret_night",
+    "hidden_banan_escape": "secret_escape",
+    "hidden_completionist": "secret_complete"
+  },
+  "ACH_ICON_WIKI": [
+    "chapter1_done",
+    "story_elven_ruins",
+    "story_orc_barracks",
+    "story_dark_cavern",
+    "zaken_earring",
+    "hidden_a_arsenal"
+  ],
+  "ACH_CATEGORIES": [
+    {
+      "id": "all",
+      "label": "Все"
+    },
+    {
+      "id": "mine",
+      "label": "Задания"
+    },
+    {
+      "id": "enchant",
+      "label": "Заточка"
+    },
+    {
+      "id": "economy",
+      "label": "Экономика"
+    },
+    {
+      "id": "story",
+      "label": "Сюжет"
+    },
+    {
+      "id": "craft",
+      "label": "Мастерская"
+    },
+    {
+      "id": "collection",
+      "label": "Коллекции"
+    },
+    {
+      "id": "secret",
+      "label": "Секретные"
+    }
+  ],
+  "ACH_REWARD_IMAGE": "assets/achievements/secret_reward.jpg",
+  "ACHIEVEMENTS_META": [
+    {
+      "id": "first_field",
+      "title": "Первый выход",
+      "desc": "Зайди в задание",
+      "category": "mine",
+      "icon": "assets/ui/menubutton2_crop.png",
+      "reward": {
+        "adena": 500
+      }
+    },
+    {
+      "id": "first_kill",
+      "title": "Первая кровь",
+      "desc": "Убей 1 цель в задании",
+      "category": "mine",
+      "icon": "icons/weapon_long_sword_i00.png",
+      "reward": {
+        "adena": 500
+      }
+    },
+    {
+      "id": "miner10",
+      "title": "Охотник задания",
+      "desc": "Убей 10 целей",
+      "category": "mine",
+      "icon": "icons/quest_journal.png",
+      "reward": {
+        "adena": 2000
+      }
+    },
+    {
+      "id": "miner25",
+      "title": "След на поле",
+      "desc": "Убей 25 целей",
+      "category": "mine",
+      "icon": "icons/skill1903.png",
+      "reward": {
+        "adena": 8000,
+        "ore": {
+          "soul": 20
+        }
+      }
+    },
+    {
+      "id": "miner50",
+      "title": "Полевой боец",
+      "desc": "Убей 50 целей",
+      "category": "mine",
+      "icon": "icons/skill1902.png",
+      "reward": {
+        "adena": 15000,
+        "ore": {
+          "soul": 40
+        }
+      }
+    },
+    {
+      "id": "golden_gnome",
+      "title": "Золотая лихорадка",
+      "desc": "Поймай золотую цель",
+      "category": "mine",
+      "icon": "icons/etc_crystal_gold_i00.png",
+      "reward": {
+        "adena": 8000,
+        "ore": {
+          "soul": 30
+        }
+      }
+    },
+    {
+      "id": "golden5",
+      "title": "Золотая серия",
+      "desc": "Поймай 5 золотых целей",
+      "category": "mine",
+      "icon": "icons/etc_coins_gold_i00.png",
+      "reward": {
+        "adena": 25000,
+        "ore": {
+          "soul": 80
+        }
+      }
+    },
+    {
+      "id": "banan_hunter",
+      "title": "Укротитель редкого",
+      "desc": "Победи редкого гнома",
+      "category": "mine",
+      "icon": "icons/etc_mineral_special_i00.png",
+      "reward": {
+        "adena": 50000,
+        "ore": {
+          "soul": 100,
+          "spirit": 40
+        }
+      }
+    },
+    {
+      "id": "boss_slayer",
+      "title": "Страж пал",
+      "desc": "Победи босса локации",
+      "category": "mine",
+      "icon": "icons/skill0279.png",
+      "reward": {
+        "adena": 20000,
+        "ore": {
+          "soul": 50
+        }
+      }
+    },
+    {
+      "id": "first_enchant",
+      "title": "Первый удар молота",
+      "desc": "Сделай 1 попытку заточки",
+      "category": "enchant",
+      "icon": "icons/etc_scroll_of_enchant_weapon_i01.png",
+      "reward": {
+        "adena": 500
+      }
+    },
+    {
+      "id": "first_plus4",
+      "title": "Рискованный кузнец",
+      "desc": "Заточи оружие до +4",
+      "category": "enchant",
+      "icon": "icons/etc_scroll_of_enchant_weapon_i02.png",
+      "reward": {
+        "adena": 2500,
+        "ore": {
+          "soul": 15
+        }
+      }
+    },
+    {
+      "id": "plus6",
+      "title": "Твёрдая рука",
+      "desc": "Заточи оружие до +6",
+      "category": "enchant",
+      "icon": "icons/etc_scroll_of_enchant_weapon_i02.png",
+      "reward": {
+        "adena": 8000,
+        "ore": {
+          "spirit": 20
+        }
+      }
+    },
+    {
+      "id": "plus8",
+      "title": "На удачу",
+      "desc": "Достигни +8 на любом оружии",
+      "category": "enchant",
+      "icon": "icons/etc_scroll_of_enchant_weapon_i03.png",
+      "reward": {
+        "adena": 15000,
+        "ore": {
+          "spirit": 40
+        }
+      }
+    },
+    {
+      "id": "plus12",
+      "title": "Один шаг до славы",
+      "desc": "Достигни +12 на любом оружии",
+      "category": "enchant",
+      "icon": "icons/etc_blessed_scrl_of_ench_wp_b_i03.png",
+      "reward": {
+        "adena": 50000,
+        "ore": {
+          "soul": 80
+        }
+      }
+    },
+    {
+      "id": "legend16",
+      "title": "ЛЕГЕНДА +16",
+      "desc": "Заточи оружие до максимума (+16)",
+      "category": "enchant",
+      "icon": "icons/etc_blessed_scrl_of_ench_wp_a_i04.png",
+      "reward": {
+        "adena": 150000,
+        "ore": {
+          "soul": 200,
+          "spirit": 100
+        }
+      }
+    },
+    {
+      "id": "enchanter100",
+      "title": "Старатель",
+      "desc": "100 попыток заточки",
+      "category": "enchant",
+      "icon": "icons/skill1085.png",
+      "reward": {
+        "adena": 12000,
+        "ore": {
+          "soul": 40
+        }
+      }
+    },
+    {
+      "id": "stubborn50",
+      "title": "Не сдаётся",
+      "desc": "50 провалов заточки",
+      "category": "enchant",
+      "icon": "icons/etc_broken_crystal_red_i00.png",
+      "reward": {
+        "adena": 8000,
+        "ore": {
+          "spirit": 40
+        }
+      }
+    },
+    {
+      "id": "seller",
+      "title": "Торговец",
+      "desc": "Продай заточенное оружие",
+      "category": "economy",
+      "icon": "icons/weapon_elven_sword_i00.png",
+      "reward": {
+        "adena": 1500
+      }
+    },
+    {
+      "id": "sell_plus4",
+      "title": "Первый риск-лот",
+      "desc": "Продай оружие с заточкой +4 или выше",
+      "category": "economy",
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "reward": {
+        "adena": 2500
+      }
+    },
+    {
+      "id": "sell_high",
+      "title": "Премиум-лот",
+      "desc": "Продай оружие с заточкой +12 или выше",
+      "category": "economy",
+      "icon": "icons/weapon_sword_of_magic_fog_i00.png",
+      "reward": {
+        "adena": 50000,
+        "ore": {
+          "soul": 60
+        }
+      }
+    },
+    {
+      "id": "rich1m",
+      "title": "Первый миллион",
+      "desc": "Заработай 1 000 000 adena за всё время",
+      "category": "economy",
+      "icon": "icons/etc_adena_i00.png",
+      "reward": {
+        "adena": 25000,
+        "ore": {
+          "soul": 40
+        }
+      }
+    },
+    {
+      "id": "rich10m",
+      "title": "Десятка миллионов",
+      "desc": "Заработай 10 000 000 adena за всё время",
+      "category": "economy",
+      "icon": "icons/etc_adena_i00.png",
+      "reward": {
+        "adena": 40000,
+        "ore": {
+          "soul": 60
+        }
+      }
+    },
+    {
+      "id": "rich100m",
+      "title": "Магнат",
+      "desc": "Заработай 100 000 000 adena за всё время",
+      "category": "economy",
+      "icon": "icons/etc_coins_gold_i00.png",
+      "reward": {
+        "adena": 100000,
+        "ore": {
+          "soul": 150,
+          "spirit": 80
+        }
+      }
+    },
+    {
+      "id": "crystal_merchant",
+      "title": "Скупщик кристаллов",
+      "desc": "Продай кристаллы из инвентаря",
+      "category": "economy",
+      "icon": "icons/etc_crystal_blue_i00.png",
+      "reward": {
+        "adena": 2000
+      }
+    },
+    {
+      "id": "zaken_earring",
+      "title": "Добыча Закена",
+      "desc": "Получи Blessed Earring of Zaken",
+      "category": "economy",
+      "icon": "icons/accessory_blessed_earring_of_zaken_i00.png",
+      "reward": {
+        "adena": 80000,
+        "ore": {
+          "soul": 120
+        }
+      }
+    },
+    {
+      "id": "soul_awake",
+      "title": "Душа пробуждена",
+      "desc": "Создай персонажа",
+      "category": "story",
+      "icon": "icons/skill1921.png",
+      "reward": {
+        "adena": 500
+      }
+    },
+    {
+      "id": "first_quest",
+      "title": "Первое поручение",
+      "desc": "Закрой 1 шаг квеста",
+      "category": "story",
+      "icon": "icons/quest_journal.png",
+      "reward": {
+        "adena": 1500
+      }
+    },
+    {
+      "id": "level5",
+      "title": "Рост души",
+      "desc": "Достигни 5 уровня персонажа",
+      "category": "story",
+      "icon": "icons/etc_feather_gold_i00.png",
+      "reward": {
+        "adena": 5000,
+        "ore": {
+          "soul": 15
+        }
+      }
+    },
+    {
+      "id": "chapter1_done",
+      "title": "Глава I закрыта",
+      "desc": "Закрой первую главу (квесты + босс)",
+      "category": "story",
+      "icon": "icons/zones/banana_mine_human.png",
+      "reward": {
+        "adena": 5000,
+        "ore": {
+          "soul": 20
+        }
+      }
+    },
+    {
+      "id": "story_elven_ruins",
+      "title": "Эхо наковальни",
+      "desc": "Открыть главу II — Эльфийские руины",
+      "category": "story",
+      "icon": "icons/zones/elven_ruins_elf.png",
+      "reward": {
+        "adena": 15000,
+        "ore": {
+          "spirit": 30
+        }
+      }
+    },
+    {
+      "id": "story_orc_barracks",
+      "title": "Граница Эльмора",
+      "desc": "Открыть главу III",
+      "category": "story",
+      "icon": "icons/zones/orc_barracks_orc.png",
+      "reward": {
+        "adena": 20000,
+        "ore": {
+          "spirit": 25
+        }
+      }
+    },
+    {
+      "id": "story_dark_cavern",
+      "title": "Тень между лесами",
+      "desc": "Открыть главу IV",
+      "category": "story",
+      "icon": "icons/zones/dark_cavern_dark_elf.png",
+      "reward": {
+        "adena": 30000
+      }
+    },
+    {
+      "id": "story_arc_half",
+      "title": "Три главы Prelude",
+      "desc": "Прочитать 3 главы сюжетных линий",
+      "category": "story",
+      "icon": "icons/etc_spellbook_blue_i00.png",
+      "reward": {
+        "adena": 25000,
+        "ore": {
+          "soul": 50
+        }
+      }
+    },
+    {
+      "id": "prelude_quests_complete",
+      "title": "Хроника Prelude",
+      "desc": "Пройти все 5 глав заданий",
+      "category": "story",
+      "icon": "icons/etc_spellbook_red_i00.png",
+      "reward": {
+        "adena": 100000,
+        "ore": {
+          "soul": 120,
+          "spirit": 60
+        }
+      }
+    },
+    {
+      "id": "story_arc_complete",
+      "title": "Путь народа",
+      "desc": "Прочитать все 5 глав Prelude",
+      "category": "story",
+      "icon": "icons/etc_feather_gold_i00.png",
+      "reward": {
+        "adena": 80000,
+        "ore": {
+          "soul": 100,
+          "spirit": 50
+        }
+      }
+    },
+    {
+      "id": "first_craft",
+      "title": "Подмастерье",
+      "desc": "Скрафти первую партию зарядов",
+      "category": "craft",
+      "icon": "icons/etc_spirit_bullet_blue_i00.png",
+      "reward": {
+        "adena": 1500,
+        "ore": {
+          "spirit": 20
+        }
+      }
+    },
+    {
+      "id": "crafter100",
+      "title": "Мастер зарядов",
+      "desc": "Скрафти 100 зарядов (суммарно)",
+      "category": "craft",
+      "icon": "icons/etc_spirit_bullet_silver_i00.png",
+      "reward": {
+        "adena": 15000,
+        "ore": {
+          "spirit": 60
+        }
+      }
+    },
+    {
+      "id": "coll_d_1",
+      "title": "Первая D",
+      "desc": "Собери 1 вид оружия грейда D",
+      "category": "collection",
+      "icon": "icons/etc_crystal_blue_i00.png",
+      "reward": {
+        "adena": 2000,
+        "ore": {
+          "soul": 10
+        }
+      }
+    },
+    {
+      "id": "coll_d_10",
+      "title": "Охотник D",
+      "desc": "Собери 10 разных оружий грейда D",
+      "category": "collection",
+      "icon": "icons/etc_crystal_blue_i00.png",
+      "reward": {
+        "adena": 8000,
+        "ore": {
+          "soul": 25
+        }
+      }
+    },
+    {
+      "id": "coll_d_25",
+      "title": "Арсенал D",
+      "desc": "Собери все разные оружия грейда D",
+      "category": "collection",
+      "icon": "icons/etc_crystal_blue_i00.png",
+      "reward": {
+        "adena": 40000,
+        "ore": {
+          "soul": 80
+        }
+      }
+    },
+    {
+      "id": "coll_c_1",
+      "title": "Первая C",
+      "desc": "Собери 1 вид оружия грейда C",
+      "category": "collection",
+      "icon": "icons/etc_crystal_green_i00.png",
+      "reward": {
+        "adena": 5000,
+        "ore": {
+          "soul": 15
+        }
+      }
+    },
+    {
+      "id": "coll_c_10",
+      "title": "Охотник C",
+      "desc": "Собери 10 разных оружий грейда C",
+      "category": "collection",
+      "icon": "icons/etc_crystal_green_i00.png",
+      "reward": {
+        "adena": 15000,
+        "ore": {
+          "soul": 35
+        }
+      }
+    },
+    {
+      "id": "coll_c_25",
+      "title": "Арсенал C",
+      "desc": "Собери все разные оружия грейда C",
+      "category": "collection",
+      "icon": "icons/etc_crystal_green_i00.png",
+      "reward": {
+        "adena": 60000,
+        "ore": {
+          "soul": 100
+        }
+      }
+    },
+    {
+      "id": "coll_b_1",
+      "title": "Первая B",
+      "desc": "Собери 1 вид оружия грейда B",
+      "category": "collection",
+      "icon": "icons/etc_crystal_red_i00.png",
+      "reward": {
+        "adena": 10000,
+        "ore": {
+          "spirit": 15
+        }
+      }
+    },
+    {
+      "id": "coll_b_10",
+      "title": "Охотник B",
+      "desc": "Собери 10 разных оружий грейда B",
+      "category": "collection",
+      "icon": "icons/etc_crystal_red_i00.png",
+      "reward": {
+        "adena": 25000,
+        "ore": {
+          "spirit": 35
+        }
+      }
+    },
+    {
+      "id": "coll_b_25",
+      "title": "Арсенал B",
+      "desc": "Собери все разные оружия грейда B",
+      "category": "collection",
+      "icon": "icons/etc_crystal_red_i00.png",
+      "reward": {
+        "adena": 80000,
+        "ore": {
+          "spirit": 100
+        }
+      }
+    },
+    {
+      "id": "coll_a_1",
+      "title": "Первая A",
+      "desc": "Собери 1 вид оружия грейда A",
+      "category": "collection",
+      "icon": "icons/etc_crystal_silver_i00.png",
+      "reward": {
+        "adena": 20000,
+        "ore": {
+          "spirit": 25
+        }
+      }
+    },
+    {
+      "id": "coll_a_10",
+      "title": "Охотник A",
+      "desc": "Собери 10 разных оружий грейда A",
+      "category": "collection",
+      "icon": "icons/etc_crystal_silver_i00.png",
+      "reward": {
+        "adena": 50000,
+        "ore": {
+          "spirit": 60
+        }
+      }
+    },
+    {
+      "id": "coll_a_25",
+      "title": "Арсенал A",
+      "desc": "Собери все разные оружия грейда A",
+      "category": "collection",
+      "icon": "icons/etc_crystal_silver_i00.png",
+      "reward": {
+        "adena": 150000,
+        "ore": {
+          "spirit": 150
+        }
+      }
+    }
+  ],
+  "HIDDEN_ACHIEVEMENTS_META": [
+    {
+      "id": "hidden_autoclicker",
+      "title": "Железная хватка",
+      "desc": "Шахта распознала автокликер и снизила награду",
+      "icon": "icons/weapon_iron_glove_i00.png",
+      "reward": {
+        "adena": 2000,
+        "ore": {
+          "spirit": 15
+        }
+      },
+      "hidden": true
+    },
+    {
+      "id": "hidden_phantom_click",
+      "title": "Фантомный палец",
+      "desc": "Попытка кликнуть «не своей» рукой в шахте",
+      "icon": "icons/skill1086.png",
+      "reward": {
+        "adena": 1500,
+        "ore": {
+          "soul": 10
+        }
+      },
+      "hidden": true
+    },
+    {
+      "id": "hidden_spectator",
+      "title": "Зритель в шахте",
+      "desc": "Пропусти 30 целей, так и не кликнув",
+      "icon": "icons/etc_feather_gold_i00.png",
+      "reward": {
+        "adena": 3000,
+        "ore": {
+          "soul": 20
+        }
+      },
+      "hidden": true
+    },
+    {
+      "id": "hidden_night_smith",
+      "title": "Полночный кузнец",
+      "desc": "Заточи оружие между полуночью и 5 утра",
+      "icon": "icons/skill1083.png",
+      "reward": {
+        "adena": 5000,
+        "ore": {
+          "spirit": 25
+        }
+      },
+      "hidden": true
+    },
+    {
+      "id": "hidden_banan_escape",
+      "title": "Ушёл в тень",
+      "desc": "Дай редкому гному сбежать",
+      "icon": "icons/etc_letter_red_i00.png",
+      "reward": {
+        "adena": 2500,
+        "ore": {
+          "soul": 15
+        }
+      },
+      "hidden": true
+    },
+    {
+      "id": "hidden_completionist",
+      "title": "Полная коллекция",
+      "desc": "Открой все обычные достижения",
+      "icon": "icons/achievements/secret_complete.png?v=3",
+      "reward": {
+        "adena": 100000,
+        "ore": {
+          "soul": 150,
+          "spirit": 80
+        }
+      },
+      "hidden": true,
+      "rewardImage": "assets/achievements/secret_reward.jpg"
+    },
+    {
+      "id": "hidden_a_arsenal",
+      "title": "Повелитель A",
+      "desc": "Собери в коллекцию каждое оружие грейда A — награда Закена",
+      "icon": "icons/accessory_blessed_earring_of_zaken_i00.png",
+      "reward": {
+        "collectible": "zaken_blessed_earring"
+      },
+      "hidden": true
+    }
+  ],
+  "PLAYTEST_CHECKLIST_META": [
+    {
+      "id": "pt_soul",
+      "title": "Душа пробуждена",
+      "desc": "Создай персонажа",
+      "category": "playtest",
+      "icon": "icons/skill1921.png"
+    },
+    {
+      "id": "pt_field",
+      "title": "Первый выход",
+      "desc": "Зайди в задание (шахту)",
+      "category": "playtest",
+      "icon": "assets/ui/menubutton2_crop.png"
+    },
+    {
+      "id": "pt_strike",
+      "title": "Первый удар",
+      "desc": "Убей 1 цель в задании",
+      "category": "playtest",
+      "icon": "icons/weapon_long_sword_i00.png"
+    },
+    {
+      "id": "pt_hammer",
+      "title": "На наковальню",
+      "desc": "Сделай 1 попытку заточки",
+      "category": "playtest",
+      "icon": "icons/etc_scroll_of_enchant_weapon_i01.png"
+    },
+    {
+      "id": "pt_trade",
+      "title": "Первый лот",
+      "desc": "Продай заточенное оружие",
+      "category": "playtest",
+      "icon": "icons/weapon_elven_sword_i00.png"
+    },
+    {
+      "id": "pt_grow",
+      "title": "Рост души",
+      "desc": "Достигни 5 уровня персонажа",
+      "category": "playtest",
+      "icon": "icons/etc_feather_gold_i00.png"
+    },
+    {
+      "id": "pt_boss",
+      "title": "Поверженный страж",
+      "desc": "Победи босса локации",
+      "category": "playtest",
+      "icon": "icons/etc_scroll_of_enchant_weapon_i03.png"
+    },
+    {
+      "id": "pt_chapter",
+      "title": "Глава завершена",
+      "desc": "Закрой первую главу (квесты + босс)",
+      "category": "playtest",
+      "icon": "icons/etc_scroll_of_enchant_weapon_i02.png"
+    }
+  ]
+}
