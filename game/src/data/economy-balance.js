@@ -5,8 +5,8 @@
 
 const ECONOMY = {
   farmAdenaPerHour: [150_000, 300_000, 525_000, 825_000, 1_200_000],
-  /** Оценка киллов/час с автокликом 220ms (hits 7→11 + spawn delay). */
-  farmKillsPerHourAuto: [1700, 1550, 1420, 1320, 1220],
+  /** Оценка киллов/час с автокликом 150ms (hits 7→11 + spawn delay). */
+  farmKillsPerHourAuto: [2100, 1920, 1760, 1630, 1510],
   stepFarmMinutes: [10, 12, 16],
   chapterFarmMinutes: 45,
   passiveOfFarm: 0.1,

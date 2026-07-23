@@ -95,6 +95,34 @@
     }
     .empty { padding: 20px; color: var(--dim); text-align: center; }
     .section[hidden], [hidden] { display: none !important; }
+    .toolbar {
+      position: sticky; top: 0; z-index: 20; background: rgba(12,10,7,.94);
+      backdrop-filter: blur(6px); border-bottom: 1px solid var(--edge);
+      margin: -16px -14px 12px; padding: 10px 14px;
+    }
+    .live-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--dim); margin-right: 6px; vertical-align: middle;
+    }
+    .live-dot.on { background: var(--ok); box-shadow: 0 0 8px rgba(122,170,106,.7); }
+    .presets { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .presets button { font-size: 11px; padding: 4px 8px; }
+    .presets button.sel { border-color: var(--gold); color: var(--gold); }
+    .pill.ch-world { color: #d8c8a0; }
+    .pill.ch-trade { color: #c9a86a; }
+    .pill.ch-party { color: #8ab4e0; }
+    .pill.ch-clan { color: #e0a0b8; }
+    .pill.ch-whisper { color: #c0a0e0; }
+    .pill.st-listed { color: #a8d0a8; }
+    .pill.st-sold { color: #a8c8e0; }
+    .pill.st-cancelled, .pill.st-expired { color: var(--dim); }
+    .chat-body-cell { max-width: 420px; word-break: break-word; }
+    .flash-new td { animation: flashRow .8s ease; }
+    @keyframes flashRow { from { background: rgba(201,168,106,.22); } to { background: transparent; } }
+    .updated-at { font-size: 11px; color: var(--dim); margin-left: auto; }
+    .toolbar .row { justify-content: space-between; }
+    label.chk { display: inline-flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--txt); cursor: pointer; }
+    label.chk input { width: auto; max-width: none; }
   </style>
 </head>
 <body>
@@ -112,9 +140,18 @@
     </div>
 
     <div id="panel" hidden>
-      <div class="card">
-        <p class="stats" id="stats"></p>
+      <div class="toolbar">
+        <div class="row">
+          <p class="stats" id="stats" style="margin:0"></p>
+          <span class="updated-at" id="updatedAt"></span>
+        </div>
         <div class="row mt">
+          <label class="chk"><span class="live-dot" id="liveDot"></span><input type="checkbox" id="liveToggle" checked /> Live</label>
+          <select id="liveInterval" title="Интервал">
+            <option value="2000">2 с</option>
+            <option value="5000" selected>5 с</option>
+            <option value="10000">10 с</option>
+          </select>
           <button type="button" class="ghost" id="refreshBtn">Обновить</button>
           <button type="button" class="ghost" id="purgeBtn">Очистить сессии</button>
           <button type="button" id="logoutBtn">Выйти</button>
@@ -123,9 +160,11 @@
 
       <div class="tabs" id="tabs">
         <button type="button" class="tab sel" data-tab="users">Аккаунты</button>
+        <button type="button" class="tab" data-tab="chat">Чат</button>
+        <button type="button" class="tab" data-tab="market">Рынок</button>
+        <button type="button" class="tab" data-tab="events">События</button>
         <button type="button" class="tab" data-tab="balance">Баланс</button>
         <button type="button" class="tab" data-tab="alerts">Алерты</button>
-        <button type="button" class="tab" data-tab="events">События</button>
         <button type="button" class="tab" data-tab="backups">Бэкапы</button>
         <button type="button" class="tab" data-tab="scores">Рейтинг</button>
       </div>
@@ -148,6 +187,85 @@
             </div>
             <div class="table-wrap" id="usersTable"></div>
             <div class="pager" id="usersPager"></div>
+          </section>
+
+          <!-- CHAT -->
+          <section class="section" id="sec-chat" hidden>
+            <div class="card">
+              <div class="filters">
+                <div>
+                  <label>Канал</label>
+                  <select id="chatChannel">
+                    <option value="">Все</option>
+                    <option value="world">Мир</option>
+                    <option value="trade">Торговля</option>
+                    <option value="party">Группа</option>
+                    <option value="clan">Клан</option>
+                    <option value="whisper">Шёпот</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Ник</label>
+                  <input type="search" id="chatNick" placeholder="nick / герой…" />
+                </div>
+                <div class="grow">
+                  <label>Текст</label>
+                  <input type="search" id="chatText" placeholder="фрагмент сообщения…" />
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button type="button" id="chatApply">Фильтр</button>
+                </div>
+              </div>
+              <div class="presets" id="chatPresets">
+                <button type="button" class="ghost sel" data-ch="">Все</button>
+                <button type="button" class="ghost" data-ch="world">Мир</button>
+                <button type="button" class="ghost" data-ch="trade">Торг</button>
+                <button type="button" class="ghost" data-ch="party">Группа</button>
+                <button type="button" class="ghost" data-ch="clan">Клан</button>
+                <button type="button" class="ghost" data-ch="whisper">ЛС</button>
+              </div>
+            </div>
+            <div class="table-wrap" id="chatTable"></div>
+            <div class="pager" id="chatPager"></div>
+          </section>
+
+          <!-- MARKET -->
+          <section class="section" id="sec-market" hidden>
+            <div class="card">
+              <div class="filters">
+                <div>
+                  <label>Статус</label>
+                  <select id="mkStatus">
+                    <option value="">Все</option>
+                    <option value="listed">listed</option>
+                    <option value="sold">sold</option>
+                    <option value="cancelled">cancelled</option>
+                    <option value="expired">expired</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Тип</label>
+                  <select id="mkKind">
+                    <option value="">Все</option>
+                    <option value="weapon">weapon</option>
+                    <option value="crystal">crystal</option>
+                    <option value="material">material</option>
+                    <option value="shot">shot</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Ник</label>
+                  <input type="search" id="mkNick" placeholder="продавец…" />
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button type="button" id="mkApply">Фильтр</button>
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap" id="marketTable"></div>
+            <div class="pager" id="marketPager"></div>
           </section>
 
           <!-- BALANCE -->
@@ -246,6 +364,14 @@
                   <button type="button" id="evApply">Фильтр</button>
                 </div>
               </div>
+              <div class="presets" id="evPresets">
+                <button type="button" class="ghost sel" data-ev="">Все</button>
+                <button type="button" class="ghost" data-ev="chat_">Чат*</button>
+                <button type="button" class="ghost" data-ev="market_">Рынок*</button>
+                <button type="button" class="ghost" data-ev="enchant_">Заточка*</button>
+                <button type="button" class="ghost" data-ev="farm_session">Фарм</button>
+                <button type="button" class="ghost" data-ev="login">Вход</button>
+              </div>
             </div>
             <div class="table-wrap" id="eventsTable"></div>
             <div class="pager" id="eventsPager"></div>
@@ -326,13 +452,68 @@
   const state = {
     tab: "users",
     users: { q: "", offset: 0, limit: 50 },
+    chat: { channel: "", nick: "", text: "", offset: 0, limit: 80, latestId: 0 },
+    market: { status: "", kind: "", nick: "", offset: 0, limit: 80 },
     events: { nick: "", event: "", characterId: "", since: null, until: null, offset: 0, limit: 100 },
     backups: { nick: "", characterId: "", since: null, until: null, offset: 0, limit: 50 },
     scores: { nick: "", sort: "enchant", offset: 0, limit: 100 },
     balance: { periodDays: 7 },
     alerts: { severity: "", periodDays: 7, offset: 0, limit: 50 },
     selectedUserId: null,
+    live: true,
+    liveTimer: null,
+    busy: false,
   };
+
+  const TAB_IDS = ["users", "chat", "market", "balance", "alerts", "events", "backups", "scores"];
+  const LIVE_TABS = new Set(["chat", "events", "market", "alerts", "users"]);
+
+  function markUpdated() {
+    const el = $("updatedAt");
+    if (el) el.textContent = "обновлено " + new Date().toLocaleTimeString("ru-RU");
+  }
+
+  function syncLiveUi() {
+    const on = !!$("liveToggle")?.checked;
+    state.live = on;
+    const dot = $("liveDot");
+    if (dot) dot.classList.toggle("on", on);
+  }
+
+  function stopLive() {
+    if (state.liveTimer) {
+      clearInterval(state.liveTimer);
+      state.liveTimer = null;
+    }
+  }
+
+  function startLive() {
+    stopLive();
+    syncLiveUi();
+    if (!state.live) return;
+    const ms = Math.max(2000, Number($("liveInterval")?.value) || 5000);
+    state.liveTimer = setInterval(() => {
+      if (document.hidden || state.busy) return;
+      if (!LIVE_TABS.has(state.tab)) return;
+      softRefresh();
+    }, ms);
+  }
+
+  async function softRefresh() {
+    if (state.busy) return;
+    state.busy = true;
+    try {
+      await loadOverview(true);
+      if (state.tab === "chat") await loadChat({ soft: true });
+      else if (state.tab === "events") await loadEvents({ soft: true });
+      else if (state.tab === "market") await loadMarket({ soft: true });
+      else if (state.tab === "alerts") await loadAlerts();
+      else if (state.tab === "users") await loadUsers();
+      markUpdated();
+    } finally {
+      state.busy = false;
+    }
+  }
 
   function readKey() { try { return sessionStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
   function writeKey(k) { try { if (k) sessionStorage.setItem(KEY, k); else sessionStorage.removeItem(KEY); } catch (e) {} }
@@ -391,6 +572,7 @@
 
   function failAuth(r) {
     if (r && r.status === 401) {
+      stopLive();
       writeKey("");
       $("gateMsg").textContent = r.error || "Неверный ключ";
       $("gateMsg").className = "msg err";
@@ -408,10 +590,11 @@
   function setTab(tab) {
     state.tab = tab;
     document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("sel", b.dataset.tab === tab));
-    ["users", "balance", "alerts", "events", "backups", "scores"].forEach((t) => {
+    TAB_IDS.forEach((t) => {
       const el = $("sec-" + t);
       if (el) el.hidden = t !== tab;
     });
+    startLive();
     refreshTab();
   }
 
@@ -432,18 +615,19 @@
     });
   }
 
-  async function loadOverview() {
+  async function loadOverview(quiet) {
     const overview = await api("/admin/overview");
     if (!overview.ok) return failAuth(overview);
     $("stats").innerHTML =
       "<span>Аккаунты <b>" + overview.users + "</b></span>" +
       "<span>Сессии <b>" + overview.sessions + "</b></span>" +
-      "<span>Рейтинг <b>" + overview.scores + "</b></span>" +
-      "<span>Сейвы <b>" + (overview.saves || 0) + "</b></span>" +
+      "<span>Чат <b>" + (overview.chat || 0) + "</b></span>" +
+      "<span>Лоты <b>" + (overview.marketListed || 0) + "</b></span>" +
       "<span>События <b>" + (overview.events || 0) + "</b></span>" +
       "<span>Алерты <b>" + (overview.alerts || 0) + "</b></span>" +
       "<span>Бэкапы <b>" + (overview.backups || 0) + "</b></span>" +
-      "<span class='muted'>" + esc(overview.db || "") + "</span>";
+      (quiet ? "" : "<span class='muted'>" + esc(overview.db || "") + "</span>");
+    markUpdated();
   }
 
   async function loadEventTypes() {
@@ -624,6 +808,103 @@
       tr.onclick = () => openUser(Number(tr.dataset.user));
     });
     renderPager($("alertsPager"), r.total || 0, p);
+  }
+
+  function channelLabel(ch) {
+    return ({ world: "Мир", trade: "Торг", party: "Гр.", clan: "Клан", whisper: "ЛС" })[ch] || ch || "?";
+  }
+
+  async function loadChat() {
+    const p = state.chat;
+    p.channel = $("chatChannel")?.value || "";
+    p.nick = ($("chatNick")?.value || "").trim();
+    p.text = ($("chatText")?.value || "").trim();
+    const r = await api("/admin/chat" + qs({
+      channel: p.channel,
+      nick: p.nick,
+      text: p.text,
+      limit: p.limit,
+      offset: p.offset,
+    }));
+    if (!r.ok) return failAuth(r);
+    const rows = r.rows || [];
+    if (r.latestId) p.latestId = r.latestId;
+    if (!rows.length) {
+      $("chatTable").innerHTML = '<p class="empty">Нет сообщений</p>';
+      renderPager($("chatPager"), r.total || 0, p);
+      return;
+    }
+    let html = "<table><thead><tr><th>Когда</th><th>Канал</th><th>От кого</th><th>Кому</th><th>Текст</th><th></th></tr></thead><tbody>";
+    rows.forEach((m) => {
+      html += '<tr class="clickable" data-user="' + m.userId + '" data-mid="' + m.id + '">' +
+        "<td><small>" + fmtTs(m.createdAt) + "</small></td>" +
+        '<td><span class="pill ch-' + esc(m.channel) + '">' + esc(channelLabel(m.channel)) + "</span></td>" +
+        "<td><strong>" + esc(m.nick) + "</strong>" +
+          (m.charName ? "<br><small>" + esc(m.charName) + "</small>" : "") + "</td>" +
+        "<td>" + (m.targetNick ? esc(m.targetNick) : "—") + "</td>" +
+        '<td class="chat-body-cell">' + esc(m.body) + "</td>" +
+        '<td class="acts" onclick="event.stopPropagation()">' +
+          '<button type="button" class="warn" data-del-chat="' + m.id + '">×</button>' +
+        "</td></tr>";
+    });
+    html += "</tbody></table>";
+    $("chatTable").innerHTML = html;
+    $("chatTable").querySelectorAll("[data-user]").forEach((tr) => {
+      tr.onclick = () => openUser(Number(tr.dataset.user));
+    });
+    $("chatTable").querySelectorAll("[data-del-chat]").forEach((btn) => {
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        if (!confirm("Удалить сообщение #" + btn.dataset.delChat + "?")) return;
+        const del = await api("/admin/chat/" + btn.dataset.delChat, { method: "DELETE" });
+        if (del.ok) loadChat();
+        else alert(del.error || "Ошибка");
+      };
+    });
+    renderPager($("chatPager"), r.total || 0, p);
+  }
+
+  async function loadMarket() {
+    const p = state.market;
+    p.status = $("mkStatus")?.value || "";
+    p.kind = $("mkKind")?.value || "";
+    p.nick = ($("mkNick")?.value || "").trim();
+    const r = await api("/admin/market" + qs({
+      status: p.status,
+      kind: p.kind,
+      nick: p.nick,
+      limit: p.limit,
+      offset: p.offset,
+    }));
+    if (!r.ok) return failAuth(r);
+    const rows = r.rows || [];
+    if (!rows.length) {
+      $("marketTable").innerHTML = '<p class="empty">Нет лотов</p>';
+      renderPager($("marketPager"), r.total || 0, p);
+      return;
+    }
+    let html = "<table><thead><tr><th>ID</th><th>Статус</th><th>Тип</th><th>Продавец</th><th>Цена</th><th>Qty</th><th>Предмет</th><th>Создан</th><th>Истекает</th></tr></thead><tbody>";
+    rows.forEach((m) => {
+      const itemStr = m.item ? JSON.stringify(m.item) : "";
+      html += '<tr class="clickable" data-user="' + m.sellerUserId + '">' +
+        "<td>#" + m.id + "</td>" +
+        '<td><span class="pill st-' + esc(m.status) + '">' + esc(m.status) + "</span></td>" +
+        "<td>" + esc(m.kind) + "</td>" +
+        "<td><strong>" + esc(m.sellerNick || "—") + "</strong>" +
+          (m.sellerName ? "<br><small>" + esc(m.sellerName) + "</small>" : "") + "</td>" +
+        "<td>" + fmtNum(m.priceAdena) + "</td>" +
+        "<td>" + (m.qty || 1) + "</td>" +
+        "<td>" + (itemStr ? '<div class="payload">' + esc(itemStr) + "</div>" : "—") + "</td>" +
+        "<td><small>" + fmtTs(m.createdAt) + "</small></td>" +
+        "<td><small>" + fmtTs(m.expiresAt) + "</small></td>" +
+        "</tr>";
+    });
+    html += "</tbody></table>";
+    $("marketTable").innerHTML = html;
+    $("marketTable").querySelectorAll("[data-user]").forEach((tr) => {
+      tr.onclick = () => openUser(Number(tr.dataset.user));
+    });
+    renderPager($("marketPager"), r.total || 0, p);
   }
 
   async function loadEvents() {
@@ -833,7 +1114,8 @@
     }
 
     html += '<div class="row mt"><button type="button" class="ghost" id="dFilterEv">События этого ника</button>' +
-      '<button type="button" class="ghost" id="dFilterBk">Бэкапы этого ника</button></div>';
+      '<button type="button" class="ghost" id="dFilterBk">Бэкапы этого ника</button>' +
+      '<button type="button" class="ghost" id="dFilterChat">Чат этого ника</button></div>';
 
     $("detailBody").innerHTML = html;
     $("detailBody").querySelectorAll("[data-save-score]").forEach((btn) => {
@@ -881,6 +1163,12 @@
       state.backups.offset = 0;
       setTab("backups");
     };
+    const fc = $("dFilterChat");
+    if (fc) fc.onclick = () => {
+      if ($("chatNick")) $("chatNick").value = u.nick;
+      state.chat.offset = 0;
+      setTab("chat");
+    };
   }
 
   function closeDetail() {
@@ -911,6 +1199,8 @@
 
   function refreshTab() {
     if (state.tab === "users") loadUsers();
+    else if (state.tab === "chat") loadChat();
+    else if (state.tab === "market") loadMarket();
     else if (state.tab === "balance") loadBalance();
     else if (state.tab === "alerts") loadAlerts();
     else if (state.tab === "events") loadEvents();
@@ -923,6 +1213,7 @@
     $("gate").hidden = true;
     $("panel").hidden = false;
     await loadEventTypes();
+    startLive();
     refreshTab();
   }
 
@@ -946,6 +1237,7 @@
   };
   $("adminKey").addEventListener("keydown", (e) => { if (e.key === "Enter") $("unlockBtn").click(); });
   $("logoutBtn").onclick = () => {
+    stopLive();
     writeKey("");
     $("adminKey").value = "";
     closeDetail();
@@ -960,11 +1252,72 @@
   };
   $("detailClose").onclick = closeDetail;
 
+  if ($("liveToggle")) {
+    $("liveToggle").onchange = () => startLive();
+  }
+  if ($("liveInterval")) {
+    $("liveInterval").onchange = () => startLive();
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && state.live && !$("panel").hidden) softRefresh();
+  });
+
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.onclick = () => setTab(btn.dataset.tab);
   });
   $("usersApply").onclick = () => { state.users.offset = 0; loadUsers(); };
   $("usersQ").addEventListener("keydown", (e) => { if (e.key === "Enter") $("usersApply").click(); });
+
+  function wireChatFilters() {
+    if (!$("chatApply")) return;
+    $("chatApply").onclick = () => { state.chat.offset = 0; loadChat(); };
+    ["chatNick", "chatText"].forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter") $("chatApply").click(); });
+    });
+    if ($("chatChannel")) $("chatChannel").onchange = () => { state.chat.offset = 0; loadChat(); };
+    document.querySelectorAll("#chatPresets [data-ch]").forEach((btn) => {
+      btn.onclick = () => {
+        document.querySelectorAll("#chatPresets [data-ch]").forEach((b) => b.classList.toggle("sel", b === btn));
+        $("chatChannel").value = btn.dataset.ch || "";
+        state.chat.offset = 0;
+        loadChat();
+      };
+    });
+  }
+  wireChatFilters();
+
+  function wireMarketFilters() {
+    if (!$("mkApply")) return;
+    $("mkApply").onclick = () => { state.market.offset = 0; loadMarket(); };
+    if ($("mkNick")) $("mkNick").addEventListener("keydown", (e) => { if (e.key === "Enter") $("mkApply").click(); });
+    ["mkStatus", "mkKind"].forEach((id) => {
+      const el = $(id);
+      if (el) el.onchange = () => { state.market.offset = 0; loadMarket(); };
+    });
+  }
+  wireMarketFilters();
+
+  function setEventPreset(ev) {
+    const sel = $("evType");
+    if (ev && sel && ![...sel.options].some((o) => o.value === ev)) {
+      const opt = document.createElement("option");
+      opt.value = ev;
+      opt.textContent = ev + " (пресет)";
+      sel.appendChild(opt);
+    }
+    if (sel) sel.value = ev || "";
+    document.querySelectorAll("#evPresets [data-ev]").forEach((b) => {
+      b.classList.toggle("sel", (b.dataset.ev || "") === (ev || ""));
+    });
+    state.events.offset = 0;
+    loadEvents();
+  }
+  document.querySelectorAll("#evPresets [data-ev]").forEach((btn) => {
+    btn.onclick = () => setEventPreset(btn.dataset.ev || "");
+  });
+
   $("evApply").onclick = () => { state.events.offset = 0; loadEvents(); };
   $("bkApply").onclick = () => { state.backups.offset = 0; loadBackups(); };
   $("scApply").onclick = () => { state.scores.offset = 0; loadScores(); };

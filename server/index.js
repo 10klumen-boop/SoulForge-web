@@ -405,6 +405,286 @@ app.get("/leaderboard/:mode", (req, res) => {
   res.json(rows);
 });
 
+function requireWriteLease(req, res, user) {
+  const deviceId = readWriterId(req.body);
+  if (!deviceId) {
+    jsonError(res, 400, "Нужен writerId");
+    return null;
+  }
+  const now = Date.now();
+  let leaseCheck = store.assertWriteLease(user.id, deviceId, now);
+  if (!leaseCheck.ok && leaseCheck.missing) {
+    const claimed = store.claimWriteLease(user.id, deviceId, now, WRITE_LEASE_TTL_MS, false);
+    if (!claimed.ok) {
+      res.status(423).json({
+        ok: false,
+        error: "Аккаунт открыт на другом устройстве или во вкладке",
+        locked: true,
+        lease: leasePayload(claimed.lease),
+      });
+      return null;
+    }
+    leaseCheck = { ok: true, lease: claimed.lease };
+  } else if (!leaseCheck.ok) {
+    res.status(423).json({
+      ok: false,
+      error: "Аккаунт открыт на другом устройстве или во вкладке",
+      locked: true,
+      lease: leasePayload(leaseCheck.lease),
+    });
+    return null;
+  } else {
+    store.renewWriteLease(user.id, deviceId, now, WRITE_LEASE_TTL_MS);
+  }
+  return { deviceId, lease: leaseCheck.lease, now };
+}
+
+function saveResponsePayload(saved) {
+  return {
+    seq: saved.seq,
+    savedAt: saved.savedAt,
+    data: saved.data,
+    summary: saved.summary,
+  };
+}
+
+app.get("/market/listings", (req, res) => {
+  try {
+    const result = store.marketListListings({
+      kind: req.query.kind,
+      grade: req.query.grade,
+      q: req.query.q,
+      limit: req.query.limit,
+      offset: req.query.offset,
+      now: Date.now(),
+    });
+    res.json(result);
+  } catch (e) {
+    console.error("GET /market/listings", e);
+    return jsonError(res, 500, "Ошибка рынка");
+  }
+});
+
+app.get("/market/mine", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.marketListMine(user.id, {
+      characterId: req.query.characterId,
+      now: Date.now(),
+    });
+    res.json(result);
+  } catch (e) {
+    console.error("GET /market/mine", e);
+    return jsonError(res, 500, "Ошибка рынка");
+  }
+});
+
+app.post("/market/list", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const lease = requireWriteLease(req, res, user);
+  if (!lease) return;
+  try {
+    const result = store.marketCreateListing(user, req.body || {}, lease.now);
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось выставить");
+    res.json({
+      ok: true,
+      listing: result.listing,
+      save: saveResponsePayload(result),
+      lease: leasePayload(store.getWriteLease(user.id)),
+    });
+  } catch (e) {
+    console.error("POST /market/list", e);
+    return jsonError(res, 500, "Не удалось выставить лот");
+  }
+});
+
+app.post("/market/buy/:id", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const lease = requireWriteLease(req, res, user);
+  if (!lease) return;
+  try {
+    const result = store.marketBuyListing(user, req.params.id, req.body || {}, lease.now);
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось купить");
+    res.json({
+      ok: true,
+      listingId: result.listingId,
+      priceAdena: result.priceAdena,
+      taxAdena: result.taxAdena,
+      payoutAdena: result.payoutAdena,
+      save: saveResponsePayload(result.buyer),
+      sellerSeq: result.sellerSeq,
+      lease: leasePayload(store.getWriteLease(user.id)),
+    });
+  } catch (e) {
+    console.error("POST /market/buy", e);
+    return jsonError(res, 500, "Не удалось купить");
+  }
+});
+
+app.post("/market/cancel/:id", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const lease = requireWriteLease(req, res, user);
+  if (!lease) return;
+  try {
+    const result = store.marketCancelListing(user, req.params.id, req.body || {}, lease.now);
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось снять лот");
+    res.json({
+      ok: true,
+      listingId: result.listingId,
+      status: result.status,
+      save: saveResponsePayload(result),
+      lease: leasePayload(store.getWriteLease(user.id)),
+    });
+  } catch (e) {
+    console.error("POST /market/cancel", e);
+    return jsonError(res, 500, "Не удалось снять лот");
+  }
+});
+
+app.get("/chat/messages", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatListMessages(user, {
+      channel: req.query.channel,
+      after: req.query.after,
+      limit: req.query.limit,
+    });
+    res.json(result);
+  } catch (e) {
+    console.error("GET /chat/messages", e);
+    return jsonError(res, 500, "Ошибка чата");
+  }
+});
+
+app.post("/chat/messages", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatPostMessage(user, {
+      channel: req.body?.channel,
+      body: req.body?.body,
+      charName: req.body?.charName,
+      toNick: req.body?.toNick || req.body?.targetNick,
+      now: Date.now(),
+    });
+    if (!result.ok) {
+      const code = result.error === "rate" ? 429 : 400;
+      return jsonError(res, code, result.message || "Не удалось отправить");
+    }
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/messages", e);
+    return jsonError(res, 500, "Ошибка чата");
+  }
+});
+
+app.get("/chat/social", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.chatGetSocial(user.id));
+  } catch (e) {
+    console.error("GET /chat/social", e);
+    return jsonError(res, 500, "Ошибка чата");
+  }
+});
+
+app.post("/chat/party/create", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatCreateParty(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/party/create", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.post("/chat/party/invite", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatInviteParty(user, { nick: req.body?.nick, now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/party/invite", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.post("/chat/party/leave", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatLeaveParty(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/party/leave", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.post("/chat/clan/create", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatCreateClan(user, { name: req.body?.name, now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/create", e);
+    return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.post("/chat/clan/invite", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatInviteClan(user, { nick: req.body?.nick, now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/invite", e);
+    return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.post("/chat/clan/leave", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatLeaveClan(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/leave", e);
+    return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.post("/market/expire-sweep", (req, res) => {
+  if (!ADMIN_KEY) return jsonError(res, 404, "Админ-панель отключена");
+  const key = req.headers["x-soulforge-admin"];
+  if (!adminKeyOk(key)) return jsonError(res, 401, "Неверный ключ администратора");
+  try {
+    const expired = store.marketExpireDue(Date.now());
+    res.json({ ok: true, expired });
+  } catch (e) {
+    console.error("POST /market/expire-sweep", e);
+    return jsonError(res, 500, "Ошибка очистки");
+  }
+});
+
 app.get("/admin/enabled", (_req, res) => {
   res.json({ ok: true, enabled: !!ADMIN_KEY });
 });
@@ -448,6 +728,55 @@ admin.get("/events", (req, res) => {
 
 admin.get("/events/types", (_req, res) => {
   res.json({ ok: true, rows: store.listEventTypes() });
+});
+
+admin.get("/chat", (req, res) => {
+  try {
+    const result = store.adminListChat({
+      channel: String(req.query.channel || "").trim() || null,
+      nick: String(req.query.nick || req.query.q || "").trim() || null,
+      q: String(req.query.text || req.query.body || "").trim() || null,
+      since: req.query.since ? Number(req.query.since) : null,
+      until: req.query.until ? Number(req.query.until) : null,
+      after: req.query.after ? Number(req.query.after) : null,
+      limit: Number(req.query.limit) || 80,
+      offset: Number(req.query.offset) || 0,
+    });
+    res.json(result);
+  } catch (e) {
+    console.error("GET /admin/chat", e);
+    return jsonError(res, 500, "Ошибка чата");
+  }
+});
+
+admin.delete("/chat/:id", (req, res) => {
+  try {
+    const result = store.adminDeleteChat(req.params.id);
+    if (!result.ok) {
+      const code = result.error === "not_found" ? 404 : 400;
+      return jsonError(res, code, result.error === "not_found" ? "Сообщение не найдено" : "Ошибка");
+    }
+    res.json(result);
+  } catch (e) {
+    console.error("DELETE /admin/chat", e);
+    return jsonError(res, 500, "Ошибка удаления");
+  }
+});
+
+admin.get("/market", (req, res) => {
+  try {
+    const result = store.adminListMarket({
+      status: String(req.query.status || "").trim() || null,
+      kind: String(req.query.kind || "").trim() || null,
+      nick: String(req.query.nick || req.query.q || "").trim() || null,
+      limit: Number(req.query.limit) || 80,
+      offset: Number(req.query.offset) || 0,
+    });
+    res.json(result);
+  } catch (e) {
+    console.error("GET /admin/market", e);
+    return jsonError(res, 500, "Ошибка рынка");
+  }
 });
 
 admin.get("/analytics/balance", (req, res) => {
@@ -628,6 +957,8 @@ if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
       req.path.startsWith("/events") ||
       req.path.startsWith("/backups") ||
       req.path.startsWith("/save") ||
+      req.path.startsWith("/market") ||
+      req.path.startsWith("/chat") ||
       req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/admin") ||
       req.path.startsWith("/db-admin")

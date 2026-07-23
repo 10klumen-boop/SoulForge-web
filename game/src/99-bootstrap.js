@@ -25,6 +25,7 @@ if (mineShotBtn) {
 }
 $("#invTile").onclick = openInventory;
 $("#shopTile").onclick = openWorkshop;
+if (typeof bindMarketUi === "function") bindMarketUi();
 $("#achTile").onclick = openAchievements;
 if (typeof wireDevPanel === "function") wireDevPanel();
 if (typeof wireQuestJournal === "function") wireQuestJournal();
@@ -96,6 +97,7 @@ if (typeof wireAudioVolumeSettings === "function") wireAudioVolumeSettings();
 if (isDesktopApp && state.alwaysOnTop) window.soulforgeDesktop.setAlwaysOnTop(true);
 $("#adena").textContent = fmt(state.adena);
 initGameLog();
+if (typeof initGameChat === "function") initGameChat();
 if (saveNotice) { toast(saveNotice, "system"); saveNotice = null; }
 if (trimInventoryToCap()) toast("Инвентарь обрезан до " + INV_CAP + " ячеек", "warn");
 if (state.inventory) state.inventory.forEach(normalizeInvItem);

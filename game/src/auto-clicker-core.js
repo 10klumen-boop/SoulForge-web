@@ -169,7 +169,12 @@ function autoClickerTick() {
     ? tuneInt("autoClicker.intervalMs", AUTO_CLICKER.intervalMs)
     : AUTO_CLICKER.intervalMs;
   if (now - _autoClickerLastHitAt < interval) return;
-  if (autoClickerPerformHit()) _autoClickerLastHitAt = now;
+  if (autoClickerPerformHit()) {
+    _autoClickerLastHitAt = now;
+  } else if (typeof ensureMineSpawning === "function") {
+    // Пустое поле / сорвавшаяся очередь — подтолкнуть спавн
+    ensureMineSpawning();
+  }
 }
 
 function startAutoClickerLoop() {

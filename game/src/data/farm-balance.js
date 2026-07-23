@@ -14,8 +14,8 @@ const MINE_ADENA_GOLDEN = { min: 340, max: 680 };
 /** Шанс золотого моба (единый по всем главам). */
 const MINE_GOLDEN_CHANCE = 0.05; // 5%
 
-/** Редкий гном (Банан): спавн 0.1%, лут без сосок. */
-const MINE_BANAN_CHANCE = 0.001; // 0.1%
+/** Редкий гном (Банан): спавн 0.05%, лут без сосок. */
+const MINE_BANAN_CHANCE = 0.0005; // 0.05%
 const BANAN_ADENA_REWARD = 500_000_000; // 500кк
 /** Веса лута на 100: adena / оружие +6 / серьга ЗакАна (соски убраны). */
 const BANAN_LOOT_WEIGHTS = { adena: 90, weapon: 9.5, earring: 0.5 };

@@ -8,6 +8,8 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "smoke": "node scripts/smoke-api.mjs",
+    "test:market": "node scripts/test-market.js",
+    "test:chat": "node scripts/test-chat.js",
     "smoke:vps": "node scripts/smoke-api.mjs --base http://109.196.103.50",
     "smoke:local": "node scripts/smoke-api.mjs --base http://127.0.0.1:8787"
   },

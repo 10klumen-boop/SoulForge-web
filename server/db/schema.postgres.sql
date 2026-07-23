@@ -138,4 +138,33 @@ CREATE TABLE IF NOT EXISTS balance_alerts (
 CREATE INDEX IF NOT EXISTS idx_balance_alerts_created ON balance_alerts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_balance_alerts_severity ON balance_alerts(severity, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS market_listings (
+  id BIGSERIAL PRIMARY KEY,
+  seller_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  seller_character_id VARCHAR(64) NOT NULL,
+  seller_name VARCHAR(48),
+  kind VARCHAR(16) NOT NULL,
+  item_json TEXT NOT NULL,
+  qty INTEGER NOT NULL DEFAULT 1,
+  price_adena BIGINT NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'listed',
+  created_at BIGINT NOT NULL,
+  expires_at BIGINT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_market_listings_status ON market_listings(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_market_listings_seller ON market_listings(seller_user_id, status);
+
+CREATE TABLE IF NOT EXISTS market_trades (
+  id BIGSERIAL PRIMARY KEY,
+  listing_id BIGINT NOT NULL REFERENCES market_listings(id) ON DELETE CASCADE,
+  buyer_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  buyer_character_id VARCHAR(64) NOT NULL,
+  buyer_name VARCHAR(48),
+  price_adena BIGINT NOT NULL,
+  created_at BIGINT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_market_trades_created ON market_trades(created_at DESC);
+
 -- Optional later: finer-grained run_events stream (not used; character_events covers audit)

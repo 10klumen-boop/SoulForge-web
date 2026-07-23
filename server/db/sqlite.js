@@ -13,6 +13,8 @@ const {
   farmRowMetrics,
   rowsToCsv,
 } = require("./balance-analytics");
+const { attachMarketMethods } = require("./market");
+const { attachChatMethods } = require("./chat");
 
 function ensureScoreColumn(db, name, ddl) {
   const cols = db.prepare("PRAGMA table_info(scores)").all();
@@ -243,6 +245,16 @@ const CHARACTER_EVENT_TYPES = new Set([
   "restore",
   "admin",
   "balance_alert",
+  "market_list",
+  "market_buy",
+  "market_cancel",
+  "chat_message",
+  "chat_party_create",
+  "chat_party_invite",
+  "chat_party_leave",
+  "chat_clan_create",
+  "chat_clan_invite",
+  "chat_clan_leave",
 ]);
 
 const BACKUP_KEEP_PER_CHAR = Math.max(
@@ -934,6 +946,22 @@ function createSqliteStore(opts) {
         events: db.prepare("SELECT COUNT(*) AS n FROM character_events").get().n,
         backups: db.prepare("SELECT COUNT(*) AS n FROM character_backups").get().n,
         alerts: db.prepare("SELECT COUNT(*) AS n FROM balance_alerts").get().n,
+        chat: (() => {
+          try {
+            return db.prepare("SELECT COUNT(*) AS n FROM chat_messages").get().n;
+          } catch (_) {
+            return 0;
+          }
+        })(),
+        marketListed: (() => {
+          try {
+            return db
+              .prepare("SELECT COUNT(*) AS n FROM market_listings WHERE status = 'listed'")
+              .get().n;
+          } catch (_) {
+            return 0;
+          }
+        })(),
       };
     },
 
@@ -1034,8 +1062,15 @@ function createSqliteStore(opts) {
         params.push(String(characterId).slice(0, 64));
       }
       if (event) {
-        where.push("e.event = ?");
-        params.push(String(event).slice(0, 32));
+        const ev = String(event).slice(0, 32);
+        if (ev.endsWith("_") || ev.endsWith("*")) {
+          const prefix = ev.replace(/\*$/, "").replace(/_+$/, "") + "%";
+          where.push("e.event LIKE ?");
+          params.push(prefix);
+        } else {
+          where.push("e.event = ?");
+          params.push(ev);
+        }
       }
       if (since) {
         where.push("e.created_at >= ?");
@@ -1405,6 +1440,13 @@ function createSqliteStore(opts) {
       stmtDeleteUser.run(userId);
     },
   };
+
+  attachMarketMethods(db, store, {
+    persistPlayerSaveInternal(user, seq, savedAt, clientVersion, data) {
+      return store.persistPlayerSave(user, seq, savedAt, clientVersion, data);
+    },
+  });
+  attachChatMethods(db, store);
 
   return store;
 }

@@ -2,7 +2,7 @@
 // Цены ≈ 70–75% дохода якоря farm за длительность пакета (гл.I).
 
 const AUTO_CLICKER = {
-  intervalMs: 220,
+  intervalMs: 150,
   chapterPriceMultStep: 0.08,
   packs: [
     { id: "short", label: "15 мин", durationMs: 15 * 60 * 1000, price: 28_000 },

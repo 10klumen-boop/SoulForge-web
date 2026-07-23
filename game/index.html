@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m49" />
+<link rel="stylesheet" href="styles/main.css?v=m58" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -34,6 +34,38 @@
     </div>
     <div class="game-log-filters" id="gameLogFilters" role="toolbar" aria-label="Фильтры журнала"></div>
     <div class="game-log-feed" id="gameLogFeed"></div>
+  </div>
+</aside>
+<aside class="game-chat is-collapsed" id="gameChatPanel" aria-label="Чат игроков">
+  <button type="button" class="game-chat-tab" id="gameChatToggle" title="Чат (C)" aria-expanded="false" aria-controls="gameChatBody">
+    <span class="game-chat-tab-label">Чат</span>
+    <span class="game-chat-tab-badge" id="gameChatBadge" hidden>0</span>
+  </button>
+  <div class="game-chat-body" id="gameChatBody">
+    <div class="game-chat-head">
+      <span class="game-chat-title" id="gameChatTitle">Мир</span>
+      <div class="game-chat-head-actions">
+        <button type="button" class="game-chat-collapse" id="gameChatCollapse" title="Свернуть">»</button>
+      </div>
+    </div>
+    <div class="game-chat-channels" id="gameChatChannels" role="tablist" aria-label="Каналы чата">
+      <button type="button" class="game-chat-chan sel" data-channel="world" role="tab">Мир</button>
+      <button type="button" class="game-chat-chan" data-channel="trade" role="tab">Торг</button>
+      <button type="button" class="game-chat-chan" data-channel="party" role="tab">Гр.</button>
+      <button type="button" class="game-chat-chan" data-channel="clan" role="tab">Клан</button>
+      <button type="button" class="game-chat-chan" data-channel="whisper" role="tab">ЛС</button>
+    </div>
+    <div class="game-chat-social" id="gameChatSocial" hidden></div>
+    <div class="game-chat-to-wrap" id="gameChatToWrap" hidden>
+      <label class="game-chat-to-label" for="gameChatToNick">Кому</label>
+      <input type="text" id="gameChatToNick" class="game-chat-to-nick" maxlength="16" placeholder="Ник аккаунта" spellcheck="false" autocomplete="off" />
+    </div>
+    <p class="game-chat-status" id="gameChatStatus" hidden></p>
+    <div class="game-chat-feed" id="gameChatFeed"></div>
+    <form class="game-chat-form" id="gameChatForm" autocomplete="off">
+      <input type="text" id="gameChatInput" class="game-chat-input" maxlength="200" placeholder="Сообщение…" aria-label="Сообщение в чат" />
+      <button type="submit" class="game-chat-send" id="gameChatSend" title="Отправить">➤</button>
+    </form>
   </div>
 </aside>
 <div class="app login-screen">
@@ -180,6 +212,12 @@
           <b class="sett-vol-val" id="settVolVoiceVal">88%</b>
         </div>
         <div class="sett-hint">Музыка — «The Call of Destiny» на экране входа · M — быстрый mute</div>
+        <div class="settings-divider">Интерфейс</div>
+        <div class="settings-row">
+          <span>Чат на телефоне</span>
+          <button type="button" class="sett-toggle" id="settChatMobile">Выкл</button>
+        </div>
+        <div class="sett-hint">На ПК чат справа (клавиша C). На телефоне по умолчанию скрыт — включите здесь, если нужен.</div>
         <div id="saveTransferBlock">
         <div class="settings-divider">Сохранение</div>
         <div class="settings-row">
@@ -226,13 +264,34 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.43</p>
+        <ul>
+          <li><b>Банан</b> — шанс спавна редкого гнома 0.05% (было 0.1%).</li>
+          <li><b>Автоудар</b> — интервал удара 150 мс (было 220 мс).</li>
+          <li><b>Админка</b> — вкладки Чат и Рынок; Live-обновление активной вкладки (2/5/10 с); пресеты фильтров событий; удаление сообщений чата; аудит чата/группы/клана и рынка в журнал событий.</li>
+          <li><b>Чат</b> — свои сообщения выделены золотистым фоном.</li>
+        </ul>
+        <p class="patch-ver">v0.42.2</p>
+        <ul>
+          <li><b>Чат · каналы</b> — Мир, Торговля, Группа, Клан, Шёпот (ЛС). Клик по нику → ЛС; команда <code>/w Ник текст</code>.</li>
+          <li><b>Группа / клан</b> — создать и пригласить по нику аккаунта (чат-скоуп; полноценные системы позже).</li>
+        </ul>
+        <p class="patch-ver">v0.42.1</p>
+        <ul>
+          <li><b>Чат</b> — глобальный чат игроков справа (C). На телефоне скрыт по умолчанию; включение в Настройках.</li>
+        </ul>
+        <p class="patch-ver">v0.42</p>
+        <ul>
+          <li><b>Рынок</b> — лоты игроков за адену (оружие, кристаллы, руда, заряды). Фикс. цена, серверный эскроу, налог 5%, срок 7 дней, до 10 лотов.</li>
+          <li>Каталог с вкладками типа/грейда и сортировкой; выставление через модалку цены с превью налога.</li>
+        </ul>
         <p class="patch-ver">v0.41.1</p>
         <ul>
-          <li><b>Создание персонажа</b> — шире окно рас, иконки пассивных умений, без внутреннего скролла; в описаниях — конкретные бонусы.</li>
+          <li><b>Создание персонажа</b> — шире окно рас, иконки пассивных умений, без внутреннего скролла; в описаниях — конкретные бонусы с цифрами.</li>
         </ul>
         <p class="patch-ver">v0.41</p>
         <ul>
-          <li><b>Пассивные умения</b> — по 2 расовых умения (5×2), каталог JSON; влияют на фарм, XP, заточку и оффлайн-адену.</li>
+          <li><b>Пассивные умения</b> — по 2 расовых умения (5×2), каталог JSON; влияют на фарм, XP, заточку, MATK и оффлайн-адену.</li>
         </ul>
         <p class="patch-ver">v0.40</p>
         <ul>
@@ -463,6 +522,7 @@
         <div class="tile" id="questTile"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"><div class="tname">Журнал квестов</div><div class="tcount" id="questJournalMeta">Prelude</div></div>
         <div class="tile" id="invTile"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"><div class="tname">Инвентарь</div><div class="tcount" id="invCount">0 предметов</div></div>
         <div class="tile" id="shopTile"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"><div class="tname">Мастерская зарядов</div><div class="tcount">Покупай руду · крафти · продавай</div></div>
+        <div class="tile" id="marketTile"><img class="tile-ico" src="icons/warehouse_chest.png?v=1" alt="" aria-hidden="true"><div class="tname">Рынок</div><div class="tcount">Лоты игроков · адена</div></div>
         <div class="tile" id="achTile"><img class="tile-ico" src="assets/ui/bloodhood_icon02_crop.png" alt="" aria-hidden="true"><div class="tname">Достижения</div><div class="tcount" id="achCount">0 / 43</div></div>
       </div>
     </section>
@@ -533,6 +593,19 @@
         <h2><img src="assets/ui/inventory_book.png" alt="" class="inv-head-ico"> Мастерская зарядов</h2>
       </div>
       <div class="wsbody sf-scroll" id="wsBody"></div>
+    </section>
+
+    <section class="screen" id="screen-market">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img src="icons/warehouse_chest.png?v=1" alt="" class="inv-head-ico"> Рынок</h2>
+      </div>
+      <div class="market-tabs" id="marketTabs" role="tablist">
+        <button type="button" class="market-tab sel" data-market-tab="browse">Каталог</button>
+        <button type="button" class="market-tab" data-market-tab="sell">Выставить</button>
+        <button type="button" class="market-tab" data-market-tab="mine">Мои лоты</button>
+      </div>
+      <div class="market-body sf-scroll" id="marketBody"></div>
     </section>
 
     <section class="screen" id="screen-ach">
@@ -788,7 +861,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js"></script>
-<script src="src/01-constants.js?v=402"></script>
+<script src="src/01-constants.js?v=406"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
 <script src="src/02-state.js?v=45"></script>
 <script src="src/data/audio-data.js?v=2"></script>
@@ -800,7 +873,7 @@
 <script src="src/data/workshop-balance.js?v=2"></script>
 <script src="src/workshop-core.js?v=2"></script>
 <script src="src/07-workshop.js?v=3"></script>
-<script src="src/data/farm-balance.js?v=6"></script>
+<script src="src/data/farm-balance.js?v=7"></script>
 <script src="src/08-menu.js"></script>
 <script src="src/09-inventory.js?v=58"></script>
 <script src="src/enchant-ui.js"></script>
@@ -809,15 +882,19 @@
 <script src="src/dev-core.js"></script>
 <script src="src/11-enchant.js?v=12"></script>
 <script src="src/mine-ui.js"></script>
-<script src="src/mine-core.js?v=7"></script>
+<script src="src/mine-core.js?v=8"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js"></script>
 <script src="src/cloud-ui.js"></script>
+<script src="src/market-core.js?v=1"></script>
+<script src="src/market-ui.js?v=5"></script>
+<script src="src/chat-core.js?v=3"></script>
+<script src="src/chat-ui.js?v=2"></script>
 <script src="src/progress-store.js"></script>
 <script src="src/15-game-log.js"></script>
 <script src="src/16-accessory.js?v=2"></script>
 <script src="src/data/achievement-data.js?v=3"></script>
-<script src="src/data/economy-balance.js?v=2"></script>
+<script src="src/data/economy-balance.js?v=3"></script>
 <script src="src/achievements-core.js?v=4"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
@@ -857,11 +934,11 @@
 <script src="src/data/passive-income-balance.js?v=3"></script>
 <script src="src/passive-income-core.js?v=5"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
-<script src="src/data/auto-clicker-balance.js?v=4"></script>
-<script src="src/auto-clicker-core.js?v=4"></script>
+<script src="src/data/auto-clicker-balance.js?v=5"></script>
+<script src="src/auto-clicker-core.js?v=5"></script>
 <script src="src/auto-clicker-ui.js?v=4"></script>
 <script src="src/data-loader.js?v=4"></script>
-<script src="src/99-bootstrap.js?v=46"></script>
+<script src="src/99-bootstrap.js?v=49"></script>
 
 </body>
 </html>

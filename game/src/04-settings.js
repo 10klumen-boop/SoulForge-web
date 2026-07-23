@@ -24,6 +24,8 @@ function syncSettingsUI() {
     muteBtn.classList.toggle("on", !state.muted);
   }
 
+  if (typeof syncChatMobileSettingUi === "function") syncChatMobileSettingUi();
+
   if (typeof defaultAudioVol === "function") {
     if (!state.audioVol || typeof state.audioVol !== "object") state.audioVol = defaultAudioVol();
     AUDIO_VOL_CHANNELS.forEach((ch) => {

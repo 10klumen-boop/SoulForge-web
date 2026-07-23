@@ -239,8 +239,18 @@ function stopMine() {
 }
 
 function hasBananOnField() {
+  pruneMineGnomes();
   for (const g of mineGnomes) if (g._type === "banan") return true;
   return false;
+}
+
+function pruneMineGnomes() {
+  for (const g of [...mineGnomes]) {
+    if (!g || !g.isConnected) {
+      clearMobTimer(g);
+      mineGnomes.delete(g);
+    }
+  }
 }
 
 function cancelMineSpawnQueue() {
@@ -257,6 +267,7 @@ function queueNextMob(delay) {
     mineSpawnDelayTimer = setTimeout(() => queueNextMob(delay), 280);
     return;
   }
+  pruneMineGnomes();
   if (hasBananOnField()) return;
   cancelMineSpawnQueue();
   mineSpawnDelayTimer = setTimeout(() => {
@@ -267,6 +278,7 @@ function queueNextMob(delay) {
 
 function ensureMineSpawning() {
   if (!mineActive || mineOverlayPaused) return;
+  pruneMineGnomes();
   if (hasBananOnField() || hasCombatMobOnField()) return;
   if (mineSpawnDelayTimer) return;
   queueNextMob(500);
@@ -285,6 +297,7 @@ function ensureMineSpawningSoon(delay) {
 }
 
 function hasCombatMobOnField() {
+  pruneMineGnomes();
   for (const g of mineGnomes) {
     if (g._type === "banan") continue;
     return true;
@@ -433,12 +446,18 @@ function spawnGnome(forcedType) {
     queueNextMob(280);
     return;
   }
+  pruneMineGnomes();
   const zoneId = currentMineZoneId();
   if (hasBananOnField() && forcedType !== "banan") return;
   if (hasCombatMobOnField() && forcedType !== "banan") return;
 
   if (!forcedType && shouldSpawnZoneBoss(zoneId) && !hasBossOnField()) {
+    const before = mineGnomes.size;
     spawnZoneBoss();
+    // Если босс не появился (ранний return) — не глушим очередь спавна
+    if (mineGnomes.size === before && !hasCombatMobOnField() && !hasBananOnField()) {
+      queueNextMob(500);
+    }
     return;
   }
 
@@ -542,7 +561,9 @@ function spawnSoloMob(field, type, opts) {
     mineGnomes.add(g);
     if (typeof debugLog === "function") debugLog("info", "mine", "spawn " + type, { zone: zoneId, hp: maxHp });
   } catch (err) {
-    g.remove();
+    mineGnomes.delete(g);
+    clearMobTimer(g);
+    try { g.remove(); } catch (_) {}
     if (typeof debugLog === "function") debugLog("error", "mine", "spawn failed: " + (err?.message || err), err?.stack);
     queueNextMob(600);
   }
@@ -580,13 +601,13 @@ function spawnBanan(field) {
 }
 
 function spawnZoneBoss() {
-  if (!mineActive || mineOverlayPaused || hasBossOnField() || hasCombatMobOnField()) return;
+  if (!mineActive || mineOverlayPaused || hasBossOnField() || hasCombatMobOnField()) return false;
   const zoneId = currentMineZoneId();
-  if (!shouldSpawnZoneBoss(zoneId)) return;
+  if (!shouldSpawnZoneBoss(zoneId)) return false;
   const field = mineSpawnField();
   if (!field || field.clientWidth < 48 || field.clientHeight < 48) {
     queueNextMob(400);
-    return;
+    return false;
   }
   const bossDef = typeof zoneBossDef === "function" ? zoneBossDef(zoneId) : { name: "Босс", mob: "stone-giant", rewardMult: 3 };
   let sprite;
@@ -607,6 +628,7 @@ function spawnZoneBoss() {
   const hintEl = document.getElementById("mineHint");
   if (hintEl) hintEl.style.display = "none";
   if (typeof gameLog === "function") gameLog("☠ " + bossDef.name + " явился на поле!", "warn");
+  return true;
 }
 
 function missBoss(g) {
