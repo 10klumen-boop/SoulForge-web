@@ -3609,7 +3609,8 @@
   .avatar-hub-meta { font-size: 11px; color: var(--txt-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
   .avatar-setup-backdrop {
     position: fixed; inset: 0; z-index: 1200;
-    background: rgba(8,6,4,.82); display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: rgba(8,6,4,.82); display: flex; align-items: center; justify-content: center;
+    padding: 16px 20px; overflow-y: auto;
   }
   .avatar-setup-backdrop[hidden] { display: none !important; }
   .avatar-setup-box {
@@ -3617,19 +3618,20 @@
     background: linear-gradient(180deg, #1e1610, #120d09);
     border: 1px solid rgba(201,168,106,.4); border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0,0,0,.65);
+    margin: auto;
   }
-  .avatar-setup-wide { width: min(560px, 100%); }
+  .avatar-setup-wide { width: min(960px, 96vw); padding: 28px 28px 22px; }
   .avatar-setup-actions {
-    display: flex; gap: 10px; justify-content: space-between; margin-top: 16px;
+    display: flex; gap: 10px; justify-content: space-between; margin-top: 18px;
   }
   .avatar-pick-lead, .avatar-pick-hint {
-    margin: 0 0 12px; font-size: 13px; color: var(--txt-dim); line-height: 1.4;
+    margin: 0 0 14px; font-size: 13px; color: var(--txt-dim); line-height: 1.4;
   }
   .avatar-pick-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;
-    max-height: min(52vh, 360px); overflow-y: auto; padding-right: 2px;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    max-height: none; overflow: visible;
   }
-  .avatar-pick-grid-class { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .avatar-pick-grid-class { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
   .avatar-class-skills-preview {
     margin-top: 14px; padding: 12px 14px; border-radius: 10px;
     border: 1px solid rgba(231,207,149,.18); background: rgba(8,6,4,.55);
@@ -3640,29 +3642,46 @@
   .avatar-class-skills-preview li { margin-bottom: 6px; }
   .avatar-class-skills-preview li b { color: var(--accent-soft); }
   .avatar-pick-card {
-    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
-    padding: 12px; text-align: left; cursor: pointer;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+    padding: 14px 14px 12px; text-align: left; cursor: pointer;
     border: 1px solid rgba(201,168,106,.25); border-radius: 10px;
     background: rgba(16,12,8,.55); color: var(--txt);
     transition: border-color .15s, box-shadow .15s;
+    min-height: 0;
   }
   .avatar-pick-card:hover { border-color: rgba(231,207,149,.45); }
   .avatar-pick-card.sel {
     border-color: rgba(95,168,255,.65);
     box-shadow: 0 0 0 1px rgba(95,168,255,.35), inset 0 0 20px rgba(95,168,255,.08);
   }
-  .avatar-pick-card img { width: 40px; height: 40px; object-fit: contain; }
-  .avatar-pick-card strong { font-size: 15px; font-weight: 600; color: var(--gold-soft); font-family: var(--font-display); }
-  .avatar-pick-card span { font-size: 13px; color: var(--txt-dim); line-height: 1.45; }
+  .avatar-pick-card > .avatar-pick-race-ico {
+    width: 48px; height: 48px; object-fit: contain;
+    image-rendering: auto;
+  }
+  .avatar-pick-card strong { font-size: 16px; font-weight: 600; color: var(--gold-soft); font-family: var(--font-display); }
+  .avatar-pick-card > span { font-size: 12.5px; color: var(--txt-dim); line-height: 1.4; }
   .avatar-pick-card small.avatar-race-passive {
-    display: block; margin-top: 4px; font-size: 11px; line-height: 1.35;
-    color: rgba(201,168,106,.78);
+    display: flex; align-items: flex-start; gap: 7px;
+    margin-top: 2px; font-size: 11.5px; line-height: 1.35;
+    color: rgba(220, 210, 190, 0.88);
+  }
+  .avatar-pick-card small.avatar-race-passive b {
+    color: rgba(231, 207, 149, 0.95); font-weight: 600;
+  }
+  .avatar-pick-card .avatar-race-passive-ico {
+    width: 22px; height: 22px; flex-shrink: 0; object-fit: contain;
+    border-radius: 4px; margin-top: 1px;
+    image-rendering: auto;
   }
   .avatar-pick-card.race-human.sel { border-color: rgba(201,168,106,.7); }
   .avatar-pick-card.race-elf.sel { border-color: rgba(120,200,120,.65); }
   .avatar-pick-card.race-dark_elf.sel { border-color: rgba(160,100,200,.65); }
   .avatar-pick-card.race-orc.sel { border-color: rgba(200,90,70,.65); }
   .avatar-pick-card.race-dwarf.sel { border-color: rgba(180,140,80,.65); }
+  @media (max-width: 900px) {
+    .avatar-setup-wide { width: min(720px, 96vw); padding: 22px 18px 18px; }
+    .avatar-pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   .avatar-summary {
     display: flex; gap: 14px; align-items: flex-start;
     padding: 12px; margin-bottom: 14px;

@@ -171,12 +171,19 @@ function renderAvatarRaceGrid() {
     const racialSkills =
       typeof passiveSkillsRacialForRace === "function" ? passiveSkillsRacialForRace(race.id, 1) : [];
     const passiveHtml = racialSkills
-      .map((s) =>
-        '<small class="avatar-race-passive"><b>' + s.name + "</b> — " + (s.blurb || s.desc || "") + "</small>"
-      )
+      .map((s) => {
+        const ico = s.icon
+          ? '<img class="avatar-race-passive-ico" src="' + s.icon + '" alt="" width="20" height="20">'
+          : "";
+        return (
+          '<small class="avatar-race-passive">' +
+          ico +
+          '<span><b>' + s.name + "</b> — " + (s.blurb || s.desc || "") + "</span></small>"
+        );
+      })
       .join("");
     btn.innerHTML =
-      '<img src="' + race.icon + '" alt="">' +
+      '<img class="avatar-pick-race-ico" src="' + race.icon + '" alt="">' +
       "<strong>" + race.name + "</strong>" +
       "<span>" + race.desc + "</span>" +
       passiveHtml;
