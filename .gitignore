@@ -27,5 +27,5 @@ Desktop.ini
 # Logs
 *.log
 
+# Dev / marketing assets (never ship)
 game/assets/boosty/
-

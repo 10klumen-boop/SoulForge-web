@@ -1408,6 +1408,7 @@
   .app > .card:has(#screen-shop.active),
   .app > .card:has(#screen-ench.active),
   .app > .card:has(#screen-acc.active),
+  .app > .card:has(#screen-market.active),
   .app.sub-screen > .card {
     flex: 1;
     min-height: 0;
@@ -1424,7 +1425,8 @@
   .app:has(#screen-inv.active),
   .app:has(#screen-shop.active),
   .app:has(#screen-ench.active),
-  .app:has(#screen-acc.active) { overflow: hidden; }
+  .app:has(#screen-acc.active),
+  .app:has(#screen-market.active) { overflow: hidden; }
   .screen { display: none; }
   .screen.active { display: block; animation: fade .35s ease; }
   #screen-menu.active { display: flex; flex-direction: column; }
@@ -1441,7 +1443,8 @@
   #screen-inv.active,
   #screen-shop.active,
   #screen-ench.active,
-  #screen-acc.active {
+  #screen-acc.active,
+  #screen-market.active {
     flex: 1;
     min-height: 0;
     display: flex;
@@ -1455,14 +1458,17 @@
   #screen-inv .panel-head,
   #screen-shop .panel-head,
   #screen-ench .panel-head,
-  #screen-acc .panel-head { flex-shrink: 0; }
+  #screen-acc .panel-head,
+  #screen-market .panel-head,
+  #screen-market .market-tabs { flex-shrink: 0; }
   #screen-ach .ach-scroll,
   #screen-avatar .avatar-screen,
   #screen-quests .quest-journal-list,
   #screen-inv .wlist,
   #screen-shop .wsbody,
   #screen-ench .ench,
-  #screen-acc .acc-panel {
+  #screen-acc .acc-panel,
+  #screen-market .market-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -3969,7 +3975,7 @@
     background: rgba(16,12,8,.65);
     border-color: rgba(201,168,106,.35);
   }
-  .market-body { padding: 12px 16px 24px; }
+  .market-body { padding: 12px 16px 24px; box-sizing: border-box; }
   .market-filter-panel {
     display: flex; flex-direction: column; gap: 0;
     margin: 0 0 14px;
