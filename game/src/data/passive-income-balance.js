@@ -2,8 +2,8 @@
 // baseAdenaPerSec ≈ 10% якоря farm/час гл.I (ECONOMY). Кривая глав = economyChapterFarmMult.
 
 const PASSIVE_INCOME = {
-  /** Fallback, если economy-balance ещё не загружен: 150k/час * 0.1 / 3600. */
-  baseAdenaPerSec: 4.17,
+  /** Fallback, если economy-balance ещё не загружен: 9.6kk/час * 0.1 / 3600. */
+  baseAdenaPerSec: 266.67,
   /** Сила фарма: rate *= 1 + power/powerDiv */
   powerDiv: 420,
   /** Относительно гл.I — те же множители, что farmAdenaPerHour. */
@@ -16,7 +16,7 @@ const PASSIVE_INCOME = {
   warehouseCapBonusSec: 2 * 3600,
   warehouseMaxLv: 4,
   /** ~30–50 мин фарма якоря на момент покупки. */
-  warehousePrices: [80_000, 200_000, 450_000, 1_000_000],
+  warehousePrices: [5_000_000, 12_500_000, 28_000_000, 60_000_000],
 };
 
 function defaultPassiveIncomeState() {

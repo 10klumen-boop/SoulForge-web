@@ -106,7 +106,7 @@ function runTests() {
 
   test("warehouseNextPrice follows ladder", () => {
     state.passiveIncome = { lastCollectAt: Date.now(), warehouseLv: 0 };
-    assert.strictEqual(warehouseNextPrice(), 80_000);
+    assert.strictEqual(warehouseNextPrice(), 5_000_000);
     state.passiveIncome.warehouseLv = 4;
     assert.strictEqual(warehouseNextPrice(), null);
   });

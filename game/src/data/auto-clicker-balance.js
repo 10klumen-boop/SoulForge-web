@@ -7,9 +7,9 @@ const AUTO_CLICKER = {
   /** Максимум накопленного времени автоудара (стак пакетов). */
   maxStackMs: 3 * 60 * 60 * 1000,
   packs: [
-    { id: "short", label: "15 мин", durationMs: 15 * 60 * 1000, price: 28_000 },
-    { id: "mid", label: "30 мин", durationMs: 30 * 60 * 1000, price: 55_000 },
-    { id: "long", label: "60 мин", durationMs: 60 * 60 * 1000, price: 105_000 },
+    { id: "short", label: "15 мин", durationMs: 15 * 60 * 1000, price: 1_750_000 },
+    { id: "mid", label: "30 мин", durationMs: 30 * 60 * 1000, price: 3_500_000 },
+    { id: "long", label: "60 мин", durationMs: 60 * 60 * 1000, price: 6_900_000 },
   ],
 };
 

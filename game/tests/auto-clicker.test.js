@@ -44,22 +44,22 @@ function runTests() {
     const short = autoClickerPackById("short");
     const mid = autoClickerPackById("mid");
     const long = autoClickerPackById("long");
-    assert.strictEqual(short.price, 28_000);
-    assert.strictEqual(mid.price, 55_000);
-    assert.strictEqual(long.price, 105_000);
+    assert.strictEqual(short.price, 1_750_000);
+    assert.strictEqual(mid.price, 3_500_000);
+    assert.strictEqual(long.price, 6_900_000);
   });
 
   test("chapter price mult is 1 on chapter 1", () => {
     assert.ok(Math.abs(autoClickerChapterPriceMult() - 1) < 1e-9);
-    assert.strictEqual(autoClickerPackPrice(autoClickerPackById("short")), 28_000);
+    assert.strictEqual(autoClickerPackPrice(autoClickerPackById("short")), 1_750_000);
   });
 
   test("buyAutoClickerPack extends until and spends adena", () => {
-    state.adena = 1_000_000;
+    state.adena = 10_000_000;
     state.autoClicker = { until: 0, enabled: true, pauseStartedAt: 0 };
     const ok = buyAutoClickerPack("short");
     assert.strictEqual(ok, true);
-    assert.strictEqual(state.adena, 1_000_000 - 28_000);
+    assert.strictEqual(state.adena, 10_000_000 - 1_750_000);
     assert.ok(autoClickerRemainingMs() > 14 * 60 * 1000);
     assert.ok(autoClickerIsActive());
   });

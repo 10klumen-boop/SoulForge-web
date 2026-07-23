@@ -23,23 +23,23 @@ function runTests() {
   console.log("\n--- economy balance ---");
 
   test("farm anchors match roadmap midpoints", () => {
-    assert.deepStrictEqual(ECONOMY.farmAdenaPerHour, [150_000, 300_000, 525_000, 825_000, 1_200_000]);
+    assert.deepStrictEqual(ECONOMY.farmAdenaPerHour, [9_600_000, 19_200_000, 33_600_000, 52_800_000, 76_800_000]);
   });
 
   test("step adena is minutes/60 of farm/hour", () => {
-    assert.strictEqual(economyStepAdena(1, 1), 25_000);
-    assert.strictEqual(economyStepAdena(1, 2), 30_000);
-    assert.strictEqual(economyStepAdena(1, 3), 40_000);
-    assert.strictEqual(economyStepAdena(2, 1), 50_000);
+    assert.strictEqual(economyStepAdena(1, 1), 1_600_000);
+    assert.strictEqual(economyStepAdena(1, 2), 1_920_000);
+    assert.strictEqual(economyStepAdena(1, 3), 2_560_000);
+    assert.strictEqual(economyStepAdena(2, 1), 3_200_000);
   });
 
   test("chapter adena is 45 min of farm/hour", () => {
-    assert.strictEqual(economyChapterAdena(1), 112_500);
-    assert.strictEqual(economyChapterAdena(5), 900_000);
+    assert.strictEqual(economyChapterAdena(1), 7_200_000);
+    assert.strictEqual(economyChapterAdena(5), 57_600_000);
   });
 
   test("passive is 10% of farm/hour", () => {
-    assert.ok(Math.abs(economyPassiveAdenaPerSec(1) - 150_000 / 3600 * 0.1) < 1e-9);
+    assert.ok(Math.abs(economyPassiveAdenaPerSec(1) - 9_600_000 / 3600 * 0.1) < 1e-9);
     assert.ok(Math.abs(economyChapterFarmMult(5) - 8) < 1e-9);
   });
 
