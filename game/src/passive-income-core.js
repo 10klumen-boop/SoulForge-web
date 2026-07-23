@@ -85,7 +85,14 @@ function passiveRatePerSec() {
     typeof economyChapterFarmMult === "function"
       ? economyChapterFarmMult(chapter)
       : (mults[chapter - 1] || mults[mults.length - 1] || 1);
-  return Math.max(0, base * (1 + power / Math.max(1, powerDiv)) * chMult);
+  let rate = Math.max(0, base * (1 + power / Math.max(1, powerDiv)) * chMult);
+  if (typeof passiveEffectMult === "function") {
+    rate *= passiveEffectMult("offlineIncomeMult", state.avatar?.raceId);
+  } else if (typeof racialEffectMult === "function") {
+    rate *= racialEffectMult("offlineIncomeMult", state.avatar?.raceId)
+      * racialEffectMult("passiveIncomeMult", state.avatar?.raceId);
+  }
+  return rate;
 }
 
 function passivePendingSec(now) {

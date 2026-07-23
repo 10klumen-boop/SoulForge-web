@@ -51,6 +51,17 @@ function runTests() {
     assert.strictEqual(typeof a.test, "function");
   });
 
+  test("passive-skills catalog: 5 races × 2", () => {
+    assert.ok(PASSIVE_SKILLS && PASSIVE_SKILLS.human_steady);
+    assert.strictEqual(Object.keys(RACE_PASSIVE_SKILL_IDS).length, 5);
+    Object.keys(RACE_PASSIVE_SKILL_IDS).forEach((race) => {
+      assert.strictEqual(RACE_PASSIVE_SKILL_IDS[race].length, 2);
+      RACE_PASSIVE_SKILL_IDS[race].forEach((id) => {
+        assert.ok(PASSIVE_SKILLS[id], "missing skill " + id);
+      });
+    });
+  });
+
   console.log("\n--- summary ---");
   console.log("passed: " + passed + ", failed: " + failed);
   if (failed > 0) process.exit(1);

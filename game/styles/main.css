@@ -3319,6 +3319,7 @@
     box-shadow: 0 0 10px rgba(255,80,48,.45);
   }
   .avatar-skills-panel { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--edge2); }
+  .avatar-passive-gameplay { margin: 4px 0 0; font-size: 11px; color: rgba(201,168,106,.72); line-height: 1.35; }
   .avatar-boost-panel {
     margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--edge2);
   }
@@ -3653,6 +3654,10 @@
   .avatar-pick-card img { width: 40px; height: 40px; object-fit: contain; }
   .avatar-pick-card strong { font-size: 15px; font-weight: 600; color: var(--gold-soft); font-family: var(--font-display); }
   .avatar-pick-card span { font-size: 13px; color: var(--txt-dim); line-height: 1.45; }
+  .avatar-pick-card small.avatar-race-passive {
+    display: block; margin-top: 4px; font-size: 11px; line-height: 1.35;
+    color: rgba(201,168,106,.78);
+  }
   .avatar-pick-card.race-human.sel { border-color: rgba(201,168,106,.7); }
   .avatar-pick-card.race-elf.sel { border-color: rgba(120,200,120,.65); }
   .avatar-pick-card.race-dark_elf.sel { border-color: rgba(160,100,200,.65); }

@@ -329,11 +329,21 @@ function avatarMineRewardMult(zoneId) {
 
   const raceMap = typeof ZONE_RACE_BONUS !== "undefined" ? ZONE_RACE_BONUS[zoneId] : null;
 
-  if (race && raceMap && raceMap[race]) mult += raceMap[race];
+  let raceBonus = race && raceMap && raceMap[race] ? raceMap[race] : 0;
+  const raceFloor = typeof passiveEffectSum === "function"
+    ? passiveEffectSum("zoneRaceBonusFloor", race, lvl)
+    : (typeof racialEffectSum === "function" ? racialEffectSum("zoneRaceBonusFloor", race, lvl) : 0);
+  if (raceFloor > 0) raceBonus = Math.max(raceBonus, raceFloor);
+  mult += raceBonus;
 
   if (typeof avatarGearMineAdenaMult === "function") mult *= avatarGearMineAdenaMult();
 
-  return Math.min(1.58, Math.max(0.82, mult));
+  // Расовый farmAdenaMult — после clamp кривой силы, иначе съедается капом 1.58
+  let out = Math.min(1.58, Math.max(0.82, mult));
+  const farmMultFn = typeof passiveEffectMult === "function" ? passiveEffectMult
+    : (typeof racialEffectMult === "function" ? racialEffectMult : null);
+  if (farmMultFn) out *= farmMultFn("farmAdenaMult", race, lvl);
+  return out;
 
 }
 

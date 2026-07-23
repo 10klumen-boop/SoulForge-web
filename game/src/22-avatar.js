@@ -66,7 +66,6 @@ function renderAvatarScreen() {
     } else if (parseFloat(bonusPct) > 0) {
       lines.push("Бонус к заточке с +4: +" + bonusPct + "% (уровень + экипировка).");
     }
-    if (state.avatar.raceId === "dwarf") lines.push("Гном: +15% опыта души в шахте.");
     const gearSum = typeof avatarGearBonusSummary === "function" ? avatarGearBonusSummary() : null;
     if (gearSum && gearSum.lines.length) lines.push(gearSum.lines.join(" · "));
     perk.textContent = lines.join(" ");
@@ -75,7 +74,35 @@ function renderAvatarScreen() {
   if (typeof renderAvatarStatsPanel === "function") renderAvatarStatsPanel();
   if (typeof renderPassiveIncomePanel === "function") renderPassiveIncomePanel();
   if (typeof renderAutoClickerPanel === "function") renderAutoClickerPanel();
+  if (typeof renderAvatarPassiveSkillsPanel === "function") renderAvatarPassiveSkillsPanel();
   if (typeof renderAvatarSkillsPanel === "function") renderAvatarSkillsPanel();
+}
+
+function renderAvatarPassiveSkillsPanel() {
+  const el = document.getElementById("avatarPassiveSkillsPanel");
+  if (!el) return;
+  if (!state.avatar?.created || typeof passiveSkillsForAvatar !== "function") {
+    el.innerHTML = "";
+    return;
+  }
+  const skills = passiveSkillsForAvatar(state.avatar).filter((s) => s.kind === "racial");
+  if (!skills.length) {
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML =
+    '<h4 class="avatar-skills-title">Пассивные умения</h4>' +
+    '<p class="avatar-skills-hint">Расовые · всегда действуют</p>' +
+    skills.map((s) => {
+      return (
+        '<div class="avatar-skill-row unlocked">' +
+        '<img src="' + (s.icon || "") + '" alt="">' +
+        "<div><b>" + s.name + "</b>" +
+        "<p>" + (s.blurb || s.desc || "") + "</p>" +
+        (s.gameplay ? '<p class="avatar-passive-gameplay">' + s.gameplay + "</p>" : "") +
+        "</div></div>"
+      );
+    }).join("");
 }
 
 function openAvatar(fromScreen) {
@@ -141,10 +168,18 @@ function renderAvatarRaceGrid() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "avatar-pick-card race-" + race.id + (_avatarSetupDraft.raceId === race.id ? " sel" : "");
+    const racialSkills =
+      typeof passiveSkillsRacialForRace === "function" ? passiveSkillsRacialForRace(race.id, 1) : [];
+    const passiveHtml = racialSkills
+      .map((s) =>
+        '<small class="avatar-race-passive"><b>' + s.name + "</b> — " + (s.blurb || s.desc || "") + "</small>"
+      )
+      .join("");
     btn.innerHTML =
       '<img src="' + race.icon + '" alt="">' +
       "<strong>" + race.name + "</strong>" +
-      "<span>" + race.desc + "</span>";
+      "<span>" + race.desc + "</span>" +
+      passiveHtml;
     btn.onclick = () => {
       Audio2.click();
       _avatarSetupDraft.raceId = race.id;

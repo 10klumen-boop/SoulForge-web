@@ -110,19 +110,25 @@ function avatarStats() {
 
   const gear = avatarStatBonusesFromGear();
 
-  const dwarfMine = a.raceId === "dwarf" ? 2 : 0;
+  const raceId = a.raceId || "human";
+  const farmBonus = typeof passiveEffectSum === "function"
+    ? passiveEffectSum("farmBonus", a, lv)
+    : (typeof racialEffectSum === "function" ? racialEffectSum("farmBonus", raceId, lv) : 0);
+  const matkAdd = typeof passiveEffectSum === "function"
+    ? passiveEffectSum("matkAdd", a, lv)
+    : 0;
 
   return {
 
     patk: race.patk + cls.patk + lb.atk + gear.patk,
 
-    matk: race.matk + cls.matk + lb.atk + gear.matk,
+    matk: race.matk + cls.matk + lb.atk + gear.matk + matkAdd,
 
     pdef: race.pdef + cls.pdef + lb.def + gear.pdef,
 
     mdef: race.mdef + cls.mdef + lb.def + gear.mdef,
 
-    farmBonus: dwarfMine,
+    farmBonus,
 
   };
 
@@ -293,7 +299,9 @@ function expectedFarmPowerAtLevel(level) {
   const race = RACE_BASE_STATS[a.raceId] || RACE_BASE_STATS.human;
   const cls = classStatBonus(a.classId);
   const lb = avatarLevelStatBonus(level);
-  const dwarfMine = a.raceId === "dwarf" ? 2 : 0;
+  const racialFarm = typeof passiveEffectSum === "function"
+    ? passiveEffectSum("farmBonus", a.raceId, level)
+    : (typeof racialEffectSum === "function" ? racialEffectSum("farmBonus", a.raceId, level) : 0);
   const patk = race.patk + cls.patk + lb.atk;
   const matk = race.matk + cls.matk + lb.atk;
   const pdef = race.pdef + cls.pdef + lb.def;
@@ -302,7 +310,7 @@ function expectedFarmPowerAtLevel(level) {
   const primary = mystic ? matk : patk;
   const secondary = mystic ? patk : matk;
   return Math.round(
-    primary * 1.0 + secondary * 0.72 + pdef * 0.36 + mdef * 0.36 + Math.max(0, level - 1) * 1.5 + dwarfMine
+    primary * 1.0 + secondary * 0.72 + pdef * 0.36 + mdef * 0.36 + Math.max(0, level - 1) * 1.5 + racialFarm
   );
 }
 

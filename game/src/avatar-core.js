@@ -124,15 +124,23 @@ function avatarProgress() {
   return { level, xp, need, pct: need ? Math.min(100, (xp / need) * 100) : 0 };
 }
 
-/** Бонус к шансу заточки с +4: с 9 уровня, до +0.5% на 20. */
+/** Бонус к шансу заточки с +4: с 9 уровня, до +0.5% на 20 + расовый пассив. */
 function avatarEnchantBonus(plus, behavior) {
   if (behavior === "guarantee" || plus < safeLevel()) return 0;
   migrateAvatar();
   const lvl = state.avatar.level || 1;
   const minLvl = 9;
-  if (lvl < minLvl) return 0;
-  const cap = 0.005;
-  return Math.min(cap, (lvl - (minLvl - 1)) * 0.0005);
+  let bonus = 0;
+  if (lvl >= minLvl) {
+    const cap = 0.005;
+    bonus = Math.min(cap, (lvl - (minLvl - 1)) * 0.0005);
+  }
+  if (typeof passiveEffectSum === "function") {
+    bonus += passiveEffectSum("enchantChanceAdd", state.avatar.raceId, lvl);
+  } else if (typeof racialEffectSum === "function") {
+    bonus += racialEffectSum("enchantChanceAdd", state.avatar.raceId, lvl);
+  }
+  return Math.max(0, bonus);
 }
 
 function needsAvatarSetup() {
@@ -236,7 +244,11 @@ function onMineAvatarXp(golden) {
   const ch = zone.chapter || 1;
   // Чуть выше, чтобы киллы главы подводили к reqLevel следующей зоны
   let amt = golden ? 10 + ch * 3 : 3 + ch * 2;
-  if (state.avatar.raceId === "dwarf") amt = Math.round(amt * 1.15);
+  if (typeof passiveEffectMult === "function") {
+    amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar.raceId));
+  } else if (typeof racialEffectMult === "function") {
+    amt = Math.round(amt * racialEffectMult("mineXpMult", state.avatar.raceId));
+  }
   grantAvatarXp(amt, { silent: true });
 }
 

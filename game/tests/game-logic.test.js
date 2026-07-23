@@ -15,6 +15,7 @@ loadScripts([
   "src/data/enchant-balance.js",
   "src/06-rules.js",
   "src/02-state.js",
+  "src/passive-skills-core.js",
   "src/avatar-math.js",
 ]);
 
@@ -137,10 +138,29 @@ function runTests() {
     assert.strictEqual(s.farmBonus, 0);
   });
 
-  test("avatarStats applies dwarf mine bonus", () => {
+  test("avatarStats: orc farmBonus, dwarf no mine flat, elf matkAdd", () => {
+    state.avatar = { raceId: "orc", classId: "fighter", level: 1, gear: { weapon: null } };
+    assert.strictEqual(avatarStats().farmBonus, 1);
     state.avatar = { raceId: "dwarf", classId: "fighter", level: 1, gear: { weapon: null } };
-    const s = avatarStats();
-    assert.strictEqual(s.farmBonus, 2);
+    assert.strictEqual(avatarStats().farmBonus, 0);
+    state.avatar = { raceId: "elf", classId: "fighter", level: 1, gear: { weapon: null } };
+    const lb = avatarLevelStatBonus(1);
+    const cls = classStatBonus("fighter");
+    const expected = RACE_BASE_STATS.elf.matk + cls.matk + lb.atk + 2;
+    assert.strictEqual(avatarStats().matk, expected);
+  });
+
+  test("passiveEffectMult: race handwriting numbers", () => {
+    assert.strictEqual(passiveEffectMult("farmAdenaMult", "human"), 1.03);
+    assert.strictEqual(passiveEffectMult("normalAdenaMult", "elf"), 1.06);
+    assert.strictEqual(passiveEffectMult("goldenAdenaMult", "dark_elf"), 1.1);
+    assert.strictEqual(passiveEffectMult("normalAdenaMult", "dark_elf"), 0.96);
+    assert.strictEqual(passiveEffectMult("mineXpMult", "dwarf"), 1.12);
+    assert.strictEqual(passiveEffectMult("offlineIncomeMult", "dwarf"), 1.08);
+    assert.strictEqual(passiveEffectSum("enchantChanceAdd", "dwarf"), 0.004);
+    assert.strictEqual(passiveEffectSum("enchantChanceAdd", "human"), 0);
+    assert.strictEqual(passiveEffectSum("zoneRaceBonusFloor", "human"), 0.04);
+    assert.strictEqual(passiveEffectSum("farmBonus", "orc"), 1);
   });
 
   test("avatarIsMystic reflects classId", () => {

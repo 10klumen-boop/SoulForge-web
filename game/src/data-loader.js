@@ -7,6 +7,7 @@ const GAME_JSON_PACKS = [
   { file: "src/data/json/quest-content.json", v: 1 },
   { file: "src/data/json/zone-chapter-rewards.json", v: 1 },
   { file: "src/data/json/achievements.json", v: 1 },
+  { file: "src/data/json/passive-skills.json", v: 1 },
 ];
 
 function applyGameJsonPack(data) {

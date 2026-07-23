@@ -108,6 +108,7 @@ function loadGameJsonDataSync() {
     "src/data/json/quest-content.json",
     "src/data/json/zone-chapter-rewards.json",
     "src/data/json/achievements.json",
+    "src/data/json/passive-skills.json",
   ];
   packs.forEach((rel) => {
     const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", rel), "utf8"));

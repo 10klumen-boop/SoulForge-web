@@ -27,7 +27,7 @@ global.ProgressStore = {
 global.state = {
   adena: 1_000_000,
   farmZone: "banana_mine",
-  avatar: { created: true, level: 5 },
+  avatar: { created: true, level: 5, raceId: "human" },
   totals: { tries: 0, fails: 0, earned: 0 },
   passiveIncome: { lastCollectAt: 0, warehouseLv: 0 },
 };
@@ -37,6 +37,8 @@ global.tuneInt = (k, fb) => fb;
 loadScripts([
   "src/data/economy-balance.js",
   "src/data/passive-income-balance.js",
+  "src/data/json/passive-skills.json",
+  "src/passive-skills-core.js",
   "src/passive-income-core.js",
 ]);
 
@@ -122,6 +124,17 @@ function runTests() {
     state.farmZone = "e"; // chapter 5
     const rate = passiveRatePerSec();
     assert.ok(Math.abs(rate - economyPassiveAdenaPerSec(5)) < 0.1, "rate=" + rate);
+  });
+
+  test("P2: dwarf offlineIncomeMult +8%", () => {
+    global.avatarFarmPower = () => 0;
+    state.farmZone = "banana_mine";
+    state.avatar.raceId = "human";
+    const base = passiveRatePerSec();
+    state.avatar.raceId = "dwarf";
+    const dwarf = passiveRatePerSec();
+    assert.ok(Math.abs(dwarf - base * 1.08) < 0.01, "dwarf=" + dwarf + " base=" + base);
+    state.avatar.raceId = "human";
   });
 
   console.log("\n--- summary ---");

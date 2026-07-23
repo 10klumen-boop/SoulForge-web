@@ -378,6 +378,9 @@ function mineNormalReward() {
   const { lo, hi } = mineAdenaBaseRange("normal");
   let amt = playtestIncome(lo + Math.floor(Math.random() * Math.max(1, hi - lo + 1)));
   if (typeof avatarMineRewardMult === "function") amt = Math.round(amt * avatarMineRewardMult(state.farmZone || "banana_mine"));
+  const normalFn = typeof passiveEffectMult === "function" ? passiveEffectMult
+    : (typeof racialEffectMult === "function" ? racialEffectMult : null);
+  if (normalFn) amt = Math.round(amt * normalFn("normalAdenaMult", state.avatar?.raceId));
   return amt;
 }
 
@@ -385,6 +388,9 @@ function mineGoldenReward() {
   const { lo, hi } = mineAdenaBaseRange("golden");
   let amt = playtestIncome(lo + Math.floor(Math.random() * Math.max(1, hi - lo + 1)));
   if (typeof avatarMineRewardMult === "function") amt = Math.round(amt * avatarMineRewardMult(state.farmZone || "banana_mine"));
+  const goldenFn = typeof passiveEffectMult === "function" ? passiveEffectMult
+    : (typeof racialEffectMult === "function" ? racialEffectMult : null);
+  if (goldenFn) amt = Math.round(amt * goldenFn("goldenAdenaMult", state.avatar?.raceId));
   return amt;
 }
 
