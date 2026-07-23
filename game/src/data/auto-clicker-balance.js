@@ -4,6 +4,8 @@
 const AUTO_CLICKER = {
   intervalMs: 150,
   chapterPriceMultStep: 0.08,
+  /** Максимум накопленного времени автоудара (стак пакетов). */
+  maxStackMs: 3 * 60 * 60 * 1000,
   packs: [
     { id: "short", label: "15 мин", durationMs: 15 * 60 * 1000, price: 28_000 },
     { id: "mid", label: "30 мин", durationMs: 30 * 60 * 1000, price: 55_000 },

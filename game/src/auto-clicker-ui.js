@@ -17,6 +17,7 @@ function renderAutoClickerPanel(opts) {
   const root = document.getElementById("autoClickerPanel");
   if (!root) return;
   if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
+  if (typeof clampAutoClickerToMax === "function") clampAutoClickerToMax();
   if (!state.avatar?.created) {
     root.hidden = true;
     root.innerHTML = "";
@@ -27,6 +28,10 @@ function renderAutoClickerPanel(opts) {
   const active = typeof autoClickerIsActive === "function" ? autoClickerIsActive() : false;
   const enabled = state.autoClicker?.enabled !== false;
   const packs = typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER.packs : [];
+  const maxMs = typeof autoClickerMaxStackMs === "function"
+    ? autoClickerMaxStackMs()
+    : (AUTO_CLICKER?.maxStackMs || 0);
+  const maxH = maxMs > 0 ? Math.round(maxMs / 3600000) : 0;
   const fmtA = typeof fmtAdena === "function" ? fmtAdena : (n) => String(n);
   const status = opts.status
     ? '<p class="avatar-boost-status avatar-boost-status--' + (opts.statusKind || "ok") + '">' + opts.status + "</p>"
@@ -34,7 +39,11 @@ function renderAutoClickerPanel(opts) {
 
   const packsHtml = packs.map((p) => {
     const price = typeof autoClickerPackPrice === "function" ? autoClickerPackPrice(p) : p.price;
-    return '<button type="button" class="btn btn-primary btn-sm auto-clicker-buy" data-pack="' + p.id + '">' +
+    const can = typeof autoClickerCanBuyPack === "function" ? autoClickerCanBuyPack(p) : { ok: true };
+    const disabled = !can.ok;
+    return '<button type="button" class="btn btn-primary btn-sm auto-clicker-buy"' +
+      (disabled ? " disabled" : "") +
+      ' data-pack="' + p.id + '">' +
       p.label + " · " + fmtA(price) + "</button>";
   }).join("");
 
@@ -45,10 +54,12 @@ function renderAutoClickerPanel(opts) {
         "<b>Автоудар</b>" +
         '<span class="avatar-boost-meta">' +
           (rem > 0 ? formatAutoClickerRemaining(rem) + (enabled ? " · вкл" : " · пауза") : "не куплен") +
+          (maxH > 0 ? " · макс. " + maxH + " ч" : "") +
         "</span>" +
       "</div>" +
     "</div>" +
-    '<p class="avatar-boost-line">Бьёт цели на поле задания, пока действует таймер. Цена растёт с главой зоны.</p>' +
+    '<p class="avatar-boost-line">Бьёт цели на поле задания, пока действует таймер. Цена растёт с главой зоны. Стак до ' +
+      (maxH > 0 ? maxH + " ч" : "лимита") + ".</p>" +
     status +
     '<div class="avatar-boost-actions auto-clicker-packs">' + packsHtml + "</div>" +
     (rem > 0
@@ -76,6 +87,7 @@ function renderAutoClickerHud() {
   const hud = document.getElementById("mineAutoClickerHud");
   if (!hud) return;
   if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
+  if (typeof clampAutoClickerToMax === "function") clampAutoClickerToMax();
   const rem = typeof autoClickerRemainingMs === "function" ? autoClickerRemainingMs() : 0;
   const active = typeof autoClickerIsActive === "function" ? autoClickerIsActive() : false;
   const enabled = state.autoClicker?.enabled !== false;

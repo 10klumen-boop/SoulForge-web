@@ -317,8 +317,13 @@
     position: absolute;
     right: 12px;
     top: 24px;
-    bottom: 24px;
-    width: min(300px, calc(100vw - 32px));
+    bottom: auto;
+    --chat-w: 300px;
+    --chat-h: 520px;
+    width: var(--chat-w);
+    height: var(--chat-h);
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 48px);
     display: flex;
     flex-direction: column;
     background: linear-gradient(180deg, #1e1810, #120d08);
@@ -448,6 +453,59 @@
     color: var(--txt-dim);
   }
   .game-chat-social-btn:hover { border-color: var(--gold); }
+  .game-chat-social-btn.is-muted,
+  .game-chat-social-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.35);
+  }
+  .game-chat-social-btn.is-muted:hover,
+  .game-chat-social-btn:disabled:hover {
+    border-color: var(--edge2);
+    filter: grayscale(0.35);
+  }
+  .game-chat-resize-edge,
+  .game-chat-resize-corner {
+    position: absolute;
+    z-index: 3;
+    touch-action: none;
+  }
+  .game-chat-resize-w {
+    left: 0;
+    top: 28px;
+    bottom: 18px;
+    width: 8px;
+    cursor: ew-resize;
+  }
+  .game-chat-resize-h {
+    left: 18px;
+    right: 8px;
+    bottom: 0;
+    height: 8px;
+    cursor: ns-resize;
+  }
+  .game-chat-resize-corner {
+    left: 0;
+    bottom: 0;
+    width: 18px;
+    height: 18px;
+    cursor: nesw-resize;
+    background:
+      linear-gradient(135deg, transparent 48%, rgba(201,168,106,.55) 48%, rgba(201,168,106,.55) 58%, transparent 58%),
+      linear-gradient(135deg, transparent 68%, rgba(201,168,106,.35) 68%, rgba(201,168,106,.35) 78%, transparent 78%);
+  }
+  .game-chat-resize-corner:hover {
+    background:
+      linear-gradient(135deg, transparent 48%, rgba(231,207,149,.85) 48%, rgba(231,207,149,.85) 58%, transparent 58%),
+      linear-gradient(135deg, transparent 68%, rgba(201,168,106,.55) 68%, rgba(201,168,106,.55) 78%, transparent 78%);
+  }
+  body.sf-chat-resizing {
+    cursor: nesw-resize !important;
+    user-select: none !important;
+  }
+  body.sf-chat-resizing .game-chat-body {
+    transition: none;
+  }
   .game-chat-to-wrap {
     display: flex;
     align-items: center;
@@ -1214,8 +1272,11 @@
       width: min(300px, calc(100vw - 24px));
     }
     .game-chat-body {
-      top: 12px; bottom: auto; height: min(48vh, 360px);
-      width: min(300px, calc(100vw - 24px));
+      top: 12px; bottom: auto;
+      --chat-w: min(300px, calc(100vw - 24px));
+      --chat-h: min(48vh, 360px);
+      width: var(--chat-w);
+      height: var(--chat-h);
     }
     .dev-panel { width: min(400px, 96%); max-width: none; height: min(72vh, 640px); max-height: min(72vh, 640px); border-radius: 10px 0 0 0; }
     .dev-panel-grid { grid-template-columns: repeat(2, 1fr); }

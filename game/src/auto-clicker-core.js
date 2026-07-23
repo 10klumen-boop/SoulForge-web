@@ -13,8 +13,43 @@ function ensureAutoClickerState() {
   }
 }
 
+function autoClickerMaxStackMs() {
+  const fallback = (typeof AUTO_CLICKER !== "undefined" && AUTO_CLICKER.maxStackMs) || (3 * 60 * 60 * 1000);
+  return typeof tuneInt === "function"
+    ? tuneInt("autoClicker.maxStackMs", fallback)
+    : fallback;
+}
+
+/** Обрезать уже накопленный таймер до потолка (сейвы без капа). */
+function clampAutoClickerToMax(now) {
+  if (!state.autoClicker || typeof state.autoClicker !== "object") return false;
+  now = now || Date.now();
+  const maxMs = autoClickerMaxStackMs();
+  const rem = autoClickerRemainingMs(now);
+  if (rem <= maxMs) return false;
+  const pauseOffset = state.autoClicker.pauseStartedAt
+    ? Math.max(0, now - state.autoClicker.pauseStartedAt)
+    : 0;
+  ProgressStore.update("autoClicker", (a) => ({
+    ...(a || defaultAutoClickerState()),
+    until: now + maxMs - pauseOffset,
+  }));
+  return true;
+}
+
 function autoClickerPackById(id) {
   return (AUTO_CLICKER.packs || []).find((p) => p.id === id) || null;
+}
+
+function autoClickerCanBuyPack(pack, now) {
+  if (!pack) return { ok: false, reason: "unknown" };
+  now = now || Date.now();
+  const maxMs = autoClickerMaxStackMs();
+  const rem = autoClickerRemainingMs(now);
+  if (rem >= maxMs) return { ok: false, reason: "at_cap", rem, maxMs, room: 0 };
+  const room = maxMs - rem;
+  if (pack.durationMs > room) return { ok: false, reason: "no_room", rem, maxMs, room };
+  return { ok: true, rem, maxMs, room };
 }
 
 function autoClickerChapterPriceMult() {
@@ -56,6 +91,7 @@ function autoClickerResumeFromPause() {
     until: (a?.until || 0) + frozen,
     pauseStartedAt: 0,
   }));
+  clampAutoClickerToMax();
 }
 
 function autoClickerEffectiveUntil(now) {
@@ -82,10 +118,27 @@ function autoClickerIsActive(now) {
 
 function buyAutoClickerPack(packId) {
   ensureAutoClickerState();
+  clampAutoClickerToMax();
   const pack = autoClickerPackById(packId);
   if (!pack) {
     if (typeof renderAutoClickerPanel === "function") {
       renderAutoClickerPanel({ status: "Неизвестный пакет автоудара", statusKind: "warn" });
+    }
+    return false;
+  }
+  const now = Date.now();
+  const can = autoClickerCanBuyPack(pack, now);
+  if (!can.ok) {
+    const maxH = Math.round(can.maxMs / 3600000);
+    let msg = "Потолок автоудара: " + maxH + " ч";
+    if (can.reason === "at_cap") {
+      msg = "Уже максимум (" + maxH + " ч) — дождись таймера";
+    } else if (can.reason === "no_room") {
+      const roomMin = Math.max(1, Math.floor(can.room / 60000));
+      msg = "Свободно только ~" + roomMin + " мин (макс. " + maxH + " ч)";
+    }
+    if (typeof renderAutoClickerPanel === "function") {
+      renderAutoClickerPanel({ status: msg, statusKind: "warn" });
     }
     return false;
   }
@@ -98,12 +151,12 @@ function buyAutoClickerPack(packId) {
     return false;
   }
   ProgressStore.update("adena", (a) => (a || 0) - price);
-  const now = Date.now();
   const curUntil = autoClickerEffectiveUntil(now);
   const base = Math.max(now, curUntil);
+  const maxUntil = now + autoClickerMaxStackMs();
   ProgressStore.update("autoClicker", (a) => ({
     ...(a || defaultAutoClickerState()),
-    until: base + pack.durationMs,
+    until: Math.min(base + pack.durationMs, maxUntil),
     enabled: true,
     pauseStartedAt: 0,
   }));

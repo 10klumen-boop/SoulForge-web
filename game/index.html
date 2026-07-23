@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m58" />
+<link rel="stylesheet" href="styles/main.css?v=m59" />
 <link rel="stylesheet" href="styles/dark-fantasy.css" />
 <script src="cloud-config.js"></script>
 
@@ -66,6 +66,9 @@
       <input type="text" id="gameChatInput" class="game-chat-input" maxlength="200" placeholder="Сообщение…" aria-label="Сообщение в чат" />
       <button type="submit" class="game-chat-send" id="gameChatSend" title="Отправить">➤</button>
     </form>
+    <div class="game-chat-resize-edge game-chat-resize-w" id="gameChatResizeW" title="Ширина" aria-hidden="true"></div>
+    <div class="game-chat-resize-edge game-chat-resize-h" id="gameChatResizeH" title="Высота" aria-hidden="true"></div>
+    <div class="game-chat-resize-corner" id="gameChatResize" title="Размер чата" aria-hidden="true"></div>
   </div>
 </aside>
 <div class="app login-screen">
@@ -888,8 +891,8 @@
 <script src="src/cloud-ui.js"></script>
 <script src="src/market-core.js?v=1"></script>
 <script src="src/market-ui.js?v=5"></script>
-<script src="src/chat-core.js?v=3"></script>
-<script src="src/chat-ui.js?v=2"></script>
+<script src="src/chat-core.js?v=4"></script>
+<script src="src/chat-ui.js?v=3"></script>
 <script src="src/progress-store.js"></script>
 <script src="src/15-game-log.js"></script>
 <script src="src/16-accessory.js?v=2"></script>
@@ -934,9 +937,9 @@
 <script src="src/data/passive-income-balance.js?v=3"></script>
 <script src="src/passive-income-core.js?v=5"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
-<script src="src/data/auto-clicker-balance.js?v=5"></script>
-<script src="src/auto-clicker-core.js?v=5"></script>
-<script src="src/auto-clicker-ui.js?v=4"></script>
+<script src="src/data/auto-clicker-balance.js?v=6"></script>
+<script src="src/auto-clicker-core.js?v=6"></script>
+<script src="src/auto-clicker-ui.js?v=5"></script>
 <script src="src/data-loader.js?v=4"></script>
 <script src="src/99-bootstrap.js?v=49"></script>
 

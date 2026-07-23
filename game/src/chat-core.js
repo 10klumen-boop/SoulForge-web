@@ -4,7 +4,12 @@ const CHAT_POLL_MS = 3000;
 const CHAT_COLLAPSE_KEY = "sf-chat-collapsed";
 const CHAT_MOBILE_KEY = "sf-chat-mobile";
 const CHAT_CHANNEL_KEY = "sf-chat-channel";
+const CHAT_SIZE_KEY = "sf-chat-size";
 const CHAT_MAX_LEN = 200;
+const CHAT_SIZE_MIN_W = 260;
+const CHAT_SIZE_MAX_W = 560;
+const CHAT_SIZE_MIN_H = 280;
+const CHAT_SIZE_DEFAULT = { w: 300, h: 520 };
 
 const CHAT_CHANNELS = [
   { id: "world", label: "Мир", short: "Мир" },
@@ -48,6 +53,39 @@ function loadChatCollapsed() {
     if (raw === "1") return true;
   } catch (_) {}
   return true;
+}
+
+function clampChatSize(size) {
+  const maxW = Math.min(CHAT_SIZE_MAX_W, Math.max(CHAT_SIZE_MIN_W, window.innerWidth - 32));
+  const maxH = Math.max(CHAT_SIZE_MIN_H, window.innerHeight - 48);
+  const w = Math.round(Math.min(maxW, Math.max(CHAT_SIZE_MIN_W, Number(size?.w) || CHAT_SIZE_DEFAULT.w)));
+  const h = Math.round(Math.min(maxH, Math.max(CHAT_SIZE_MIN_H, Number(size?.h) || CHAT_SIZE_DEFAULT.h)));
+  return { w, h };
+}
+
+function loadChatSize() {
+  try {
+    const raw = localStorage.getItem(CHAT_SIZE_KEY);
+    if (raw) return clampChatSize(JSON.parse(raw));
+  } catch (_) {}
+  return clampChatSize(CHAT_SIZE_DEFAULT);
+}
+
+function saveChatSize(size) {
+  const next = clampChatSize(size);
+  try {
+    localStorage.setItem(CHAT_SIZE_KEY, JSON.stringify(next));
+  } catch (_) {}
+  return next;
+}
+
+function applyChatSize(size) {
+  const body = document.getElementById("gameChatBody");
+  if (!body) return;
+  const next = clampChatSize(size || loadChatSize());
+  body.style.setProperty("--chat-w", next.w + "px");
+  body.style.setProperty("--chat-h", next.h + "px");
+  return next;
 }
 
 function isChatMobileEnabled() {
@@ -282,8 +320,13 @@ function syncChatComposeUi() {
 
   if (toWrap) toWrap.hidden = ch !== "whisper";
   if (social) {
-    social.hidden = ch !== "party" && ch !== "clan";
-    if (!social.hidden) renderChatSocialBar();
+    if (ch === "party" || ch === "clan") {
+      social.hidden = false;
+      renderChatSocialBar();
+    } else {
+      social.hidden = true;
+      social.innerHTML = "";
+    }
   }
 
   let placeholder = "Сообщение…";
@@ -308,8 +351,8 @@ function renderChatSocialBar() {
   if (ch === "party") {
     if (!chatSocial.party) {
       social.innerHTML =
-        '<button type="button" class="game-chat-social-btn" data-act="party-create">Создать группу</button>' +
-        '<span class="game-chat-social-hint">лидер приглашает по нику аккаунта</span>';
+        '<button type="button" class="game-chat-social-btn is-muted" data-act="party-create" disabled aria-disabled="true" title="Временно недоступно">Создать группу</button>' +
+        '<span class="game-chat-social-hint">создание временно недоступно</span>';
     } else {
       const names = (chatSocial.party.members || []).map((m) => m.nick).join(", ");
       const leader = (chatSocial.party.members || []).find((m) => m.userId === chatSocial.party.leaderUserId);
@@ -326,8 +369,8 @@ function renderChatSocialBar() {
   } else if (ch === "clan") {
     if (!chatSocial.clan) {
       social.innerHTML =
-        '<button type="button" class="game-chat-social-btn" data-act="clan-create">Создать клан</button>' +
-        '<span class="game-chat-social-hint">имя 3–24 · лидер приглашает по нику</span>';
+        '<button type="button" class="game-chat-social-btn is-muted" data-act="clan-create" disabled aria-disabled="true" title="Временно недоступно">Создать клан</button>' +
+        '<span class="game-chat-social-hint">создание временно недоступно</span>';
     } else {
       const leader = (chatSocial.clan.members || []).find((m) => m.userId === chatSocial.clan.leaderUserId);
       const amLeader = !!(leader && leader.nick === myNick);
@@ -345,7 +388,7 @@ function renderChatSocialBar() {
     }
   }
 
-  social.querySelectorAll("[data-act]").forEach((btn) => {
+  social.querySelectorAll("[data-act]:not([disabled])").forEach((btn) => {
     btn.addEventListener("click", () => handleChatSocialAction(btn.dataset.act));
   });
 }
@@ -364,14 +407,8 @@ async function chatApi(path, opts) {
 
 async function handleChatSocialAction(act) {
   if (typeof Audio2 !== "undefined") Audio2.click();
-  if (act === "party-create") {
-    const r = await chatApi("/chat/party/create", { method: "POST", body: {} });
-    if (!r.ok) return setChatStatus(r.error, "warn");
-    chatSocial = { party: r.party || null, clan: r.clan || chatSocial.clan };
-    chatCanSend = !!chatSocial.party;
-    syncChatComposeUi();
-    setChatStatus("Группа создана");
-    return chatPollNow();
+  if (act === "party-create" || act === "clan-create") {
+    return setChatStatus("Создание группы и клана временно недоступно", "warn");
   }
   if (act === "party-leave") {
     const r = await chatApi("/chat/party/leave", { method: "POST", body: {} });
@@ -397,15 +434,7 @@ async function handleChatSocialAction(act) {
     return;
   }
   if (act === "clan-create") {
-    const name = window.prompt("Имя клана (3–24 символа):");
-    if (!name) return;
-    const r = await chatApi("/chat/clan/create", { method: "POST", body: { name: name.trim() } });
-    if (!r.ok) return setChatStatus(r.error, "warn");
-    chatSocial = { party: r.party || chatSocial.party, clan: r.clan || null };
-    chatCanSend = !!chatSocial.clan;
-    syncChatComposeUi();
-    setChatStatus("Клан «" + (r.clan?.name || name) + "» создан");
-    return chatPollNow();
+    return setChatStatus("Создание группы и клана временно недоступно", "warn");
   }
   if (act === "clan-leave") {
     const r = await chatApi("/chat/clan/leave", { method: "POST", body: {} });
@@ -440,6 +469,7 @@ function setChatChannel(id) {
   chatLastIdByChannel[id] = 0;
   chatKnownIdsByChannel[id] = new Set();
   chatBootstrapped[id] = false;
+  setChatStatus("");
   syncChatChannelTabs();
   syncChatComposeUi();
   updateChatTabBadges();

@@ -1,9 +1,69 @@
 // ===== UI чата с каналами =====
 
+function wireChatResize() {
+  const body = document.getElementById("gameChatBody");
+  if (!body || body.dataset.resizeWired) return;
+  body.dataset.resizeWired = "1";
+
+  const handles = [
+    { el: document.getElementById("gameChatResize"), mode: "both" },
+    { el: document.getElementById("gameChatResizeW"), mode: "w" },
+    { el: document.getElementById("gameChatResizeH"), mode: "h" },
+  ];
+
+  let drag = null;
+
+  const onMove = (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x0;
+    const dy = e.clientY - drag.y0;
+    // Панель справа: тянем влево → шире, вниз → выше
+    const next = {
+      w: drag.mode === "h" ? drag.w0 : drag.w0 - dx,
+      h: drag.mode === "w" ? drag.h0 : drag.h0 + dy,
+    };
+    applyChatSize(next);
+  };
+
+  const onUp = () => {
+    if (!drag) return;
+    drag = null;
+    document.body.classList.remove("sf-chat-resizing");
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    saveChatSize({
+      w: parseFloat(getComputedStyle(body).getPropertyValue("--chat-w")) || CHAT_SIZE_DEFAULT.w,
+      h: parseFloat(getComputedStyle(body).getPropertyValue("--chat-h")) || CHAT_SIZE_DEFAULT.h,
+    });
+  };
+
+  handles.forEach(({ el, mode }) => {
+    if (!el) return;
+    el.addEventListener("pointerdown", (e) => {
+      if (e.button != null && e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const size = loadChatSize();
+      drag = { mode, x0: e.clientX, y0: e.clientY, w0: size.w, h0: size.h };
+      document.body.classList.add("sf-chat-resizing");
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    applyChatSize(loadChatSize());
+  });
+}
+
 function initGameChat() {
   applyChatMobilePreference();
   wireChatMobileSetting();
   chatActiveChannel = loadChatChannel();
+  applyChatSize(loadChatSize());
+  wireChatResize();
   syncChatChannelTabs();
   syncChatComposeUi();
   setChatCollapsed(loadChatCollapsed());

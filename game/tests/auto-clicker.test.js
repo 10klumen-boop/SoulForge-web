@@ -71,6 +71,37 @@ function runTests() {
     assert.ok(after > before + 14 * 60 * 1000);
   });
 
+  test("max stack is 3 hours — refuse over-cap buy", () => {
+    state.adena = 10_000_000;
+    const maxMs = autoClickerMaxStackMs();
+    assert.strictEqual(maxMs, 3 * 60 * 60 * 1000);
+    state.autoClicker = {
+      until: Date.now() + maxMs - 20 * 60 * 1000,
+      enabled: true,
+      pauseStartedAt: 0,
+    };
+    const adenaBefore = state.adena;
+    const ok = buyAutoClickerPack("long"); // 60 мин не влезает в ~20 мин
+    assert.strictEqual(ok, false);
+    assert.strictEqual(state.adena, adenaBefore);
+    assert.ok(autoClickerCanBuyPack(autoClickerPackById("short")).ok); // 15 мин влезет
+    assert.ok(buyAutoClickerPack("short"));
+    assert.ok(autoClickerRemainingMs() <= maxMs + 1000);
+    assert.ok(!autoClickerCanBuyPack(autoClickerPackById("short")).ok);
+  });
+
+  test("clamp cuts over-cap remaining from old saves", () => {
+    const maxMs = autoClickerMaxStackMs();
+    state.autoClicker = {
+      until: Date.now() + 10 * 60 * 60 * 1000,
+      enabled: true,
+      pauseStartedAt: 0,
+    };
+    assert.ok(clampAutoClickerToMax());
+    assert.ok(autoClickerRemainingMs() <= maxMs + 1000);
+    assert.ok(autoClickerRemainingMs() > maxMs - 5000);
+  });
+
   test("pause freezes timer", () => {
     state.autoClicker.pauseStartedAt = 0;
     const rem0 = autoClickerRemainingMs();
