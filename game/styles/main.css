@@ -7522,8 +7522,43 @@
     flex: 0 0 auto;
     margin-left: auto;
   }
+  .pvp-online-trigger-wrap {
+    margin: 10px 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pvp-online-open {
+    width: 100%;
+    min-height: 44px;
+  }
+  .pvp-online-trigger-hint {
+    margin: 0;
+    font-size: 12px;
+  }
+  .pvp-online-modal {
+    max-height: min(62vh, 420px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 2px;
+  }
+  .pvp-online-modal .pvp-online-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 0;
+  }
+  .pvp-online-modal .pvp-online-act {
+    width: 100%;
+    margin-left: 0;
+    text-align: center;
+    min-height: 40px;
+  }
   @media (max-width: 640px) {
     .pvp-lists { grid-template-columns: 1fr; }
+    .pvp-online-list {
+      display: none;
+    }
     .pvp-online-row {
       flex-direction: column;
       align-items: stretch;

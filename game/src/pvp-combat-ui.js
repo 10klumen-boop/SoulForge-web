@@ -287,55 +287,104 @@ function pvpModeBannerHtml(tab) {
   );
 }
 
-function pvpOnlineListHtml(rows, actionLabel) {
+function pvpPreferOnlineModal() {
+  try {
+    return window.matchMedia("(max-width: 720px), (pointer: coarse)").matches;
+  } catch (_) {
+    return false;
+  }
+}
+
+function pvpOnlineRowsHtml(rows, actionLabel) {
   const label = actionLabel || "Вызвать";
-  const body =
-    rows && rows.length
-      ? rows
-          .map((r) => {
-            const name = r.name || "?";
-            const nick =
-              r.nick && String(r.nick).toLowerCase() !== String(name).toLowerCase()
-                ? " · " + r.nick
-                : "";
-            const live = !!r.live;
-            const meta =
-              "ур. " +
-              (r.level || "?") +
-              " · сила " +
-              (r.power != null ? r.power : "?") +
-              (r.atkType === "magical" ? " · маг." : " · физ.") +
-              nick;
-            return (
-              '<div class="pvp-list-row pvp-online-row' +
-              (live ? " is-live" : "") +
-              '" data-pvp-online-name="' +
-              pvpEsc(name) +
-              '" role="button" tabindex="0">' +
-              '<div class="pvp-online-main">' +
-              '<span class="pvp-online-dot" aria-hidden="true"></span>' +
-              "<div><b>" +
-              pvpEsc(name) +
-              '</b><small class="pvp-online-meta">' +
-              (live ? "онлайн · " : "недавно · ") +
-              pvpEsc(meta) +
-              "</small></div></div>" +
-              '<button type="button" class="pvp-chip pvp-online-act" data-pvp-online-act="' +
-              pvpEsc(name) +
-              '">' +
-              pvpEsc(label) +
-              "</button></div>"
-            );
-          })
-          .join("")
-      : '<p class="pvp-online-empty">Никого нет — пусть соперник откроет Арену</p>';
+  if (!rows || !rows.length) {
+    return '<p class="pvp-online-empty">Никого нет — пусть соперник откроет Арену</p>';
+  }
+  return rows
+    .map((r) => {
+      const name = r.name || "?";
+      const nick =
+        r.nick && String(r.nick).toLowerCase() !== String(name).toLowerCase()
+          ? " · " + r.nick
+          : "";
+      const live = !!r.live;
+      const meta =
+        "ур. " +
+        (r.level || "?") +
+        " · сила " +
+        (r.power != null ? r.power : "?") +
+        (r.atkType === "magical" ? " · маг." : " · физ.") +
+        nick;
+      return (
+        '<div class="pvp-list-row pvp-online-row' +
+        (live ? " is-live" : "") +
+        '" data-pvp-online-name="' +
+        pvpEsc(name) +
+        '" role="button" tabindex="0">' +
+        '<div class="pvp-online-main">' +
+        '<span class="pvp-online-dot" aria-hidden="true"></span>' +
+        "<div><b>" +
+        pvpEsc(name) +
+        '</b><small class="pvp-online-meta">' +
+        (live ? "онлайн · " : "недавно · ") +
+        pvpEsc(meta) +
+        "</small></div></div>" +
+        '<button type="button" class="pvp-chip pvp-online-act" data-pvp-online-act="' +
+        pvpEsc(name) +
+        '">' +
+        pvpEsc(label) +
+        "</button></div>"
+      );
+    })
+    .join("");
+}
+
+function pvpOnlineListHtml(rows, actionLabel, opts) {
+  opts = opts || {};
+  const n = (rows && rows.length) || 0;
+  if (opts.trigger) {
+    return (
+      '<div class="pvp-online-trigger-wrap">' +
+      '<button type="button" class="pvp-start pvp-online-open" id="pvpOnlineOpenBtn">' +
+      "Соперники" +
+      (n ? " (" + n + ")" : "") +
+      "</button>" +
+      '<p class="pvp-hint pvp-online-trigger-hint">' +
+      (n
+        ? "Открыть список и выбрать соперника"
+        : "Список пуст — можно вызвать по имени ниже") +
+      "</p></div>"
+    );
+  }
   return (
     '<div class="pvp-list-block pvp-online-list">' +
-    '<div class="pvp-skills-title">Соперники</div>' +
+    '<div class="pvp-skills-title">Соперники' +
+    (n ? " · " + n : "") +
+    "</div>" +
     '<div class="pvp-online-body">' +
-    body +
+    pvpOnlineRowsHtml(rows, actionLabel) +
     "</div></div>"
   );
+}
+
+function pvpOpenOnlineRivalsModal(rows, actionLabel, inputId, onAct) {
+  if (typeof showConfirm !== "function") return Promise.resolve(false);
+  const n = (rows && rows.length) || 0;
+  const promise = showConfirm({
+    title: "Соперники" + (n ? " · " + n : ""),
+    html:
+      '<div class="pvp-online-modal sf-scroll">' +
+      pvpOnlineRowsHtml(rows, actionLabel) +
+      "</div>",
+    okText: "Закрыть",
+    hideCancel: true,
+  });
+  const modalBody = document.getElementById("modalBody");
+  pvpBindOnlineList(modalBody, inputId, async (name, btn) => {
+    if (typeof closeConfirm === "function") closeConfirm(true);
+    if (typeof onAct === "function") await onAct(name, btn);
+  });
+  return promise;
 }
 
 function pvpBindOnlineList(root, inputId, onAct) {
@@ -829,7 +878,7 @@ async function renderPvpDuelSetup(body, my) {
     pvpSheetSummaryHtml(my, "Ваш лист", "a") +
     "</div>" +
     (logged
-      ? pvpOnlineListHtml(online, "Вызвать") +
+      ? pvpOnlineListHtml(online, "Вызвать", { trigger: pvpPreferOnlineModal() }) +
         '<div class="pvp-setup">' +
         '<label class="pvp-field">Имя персонажа' +
         '<input type="text" id="pvpDuelName" class="pvp-input" maxlength="48" placeholder="Например HeroBob" value="' +
@@ -888,6 +937,13 @@ async function renderPvpDuelSetup(body, my) {
   pvpBindTabs(body);
   pvpBindHelpButtons(body);
   pvpBindOnlineList(body, "pvpDuelName", challengeFromName);
+  const duelOnlineOpen = document.getElementById("pvpOnlineOpenBtn");
+  if (duelOnlineOpen) {
+    duelOnlineOpen.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      pvpOpenOnlineRivalsModal(online, "Вызвать", "pvpDuelName", challengeFromName);
+    };
+  }
   const nameEl = document.getElementById("pvpDuelName");
   if (nameEl) {
     nameEl.oninput = () => {
@@ -1010,7 +1066,7 @@ async function renderPvpAsyncSetup(body, my) {
     pvpSheetSummaryHtml(my, "Ваш лист", "a") +
     "</div>" +
     (logged
-      ? pvpOnlineListHtml(online, "Атака") +
+      ? pvpOnlineListHtml(online, "Атака", { trigger: pvpPreferOnlineModal() }) +
         '<div class="pvp-setup">' +
         '<label class="pvp-field">Имя цели' +
         '<input type="text" id="pvpAsyncName" class="pvp-input" maxlength="48" placeholder="Имя персонажа" value="' +
@@ -1067,6 +1123,13 @@ async function renderPvpAsyncSetup(body, my) {
   pvpBindTabs(body);
   pvpBindHelpButtons(body);
   pvpBindOnlineList(body, "pvpAsyncName", asyncAttackFromName);
+  const asyncOnlineOpen = document.getElementById("pvpOnlineOpenBtn");
+  if (asyncOnlineOpen) {
+    asyncOnlineOpen.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      pvpOpenOnlineRivalsModal(online, "Атака", "pvpAsyncName", asyncAttackFromName);
+    };
+  }
   const nameEl = document.getElementById("pvpAsyncName");
   if (nameEl) {
     nameEl.oninput = () => {
