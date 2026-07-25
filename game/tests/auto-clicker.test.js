@@ -115,8 +115,35 @@ function runTests() {
     assert.strictEqual(state.autoClicker.pauseStartedAt, 0);
   });
 
+  test("toggle off freezes remaining time", () => {
+    const now = Date.now();
+    state.autoClicker = {
+      until: now + 10 * 60 * 1000,
+      enabled: true,
+      pauseStartedAt: 0,
+      frozenRemainingMs: 0,
+    };
+    const rem0 = autoClickerRemainingMs();
+    assert.ok(rem0 > 9 * 60 * 1000);
+    toggleAutoClickerEnabled();
+    assert.strictEqual(state.autoClicker.enabled, false);
+    assert.strictEqual(state.autoClicker.until, 0);
+    assert.ok(state.autoClicker.frozenRemainingMs > 9 * 60 * 1000);
+    assert.ok(!autoClickerIsActive());
+    const remOff = autoClickerRemainingMs();
+    assert.ok(Math.abs(remOff - state.autoClicker.frozenRemainingMs) < 2);
+    // wall clock should not eat banked time
+    state.autoClicker.frozenRemainingMs = remOff;
+    assert.strictEqual(autoClickerRemainingMs(), remOff);
+    toggleAutoClickerEnabled();
+    assert.strictEqual(state.autoClicker.enabled, true);
+    assert.ok(autoClickerRemainingMs() > 9 * 60 * 1000);
+    assert.ok(autoClickerIsActive());
+  });
+
   console.log("\n--- summary ---");
   console.log("passed: " + passed + ", failed: " + failed);
+  if (typeof stopAutoClickerLoop === "function") stopAutoClickerLoop();
   if (failed > 0) process.exit(1);
 }
 

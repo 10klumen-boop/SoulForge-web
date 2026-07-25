@@ -14,5 +14,5 @@ const AUTO_CLICKER = {
 };
 
 function defaultAutoClickerState() {
-  return { until: 0, enabled: true, pauseStartedAt: 0 };
+  return { until: 0, enabled: true, pauseStartedAt: 0, frozenRemainingMs: 0 };
 }

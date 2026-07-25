@@ -11,6 +11,32 @@ function ensureAutoClickerState() {
   if (ac.enabled == null) {
     ProgressStore.update("autoClicker", (a) => ({ ...(a || defaultAutoClickerState()), enabled: true }));
   }
+  if (ac.enabled === false && ac.frozenRemainingMs == null) {
+    ProgressStore.update("autoClicker", (a) => ({
+      ...(a || defaultAutoClickerState()),
+      frozenRemainingMs: 0,
+    }));
+  }
+  // Выключенный автоудар раньше тикал until — переносим остаток в frozenRemainingMs.
+  if (ac.enabled === false && ((ac.until || 0) > 0 || ac.pauseStartedAt)) {
+    const now = Date.now();
+    let until = ac.until || 0;
+    if (ac.pauseStartedAt && until > ac.pauseStartedAt) {
+      until += Math.max(0, now - ac.pauseStartedAt);
+    }
+    const rem = Math.max(
+      0,
+      Math.floor(Number(ac.frozenRemainingMs) || 0),
+      until - now
+    );
+    ProgressStore.update("autoClicker", (a) => ({
+      ...(a || defaultAutoClickerState()),
+      enabled: false,
+      frozenRemainingMs: rem,
+      until: 0,
+      pauseStartedAt: 0,
+    }));
+  }
 }
 
 function autoClickerMaxStackMs() {
@@ -107,12 +133,17 @@ function autoClickerEffectiveUntil(now) {
 
 function autoClickerRemainingMs(now) {
   now = now || Date.now();
+  ensureAutoClickerState();
+  const ac = state.autoClicker;
+  if (ac.enabled === false) {
+    return Math.max(0, Math.floor(Number(ac.frozenRemainingMs) || 0));
+  }
   return Math.max(0, autoClickerEffectiveUntil(now) - now);
 }
 
 function autoClickerIsActive(now) {
   ensureAutoClickerState();
-  if (!state.autoClicker.enabled) return false;
+  if (state.autoClicker.enabled === false) return false;
   return autoClickerRemainingMs(now) > 0;
 }
 
@@ -159,6 +190,7 @@ function buyAutoClickerPack(packId) {
     until: Math.min(base + pack.durationMs, maxUntil),
     enabled: true,
     pauseStartedAt: 0,
+    frozenRemainingMs: 0,
   }));
   if (typeof save === "function") save();
   if ($("#adena")) $("#adena").textContent = typeof fmt === "function" ? fmt(state.adena) : String(state.adena);
@@ -173,10 +205,29 @@ function buyAutoClickerPack(packId) {
 
 function toggleAutoClickerEnabled() {
   ensureAutoClickerState();
-  ProgressStore.update("autoClicker", (a) => ({
-    ...(a || defaultAutoClickerState()),
-    enabled: !(a?.enabled !== false),
-  }));
+  const now = Date.now();
+  const currentlyEnabled = state.autoClicker.enabled !== false;
+  if (currentlyEnabled) {
+    const rem = autoClickerRemainingMs(now);
+    ProgressStore.update("autoClicker", (a) => ({
+      ...(a || defaultAutoClickerState()),
+      enabled: false,
+      frozenRemainingMs: rem,
+      until: 0,
+      pauseStartedAt: 0,
+    }));
+  } else {
+    const rem = Math.max(0, Math.floor(Number(state.autoClicker.frozenRemainingMs) || 0));
+    const gamePaused = typeof isGamePaused === "function" && isGamePaused();
+    ProgressStore.update("autoClicker", (a) => ({
+      ...(a || defaultAutoClickerState()),
+      enabled: true,
+      frozenRemainingMs: 0,
+      until: rem > 0 ? now + rem : 0,
+      pauseStartedAt: rem > 0 && gamePaused ? now : 0,
+    }));
+    clampAutoClickerToMax();
+  }
   if (typeof save === "function") save();
   if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
   if (typeof renderAutoClickerPanel === "function") renderAutoClickerPanel();

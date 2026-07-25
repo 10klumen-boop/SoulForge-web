@@ -38,7 +38,7 @@ function defaultState() {
     autoShots: true,
     achievements: { unlocked: {}, stats: {} },
     passiveIncome: { lastCollectAt: 0, warehouseLv: 0 },
-    autoClicker: { until: 0, enabled: true, pauseStartedAt: 0 },
+    autoClicker: { until: 0, enabled: true, pauseStartedAt: 0, frozenRemainingMs: 0 },
     accountWarehouse: { items: [] },
     accountMail: { messages: [] },
     devTune: {},
