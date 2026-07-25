@@ -2751,6 +2751,18 @@
   .modal-body { padding:18px 20px; font-size:14px; line-height:1.55; color:var(--txt); overflow: visible; }
   .modal-body p { margin:0 0 10px; }
   .modal-body p:last-child { margin-bottom:0; }
+  .modal-lock-hint {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--gold-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .modal-actions .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+  }
   .modal-actions { display:flex; gap:10px; padding:14px 20px 18px; border-top:1px solid var(--edge); background:rgba(0,0,0,.22); }
   .modal-actions .btn { flex:1; padding:11px 14px; font-size:14px; border-radius:10px; }
   .btn-danger { background:linear-gradient(180deg,#9a3838,#5c1f1f); color:#ffe8e8; border:1px solid #b04848; box-shadow:0 6px 18px rgba(160,50,50,.25); }

@@ -350,12 +350,14 @@ function renderWorkshop() {
     const haveCry = state.crystals[g] || 0;
     const canCraft = haveCry >= r.cry && state.materials[oreKey] >= r.ore;
     const cryLow = haveCry < r.cry ? "color:#ff6b6b" : "";
+    const oreHave = state.materials[oreKey] || 0;
+    const oreLow = oreHave < r.ore ? "color:#ff6b6b" : "";
     const batch = shotBatchSize();
     const card = document.createElement("div");
     card.className = "craft-card";
     card.innerHTML = `
       <div class="ch"><img src="${SHOT_ICON[ty][g]}" alt=""><div class="cn">${SHOT_TYPE[ty].item}</div><div class="cg" style="background:${GRADE_TAG[g]};color:#10131a">${g}</div></div>
-      <div class="cinfo">Рецепт: <b style="${cryLow}"><img class="cryreq" src="${CRYSTAL_ICON[g]}" alt="">${r.cry} крист. ${g}</b> + <b>${r.ore} ${ORE[oreKey].name}</b><br>Выход: <b>${batch}</b> зарядов · продажа <b>${r.sell}</b> adena/шт</div>
+      <div class="cinfo">Рецепт: <b style="${cryLow}"><img class="cryreq" src="${CRYSTAL_ICON[g]}" alt="">${r.cry} крист. ${g}</b> + <b style="${oreLow}">${r.ore} ${ORE[oreKey].name}</b><br>Выход: <b>${batch}</b> зарядов · продажа <b>${r.sell}</b> adena/шт</div>
       <div class="cstock">Склад: <b>${fmt(stock)}</b> <span style="color:var(--txt-dim)">(${fmtAdena(stock * r.sell)})</span></div>
       <div class="cbtns">
         <button class="craftb" ${canCraft ? "" : "disabled"}>Скрафтить ×${batch}</button>
@@ -443,12 +445,17 @@ function renderWorkshopArmor(body) {
     card.className = "craft-card";
     const fragLow = haveFrag < r.fragQty ? "color:#ff6b6b" : "";
     const cryLow = haveCry < r.cry ? "color:#ff6b6b" : "";
+    const oreLow = haveOre < r.oreSoul ? "color:#ff6b6b" : "";
+    const adenaNeed = r.adena || 0;
+    const adenaLow = adenaNeed > 0 && (state.adena || 0) < adenaNeed ? "color:#ff6b6b" : "";
+    const stockFrag = fragLow ? ' style="' + fragLow + '"' : "";
+    const stockOre = oreLow ? ' style="' + oreLow + '"' : "";
     card.innerHTML =
       '<div class="ch"><img src="' + armor.icon + '" alt=""><div class="cn">' + armor.name + '</div><div class="cg" style="background:' + (GRADE_TAG[grade] || "#5fcf6b") + ';color:#10131a">' + grade + "</div></div>" +
       '<div class="cinfo">Рецепт: <b style="' + fragLow + '"><img class="cryreq" src="' + frag.icon + '" alt="">' + r.fragQty + " " + frag.name + "</b><br>" +
-      '<b style="' + cryLow + '"><img class="cryreq" src="' + (CRYSTAL_ICON[grade] || "") + '" alt="">' + r.cry + " крист. " + grade + "</b> + <b>" + r.oreSoul + " Soul Ore</b>" +
-      (r.adena ? " + <b>" + fmtAdena(r.adena) + "</b>" : "") + "</div>" +
-      '<div class="cstock">Материал: <b>' + fmt(haveFrag) + "</b> · Soul Ore: <b>" + fmt(haveOre) + "</b></div>" +
+      '<b style="' + cryLow + '"><img class="cryreq" src="' + (CRYSTAL_ICON[grade] || "") + '" alt="">' + r.cry + " крист. " + grade + "</b> + <b style="' + oreLow + '">' + r.oreSoul + " Soul Ore</b>" +
+      (adenaNeed ? " + <b style=\"" + adenaLow + "\">" + fmtAdena(adenaNeed) + "</b>" : "") + "</div>" +
+      '<div class="cstock">Материал: <b' + stockFrag + ">" + fmt(haveFrag) + "</b> · Soul Ore: <b" + stockOre + ">" + fmt(haveOre) + "</b></div>" +
       '<div class="cbtns"><button class="craftb" ' + (can ? "" : "disabled") + ">Скрафтить</button></div>";
     card.querySelector(".craftb").onclick = () => {
       craftArmor(r.armorId);

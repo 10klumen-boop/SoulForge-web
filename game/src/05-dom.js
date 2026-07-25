@@ -103,14 +103,22 @@ function show(screen) {
 let _confirmResolve = null;
 let _confirmEscapeAsOk = false;
 let _confirmSticky = false;
+let _confirmLocked = false;
+let _confirmLockTimer = null;
 
 function closeConfirm(result) {
+  if (_confirmLocked) return;
   const backdrop = document.getElementById("modalBackdrop");
   if (!backdrop || backdrop.hidden) return;
   backdrop.hidden = true;
   document.removeEventListener("keydown", _confirmKeyHandler);
+  if (_confirmLockTimer) {
+    clearInterval(_confirmLockTimer);
+    _confirmLockTimer = null;
+  }
   _confirmEscapeAsOk = false;
   _confirmSticky = false;
+  _confirmLocked = false;
   const resolve = _confirmResolve;
   _confirmResolve = null;
   if (resolve) resolve(!!result);
@@ -120,14 +128,13 @@ function _confirmKeyHandler(e) {
   if (e.key === "Escape") {
     e.preventDefault();
     e.stopPropagation();
-    // Sticky: только кнопки — случайный Esc/клик не закрывает
-    if (_confirmSticky) return;
+    if (_confirmSticky || _confirmLocked) return;
     Audio2.click();
     closeConfirm(_confirmEscapeAsOk);
   }
   if (e.key === "Enter") {
     e.preventDefault();
-    if (_confirmSticky) return;
+    if (_confirmSticky || _confirmLocked) return;
     Audio2.click();
     closeConfirm(true);
   }
@@ -145,17 +152,28 @@ function showConfirm(opts) {
       resolve(false);
       return;
     }
+    // Не перебивать sticky+lock (вызов на дуэль) другим диалогом
+    if (_confirmResolve && _confirmSticky && _confirmLocked) {
+      resolve(false);
+      return;
+    }
     // Сброс зависшего диалога (иначе кристаллизация/сброс молча отменяются)
     if (_confirmResolve) {
       const stale = _confirmResolve;
       _confirmResolve = null;
       try { stale(false); } catch (_) {}
     }
+    if (_confirmLockTimer) {
+      clearInterval(_confirmLockTimer);
+      _confirmLockTimer = null;
+    }
     _confirmResolve = resolve;
     const hideCancel = !!opts.hideCancel;
     const sticky = !!opts.sticky;
+    const lockMs = Math.max(0, Number(opts.lockMs) || 0);
     _confirmEscapeAsOk = hideCancel;
     _confirmSticky = sticky;
+    _confirmLocked = lockMs > 0;
 
     titleEl.textContent = opts.title || "Подтверждение";
     if (opts.html) bodyEl.innerHTML = opts.html;
@@ -168,22 +186,68 @@ function showConfirm(opts) {
     okBtn.className = "btn " + (opts.danger ? "btn-danger" : "btn-primary");
     cancelBtn.className = "btn btn-ghost";
     cancelBtn.hidden = hideCancel;
+    okBtn.disabled = false;
+    cancelBtn.disabled = false;
 
-    const onOk = () => { Audio2.click(); closeConfirm(true); };
-    const onCancel = () => { Audio2.click(); closeConfirm(false); };
+    const onOk = () => {
+      if (_confirmLocked) return;
+      Audio2.click();
+      closeConfirm(true);
+    };
+    const onCancel = () => {
+      if (_confirmLocked) return;
+      Audio2.click();
+      closeConfirm(false);
+    };
     okBtn.onclick = onOk;
     cancelBtn.onclick = onCancel;
-    backdrop.onclick = (e) => {
+    const blockBackdrop = (e) => {
       if (e.target !== backdrop) return;
-      if (sticky) return;
+      if (sticky || _confirmLocked) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       if (hideCancel) onOk();
       else onCancel();
     };
+    backdrop.onclick = blockBackdrop;
+    backdrop.onpointerdown = blockBackdrop;
+
+    const box = backdrop.querySelector(".modal-box");
+    if (box) {
+      box.onpointerdown = (e) => e.stopPropagation();
+      box.onclick = (e) => e.stopPropagation();
+    }
+
+    if (lockMs > 0) {
+      okBtn.disabled = true;
+      cancelBtn.disabled = true;
+      let left = Math.ceil(lockMs / 1000);
+      const hint = document.createElement("p");
+      hint.className = "modal-lock-hint";
+      hint.textContent = "Подождите " + left + "…";
+      bodyEl.appendChild(hint);
+      _confirmLockTimer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(_confirmLockTimer);
+          _confirmLockTimer = null;
+          _confirmLocked = false;
+          okBtn.disabled = false;
+          cancelBtn.disabled = false;
+          if (hint.parentNode) hint.parentNode.removeChild(hint);
+          return;
+        }
+        hint.textContent = "Подождите " + left + "…";
+      }, 1000);
+    }
 
     backdrop.hidden = false;
     document.addEventListener("keydown", _confirmKeyHandler);
-    // Sticky-диалог: фокус на OK, но Enter не срабатывает — только тап по кнопке
-    (sticky || hideCancel ? okBtn : cancelBtn).focus();
+    if (!_confirmLocked) {
+      (sticky || hideCancel ? okBtn : cancelBtn).focus();
+    }
   });
 }
 
