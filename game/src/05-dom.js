@@ -102,6 +102,7 @@ function show(screen) {
 
 let _confirmResolve = null;
 let _confirmEscapeAsOk = false;
+let _confirmSticky = false;
 
 function closeConfirm(result) {
   const backdrop = document.getElementById("modalBackdrop");
@@ -109,6 +110,7 @@ function closeConfirm(result) {
   backdrop.hidden = true;
   document.removeEventListener("keydown", _confirmKeyHandler);
   _confirmEscapeAsOk = false;
+  _confirmSticky = false;
   const resolve = _confirmResolve;
   _confirmResolve = null;
   if (resolve) resolve(!!result);
@@ -118,10 +120,17 @@ function _confirmKeyHandler(e) {
   if (e.key === "Escape") {
     e.preventDefault();
     e.stopPropagation();
+    // Sticky: только кнопки — случайный Esc/клик не закрывает
+    if (_confirmSticky) return;
     Audio2.click();
     closeConfirm(_confirmEscapeAsOk);
   }
-  if (e.key === "Enter") { e.preventDefault(); Audio2.click(); closeConfirm(true); }
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (_confirmSticky) return;
+    Audio2.click();
+    closeConfirm(true);
+  }
 }
 
 function showConfirm(opts) {
@@ -144,7 +153,9 @@ function showConfirm(opts) {
     }
     _confirmResolve = resolve;
     const hideCancel = !!opts.hideCancel;
+    const sticky = !!opts.sticky;
     _confirmEscapeAsOk = hideCancel;
+    _confirmSticky = sticky;
 
     titleEl.textContent = opts.title || "Подтверждение";
     if (opts.html) bodyEl.innerHTML = opts.html;
@@ -164,13 +175,15 @@ function showConfirm(opts) {
     cancelBtn.onclick = onCancel;
     backdrop.onclick = (e) => {
       if (e.target !== backdrop) return;
+      if (sticky) return;
       if (hideCancel) onOk();
       else onCancel();
     };
 
     backdrop.hidden = false;
     document.addEventListener("keydown", _confirmKeyHandler);
-    (hideCancel ? okBtn : cancelBtn).focus();
+    // Sticky-диалог: фокус на OK, но Enter не срабатывает — только тап по кнопке
+    (sticky || hideCancel ? okBtn : cancelBtn).focus();
   });
 }
 

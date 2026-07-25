@@ -563,6 +563,7 @@ async function pvpNotifyIncomingChallenges(rows) {
         message: name + " вызывает вас на бой.\nПринять сейчас?",
         okText: "Принять",
         cancelText: "Позже",
+        sticky: true,
       });
       if (accept) {
         await pvpAcceptChallengeAndOpen(row.id);
