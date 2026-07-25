@@ -7,6 +7,8 @@ let _pvpShotArmed = false;
 let _pvpTab = "duel"; // duel | async | practice
 let _pvpOnlineMatch = null; // { matchId, match }
 let _pvpMatchPollTimer = null;
+let _pvpLobbyPollTimer = null;
+let _pvpLobbySig = "";
 let _pvpAsyncLast = null;
 let _pvpNameInput = "";
 
@@ -390,6 +392,57 @@ function pvpStopMatchPoll() {
   }
 }
 
+function pvpStopLobbyPoll() {
+  if (_pvpLobbyPollTimer) {
+    clearInterval(_pvpLobbyPollTimer);
+    _pvpLobbyPollTimer = null;
+  }
+}
+
+function pvpDuelLobbySig(inbox, outbox) {
+  return JSON.stringify({
+    in: (inbox || []).map((r) => r.id),
+    out: (outbox || []).map((r) => [r.id, r.status, r.matchId || null]),
+  });
+}
+
+/** Пока ждём ответ на вызов / входящие — подхватываем матч без F5. */
+function pvpStartDuelLobbyPoll() {
+  pvpStopLobbyPoll();
+  if (typeof pvpSocialLoggedIn !== "function" || !pvpSocialLoggedIn()) return;
+  const ms = typeof PVP_MATCH_POLL_MS === "number" ? PVP_MATCH_POLL_MS : 2000;
+  _pvpLobbyPollTimer = setInterval(async () => {
+    if (_pvpOnlineMatch?.match) {
+      pvpStopLobbyPoll();
+      return;
+    }
+    if (_pvpTab !== "duel") return;
+    if (!document.getElementById("screen-pvp-arena")?.classList.contains("active")) return;
+    const [actR, inR, outR] = await Promise.all([
+      pvpFetchActiveMatch(),
+      pvpFetchDuelInbox(),
+      pvpFetchDuelOutbox(),
+    ]);
+    if (actR.ok && actR.match) {
+      const mid = actR.match.meta?.matchId;
+      if (!mid) return;
+      _pvpOnlineMatch = { matchId: mid, match: actR.match };
+      pvpStopLobbyPoll();
+      pvpStartMatchPoll();
+      if (typeof toast === "function") toast("Дуэль началась", "info");
+      renderPvpArena();
+      return;
+    }
+    const inbox = inR.ok ? inR.rows || [] : [];
+    const outbox = outR.ok ? outR.rows || [] : [];
+    const sig = pvpDuelLobbySig(inbox, outbox);
+    if (sig !== _pvpLobbySig) {
+      _pvpLobbySig = sig;
+      renderPvpArena();
+    }
+  }, ms);
+}
+
 function openPvpArena() {
   if (typeof Audio2 !== "undefined") Audio2.click();
   if (!state.avatar?.created) {
@@ -411,6 +464,8 @@ function pvpResetDuelState() {
   _pvpOnlineMatch = null;
   _pvpAsyncLast = null;
   pvpStopMatchPoll();
+  pvpStopLobbyPoll();
+  _pvpLobbySig = "";
 }
 
 function pvpFmtPct(hp, max) {
@@ -426,20 +481,28 @@ function pvpEsc(s) {
     .replace(/"/g, "&quot;");
 }
 
+function pvpIsSelfFightSide(side) {
+  const yourSide = _pvpOnlineMatch?.match?.meta?.yourSide;
+  if (yourSide === "a" || yourSide === "b") return side === yourSide;
+  // Тренировка / настройка листа: сторона a — вы
+  return side === "a";
+}
+
 function pvpPortraitUrl(sheet, side) {
   if (!sheet) return "";
-  if (side === "a" && typeof avatarPortraitForAvatar === "function" && state.avatar) {
+  // Живой портрет только для СВОЕЙ стороны — иначе у принявшего вызов side A = соперник
+  if (
+    pvpIsSelfFightSide(side) &&
+    typeof avatarPortraitForAvatar === "function" &&
+    state.avatar
+  ) {
     return avatarPortraitForAvatar(state.avatar);
   }
   if (typeof avatarPortraitPath === "function") {
-    const gender =
-      sheet.genderId ||
-      (side === "a" && state.avatar?.genderId) ||
-      "male";
     return avatarPortraitPath(
       sheet.raceId || "human",
-      gender,
-      sheet.classId || "fighter"
+      sheet.genderId || "male",
+      sheet.classId || (sheet.atkType === "magical" ? "mystic" : "fighter")
     );
   }
   return "icons/char_menu.png?v=10";
@@ -505,14 +568,14 @@ function pvpFighterCardHtml(side, fighterOrView, opts) {
       ? {
           raceId:
             fighterOrView.raceId ||
-            (side === "a" ? state.avatar?.raceId : null) ||
+            (pvpIsSelfFightSide(side) ? state.avatar?.raceId : null) ||
             "human",
           classId:
             fighterOrView.classId ||
             (fighterOrView.atkType === "magical" ? "mystic" : "fighter"),
           genderId:
             fighterOrView.genderId ||
-            (side === "a" ? state.avatar?.genderId : null) ||
+            (pvpIsSelfFightSide(side) ? state.avatar?.genderId : null) ||
             "male",
           name,
         }
@@ -587,7 +650,10 @@ function pvpBindTabs(body) {
     btn.onclick = () => {
       _pvpTab = btn.getAttribute("data-pvp-tab") || "duel";
       if (typeof Audio2 !== "undefined") Audio2.click();
-      if (_pvpTab !== "duel") pvpStopMatchPoll();
+      if (_pvpTab !== "duel") {
+        pvpStopMatchPoll();
+        pvpStopLobbyPoll();
+      }
       renderPvpArena();
     };
   });
@@ -725,9 +791,12 @@ async function renderPvpDuelSetup(body, my) {
     if (onR && onR.ok) online = onR.rows || [];
     if (actR.ok && actR.match) {
       _pvpOnlineMatch = { matchId: actR.match.meta.matchId, match: actR.match };
+      pvpStopLobbyPoll();
+      pvpStartMatchPoll();
       renderPvpArena();
       return;
     }
+    _pvpLobbySig = pvpDuelLobbySig(inbox, outbox);
   }
 
   const challengeFromName = async (name, btn) => {
@@ -841,6 +910,7 @@ async function renderPvpDuelSetup(body, my) {
       }
       if (r.matchId && r.match) {
         _pvpOnlineMatch = { matchId: r.matchId, match: r.match };
+        pvpStopLobbyPoll();
         pvpStartMatchPoll();
       }
       toast("Дуэль началась", "info");
@@ -864,10 +934,14 @@ async function renderPvpDuelSetup(body, my) {
         return;
       }
       _pvpOnlineMatch = { matchId: Number(id), match: r.match };
+      pvpStopLobbyPoll();
       pvpStartMatchPoll();
       renderPvpArena();
     };
   });
+
+  if (logged) pvpStartDuelLobbyPoll();
+  else pvpStopLobbyPoll();
 }
 
 async function renderPvpAsyncSetup(body, my) {
