@@ -5698,7 +5698,7 @@
   @media (max-width: 520px) {
     .avatar-stat-grid { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (max-width: 720px) {
+  @media (min-width: 641px) and (max-width: 720px) {
     .avatar-hub { order: 3; width: 100%; }
     .avatar-hub-btn { max-width: 100%; width: 100%; }
   }
@@ -6665,44 +6665,76 @@
       display: none !important;
     }
 
-    /* Topbar / hub ? ??????? ????? */
+    /* Topbar: портрет + адена + XP в одну строку без наложений */
     .topbar {
       flex-wrap: nowrap;
       gap: 6px;
       padding: 6px 8px;
       margin-bottom: 6px;
       align-items: center;
+      min-width: 0;
     }
     .topbar .brand { display: none !important; }
     .topbar-actions {
-      flex: 1 1 auto;
-      justify-content: space-between;
+      flex: 0 1 auto;
+      justify-content: flex-start;
       flex-wrap: nowrap;
       gap: 6px;
       min-width: 0;
-      width: 100%;
+      width: auto;
+      max-width: 58%;
     }
     .topbar-hub-meta,
     #resetBtn,
     #devToggle { display: none !important; }
-    .wallet { padding: 4px 8px; margin-left: auto; }
+    .wallet {
+      padding: 4px 8px;
+      margin-left: 0;
+      flex: 0 1 auto;
+      min-width: 0;
+      gap: 6px;
+      overflow: hidden;
+    }
+    .wallet-ico { width: 18px; height: 18px; }
     .wallet .lbl { font-size: 9px; }
-    .wallet .coin { font-size: 13px; }
+    .wallet .coin {
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 42vw;
+    }
     .avatar-hub {
       order: 0;
       width: auto;
-      flex: 0 1 auto;
+      flex: 0 0 auto;
+      min-width: 0;
     }
     .avatar-hub-btn {
-      max-width: min(100%, 140px);
-      min-height: 40px;
-      padding: 4px 8px;
+      width: auto;
+      max-width: none;
+      min-height: 0;
+      padding: 3px;
+      gap: 0;
+      overflow: hidden;
       touch-action: manipulation;
     }
-    .avatar-hub-btn img { width: 28px; height: 28px; }
-    .avatar-hub-name { max-width: 72px; font-size: 12px; }
-    .avatar-hub-meta { display: none !important; }
+    .avatar-hub-btn img {
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 5px;
+      display: block;
+      filter: none;
+    }
+    .avatar-hub-text { display: none !important; }
     .topbar-xp {
+      flex: 1 1 0;
+      order: 0;
+      min-width: 0;
+      max-width: none;
+      width: auto;
       padding: 2px 6px 3px;
       gap: 6px;
     }
@@ -7140,7 +7172,7 @@
     .mine-stage { min-height: min(62dvh, 420px); }
     .l2-login-win { width: 100%; }
     .app:not(.title-screen):not(.login-screen) .topbar-actions {
-      justify-content: flex-end;
+      justify-content: flex-start;
     }
   }
 
@@ -7485,7 +7517,10 @@
     cursor: pointer;
     flex-wrap: wrap;
     align-items: flex-start;
+    justify-content: flex-start;
     gap: 8px 10px;
+    flex: 0 0 auto;
+    -webkit-tap-highlight-color: transparent;
   }
   .pvp-online-row:hover,
   .pvp-online-row:active {
@@ -7496,7 +7531,7 @@
     align-items: flex-start;
     gap: 8px;
     min-width: 0;
-    flex: 1 1 140px;
+    flex: 1 1 auto;
   }
   .pvp-online-dot {
     width: 8px;
@@ -7537,22 +7572,105 @@
     font-size: 12px;
   }
   .pvp-online-modal {
-    max-height: min(62vh, 420px);
-    overflow-y: auto;
+    display: block;
+    max-height: min(52vh, 360px);
     overflow-x: hidden;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-right: 2px;
+    overscroll-behavior: contain;
+    padding: 0;
+    margin: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(138, 108, 58, 0.7) transparent;
   }
-  .pvp-online-modal .pvp-online-row {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 10px 0;
+  .pvp-online-modal::-webkit-scrollbar { width: 4px; }
+  .pvp-online-modal::-webkit-scrollbar-track { background: transparent; border: 0; margin: 0; }
+  .pvp-online-modal::-webkit-scrollbar-thumb {
+    background: rgba(138, 108, 58, 0.65);
+    border: 0;
+    border-radius: 4px;
+    min-height: 24px;
+    box-shadow: none;
   }
-  .pvp-online-modal .pvp-online-act {
+  .pvp-rival-card {
+    display: block;
+    box-sizing: border-box;
     width: 100%;
-    margin-left: 0;
-    text-align: center;
+    height: auto;
+    min-height: 0;
+    margin: 0 0 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(201, 168, 106, 0.28);
+    border-radius: 6px;
+    background: rgba(8, 6, 4, 0.55);
+    color: var(--txt-dim);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .pvp-rival-card:last-child { margin-bottom: 0; }
+  .pvp-rival-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 8px;
+  }
+  .pvp-rival-card .pvp-online-dot {
+    margin-top: 6px;
+  }
+  .pvp-rival-card-text {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .pvp-rival-card-text b {
+    display: block;
+    color: var(--txt);
+    font-size: 14px;
+    line-height: 1.25;
+    font-weight: 700;
+  }
+  .pvp-rival-card-meta {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    line-height: 1.35;
+    opacity: 0.85;
+    word-break: break-word;
+  }
+  .pvp-rival-card-act {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 10px 12px;
     min-height: 40px;
+    border-radius: 6px;
+    border: 1px solid rgba(201, 168, 106, 0.35);
+    background: rgba(12, 9, 6, 0.85);
+    color: var(--gold-soft);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .pvp-rival-card-act:active {
+    filter: brightness(1.1);
+  }
+  .pvp-rival-card.is-live .pvp-online-dot {
+    background: #58d977;
+    box-shadow: 0 0 6px rgba(88, 217, 119, 0.45);
+  }
+  .modal-box.pvp-rivals-dialog .modal-body {
+    padding: 12px 14px;
+    line-height: 1.35;
+  }
+  .modal-box.pvp-rivals-dialog .modal-head {
+    padding: 12px 14px 10px;
+  }
+  .modal-box.pvp-rivals-dialog .modal-actions {
+    padding: 10px 14px 14px;
   }
   @media (max-width: 640px) {
     .pvp-lists { grid-template-columns: 1fr; }
@@ -7607,6 +7725,10 @@
     align-items: stretch;
     margin-bottom: 14px;
   }
+  /* Один лист (дуэль/async setup) — на всю ширину, иначе «съезжает» влево */
+  .pvp-compare:has(> :only-child) {
+    grid-template-columns: 1fr;
+  }
   .pvp-vs {
     align-self: center;
     font-family: var(--font-display);
@@ -7622,6 +7744,13 @@
     background: rgba(8,6,4,.55);
     padding: 10px 12px;
     border-radius: 6px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .pvp-sheet-info {
+    min-width: 0;
+    flex: 1 1 auto;
   }
   .pvp-sheet-portrait {
     width: 96px;
@@ -7650,7 +7779,12 @@
     margin-bottom: 4px;
   }
   .pvp-sheet-name { color: var(--gold-soft); font-weight: 600; margin-bottom: 4px; }
-  .pvp-sheet-stats, .pvp-sheet-meta { font-size: 12px; color: var(--txt-dim); }
+  .pvp-sheet-stats, .pvp-sheet-meta {
+    font-size: 12px;
+    color: var(--txt-dim);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
   .pvp-setup { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
   .pvp-check { font-size: 13px; color: var(--txt); display: flex; gap: 8px; align-items: center; }
   .pvp-shadow-pick { display: flex; gap: 8px; flex-wrap: wrap; }

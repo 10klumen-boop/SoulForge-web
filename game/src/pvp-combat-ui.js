@@ -295,8 +295,9 @@ function pvpPreferOnlineModal() {
   }
 }
 
-function pvpOnlineRowsHtml(rows, actionLabel) {
+function pvpOnlineRowsHtml(rows, actionLabel, opts) {
   const label = actionLabel || "Вызвать";
+  const asCards = !!(opts && opts.cards);
   if (!rows || !rows.length) {
     return '<p class="pvp-online-empty">Никого нет — пусть соперник откроет Арену</p>';
   }
@@ -315,19 +316,42 @@ function pvpOnlineRowsHtml(rows, actionLabel) {
         (r.power != null ? r.power : "?") +
         (r.atkType === "magical" ? " · маг." : " · физ.") +
         nick;
+      const status = (live ? "онлайн · " : "недавно · ") + meta;
+      if (asCards) {
+        return (
+          '<div class="pvp-rival-card' +
+          (live ? " is-live" : "") +
+          '" data-pvp-online-name="' +
+          pvpEsc(name) +
+          '">' +
+          '<div class="pvp-rival-card-head">' +
+          '<span class="pvp-online-dot" aria-hidden="true"></span>' +
+          '<div class="pvp-rival-card-text">' +
+          "<b>" +
+          pvpEsc(name) +
+          "</b>" +
+          '<span class="pvp-rival-card-meta">' +
+          pvpEsc(status) +
+          "</span></div></div>" +
+          '<button type="button" class="pvp-rival-card-act" data-pvp-online-act="' +
+          pvpEsc(name) +
+          '">' +
+          pvpEsc(label) +
+          "</button></div>"
+        );
+      }
       return (
         '<div class="pvp-list-row pvp-online-row' +
         (live ? " is-live" : "") +
         '" data-pvp-online-name="' +
         pvpEsc(name) +
-        '" role="button" tabindex="0">' +
+        '">' +
         '<div class="pvp-online-main">' +
         '<span class="pvp-online-dot" aria-hidden="true"></span>' +
         "<div><b>" +
         pvpEsc(name) +
         '</b><small class="pvp-online-meta">' +
-        (live ? "онлайн · " : "недавно · ") +
-        pvpEsc(meta) +
+        pvpEsc(status) +
         "</small></div></div>" +
         '<button type="button" class="pvp-chip pvp-online-act" data-pvp-online-act="' +
         pvpEsc(name) +
@@ -373,13 +397,19 @@ function pvpOpenOnlineRivalsModal(rows, actionLabel, inputId, onAct) {
   const promise = showConfirm({
     title: "Соперники" + (n ? " · " + n : ""),
     html:
-      '<div class="pvp-online-modal sf-scroll">' +
-      pvpOnlineRowsHtml(rows, actionLabel) +
+      '<div class="pvp-online-modal">' +
+      pvpOnlineRowsHtml(rows, actionLabel, { cards: true }) +
       "</div>",
     okText: "Закрыть",
     hideCancel: true,
   });
   const modalBody = document.getElementById("modalBody");
+  const modalBox = modalBody && modalBody.closest(".modal-box");
+  if (modalBox) modalBox.classList.add("pvp-rivals-dialog");
+  const clear = () => {
+    if (modalBox) modalBox.classList.remove("pvp-rivals-dialog");
+  };
+  promise.then(clear, clear);
   pvpBindOnlineList(modalBody, inputId, async (name, btn) => {
     if (typeof closeConfirm === "function") closeConfirm(true);
     if (typeof onAct === "function") await onAct(name, btn);
