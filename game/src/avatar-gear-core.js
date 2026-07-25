@@ -266,6 +266,9 @@ function avatarGearBonusSummary() {
     if (set.bossResist > 0) {
       lines.push("−" + Math.round(set.bossResist * 100) + "% HP босса зоны");
     }
+    if (set.pvpAtk > 0) lines.push("+" + Math.round(set.pvpAtk * 1000) / 10 + "% ATK арены (сет)");
+    if (set.pvpDef > 0) lines.push("+" + Math.round(set.pvpDef * 1000) / 10 + "% DEF арены (сет)");
+    if (set.pvpHp > 0) lines.push("+" + Math.round(set.pvpHp) + " HP арены (сет)");
   }
   if (typeof avatarArmorSustainPct === "function") {
     const sus = avatarArmorSustainPct();
@@ -339,11 +342,23 @@ function equipAvatarSlot(slotId, invItem) {
   toast("Надето: " + (def?.name || "?") + " · " + slotLabel, "success");
   if (def?.grade && typeof isGradeOverLevel === "function" && isGradeOverLevel(def.grade, state.avatar?.level || 1)) {
     const allowed = typeof avatarAllowedGrade === "function" ? avatarAllowedGrade(state.avatar?.level || 1) : "?";
-    if (snap?.kind === "weapon") {
-      toast("Грейд оружия «" + def.grade + "» выше «" + allowed + "» — без штрафа статов", "system");
-    } else {
-      toast("Грейд «" + def.grade + "» выше дозволенного («" + allowed + "») — статы брони ×0.5", "warn");
-    }
+    const mult =
+      typeof avatarGradePenaltyMult === "function"
+        ? avatarGradePenaltyMult(def.grade, state.avatar?.level || 1)
+        : 0.5;
+    const pct = Math.round((1 - mult) * 100);
+    toast(
+      "Грейд «" +
+        def.grade +
+        "» выше дозволенного («" +
+        allowed +
+        "») — статы ×" +
+        mult +
+        " (−" +
+        pct +
+        "%)",
+      "warn"
+    );
   }
   if (typeof avatarSetBonuses === "function" && (snap?.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(snap)))) {
     const set = avatarSetBonuses();
@@ -437,15 +452,22 @@ function avatarEquipItemPower(it) {
   if (!it || isAccessoryItem(it)) return 0;
   if (typeof isArmorItem === "function" && isArmorItem(it)) {
     const def = typeof armorItemDef === "function" ? armorItemDef(it) : null;
-    return def ? (def.pdef || 0) + (def.mdef || 0) : 0;
+    if (!def) return 0;
+    const lv = typeof state !== "undefined" ? state.avatar?.level || 1 : 1;
+    const pen = typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
+    return Math.round(((def.pdef || 0) + (def.mdef || 0)) * pen);
   }
   const def = WMAP[it.id];
   if (!def) return 0;
   const plus = it.plus || 0;
   const mystic = typeof avatarIsMystic === "function" && avatarIsMystic();
-  if (mystic && typeof mysticWeaponPower === "function") return mysticWeaponPower(def, plus);
-  if (typeof fighterWeaponPower === "function") return fighterWeaponPower(def, plus);
-  return typeof itemPower === "function" ? itemPower(it) : (def.patk || 0) + plus * (def.ps || 0);
+  let raw = 0;
+  if (mystic && typeof mysticWeaponPower === "function") raw = mysticWeaponPower(def, plus);
+  else if (typeof fighterWeaponPower === "function") raw = fighterWeaponPower(def, plus);
+  else raw = typeof itemPower === "function" ? itemPower(it) : (def.patk || 0) + plus * (def.ps || 0);
+  const lv = typeof state !== "undefined" ? state.avatar?.level || 1 : 1;
+  const pen = typeof weaponGradePowerMult === "function" ? weaponGradePowerMult(def, lv) : 1;
+  return Math.round(raw * pen);
 }
 
 function avatarEquipItemGrade(it) {

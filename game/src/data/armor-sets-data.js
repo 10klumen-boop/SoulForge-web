@@ -317,7 +317,7 @@ const ARMOR_SETS = {
     kind: "heavy",
     pieces: ["bone_helmet", "bone_breastplate", "bone_gaiters", "bone_gloves", "bone_boots"],
     farmZoneId: "scrap_field",
-    bonuses: { 2: { armorSustain: 0.03 }, 4: { armorSustain: 0.02 }, 5: { bossResist: 0.06 } },
+    bonuses: { 2: { armorSustain: 0.03 }, 4: { armorSustain: 0.02 }, 5: { bossResist: 0.06, pvpDef: 0.03 } },
   },
   brigandine: {
     id: "brigandine",
@@ -326,7 +326,7 @@ const ARMOR_SETS = {
     kind: "heavy",
     pieces: ["brigandine_helmet", "brigandine_breastplate", "brigandine_gaiters", "brigandine_gloves", "brigandine_boots"],
     farmZoneId: "scrap_field",
-    bonuses: { 2: { mineAdena: 0.04 }, 4: { mineAdena: 0.04 }, 5: { armorSustain: 0.03 } },
+    bonuses: { 2: { mineAdena: 0.04 }, 4: { mineAdena: 0.04 }, 5: { armorSustain: 0.03, pvpHp: 18 } },
   },
   manticore: {
     id: "manticore",
@@ -335,7 +335,7 @@ const ARMOR_SETS = {
     kind: "light",
     pieces: ["manticore_helmet", "manticore_mail", "manticore_gaiters", "manticore_gloves", "manticore_boots"],
     farmZoneId: "scrap_field",
-    bonuses: { 2: { mineXp: 0.05 }, 4: { mineXp: 0.05 }, 5: { mineAdena: 0.04 } },
+    bonuses: { 2: { mineXp: 0.05 }, 4: { mineXp: 0.05 }, 5: { mineAdena: 0.04, pvpAtk: 0.03 } },
   },
   reinforced: {
     id: "reinforced",
@@ -344,7 +344,7 @@ const ARMOR_SETS = {
     kind: "light",
     pieces: ["reinforced_helmet", "reinforced_shirt", "reinforced_gaiters", "reinforced_gloves", "reinforced_boots"],
     farmZoneId: "scrap_field",
-    bonuses: { 2: { mineXp: 0.04 }, 4: { armorSustain: 0.03 }, 5: { mineAdena: 0.03 } },
+    bonuses: { 2: { mineXp: 0.04 }, 4: { armorSustain: 0.03 }, 5: { mineAdena: 0.03, pvpAtk: 0.025 } },
   },
   elven_mithril: {
     id: "elven_mithril",
@@ -353,7 +353,7 @@ const ARMOR_SETS = {
     kind: "robe",
     pieces: ["elven_mithril_circlet", "elven_mithril_tunic", "elven_mithril_hose", "elven_mithril_gloves", "elven_mithril_boots"],
     farmZoneId: "scrap_field",
-    bonuses: { 2: { enchant: 0.0008 }, 4: { mineXp: 0.05 }, 5: { enchant: 0.0007 } },
+    bonuses: { 2: { enchant: 0.0007 }, 4: { mineXp: 0.05 }, 5: { enchant: 0.0005, pvpAtk: 0.03 } },
   },
   knowledge: {
     id: "knowledge",
@@ -362,7 +362,8 @@ const ARMOR_SETS = {
     kind: "robe",
     pieces: ["knowledge_circlet", "knowledge_tunic", "knowledge_hose", "knowledge_gloves", "knowledge_boots"],
     farmZoneId: "scrap_field",
-    bonuses: { 2: { enchant: 0.001 }, 4: { enchant: 0.0005 }, 5: { mineXp: 0.06 } },
+    // меньше стека enchant → часть силы в арену
+    bonuses: { 2: { enchant: 0.001 }, 4: { pvpAtk: 0.03 }, 5: { mineXp: 0.06 } },
   },
   mithril: {
     id: "mithril",
@@ -371,7 +372,12 @@ const ARMOR_SETS = {
     kind: "heavy",
     pieces: ["mithril_helmet", "mithril_breastplate", "mithril_gaiters", "mithril_gloves", "mithril_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { armorSustain: 0.04 }, 4: { mineAdena: 0.06 }, 5: { enchant: 0.0015, bossResist: 0.1, mineXp: 0.08 } },
+    // 5pc: убран enchant-комбайн; идентичность — арена-танк + boss/xp
+    bonuses: {
+      2: { armorSustain: 0.04 },
+      4: { mineAdena: 0.06 },
+      5: { bossResist: 0.1, mineXp: 0.05, pvpDef: 0.06, pvpHp: 30 },
+    },
   },
   chain: {
     id: "chain",
@@ -380,7 +386,7 @@ const ARMOR_SETS = {
     kind: "heavy",
     pieces: ["chain_helmet", "chain_mail", "chain_gaiters", "chain_gloves", "chain_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { armorSustain: 0.04 }, 4: { bossResist: 0.08 }, 5: { armorSustain: 0.03, mineAdena: 0.04 } },
+    bonuses: { 2: { armorSustain: 0.04 }, 4: { bossResist: 0.08 }, 5: { armorSustain: 0.03, mineAdena: 0.04, pvpDef: 0.04 } },
   },
   tempered: {
     id: "tempered",
@@ -389,7 +395,7 @@ const ARMOR_SETS = {
     kind: "light",
     pieces: ["tempered_helmet", "tempered_shirt", "tempered_gaiters", "tempered_gloves", "tempered_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { mineXp: 0.05 }, 4: { mineAdena: 0.05 }, 5: { armorSustain: 0.04 } },
+    bonuses: { 2: { mineXp: 0.05 }, 4: { mineAdena: 0.05 }, 5: { armorSustain: 0.04, pvpAtk: 0.04 } },
   },
   theca: {
     id: "theca",
@@ -398,7 +404,7 @@ const ARMOR_SETS = {
     kind: "light",
     pieces: ["theca_helmet", "theca_mail", "theca_gaiters", "theca_gloves", "theca_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { armorSustain: 0.035 }, 4: { armorSustain: 0.025 }, 5: { mineAdena: 0.05 } },
+    bonuses: { 2: { armorSustain: 0.035 }, 4: { armorSustain: 0.025 }, 5: { mineAdena: 0.05, pvpAtk: 0.035 } },
   },
   plated: {
     id: "plated",
@@ -407,7 +413,7 @@ const ARMOR_SETS = {
     kind: "light",
     pieces: ["plated_helmet", "plated_mail", "plated_gaiters", "plated_gloves", "plated_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { mineAdena: 0.05 }, 4: { mineXp: 0.05 }, 5: { bossResist: 0.07 } },
+    bonuses: { 2: { mineAdena: 0.05 }, 4: { mineXp: 0.05 }, 5: { bossResist: 0.07, pvpAtk: 0.04 } },
   },
   drake: {
     id: "drake",
@@ -416,7 +422,7 @@ const ARMOR_SETS = {
     kind: "light",
     pieces: ["drake_helmet", "drake_mail", "drake_gaiters", "drake_gloves", "drake_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { bossResist: 0.05 }, 4: { armorSustain: 0.04 }, 5: { bossResist: 0.05, mineXp: 0.05 } },
+    bonuses: { 2: { bossResist: 0.05 }, 4: { armorSustain: 0.04 }, 5: { bossResist: 0.05, mineXp: 0.05, pvpAtk: 0.035 } },
   },
   composite: {
     id: "composite",
@@ -425,7 +431,11 @@ const ARMOR_SETS = {
     kind: "heavy",
     pieces: ["composite_helmet", "composite_armor", "composite_gaiters", "composite_gloves", "composite_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { armorSustain: 0.045 }, 4: { mineAdena: 0.05 }, 5: { armorSustain: 0.03, bossResist: 0.08 } },
+    bonuses: {
+      2: { armorSustain: 0.045 },
+      4: { mineAdena: 0.05 },
+      5: { armorSustain: 0.03, bossResist: 0.08, pvpDef: 0.04, pvpHp: 22 },
+    },
   },
   full_plate: {
     id: "full_plate",
@@ -434,7 +444,7 @@ const ARMOR_SETS = {
     kind: "heavy",
     pieces: ["full_plate_helmet", "full_plate_armor", "full_plate_gaiters", "full_plate_gloves", "full_plate_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { armorSustain: 0.05 }, 4: { armorSustain: 0.03 }, 5: { bossResist: 0.12 } },
+    bonuses: { 2: { armorSustain: 0.05 }, 4: { armorSustain: 0.03 }, 5: { bossResist: 0.12, pvpDef: 0.06, pvpHp: 36 } },
   },
   karmian: {
     id: "karmian",
@@ -443,7 +453,7 @@ const ARMOR_SETS = {
     kind: "robe",
     pieces: ["karmian_circlet", "karmian_tunic", "karmian_hose", "karmian_gloves", "karmian_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { enchant: 0.001 }, 4: { mineXp: 0.06 }, 5: { enchant: 0.001, bossResist: 0.06 } },
+    bonuses: { 2: { enchant: 0.001 }, 4: { mineXp: 0.06 }, 5: { bossResist: 0.06, pvpAtk: 0.05 } },
   },
   divine: {
     id: "divine",
@@ -452,7 +462,11 @@ const ARMOR_SETS = {
     kind: "robe",
     pieces: ["divine_circlet", "divine_tunic", "divine_hose", "divine_gloves", "divine_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { armorSustain: 0.03 }, 4: { enchant: 0.001 }, 5: { mineXp: 0.07, armorSustain: 0.03 } },
+    bonuses: {
+      2: { armorSustain: 0.03 },
+      4: { enchant: 0.001 },
+      5: { mineXp: 0.07, armorSustain: 0.03, pvpDef: 0.03, pvpHp: 28 },
+    },
   },
   demon: {
     id: "demon",
@@ -461,7 +475,7 @@ const ARMOR_SETS = {
     kind: "robe",
     pieces: ["demon_circlet", "demon_tunic", "demon_hose", "demon_gloves", "demon_boots"],
     farmZoneId: "mithril_forge",
-    bonuses: { 2: { enchant: 0.0012 }, 4: { mineXp: 0.05 }, 5: { enchant: 0.0008, bossResist: 0.05 } },
+    bonuses: { 2: { enchant: 0.001 }, 4: { mineXp: 0.05 }, 5: { bossResist: 0.05, pvpAtk: 0.055 } },
   },
 };
 

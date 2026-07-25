@@ -95,9 +95,9 @@ function gradeRankOf(grade) {
 /** Максимальный грейд без штрафа по уровню. */
 function avatarAllowedGrade(level) {
   const lv = Math.max(1, level || 1);
-  const unlock = typeof GRADE_UNLOCK_LEVEL !== "undefined" ? GRADE_UNLOCK_LEVEL : { NG: 1, D: 20, C: 40 };
+  const unlock = typeof GRADE_UNLOCK_LEVEL !== "undefined" ? GRADE_UNLOCK_LEVEL : { NG: 1, D: 10, C: 40 };
   if (lv >= (unlock.C || 40)) return "C";
-  if (lv >= (unlock.D || 20)) return "D";
+  if (lv >= (unlock.D || 10)) return "D";
   return "NG";
 }
 
@@ -107,9 +107,22 @@ function isGradeOverLevel(grade, level) {
   return gradeRankOf(g) > gradeRankOf(avatarAllowedGrade(level));
 }
 
+/** На сколько рангов грейд предмета выше дозволенного (0 = без штрафа). */
+function gradeOverLevelGap(grade, level) {
+  const gap = gradeRankOf(grade) - gradeRankOf(avatarAllowedGrade(level));
+  return gap > 0 ? gap : 0;
+}
+
+/**
+ * Множитель статов за overgrade: чем больше разрыв рангов, тем сильнее штраф.
+ * gap1 → 0.60, gap2 → 0.20, gap3+ → FLOOR (0.1).
+ */
 function avatarGradePenaltyMult(grade, level) {
-  if (!isGradeOverLevel(grade, level)) return 1;
-  return typeof GRADE_OVERLEVEL_MULT === "number" ? GRADE_OVERLEVEL_MULT : 0.5;
+  const gap = gradeOverLevelGap(grade, level);
+  if (gap <= 0) return 1;
+  const step = typeof GRADE_OVERLEVEL_STEP === "number" ? GRADE_OVERLEVEL_STEP : 0.4;
+  const floor = typeof GRADE_OVERLEVEL_FLOOR === "number" ? GRADE_OVERLEVEL_FLOOR : 0.1;
+  return Math.max(floor, Math.round((1 - gap * step) * 1000) / 1000);
 }
 
 /** Уровень персонажа для проверок грейда. */
@@ -118,7 +131,7 @@ function avatarLevelForGrade(avatar) {
   return Math.max(1, a.level || 1);
 }
 
-/** Есть ли на персонаже броня/сет выше дозволенного грейда (оружие не штрафуется). */
+/** Есть ли на персонаже экип (броня или оружие) выше дозволенного грейда. */
 function avatarHasOvergradeGear(avatar) {
   const a = avatar || (typeof state !== "undefined" ? state.avatar : null) || {};
   const lv = avatarLevelForGrade(a);
@@ -126,38 +139,73 @@ function avatarHasOvergradeGear(avatar) {
   let hit = false;
   iterEquippedGear().forEach(({ item }) => {
     if (hit) return;
-    if (item?.kind === "weapon") return;
     const def =
       typeof avatarGearItemDef === "function"
         ? avatarGearItemDef(item)
-        : typeof AMAP !== "undefined" && AMAP[item.id];
+        : item?.kind === "weapon" && typeof WMAP !== "undefined"
+          ? WMAP[item.id]
+          : typeof AMAP !== "undefined" && AMAP[item.id];
     if (def?.grade && isGradeOverLevel(def.grade, lv)) hit = true;
   });
   return hit;
+}
+
+/** Худший (наименьший) множитель грейда среди надетого экипа. */
+function avatarWorstGradePenaltyMult(avatar) {
+  const a = avatar || (typeof state !== "undefined" ? state.avatar : null) || {};
+  const lv = avatarLevelForGrade(a);
+  if (typeof iterEquippedGear !== "function") return 1;
+  let worst = 1;
+  iterEquippedGear().forEach(({ item }) => {
+    const def =
+      typeof avatarGearItemDef === "function"
+        ? avatarGearItemDef(item)
+        : item?.kind === "weapon" && typeof WMAP !== "undefined"
+          ? WMAP[item.id]
+          : typeof AMAP !== "undefined" && AMAP[item.id];
+    if (!def?.grade) return;
+    const m = avatarGradePenaltyMult(def.grade, lv);
+    if (m < worst) worst = m;
+  });
+  return worst;
+}
+
+function gradeUnlockNextHint(allowed) {
+  const unlock = typeof GRADE_UNLOCK_LEVEL !== "undefined" ? GRADE_UNLOCK_LEVEL : { D: 10, C: 40 };
+  if (allowed === "NG") return "D с ур. " + (unlock.D || 10);
+  if (allowed === "D") return "C с ур. " + (unlock.C || 40);
+  return null;
 }
 
 function gradePenaltyHintLine(avatar) {
   const a = avatar || (typeof state !== "undefined" ? state.avatar : null) || {};
   const lv = avatarLevelForGrade(a);
   const allowed = avatarAllowedGrade(lv);
-  const next =
-    allowed === "NG"
-      ? "D с ур. 20"
-      : allowed === "D"
-        ? "C с ур. 40"
-        : null;
+  const next = gradeUnlockNextHint(allowed);
+  const step = typeof GRADE_OVERLEVEL_STEP === "number" ? GRADE_OVERLEVEL_STEP : 0.4;
+  const stepPct = Math.round(step * 100);
   if (avatarHasOvergradeGear(a)) {
-    const pct = Math.round((1 - (typeof GRADE_OVERLEVEL_MULT === "number" ? GRADE_OVERLEVEL_MULT : 0.5)) * 100);
+    const worst = avatarWorstGradePenaltyMult(a);
+    const pct = Math.round((1 - worst) * 100);
     return (
-      "Штраф грейда: броня/сеты выше «" +
+      "Штраф грейда: экип выше «" +
       allowed +
-      "» −" +
+      "» до −" +
       pct +
-      "% статов (оружие без штрафа)" +
+      "% (−" +
+      stepPct +
+      "%/ранг)" +
       (next ? " · " + next : "")
     );
   }
-  return "Грейд брони без штрафа: до «" + allowed + "»" + (next ? " · " + next : "") + " · оружие свободно";
+  return "Грейд без штрафа: до «" + allowed + "»" + (next ? " · " + next : "");
+}
+
+/** Множитель силы оружия с учётом штрафа грейда по уровню. */
+function weaponGradePowerMult(w, level) {
+  if (!w) return 1;
+  const lv = level != null ? level : avatarLevelForGrade();
+  return avatarGradePenaltyMult(w.grade, lv);
 }
 
 function professionSkillOverlay(avatar) {
@@ -300,9 +348,22 @@ function armorAffinityHintLine(avatar) {
   const lines = [];
   if (avatarArmorAffinityActive(avatar)) {
     const pct = Math.round(((typeof ARMOR_AFFINITY_MULT === "number" ? ARMOR_AFFINITY_MULT : 1.06) - 1) * 100);
-    lines.push("Сродство брони («" + label + "»): +" + pct + "% урон/DEF");
+    lines.push("Сродство брони («" + label + "»): +" + pct + "% урон/DEF · бонусы арены сета");
   } else {
-    lines.push("Сродство брони: ≥2 шт. («" + label + "»)");
+    const worn = avatarEquippedArmorKind();
+    const wornLabel =
+      (typeof ARMOR_KIND_LABELS !== "undefined" && worn && ARMOR_KIND_LABELS[worn]) || worn;
+    if (worn && worn !== pref) {
+      lines.push(
+        "Сродство брони: надето «" +
+          wornLabel +
+          "», нужно «" +
+          label +
+          "» — DEF ×0.42, без бонусов сета (фарм/арена)"
+      );
+    } else {
+      lines.push("Сродство брони: ≥2 шт. («" + label + "») — урон/DEF и бонусы сета");
+    }
   }
   const cats = professionWeaponCats(avatar);
   if (cats.length) {

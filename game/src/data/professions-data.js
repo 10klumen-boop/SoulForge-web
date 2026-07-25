@@ -32,25 +32,44 @@ const ROLE_WEAPON_CATS = {
 };
 
 const STARTER_WEAPON_CATS = {
-  fighter: ["Sword", "Dualsword", "Polearm", "Blunt", "Dualblunt", "Fist", "Dagger", "Dualdagger", "Bow"],
+  // Лук только у роли archer — иначе L2-PATK лука ломает farm power у любого воина.
+  fighter: ["Sword", "Dualsword", "Polearm", "Blunt", "Dualblunt", "Fist", "Dagger", "Dualdagger"],
   mystic: ["Blunt", "Sword"],
   shaman: ["Blunt"],
 };
 
 /** Множитель урона/DEF при совпадении armorPref (≥2 куска нужного kind). */
 const ARMOR_AFFINITY_MULT = 1.06;
+/** Множитель DEF кусков/листа при чужом kind брони (фарм + арена). */
+const OFF_ARMOR_DEF_MULT = 0.42;
 
 /** Бонус силы оружия при совпадении категории с классом/ролью. */
 const WEAPON_MASTERY_MULT = 1.06;
 
 /**
- * Грейд экипа по уровню (можно носить без штрафа):
- * <20 — только NG; ≥20 — D; ≥40 — C.
+ * Нормализация PATK по категории под кликер SoulForge.
+ * В L2 dual/fist/лук берут скорость атаки; здесь клик один — режем вклад к мечу.
  */
-const GRADE_UNLOCK_LEVEL = { NG: 1, D: 20, C: 40 };
+const WEAPON_CAT_POWER_MULT = {
+  Bow: 0.58,
+  Dualsword: 0.9,
+  Dualblunt: 0.9,
+  Fist: 0.86,
+};
+
+/**
+ * Грейд экипа по уровню (можно носить без штрафа):
+ * <10 — только NG; ≥10 — D; ≥40 — C.
+ * Выше дозволенного — штраф растёт с разрывом рангов (−STEP за ранг, не ниже FLOOR).
+ */
+const GRADE_UNLOCK_LEVEL = { NG: 1, D: 10, C: 40 };
 const GRADE_RANK = { NG: 0, D: 1, C: 2, B: 3, A: 4, S: 5 };
-/** Множитель статов куска/оружия выше дозволенного грейда. */
-const GRADE_OVERLEVEL_MULT = 0.5;
+/** − к множителю статов за каждый ранг грейда выше дозволенного. */
+const GRADE_OVERLEVEL_STEP = 0.4;
+/** Нижняя граница множителя при большом разрыве. */
+const GRADE_OVERLEVEL_FLOOR = 0.1;
+/** Множитель при разрыве в 2 ранга (для атласа / legacy). */
+const GRADE_OVERLEVEL_MULT = 0.2;
 
 const ARMOR_KIND_LABELS = {
   heavy: "тяжёлая",

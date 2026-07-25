@@ -43,8 +43,11 @@ function pvpCollectPassives(avatar) {
     mult: { atk: 1, def: 1 },
   };
   if (typeof passiveSkillsForAvatar !== "function") return out;
+  const affinityOn =
+    typeof avatarArmorAffinityActive === "function" ? !!avatarArmorAffinityActive(avatar) : false;
   const skills = passiveSkillsForAvatar(avatar) || [];
   skills.forEach((sk) => {
+    if (sk.requiresArmorAffinity && !affinityOn) return;
     let used = false;
     (sk.effects || []).forEach((e) => {
       const mode = types[e.type];
@@ -170,6 +173,41 @@ function buildCombatSheet(input) {
   patk = Math.round(patk * passives.mult.atk);
   matk = Math.round(matk * passives.mult.atk);
 
+  // Чужой kind брони: live avatarStats уже режет куски через armorPiecePowerMult.
+  // Явные stats (тесты / тени) — дорезаем лист здесь.
+  const affinityOn =
+    typeof avatarArmorAffinityActive === "function" ? !!avatarArmorAffinityActive(avatar) : true;
+  if (!affinityOn && input.stats) {
+    const worn = typeof avatarEquippedArmorKind === "function" ? avatarEquippedArmorKind() : null;
+    const pref = typeof professionArmorPref === "function" ? professionArmorPref(avatar) : null;
+    if (worn && pref && worn !== pref) {
+      const off =
+        typeof PVP_OFF_ARMOR_DEF_MULT === "number" ? PVP_OFF_ARMOR_DEF_MULT : 0.42;
+      pdef = Math.round(pdef * off);
+      mdef = Math.round(mdef * off);
+    }
+  }
+
+  // Сет-бонусы арены — только при сродстве брони и live-экипе.
+  // (avatarSetBonuses уже фильтрует чужой kind; affinityOn режет микс/неполный.)
+  let setHpAdd = 0;
+  const liveAvatar =
+    typeof state !== "undefined" && state.avatar && (input.avatar === state.avatar || !input.avatar);
+  if (liveAvatar && affinityOn && typeof avatarSetBonuses === "function") {
+    const setB = avatarSetBonuses();
+    const atkB = Math.min(0.12, Math.max(0, setB.pvpAtk || 0));
+    const defB = Math.min(0.12, Math.max(0, setB.pvpDef || 0));
+    setHpAdd = Math.min(80, Math.max(0, setB.pvpHp || 0));
+    if (atkB > 0) {
+      patk = Math.round(patk * (1 + atkB));
+      matk = Math.round(matk * (1 + atkB));
+    }
+    if (defB > 0) {
+      pdef = Math.round(pdef * (1 + defB));
+      mdef = Math.round(mdef * (1 + defB));
+    }
+  }
+
   const skills = Array.isArray(input.skills)
     ? input.skills
     : pvpSkillsForAvatar(avatar, level);
@@ -181,7 +219,7 @@ function buildCombatSheet(input) {
         ? { id: avatar.gear.weapon.id, plus: avatar.gear.weapon.plus || 0 }
         : null;
 
-  const hpMax = pvpHpMaxFromStats(level, pdef, mdef, passives.add.hp + (input.hpAdd || 0));
+  const hpMax = pvpHpMaxFromStats(level, pdef, mdef, passives.add.hp + (input.hpAdd || 0) + setHpAdd);
 
   return {
     name: input.name || avatar.name || "Боец",

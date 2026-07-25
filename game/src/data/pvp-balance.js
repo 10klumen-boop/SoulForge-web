@@ -47,6 +47,14 @@ const PVP_PASSIVE_EFFECT_TYPES = {
 };
 
 /**
+ * Чужой kind брони на арене (мистик в heavy и т.п.):
+ * P/M.Def листа × этот множитель. Сет-PvP и пассивки брони тоже только при сродстве.
+ * Совпадает с OFF_ARMOR_DEF_MULT (professions-data).
+ */
+const PVP_OFF_ARMOR_DEF_MULT =
+  typeof OFF_ARMOR_DEF_MULT === "number" ? OFF_ARMOR_DEF_MULT : 0.42;
+
+/**
  * Дефолтный remap farm-effect → PvP.
  * cdRounds / debuff* можно переопределить по skill id в PVP_SKILL_CD_ROUNDS.
  */

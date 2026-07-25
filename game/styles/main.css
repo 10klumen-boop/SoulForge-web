@@ -1339,7 +1339,7 @@
   .settings-pop .settings-head { padding: 4px 16px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--txt-dim); border-bottom: 1px solid var(--edge); margin-bottom: 6px; }
   .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; font-size: 13px; }
   .settings-row span { color: var(--txt); }
-  .sett-toggle { background: linear-gradient(180deg,#3a2c1a,#241a10); border: 1px solid var(--edge2); color: var(--gold-soft); border-radius: 7px; padding: 5px 12px; font-size: 12px; font-weight: 700; cursor: var(--cursor-l2); min-width: 52px; transition: .15s; }
+  .sett-toggle { background: linear-gradient(180deg,#3a2c1a,#241a10); border: 1px solid var(--edge2); color: var(--gold-soft); border-radius: 7px; padding: 5px 12px; font-size: 12px; font-weight: 700; cursor: var(--cursor-l2); min-width: 52px; transition: .15s; text-align: center; text-decoration: none; display: inline-block; }
   .sett-toggle.on { background: linear-gradient(180deg,#2a6b3e,#1d4f2d); border-color: #3a8a52; color: #dffbe6; }
   .sett-toggle:hover { filter: brightness(1.12); }
   .sett-hint { padding: 0 16px 8px; font-size: 11px; color: var(--txt-dim); line-height: 1.4; }

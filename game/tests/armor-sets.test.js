@@ -31,7 +31,21 @@ global.$ = () => null;
 global.fmt = (n) => String(n);
 global.fmtAdena = (n) => String(n);
 global.safeLevel = () => 3;
-global.isMysticArchetype = () => false;
+global.isMysticArchetype = (classId) => classId === "mystic" || classId === "shaman";
+/** Pref брони без полного professions-core (тесты сетов). */
+global.professionArmorPref = (av) => {
+  const a = av || (typeof state !== "undefined" ? state.avatar : null) || {};
+  if (a.classId === "mystic" || a.classId === "shaman") return "robe";
+  const light =
+    a.professionId === "rogue" ||
+    a.professionId === "hawkeye" ||
+    a.professionId === "treasure_hunter" ||
+    a.professionId === "plainswalker" ||
+    a.professionId === "silver_ranger";
+  if (light) return "light";
+  return "heavy";
+};
+global.OFF_ARMOR_DEF_MULT = 0.42;
 global.statAt = (base, step, plus) => (base || 0) + (step || 0) * (plus || 0);
 global.fighterWeaponPower = (w, plus) => (w.patk || 0) + (w.ps || 0) * (plus || 0);
 global.mysticWeaponPower = (w, plus) => (w.matk || 0) + (w.ms || 0) * (plus || 0);
@@ -185,10 +199,77 @@ function runTests() {
     equipArmorId("mithril_breastplate");
     b = avatarSetBonuses();
     assert.strictEqual(b.mineAdena, 0.06);
-    assert.strictEqual(b.enchant, 0.0015);
+    assert.strictEqual(b.enchant, 0);
     assert.strictEqual(b.bossResist, 0.1);
-    assert.strictEqual(b.mineXp, 0.08);
+    assert.strictEqual(b.mineXp, 0.05);
+    assert.ok(Math.abs(b.pvpDef - 0.06) < 1e-9);
+    assert.strictEqual(b.pvpHp, 30);
     assert.strictEqual(b.sets[0].pieces, 5);
+  });
+
+  test("full bone set grants arena DEF; manticore grants ATK", () => {
+    state.avatar.gear = defaultAvatarGear();
+    state.avatar.classId = "fighter";
+    state.avatar.professionId = null;
+    ["bone_helmet", "bone_breastplate", "bone_gaiters", "bone_gloves", "bone_boots"].forEach(equipArmorId);
+    let b = avatarSetBonuses();
+    assert.ok(Math.abs(b.pvpDef - 0.03) < 1e-9);
+    assert.strictEqual(b.pvpAtk, 0);
+    assert.strictEqual(b.pvpHp, 0);
+
+    state.avatar.gear = defaultAvatarGear();
+    state.avatar.professionId = "rogue";
+    ["manticore_helmet", "manticore_mail", "manticore_gaiters", "manticore_gloves", "manticore_boots"].forEach(equipArmorId);
+    b = avatarSetBonuses();
+    assert.ok(Math.abs(b.pvpAtk - 0.03) < 1e-9);
+    assert.strictEqual(b.pvpDef, 0);
+    assert.strictEqual(b.pvpHp, 0);
+    state.avatar.professionId = null;
+  });
+
+  test("mystic in heavy: no set farm bonuses; piece DEF off-mult", () => {
+    state.avatar.gear = defaultAvatarGear();
+    state.avatar.classId = "mystic";
+    state.avatar.level = 40;
+    state.avatar.professionId = null;
+    ["full_plate_helmet", "full_plate_armor", "full_plate_gaiters", "full_plate_gloves", "full_plate_boots"].forEach(
+      equipArmorId
+    );
+    const b = avatarSetBonuses();
+    assert.deepStrictEqual(b.sets, []);
+    assert.strictEqual(b.mineAdena, 0);
+    assert.strictEqual(b.bossResist, 0);
+    assert.strictEqual(b.pvpDef, 0);
+    assert.strictEqual(b.armorSustain, 0);
+
+    const def = avatarArmorDefBonuses();
+    const rawPdef = ["full_plate_helmet", "full_plate_armor", "full_plate_gaiters", "full_plate_gloves", "full_plate_boots"]
+      .map((id) => AMAP[id].pdef || 0)
+      .reduce((a, x) => a + x, 0);
+    assert.ok(Math.abs(def.pdef - Math.round(rawPdef * OFF_ARMOR_DEF_MULT)) < 2);
+
+    state.avatar.classId = "fighter";
+    state.avatar.level = 10;
+  });
+
+  test("mixed robe+heavy: only preferred-kind set bonuses", () => {
+    state.avatar.gear = defaultAvatarGear();
+    state.avatar.classId = "mystic";
+    state.avatar.level = 40;
+    // 3 karmian (robe) + 2 bone (heavy)
+    equipArmorId("karmian_circlet");
+    equipArmorId("karmian_tunic");
+    equipArmorId("karmian_hose");
+    equipArmorId("bone_gloves");
+    equipArmorId("bone_boots");
+    const b = avatarSetBonuses();
+    assert.ok(b.sets.some((s) => s.id === "karmian"));
+    assert.ok(!b.sets.some((s) => s.id === "bone"));
+    assert.strictEqual(b.armorSustain, 0); // bone 2pc sustain blocked
+    // karmian 2pc = enchant only
+    assert.ok(b.enchant > 0);
+    state.avatar.classId = "fighter";
+    state.avatar.level = 10;
   });
 
   test("farmPower barely moves with full mithril vs bare", () => {

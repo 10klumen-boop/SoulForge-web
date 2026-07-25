@@ -13,6 +13,8 @@ loadGameJsonDataSync();
 loadScripts([
   "src/01-constants.js",
   "src/data/enchant-balance.js",
+  "src/data/professions-data.js",
+  "src/professions-core.js",
   "src/06-rules.js",
   "src/02-state.js",
   "src/passive-skills-core.js",
@@ -111,6 +113,74 @@ function runTests() {
   });
 
   console.log("\n--- avatar math ---");
+
+  test("bow PATK normalized via WEAPON_CAT_POWER_MULT", () => {
+    const prevM = global.avatarWeaponMasteryMult;
+    global.avatarWeaponMasteryMult = () => 1;
+    const bow = { cat: "Bow", patk: 191, ps: 8, weaponKind: "physical" };
+    const sword = { cat: "Sword", patk: 96, ps: 4, weaponKind: "physical" };
+    const bowP = fighterWeaponPower(bow, 0);
+    const swordP = fighterWeaponPower(sword, 0);
+    assert.strictEqual(WEAPON_CAT_POWER_MULT.Bow, 0.58);
+    assert.strictEqual(bowP, Math.round(191 * 0.58));
+    assert.strictEqual(swordP, 96);
+    assert.ok(bowP < swordP * 1.25, "лук после нормы не в 2 раза сильнее меча");
+    global.avatarWeaponMasteryMult = prevM;
+  });
+
+  test("dual/fist PATK softcapped toward sword", () => {
+    const prevM = global.avatarWeaponMasteryMult;
+    global.avatarWeaponMasteryMult = () => 1;
+    const sword = { cat: "Sword", patk: 96, ps: 4, weaponKind: "physical" };
+    const dual = { cat: "Dualsword", patk: 107, ps: 4, weaponKind: "physical" };
+    const fist = { cat: "Fist", patk: 112, ps: 4, weaponKind: "physical" };
+    const dualBlunt = { cat: "Dualblunt", patk: 107, ps: 4, weaponKind: "physical" };
+    assert.strictEqual(WEAPON_CAT_POWER_MULT.Dualsword, 0.9);
+    assert.strictEqual(WEAPON_CAT_POWER_MULT.Fist, 0.86);
+    const s = fighterWeaponPower(sword, 0);
+    const d = fighterWeaponPower(dual, 0);
+    const f = fighterWeaponPower(fist, 0);
+    const db = fighterWeaponPower(dualBlunt, 0);
+    assert.strictEqual(d, Math.round(107 * 0.9));
+    assert.strictEqual(f, Math.round(112 * 0.86));
+    assert.strictEqual(db, Math.round(107 * 0.9));
+    assert.ok(d <= s * 1.05, "dual не должен заметно обгонять меч");
+    assert.ok(f <= s * 1.05, "fist не должен заметно обгонять меч");
+    global.avatarWeaponMasteryMult = prevM;
+  });
+
+  test("overgrade weapon applies stepped grade penalty to gear patk", () => {
+    const prevM = global.avatarWeaponMasteryMult;
+    const prevIter = global.iterEquippedGear;
+    global.avatarWeaponMasteryMult = () => 1;
+    WMAP.c_sword = {
+      id: "c_sword",
+      cat: "Sword",
+      patk: 100,
+      matk: 0,
+      ps: 0,
+      ms: 0,
+      grade: "C",
+      weaponKind: "physical",
+    };
+    global.iterEquippedGear = () => [
+      { slot: "weapon", item: { kind: "weapon", id: "c_sword", plus: 0 } },
+    ];
+    // lv 10 → D allowed, C is +1 rank → ×0.6
+    state.avatar = { raceId: "human", classId: "fighter", level: 10, gear: {} };
+    const soft = avatarStatBonusesFromGear().patk;
+    // lv 1 → NG, C is +2 → ×0.2
+    state.avatar.level = 1;
+    const hard = avatarStatBonusesFromGear().patk;
+    state.avatar.level = 40;
+    const full = avatarStatBonusesFromGear().patk;
+    assert.strictEqual(full, 100);
+    assert.strictEqual(soft, 60);
+    assert.strictEqual(hard, 20);
+    delete WMAP.c_sword;
+    global.iterEquippedGear = prevIter;
+    global.avatarWeaponMasteryMult = prevM;
+  });
 
   test("avatarLevelStatBonus scales with level", () => {
     const b1 = avatarLevelStatBonus(1);

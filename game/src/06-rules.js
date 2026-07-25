@@ -31,6 +31,11 @@ function weaponAffinityMult(w, forMystic) {
 function fighterWeaponPower(w, plus) {
   if (!w) return 0;
   let v = Math.round(statAt(w.patk, w.ps, plus || 0) * weaponAffinityMult(w, false));
+  const catMult =
+    typeof WEAPON_CAT_POWER_MULT !== "undefined" && WEAPON_CAT_POWER_MULT[w.cat] != null
+      ? WEAPON_CAT_POWER_MULT[w.cat]
+      : 1;
+  if (catMult !== 1) v = Math.round(v * catMult);
   if (typeof avatarWeaponMasteryMult === "function") {
     v = Math.round(v * avatarWeaponMasteryMult(w, typeof state !== "undefined" ? state.avatar : null));
   }

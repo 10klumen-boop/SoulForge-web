@@ -194,4 +194,122 @@ test("practice shadow sheet builds", () => {
   assert.strictEqual(sm.atkType, "magical");
 });
 
+test("set pvpAtk/pvpDef/pvpHp apply when avatarSetBonuses is present", () => {
+  global.state = {
+    avatar: { classId: "fighter", raceId: "human", level: 12, name: "Set", gear: {} },
+  };
+  global.avatarArmorAffinityActive = () => true;
+  global.avatarSetBonuses = () => ({ pvpAtk: 0.1, pvpDef: 0.05, pvpHp: 40 });
+  const bare = buildCombatSheet({
+    name: "Bare",
+    avatar: { classId: "fighter", raceId: "human", level: 12, name: "Bare", gear: {} },
+    level: 12,
+    classId: "fighter",
+    raceId: "human",
+    stats: { patk: 100, matk: 20, pdef: 50, mdef: 40 },
+  });
+  // input.avatar !== state.avatar → сет не применяется
+  assert.strictEqual(bare.patk, 100);
+  const live = buildCombatSheet({
+    name: "Live",
+    avatar: state.avatar,
+    level: 12,
+    classId: "fighter",
+    raceId: "human",
+    stats: { patk: 100, matk: 20, pdef: 50, mdef: 40 },
+  });
+  assert.strictEqual(live.patk, 110);
+  assert.strictEqual(live.pdef, 53);
+  assert.ok(live.hpMax > bare.hpMax);
+  delete global.avatarSetBonuses;
+  delete global.avatarArmorAffinityActive;
+  delete global.state;
+});
+
+test("armor class passives grant PvP only with armor affinity", () => {
+  global.PASSIVE_SKILLS = {
+    fighter_heavy_armor: {
+      id: "fighter_heavy_armor",
+      requiresArmorAffinity: true,
+      effects: [
+        { type: "pvpDefMult", value: 1.05 },
+        { type: "pvpHpAdd", value: 18 },
+      ],
+    },
+  };
+  global.passiveSkillsForAvatar = () => [PASSIVE_SKILLS.fighter_heavy_armor];
+  global.avatarArmorAffinityActive = () => false;
+  let p = pvpCollectPassives({ classId: "fighter" });
+  assert.strictEqual(p.mult.def, 1);
+  assert.strictEqual(p.add.hp, 0);
+  assert.ok(p.ids.indexOf("fighter_heavy_armor") < 0);
+
+  global.avatarArmorAffinityActive = () => true;
+  p = pvpCollectPassives({ classId: "fighter" });
+  assert.strictEqual(p.mult.def, 1.05);
+  assert.strictEqual(p.add.hp, 18);
+  assert.ok(p.ids.indexOf("fighter_heavy_armor") >= 0);
+
+  const sheet = buildCombatSheet({
+    name: "Tank",
+    avatar: { classId: "fighter", raceId: "human", level: 12, name: "Tank", gear: {} },
+    level: 12,
+    classId: "fighter",
+    raceId: "human",
+    stats: { patk: 80, matk: 20, pdef: 100, mdef: 40 },
+  });
+  assert.strictEqual(sheet.pdef, 105);
+  assert.ok(sheet.hpMax >= pvpHpMaxFromStats(12, 105, 40, 18));
+
+  delete global.PASSIVE_SKILLS;
+  delete global.passiveSkillsForAvatar;
+  delete global.avatarArmorAffinityActive;
+});
+
+test("mystic in heavy loses set PvP and takes off-armor DEF mult", () => {
+  global.state = {
+    avatar: { classId: "mystic", raceId: "human", level: 40, name: "MagePlate", gear: {} },
+  };
+  global.avatarArmorAffinityActive = () => false;
+  global.avatarEquippedArmorKind = () => "heavy";
+  global.professionArmorPref = () => "robe";
+  global.avatarSetBonuses = () => ({ pvpAtk: 0, pvpDef: 0.06, pvpHp: 36 });
+  global.passiveSkillsForAvatar = () => [];
+
+  const off = buildCombatSheet({
+    name: "MagePlate",
+    avatar: state.avatar,
+    level: 40,
+    classId: "mystic",
+    raceId: "human",
+    stats: { patk: 30, matk: 200, pdef: 200, mdef: 80 },
+  });
+  // MATK intact, DEF ×0.42, no set pvpDef/pvpHp
+  assert.strictEqual(off.matk, 200);
+  assert.strictEqual(off.pdef, Math.round(200 * PVP_OFF_ARMOR_DEF_MULT));
+  assert.strictEqual(off.mdef, Math.round(80 * PVP_OFF_ARMOR_DEF_MULT));
+  const hpNoSet = pvpHpMaxFromStats(40, off.pdef, off.mdef, 0);
+  assert.strictEqual(off.hpMax, hpNoSet);
+
+  global.avatarArmorAffinityActive = () => true;
+  const on = buildCombatSheet({
+    name: "MageRobe",
+    avatar: state.avatar,
+    level: 40,
+    classId: "mystic",
+    raceId: "human",
+    stats: { patk: 30, matk: 200, pdef: 80, mdef: 120 },
+  });
+  assert.strictEqual(on.pdef, Math.round(80 * 1.06));
+  assert.strictEqual(on.mdef, Math.round(120 * 1.06));
+  assert.ok(on.hpMax > pvpHpMaxFromStats(40, on.pdef, on.mdef, 0) - 1); // +36 set HP
+
+  delete global.avatarArmorAffinityActive;
+  delete global.avatarEquippedArmorKind;
+  delete global.professionArmorPref;
+  delete global.avatarSetBonuses;
+  delete global.passiveSkillsForAvatar;
+  delete global.state;
+});
+
 console.log("pvp-combat: all tests passed");

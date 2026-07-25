@@ -41,6 +41,9 @@ function formatArmorBonusParts(b) {
   if (b.enchant) parts.push(formatArmorEnchantBonus(b.enchant));
   if (b.bossResist) parts.push("−" + Math.round(b.bossResist * 100) + "% HP босса зоны");
   if (b.mineXp) parts.push("+" + Math.round(b.mineXp * 100) + "% XP фарма");
+  if (b.pvpAtk) parts.push("+" + Math.round(b.pvpAtk * 1000) / 10 + "% ATK арены");
+  if (b.pvpDef) parts.push("+" + Math.round(b.pvpDef * 1000) / 10 + "% DEF арены");
+  if (b.pvpHp) parts.push("+" + Math.round(b.pvpHp) + " HP арены");
   return parts;
 }
 
@@ -170,8 +173,9 @@ function equippedArmorSetCounts() {
 }
 
 /**
- * Активные бонусы сетов: armorSustain / mineAdena / enchant / bossResist / mineXp.
+ * Активные бонусы сетов: farm (sustain/adena/xp/enchant/boss) + PvP (pvpAtk/pvpDef/pvpHp).
  * Пороги 2 / 4 / 5 — суммируются (полный сет получает все ступени).
+ * Только сеты своего kind (professionArmorPref) — иначе маг в heavy / микс 2pc.
  */
 function avatarSetBonuses() {
   const out = {
@@ -182,14 +186,20 @@ function avatarSetBonuses() {
     enchant: 0,
     bossResist: 0,
     mineXp: 0,
+    pvpAtk: 0,
+    pvpDef: 0,
+    pvpHp: 0,
     sets: [],
   };
   if (typeof ARMOR_SETS === "undefined" || !ARMOR_SETS) return out;
   const counts = equippedArmorSetCounts();
+  const avatar = typeof state !== "undefined" ? state.avatar : null;
   const lv =
     typeof avatarLevelForGrade === "function"
-      ? avatarLevelForGrade(typeof state !== "undefined" ? state.avatar : null)
-      : (typeof state !== "undefined" ? state.avatar?.level || 1 : 1);
+      ? avatarLevelForGrade(avatar)
+      : (avatar?.level || 1);
+  const pref =
+    typeof professionArmorPref === "function" ? professionArmorPref(avatar) : null;
   Object.keys(counts).forEach((setId) => {
     const set = ARMOR_SETS[setId];
     if (!set) return;
@@ -198,6 +208,8 @@ function avatarSetBonuses() {
     if (typeof isGradeOverLevel === "function" && set.grade && isGradeOverLevel(set.grade, lv)) {
       return;
     }
+    // Чужой kind (роба-класс в heavy, или 2pc мимо сродства) — без бонусов.
+    if (pref && set.kind && set.kind !== pref) return;
     const active = [];
     const tiers = set.bonuses || {};
     [2, 4, 5].forEach((th) => {
@@ -210,38 +222,55 @@ function avatarSetBonuses() {
       if (b.enchant) out.enchant += b.enchant;
       if (b.bossResist) out.bossResist += b.bossResist;
       if (b.mineXp) out.mineXp += b.mineXp;
+      if (b.pvpAtk) out.pvpAtk += b.pvpAtk;
+      if (b.pvpDef) out.pvpDef += b.pvpDef;
+      if (b.pvpHp) out.pvpHp += b.pvpHp;
       active.push(th);
     });
     if (active.length) {
-      out.sets.push({ id: setId, name: set.name, pieces: n, tiers: active });
+      out.sets.push({ id: setId, name: set.name, pieces: n, tiers: active, kind: set.kind });
     }
   });
   return out;
 }
 
+/** Множитель статов куска брони: грейд × чужой kind. */
+function armorPiecePowerMult(def, avatar) {
+  if (!def) return 1;
+  const a = avatar || (typeof state !== "undefined" ? state.avatar : null);
+  const lv =
+    typeof avatarLevelForGrade === "function" ? avatarLevelForGrade(a) : a?.level || 1;
+  let m = typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
+  const pref = typeof professionArmorPref === "function" ? professionArmorPref(a) : null;
+  if (pref && def.setId && typeof ARMOR_SETS !== "undefined" && ARMOR_SETS[def.setId]) {
+    const kind = ARMOR_SETS[def.setId].kind;
+    if (kind && kind !== pref) {
+      const off = typeof OFF_ARMOR_DEF_MULT === "number" ? OFF_ARMOR_DEF_MULT : 0.42;
+      m *= off;
+    }
+  }
+  return m;
+}
+
 /** P.Def/M.Def от кусков брони (+ legacy set flat) — не в farm power. */
 function avatarArmorDefBonuses() {
   const out = { pdef: 0, mdef: 0 };
-  const lv =
-    typeof avatarLevelForGrade === "function"
-      ? avatarLevelForGrade(typeof state !== "undefined" ? state.avatar : null)
-      : (typeof state !== "undefined" ? state.avatar?.level || 1 : 1);
+  const avatar = typeof state !== "undefined" ? state.avatar : null;
   if (typeof iterEquippedGear === "function") {
     iterEquippedGear().forEach(({ item }) => {
       if (!isArmorItem(item)) return;
       const def = armorItemDef(item);
       if (!def) return;
-      const pen =
-        typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
-      out.pdef += Math.round((def.pdef || 0) * pen);
-      out.mdef += Math.round((def.mdef || 0) * pen);
+      const mult = armorPiecePowerMult(def, avatar);
+      out.pdef += Math.round((def.pdef || 0) * mult);
+      out.mdef += Math.round((def.mdef || 0) * mult);
     });
   }
   const set = avatarSetBonuses();
   out.pdef += set.pdef || 0;
   out.mdef += set.mdef || 0;
   if (typeof avatarArmorAffinityMult === "function") {
-    const m = avatarArmorAffinityMult(typeof state !== "undefined" ? state.avatar : null);
+    const m = avatarArmorAffinityMult(avatar);
     if (m > 1) {
       out.pdef = Math.round(out.pdef * m);
       out.mdef = Math.round(out.mdef * m);

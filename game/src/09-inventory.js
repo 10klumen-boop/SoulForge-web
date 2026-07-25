@@ -148,16 +148,22 @@ function inventorySortMode() {
 function inventoryItemPower(it, def) {
   if (!def || isAccessoryItem(it)) return 0;
   if (typeof isArmorItem === "function" && isArmorItem(it)) {
-    return (def.pdef || 0) + (def.mdef || 0);
+    const lv = typeof state !== "undefined" ? state.avatar?.level || 1 : 1;
+    const pen = typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
+    return Math.round(((def.pdef || 0) + (def.mdef || 0)) * pen);
   }
   const plus = it.plus || 0;
   const p = typeof statAt === "function" ? statAt(def.patk, def.ps, plus) : (def.patk || 0);
   const m = typeof statAt === "function" ? statAt(def.matk, def.ms, plus) : (def.matk || 0);
+  let raw = Math.max(p, m);
   if (typeof mysticWeaponPower === "function" && typeof avatarIsMystic === "function" && avatarIsMystic()) {
-    return mysticWeaponPower(def, plus);
+    raw = mysticWeaponPower(def, plus);
+  } else if (typeof fighterWeaponPower === "function") {
+    raw = fighterWeaponPower(def, plus);
   }
-  if (typeof fighterWeaponPower === "function") return fighterWeaponPower(def, plus);
-  return Math.max(p, m);
+  const lv = typeof state !== "undefined" ? state.avatar?.level || 1 : 1;
+  const pen = typeof weaponGradePowerMult === "function" ? weaponGradePowerMult(def, lv) : 1;
+  return Math.round(raw * pen);
 }
 
 function compareInventoryItems(a, b, mode) {

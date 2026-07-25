@@ -86,6 +86,9 @@ function formatArmorSetBonusLine(th, b) {
   }
   if (b.bossResist) parts.push("−" + Math.round(b.bossResist * 100) + "% HP босса зоны");
   if (b.mineXp) parts.push("+" + Math.round(b.mineXp * 100) + "% XP фарма");
+  if (b.pvpAtk) parts.push("+" + Math.round(b.pvpAtk * 1000) / 10 + "% ATK арены");
+  if (b.pvpDef) parts.push("+" + Math.round(b.pvpDef * 1000) / 10 + "% DEF арены");
+  if (b.pvpHp) parts.push("+" + Math.round(b.pvpHp) + " HP арены");
   return th + " шт.: " + (parts.join(" · ") || "—");
 }
 
@@ -98,7 +101,7 @@ function buildInvSetBonusPanel() {
       '<div class="inv-set-bonus-head">Сет</div>' +
       '<p class="inv-set-bonus-empty">Надень 2+ куска одного сета — появятся бонусы.</p>' +
       '<ul class="inv-set-bonus-hint">' +
-      "<li>2 / 4 / 5: бонусы сета (sustain, adena, XP, заточка, босс)</li>" +
+      "<li>2 / 4 / 5: бонусы сета (farm + ATK/DEF/HP арены)</li>" +
       "<li>P.Def/M.Def кусков отдельно режут HP golden/boss (кап от DEF ~10%)</li></ul>";
     return wrap;
   }

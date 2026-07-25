@@ -62,12 +62,14 @@ function avatarStatBonusesFromGear() {
       if (!w) return;
 
       const p = item.plus || 0;
+      const lv = state.avatar?.level || 1;
+      const pen = typeof weaponGradePowerMult === "function" ? weaponGradePowerMult(w, lv) : 1;
 
       if (avatarIsMystic()) {
-        out.matk += mysticWeaponPower(w, p);
+        out.matk += Math.round(mysticWeaponPower(w, p) * pen);
       } else {
-        out.patk += fighterWeaponPower(w, p);
-        out.matk += statAt(w.matk, w.ms, p);
+        out.patk += Math.round(fighterWeaponPower(w, p) * pen);
+        out.matk += Math.round(statAt(w.matk, w.ms, p) * pen);
       }
 
       return;
@@ -77,11 +79,14 @@ function avatarStatBonusesFromGear() {
     if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) {
       const def = typeof armorItemDef === "function" ? armorItemDef(item) : (typeof AMAP !== "undefined" ? AMAP[item.id] : null);
       if (!def) return;
-      const lv = state.avatar?.level || 1;
-      const pen =
-        typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
-      if (def.pdef) out.pdef += Math.round(def.pdef * pen);
-      if (def.mdef) out.mdef += Math.round(def.mdef * pen);
+      const mult =
+        typeof armorPiecePowerMult === "function"
+          ? armorPiecePowerMult(def, state.avatar)
+          : typeof avatarGradePenaltyMult === "function"
+            ? avatarGradePenaltyMult(def.grade, state.avatar?.level || 1)
+            : 1;
+      if (def.pdef) out.pdef += Math.round(def.pdef * mult);
+      if (def.mdef) out.mdef += Math.round(def.mdef * mult);
       return;
     }
 
@@ -161,12 +166,15 @@ function avatarIsMystic() {
 function weaponEquipStatLabel(w, plus) {
   if (!w) return "";
   const p = plus || 0;
+  const lv = typeof state !== "undefined" ? state.avatar?.level || 1 : 1;
+  const pen = typeof weaponGradePowerMult === "function" ? weaponGradePowerMult(w, lv) : 1;
+  const gradeTag = pen < 1 ? " · штраф грейда" : "";
   if (avatarIsMystic()) {
     const weak = weaponAffinityMult(w, true) < 1 ? " · слабо" : "";
-    return "M.Atk " + fmt(mysticWeaponPower(w, p)) + weak + " · " + weaponAffinityShort(w);
+    return "M.Atk " + fmt(Math.round(mysticWeaponPower(w, p) * pen)) + weak + gradeTag + " · " + weaponAffinityShort(w);
   }
   const weak = weaponAffinityMult(w, false) < 1 ? " · слабо" : "";
-  return "P.Atk " + fmt(fighterWeaponPower(w, p)) + weak + " · " + weaponAffinityShort(w);
+  return "P.Atk " + fmt(Math.round(fighterWeaponPower(w, p) * pen)) + weak + gradeTag + " · " + weaponAffinityShort(w);
 }
 
 function avatarFarmPower() {
@@ -189,12 +197,14 @@ function avatarWeaponPatkBonus(fixedPlus) {
   if (avatarIsMystic()) return 0;
   if (typeof iterEquippedGear !== "function") return 0;
   let patk = 0;
+  const lv = state.avatar?.level || 1;
   iterEquippedGear().forEach(({ item }) => {
     if (item.kind !== "weapon") return;
     const w = WMAP[item.id];
     if (!w) return;
     const plus = fixedPlus !== undefined ? fixedPlus : (item.plus || 0);
-    patk += fighterWeaponPower(w, plus);
+    const pen = typeof weaponGradePowerMult === "function" ? weaponGradePowerMult(w, lv) : 1;
+    patk += Math.round(fighterWeaponPower(w, plus) * pen);
   });
   return patk;
 }
@@ -203,12 +213,15 @@ function avatarWeaponPatkBonus(fixedPlus) {
 function avatarWeaponMatkBonus(fixedPlus) {
   if (typeof iterEquippedGear !== "function") return 0;
   let matk = 0;
+  const lv = state.avatar?.level || 1;
   iterEquippedGear().forEach(({ item }) => {
     if (item.kind !== "weapon") return;
     const w = WMAP[item.id];
     if (!w) return;
     const plus = fixedPlus !== undefined ? fixedPlus : (item.plus || 0);
-    matk += avatarIsMystic() ? mysticWeaponPower(w, plus) : statAt(w.matk, w.ms, plus);
+    const pen = typeof weaponGradePowerMult === "function" ? weaponGradePowerMult(w, lv) : 1;
+    const raw = avatarIsMystic() ? mysticWeaponPower(w, plus) : statAt(w.matk, w.ms, plus);
+    matk += Math.round(raw * pen);
   });
   return matk;
 }

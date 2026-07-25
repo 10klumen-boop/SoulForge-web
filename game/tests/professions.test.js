@@ -133,24 +133,40 @@ test("no 2nd profession below level 40", () => {
   assert.ok(availableProfessionChoices(state.avatar).length >= 1);
 });
 
-test("grade unlock D@20 C@40", () => {
+test("grade unlock D@10 C@40", () => {
   assert.strictEqual(avatarAllowedGrade(1), "NG");
-  assert.strictEqual(avatarAllowedGrade(19), "NG");
-  assert.strictEqual(avatarAllowedGrade(20), "D");
+  assert.strictEqual(avatarAllowedGrade(9), "NG");
+  assert.strictEqual(avatarAllowedGrade(10), "D");
   assert.strictEqual(avatarAllowedGrade(39), "D");
   assert.strictEqual(avatarAllowedGrade(40), "C");
-  assert.ok(isGradeOverLevel("D", 10));
-  assert.ok(!isGradeOverLevel("D", 20));
-  assert.ok(isGradeOverLevel("C", 20));
+  assert.ok(isGradeOverLevel("D", 9));
+  assert.ok(!isGradeOverLevel("D", 10));
+  assert.ok(isGradeOverLevel("C", 10));
   assert.ok(!isGradeOverLevel("C", 40));
-  assert.strictEqual(avatarGradePenaltyMult("C", 20), GRADE_OVERLEVEL_MULT);
+});
+
+test("grade penalty scales with rank gap", () => {
+  // NG allowed: D +1 → 0.60, C +2 → 0.20, B+ → floor 0.1
+  assert.strictEqual(avatarGradePenaltyMult("D", 1), 0.6);
+  assert.strictEqual(avatarGradePenaltyMult("C", 1), 0.2);
+  assert.strictEqual(avatarGradePenaltyMult("B", 1), GRADE_OVERLEVEL_FLOOR);
+  assert.strictEqual(avatarGradePenaltyMult("A", 1), GRADE_OVERLEVEL_FLOOR);
+  // D allowed (lv10): C +1 → 0.60, B +2 → 0.20
+  assert.strictEqual(avatarGradePenaltyMult("C", 10), 0.6);
+  assert.strictEqual(avatarGradePenaltyMult("B", 10), 0.2);
   assert.strictEqual(avatarGradePenaltyMult("C", 40), 1);
+  assert.strictEqual(gradeOverLevelGap("C", 10), 1);
+  assert.strictEqual(gradeOverLevelGap("C", 40), 0);
 });
 
 test("weapon mastery by role cats", () => {
   const fighter = { classId: "fighter", professionId: null };
   assert.ok(avatarWeaponMasteryActive({ cat: "Sword" }, fighter));
   assert.strictEqual(avatarWeaponMasteryMult({ cat: "Sword" }, fighter), WEAPON_MASTERY_MULT);
+  assert.ok(!avatarWeaponMasteryActive({ cat: "Bow" }, fighter), "стартовый воин без mastery на лук");
+  const hawkeye = { classId: "fighter", professionId: "hawkeye", professionTier: 2 };
+  assert.ok(professionWeaponCats(hawkeye).indexOf("Bow") >= 0);
+  assert.ok(avatarWeaponMasteryActive({ cat: "Bow" }, hawkeye));
   const mage = { classId: "mystic", professionId: "wizard", professionTier: 1 };
   // wizard role mage → Blunt + Sword
   assert.ok(professionWeaponCats(mage).indexOf("Blunt") >= 0);
@@ -161,7 +177,7 @@ test("weapon mastery by role cats", () => {
   assert.ok(!avatarWeaponMasteryActive({ cat: "Bow" }, mage));
 });
 
-test("overgrade hint ignores weapon-only overgrade", () => {
+test("overgrade hint includes weapon-only overgrade", () => {
   global.state = {
     avatar: {
       created: true,
@@ -177,9 +193,18 @@ test("overgrade hint ignores weapon-only overgrade", () => {
     { slot: "weapon", item: state.avatar.gear.weapon },
   ];
   global.avatarGearItemDef = (it) => (it ? { grade: it.grade, name: "C sword" } : null);
-  assert.ok(!avatarHasOvergradeGear(state.avatar));
+  assert.ok(avatarHasOvergradeGear(state.avatar));
   const line = gradePenaltyHintLine(state.avatar);
-  assert.ok(/оружие/i.test(line));
+  assert.ok(/штраф грейда/i.test(line));
+  assert.ok(!/оружие без штрафа|оружие свободно/i.test(line));
+});
+
+test("weapon grade penalty halves fighter power when overgrade", () => {
+  assert.strictEqual(weaponGradePowerMult({ grade: "C" }, 10), 0.6);
+  assert.strictEqual(weaponGradePowerMult({ grade: "C" }, 1), 0.2);
+  assert.strictEqual(weaponGradePowerMult({ grade: "C" }, 40), 1);
+  assert.strictEqual(weaponGradePowerMult({ grade: "D" }, 9), 0.6);
+  assert.strictEqual(weaponGradePowerMult({ grade: "D" }, 10), 1);
 });
 
 test("2nd profession passives replace 1st (only leaf)", () => {

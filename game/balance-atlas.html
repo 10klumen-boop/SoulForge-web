@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SoulForge · атлас баланса (live)</title>
+<style>
+:root {
+  --bg:#0e0c0a; --panel:#17130f; --card:#1f1a14; --edge:#3a3228;
+  --txt:#efe6d6; --dim:#a39682; --gold:#d4b56a; --hot:#e07070; --warn:#e0a060; --act:#6eb0ff;
+}
+* { box-sizing:border-box; }
+body { margin:0; font:13px/1.45 "Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--txt); }
+header {
+  position:sticky; top:0; z-index:30; background:rgba(14,12,10,.97);
+  border-bottom:1px solid var(--edge); padding:12px 14px 10px; backdrop-filter:blur(8px);
+}
+h1 { margin:0 0 2px; font-size:17px; color:var(--gold); }
+.meta { color:var(--dim); font-size:11px; margin-bottom:8px; }
+.live-pill {
+  display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px;
+  border:1px solid rgba(126,203,138,.45); color:#7ecb8a; font-size:10px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; vertical-align:middle;
+}
+.tabs { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+.tab {
+  border:1px solid var(--edge); background:transparent; color:var(--dim);
+  border-radius:8px; padding:5px 10px; cursor:pointer; font:inherit;
+}
+.tab.on { color:var(--gold); border-color:rgba(212,181,106,.5); background:rgba(212,181,106,.1); }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+label { font-size:11px; color:var(--dim); display:inline-flex; gap:5px; align-items:center; }
+select, input[type=search], input[type=text], textarea, input[type=number] {
+  background:#0a0806; color:var(--txt); border:1px solid var(--edge);
+  border-radius:6px; padding:6px 8px; font:inherit;
+}
+.btn {
+  border:1px solid rgba(212,181,106,.45); background:rgba(212,181,106,.12);
+  color:var(--gold); border-radius:8px; padding:6px 11px; font:inherit; cursor:pointer;
+}
+.btn:hover { background:rgba(212,181,106,.22); }
+.btn.ghost { border-color:var(--edge); color:var(--dim); background:transparent; }
+#stats { margin-left:auto; font-size:11px; color:var(--dim); }
+.hint { padding:8px 14px; font-size:12px; color:var(--dim); border-bottom:1px solid var(--edge); }
+.boot { padding:40px 16px; text-align:center; color:var(--dim); }
+.boot.err { color:var(--hot); }
+.panel { padding:12px 14px 48px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+.card {
+  background:var(--card); border:1px solid var(--edge); border-radius:10px; padding:12px;
+}
+.card.hot { border-color:rgba(224,112,112,.55); }
+.card.warn { border-color:rgba(224,160,96,.5); }
+.card.is-dirty { border-color:rgba(224,160,96,.75); box-shadow:inset 0 0 0 1px rgba(224,160,96,.25); }
+.card h3 { margin:0 0 4px; font-size:14px; }
+.sev { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+.sev.hot { color:var(--hot); } .sev.warn { color:var(--warn); } .sev.info { color:var(--act); }
+.row { display:flex; gap:8px; align-items:flex-start; }
+.ico { width:40px; height:40px; object-fit:contain; border-radius:6px; background:rgba(0,0,0,.35); border:1px solid var(--edge); flex-shrink:0; }
+.dim { color:var(--dim); font-size:11px; }
+.chip { display:inline-block; font-size:10px; padding:2px 6px; border-radius:5px; border:1px solid var(--edge); margin:2px 2px 0 0; }
+.chip.out { color:var(--hot); border-color:rgba(224,112,112,.4); }
+table.grid { width:100%; border-collapse:collapse; font-size:12px; }
+table.grid th, table.grid td { border-bottom:1px solid var(--edge); padding:6px 6px; text-align:left; vertical-align:top; }
+table.grid th { color:var(--gold); font-weight:600; position:sticky; top:118px; background:var(--bg); z-index:5; cursor:pointer; user-select:none; }
+table.grid tr:hover td { background:rgba(212,181,106,.05); }
+table.grid tr.out td { background:rgba(224,112,112,.07); }
+table.grid tr.is-dirty td { background:rgba(224,160,96,.08); }
+.num { font-variant-numeric:tabular-nums; }
+.edit-box {
+  display:grid; gap:6px; margin-top:8px; padding-top:8px;
+  border-top:1px dashed var(--edge); min-width:200px;
+}
+.edit-box label { display:grid; gap:3px; font-size:11px; color:var(--dim); }
+.edit-box textarea {
+  width:100%; min-height:72px; resize:vertical; line-height:1.35;
+}
+.edit-box textarea.note { min-height:56px; }
+.edit-box.compact { min-width:180px; max-width:280px; }
+.edit-box.compact textarea { min-height:64px; }
+.kv { display:grid; grid-template-columns:minmax(140px,240px) 1fr; gap:4px 12px; font-size:12px; }
+.kv b { color:var(--gold); font-weight:600; }
+.bonus-line { font-size:12px; margin:2px 0; }
+.pieces { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.piece { width:28px; height:28px; object-fit:contain; border-radius:4px; background:rgba(0,0,0,.3); border:1px solid var(--edge); }
+a.link { color:var(--gold); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Атлас баланса SoulForge <span class="live-pill">live</span></h1>
+  <div class="meta" id="meta">Загрузка данных игры…</div>
+  <div class="tabs" id="tabs"></div>
+  <div class="toolbar" id="toolbar"></div>
+</header>
+<div class="hint">
+  Live: данные из тех же файлов, что и клиент (после правки баланса — просто обнови страницу).
+  Пиши предложения в больших полях → <b>Скачать правки JSON</b>.
+  Умения: <a class="link" href="content/SKILLS_BALANCE.html">SKILLS_BALANCE</a>
+  · CSV-снимки: <code>content/BALANCE_*.csv</code> (<code>node tools/export_balance_atlas.js</code>)
+</div>
+<div id="boot" class="boot">Читаю оружие, броню, зоны…</div>
+<div id="panels" hidden></div>
+
+<script src="weapons-data.js?v=2"></script>
+<script src="src/01-constants.js?v=1"></script>
+<script src="src/data/enchant-balance.js?v=3"></script>
+<script src="src/data/armor-sets-data.js?v=11"></script>
+<script src="src/data/workshop-balance.js?v=2"></script>
+<script src="src/data/farm-balance.js?v=9"></script>
+<script src="src/data/economy-balance.js?v=4"></script>
+<script src="src/data/professions-data.js?v=10"></script>
+<script src="src/data/pvp-balance.js?v=1"></script>
+<script src="src/data/passive-income-balance.js?v=4"></script>
+<script src="src/data/auto-clicker-balance.js?v=8"></script>
+<script src="src/data-loader.js?v=17"></script>
+<script>
+/* Classic script видит const/let из предыдущих файлов; на window их нет. */
+window.__SF_ATLAS = {
+  GAME_VERSION: typeof GAME_VERSION !== "undefined" ? GAME_VERSION : "?",
+  SAFE_LEVEL: typeof SAFE_LEVEL !== "undefined" ? SAFE_LEVEL : 3,
+  WEAPONS: typeof WEAPONS !== "undefined" ? WEAPONS : (window.WEAPONS || []),
+  CATEGORIES: typeof CATEGORIES !== "undefined" ? CATEGORIES : (window.CATEGORIES || []),
+  ARMOR: typeof ARMOR !== "undefined" ? ARMOR : [],
+  ARMOR_SETS: typeof ARMOR_SETS !== "undefined" ? ARMOR_SETS : {},
+  ARMOR_CRAFT: typeof ARMOR_CRAFT !== "undefined" ? ARMOR_CRAFT : [],
+  ARMOR_FRAG_ZONES: typeof ARMOR_FRAG_ZONES !== "undefined" ? ARMOR_FRAG_ZONES : {},
+  ARMOR_FRAG_DROP: typeof ARMOR_FRAG_DROP !== "undefined" ? ARMOR_FRAG_DROP : {},
+  PROFESSIONS: typeof PROFESSIONS !== "undefined" ? PROFESSIONS : {},
+  ROLE_ARMOR_PREF: typeof ROLE_ARMOR_PREF !== "undefined" ? ROLE_ARMOR_PREF : {},
+  STARTER_ARMOR_PREF: typeof STARTER_ARMOR_PREF !== "undefined" ? STARTER_ARMOR_PREF : {},
+  ROLE_WEAPON_CATS: typeof ROLE_WEAPON_CATS !== "undefined" ? ROLE_WEAPON_CATS : {},
+  STARTER_WEAPON_CATS: typeof STARTER_WEAPON_CATS !== "undefined" ? STARTER_WEAPON_CATS : {},
+  WEAPON_CAT_LABELS: typeof WEAPON_CAT_LABELS !== "undefined" ? WEAPON_CAT_LABELS : {},
+  WEAPON_CAT_POWER_MULT: typeof WEAPON_CAT_POWER_MULT !== "undefined" ? WEAPON_CAT_POWER_MULT : {},
+  ARMOR_AFFINITY_MULT: typeof ARMOR_AFFINITY_MULT !== "undefined" ? ARMOR_AFFINITY_MULT : 1,
+  WEAPON_MASTERY_MULT: typeof WEAPON_MASTERY_MULT !== "undefined" ? WEAPON_MASTERY_MULT : 1,
+  GRADE_UNLOCK_LEVEL: typeof GRADE_UNLOCK_LEVEL !== "undefined" ? GRADE_UNLOCK_LEVEL : { NG: 1, D: 10, C: 40 },
+  GRADE_OVERLEVEL_MULT: typeof GRADE_OVERLEVEL_MULT !== "undefined" ? GRADE_OVERLEVEL_MULT : 0.2,
+  GRADE_OVERLEVEL_STEP: typeof GRADE_OVERLEVEL_STEP !== "undefined" ? GRADE_OVERLEVEL_STEP : 0.4,
+  GRADE_OVERLEVEL_FLOOR: typeof GRADE_OVERLEVEL_FLOOR !== "undefined" ? GRADE_OVERLEVEL_FLOOR : 0.1,
+  WEAPON_AFFINITY_OFF_MULT: typeof WEAPON_AFFINITY_OFF_MULT !== "undefined" ? WEAPON_AFFINITY_OFF_MULT : 1,
+  WEAPON_AFFINITY_HYBRID_MULT: typeof WEAPON_AFFINITY_HYBRID_MULT !== "undefined" ? WEAPON_AFFINITY_HYBRID_MULT : 1,
+  GRADE_VALUE: typeof GRADE_VALUE !== "undefined" ? GRADE_VALUE : {},
+  CRYSTAL_VALUE: typeof CRYSTAL_VALUE !== "undefined" ? CRYSTAL_VALUE : {},
+  CRYSTAL_PLUS_MULT: typeof CRYSTAL_PLUS_MULT !== "undefined" ? CRYSTAL_PLUS_MULT : 1,
+  FUNPAY_WIPE_CHANCE: typeof FUNPAY_WIPE_CHANCE !== "undefined" ? FUNPAY_WIPE_CHANCE : 0,
+  FUNPAY_REWARD: typeof FUNPAY_REWARD !== "undefined" ? FUNPAY_REWARD : 0,
+  COLLECTIBLES: typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES : {},
+  ECONOMY: typeof ECONOMY !== "undefined" ? ECONOMY : {},
+  PASSIVE_INCOME: typeof PASSIVE_INCOME !== "undefined" ? PASSIVE_INCOME : {},
+  AUTO_CLICKER: typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER : {},
+  ORE: typeof ORE !== "undefined" ? ORE : {},
+  SHOT_RECIPE: typeof SHOT_RECIPE !== "undefined" ? SHOT_RECIPE : {},
+  SHOT_BATCH: typeof SHOT_BATCH !== "undefined" ? SHOT_BATCH : 1000,
+  MINE_ADENA_REWARD: typeof MINE_ADENA_REWARD !== "undefined" ? MINE_ADENA_REWARD : {},
+  MINE_ADENA_GOLDEN: typeof MINE_ADENA_GOLDEN !== "undefined" ? MINE_ADENA_GOLDEN : {},
+  MINE_GOLDEN_CHANCE: typeof MINE_GOLDEN_CHANCE !== "undefined" ? MINE_GOLDEN_CHANCE : 0,
+  MINE_BANAN_CHANCE: typeof MINE_BANAN_CHANCE !== "undefined" ? MINE_BANAN_CHANCE : 0,
+  BANAN_ADENA_REWARD: typeof BANAN_ADENA_REWARD !== "undefined" ? BANAN_ADENA_REWARD : 0,
+  PVP_DEF_SOFT: typeof PVP_DEF_SOFT !== "undefined" ? PVP_DEF_SOFT : 0,
+  PVP_ATK_SCALE: typeof PVP_ATK_SCALE !== "undefined" ? PVP_ATK_SCALE : 0,
+  PVP_VARIANCE: typeof PVP_VARIANCE !== "undefined" ? PVP_VARIANCE : 0,
+  PVP_SKILL_MULT_CAP: typeof PVP_SKILL_MULT_CAP !== "undefined" ? PVP_SKILL_MULT_CAP : 0,
+  PVP_GUARD_INCOMING_MULT: typeof PVP_GUARD_INCOMING_MULT !== "undefined" ? PVP_GUARD_INCOMING_MULT : 0,
+  PVP_SHOT_MULT: typeof PVP_SHOT_MULT !== "undefined" ? PVP_SHOT_MULT : 0,
+  PVP_HP_BASE: typeof PVP_HP_BASE !== "undefined" ? PVP_HP_BASE : 0,
+  PVP_HP_PER_LVL: typeof PVP_HP_PER_LVL !== "undefined" ? PVP_HP_PER_LVL : 0,
+  PVP_HP_FROM_PDEF: typeof PVP_HP_FROM_PDEF !== "undefined" ? PVP_HP_FROM_PDEF : 0,
+  PVP_HP_FROM_MDEF: typeof PVP_HP_FROM_MDEF !== "undefined" ? PVP_HP_FROM_MDEF : 0,
+  PVP_MAX_ROUNDS: typeof PVP_MAX_ROUNDS !== "undefined" ? PVP_MAX_ROUNDS : 0,
+};
+</script>
+<script src="src/balance-atlas-app.js?v=8"></script>
+<script>
+(async function () {
+  const boot = document.getElementById("boot");
+  try {
+    if (typeof loadGameJsonData === "function") await loadGameJsonData();
+    if (typeof FARM_ZONES !== "undefined") window.__SF_ATLAS.FARM_ZONES = FARM_ZONES;
+    if (typeof ZONE_RACE_BONUS !== "undefined") window.__SF_ATLAS.ZONE_RACE_BONUS = ZONE_RACE_BONUS;
+    if (typeof BalanceAtlasApp === "undefined") throw new Error("balance-atlas-app.js не загрузился");
+
+    let data = null;
+    try {
+      data = BalanceAtlasApp.buildAtlas();
+      if (!data.meta.counts.weapons) throw new Error("оружие не загрузилось");
+    } catch (liveErr) {
+      console.warn("live build failed, fallback JSON", liveErr);
+      const res = await fetch("content/balance-atlas-data.json?v=" + Date.now());
+      if (!res.ok) throw liveErr;
+      data = await res.json();
+      data.meta = data.meta || {};
+      data.meta.live = false;
+      data.meta.mode = "json-fallback";
+    }
+
+    BalanceAtlasApp.start(data);
+    boot.hidden = true;
+    document.getElementById("panels").hidden = false;
+  } catch (e) {
+    console.error(e);
+    boot.className = "boot err";
+    boot.innerHTML =
+      "Не удалось загрузить live-атлас.<br><br>" +
+      "Открой автономный снимок (сервер не нужен):<br>" +
+      '<a class="link" href="content/BALANCE_ATLAS.html">content/BALANCE_ATLAS.html</a><br><br>' +
+      "<small>" + (e && e.message ? e.message : e) + "</small>";
+  }
+})();
+</script>
+</body>
+</html>

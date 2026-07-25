@@ -149,23 +149,30 @@
       "id": "fighter_heavy_armor",
       "kind": "class",
       "name": "Тяжёлая броня",
-      "blurb": "Сродство: тяжёлая броня +6% урон/DEF",
+      "blurb": "Сродство heavy +6% урон/DEF · арена +5% DEF / +18 HP",
       "desc": "Воин держит вес стали. Два и больше куска тяжёлой брони дают бонус к урону клика и защите. У разбойников и стрелков сродство меняется на лёгкую.",
-      "gameplay": "При ≥2 шт. heavy: урон клика и P/M.Def брони ×1.06.",
+      "gameplay": "При ≥2 шт. heavy: урон клика и P/M.Def брони ×1.06; на арене DEF ×1.05 и +18 HP.",
       "icon": "icons/skill0279.png?v=2",
       "unlockLevel": 1,
-      "effects": []
+      "requiresArmorAffinity": true,
+      "effects": [
+        { "type": "pvpDefMult", "value": 1.05 },
+        { "type": "pvpHpAdd", "value": 18 }
+      ]
     },
     "fighter_light_armor": {
       "id": "fighter_light_armor",
       "kind": "class",
       "name": "Лёгкая броня",
-      "blurb": "Сродство: лёгкая броня +6% урон/DEF",
+      "blurb": "Сродство light +6% урон/DEF · арена +5% ATK",
       "desc": "Кожа и скорость. Разбойники и стрелки носят лёгкую броню: два и больше куска дают бонус к урону клика и защите.",
-      "gameplay": "При ≥2 шт. light: урон клика и P/M.Def брони ×1.06.",
+      "gameplay": "При ≥2 шт. light: урон клика и P/M.Def брони ×1.06; на арене ATK ×1.05.",
       "icon": "icons/skill0214.png?v=2",
       "unlockLevel": 1,
-      "effects": []
+      "requiresArmorAffinity": true,
+      "effects": [
+        { "type": "pvpAtkMult", "value": 1.05 }
+      ]
     },
     "fighter_weapon_mastery": {
       "id": "fighter_weapon_mastery",
@@ -208,12 +215,16 @@
       "id": "mystic_robe",
       "kind": "class",
       "name": "Роба ученика",
-      "blurb": "Сродство: роба +6% урон/DEF",
+      "blurb": "Сродство robe +6% урон/DEF · арена +4% ATK / +12 HP",
       "desc": "Ткань и руны. Два куска робы усиливают удар и защиту мистика.",
-      "gameplay": "При ≥2 шт. robe: урон клика и P/M.Def брони ×1.06.",
+      "gameplay": "При ≥2 шт. robe: урон клика и P/M.Def брони ×1.06; на арене ATK ×1.04 и +12 HP.",
       "icon": "icons/skill1184.png?v=2",
       "unlockLevel": 1,
-      "effects": []
+      "requiresArmorAffinity": true,
+      "effects": [
+        { "type": "pvpAtkMult", "value": 1.04 },
+        { "type": "pvpHpAdd", "value": 12 }
+      ]
     },
     "mystic_weapon_mastery": {
       "id": "mystic_weapon_mastery",
@@ -256,12 +267,16 @@
       "id": "shaman_robe",
       "kind": "class",
       "name": "Роба шамана",
-      "blurb": "Сродство: роба +6% урон/DEF",
+      "blurb": "Сродство robe +6% урон/DEF · арена +3% DEF / +16 HP",
       "desc": "Роба хранит тепло тотема. Два куска робы усиливают удар и защиту шамана.",
-      "gameplay": "При ≥2 шт. robe: урон клика и P/M.Def брони ×1.06.",
+      "gameplay": "При ≥2 шт. robe: урон клика и P/M.Def брони ×1.06; на арене DEF ×1.03 и +16 HP.",
       "icon": "icons/skill1090.png?v=2",
       "unlockLevel": 1,
-      "effects": []
+      "requiresArmorAffinity": true,
+      "effects": [
+        { "type": "pvpDefMult", "value": 1.03 },
+        { "type": "pvpHpAdd", "value": 16 }
+      ]
     },
     "shaman_weapon_mastery": {
       "id": "shaman_weapon_mastery",
