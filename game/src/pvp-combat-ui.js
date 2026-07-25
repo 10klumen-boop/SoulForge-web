@@ -285,6 +285,77 @@ function pvpModeBannerHtml(tab) {
   );
 }
 
+function pvpOnlineListHtml(rows, actionLabel) {
+  const label = actionLabel || "Вызвать";
+  const body =
+    rows && rows.length
+      ? rows
+          .map((r) => {
+            const name = r.name || "?";
+            const nick =
+              r.nick && String(r.nick).toLowerCase() !== String(name).toLowerCase()
+                ? " · " + r.nick
+                : "";
+            const meta =
+              "ур. " +
+              (r.level || "?") +
+              " · сила " +
+              (r.power != null ? r.power : "?") +
+              (r.atkType === "magical" ? " · маг." : " · физ.") +
+              nick;
+            return (
+              '<div class="pvp-list-row pvp-online-row" data-pvp-online-name="' +
+              pvpEsc(name) +
+              '" role="button" tabindex="0">' +
+              "<span><b>" +
+              pvpEsc(name) +
+              '</b><small class="pvp-online-meta">' +
+              pvpEsc(meta) +
+              "</small></span>" +
+              '<span class="pvp-list-acts">' +
+              '<button type="button" class="pvp-chip" data-pvp-online-act="' +
+              pvpEsc(name) +
+              '">' +
+              pvpEsc(label) +
+              "</button>" +
+              "</span></div>"
+            );
+          })
+          .join("")
+      : '<p class="pvp-hint">Сейчас никого онлайн</p>';
+  return (
+    '<div class="pvp-list-block pvp-online-list">' +
+    '<div class="pvp-skills-title">Онлайн</div>' +
+    body +
+    "</div>"
+  );
+}
+
+function pvpBindOnlineList(root, inputId, onAct) {
+  if (!root) return;
+  const fill = (name) => {
+    if (!name) return;
+    _pvpNameInput = name;
+    const input = inputId ? document.getElementById(inputId) : null;
+    if (input) input.value = name;
+  };
+  root.querySelectorAll("[data-pvp-online-name]").forEach((row) => {
+    row.onclick = (e) => {
+      if (e.target.closest("[data-pvp-online-act]")) return;
+      fill(row.getAttribute("data-pvp-online-name") || "");
+    };
+  });
+  root.querySelectorAll("[data-pvp-online-act]").forEach((btn) => {
+    btn.onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const name = btn.getAttribute("data-pvp-online-act") || "";
+      fill(name);
+      if (typeof onAct === "function") await onAct(name, btn);
+    };
+  });
+}
+
 function pvpBindHelpButtons(root) {
   (root || document).querySelectorAll("[data-pvp-help]").forEach((btn) => {
     if (btn._pvpHelpBound) return;
@@ -356,8 +427,15 @@ function pvpPortraitUrl(sheet, side) {
     return avatarPortraitForAvatar(state.avatar);
   }
   if (typeof avatarPortraitPath === "function") {
-    const gender = side === "b" ? "male" : (state.avatar?.genderId || "male");
-    return avatarPortraitPath(sheet.raceId || "human", gender, sheet.classId || "fighter");
+    const gender =
+      sheet.genderId ||
+      (side === "a" && state.avatar?.genderId) ||
+      "male";
+    return avatarPortraitPath(
+      sheet.raceId || "human",
+      gender,
+      sheet.classId || "fighter"
+    );
   }
   return "icons/char_menu.png?v=10";
 }
@@ -419,7 +497,20 @@ function pvpFighterCardHtml(side, fighterOrView, opts) {
   const low = pct <= 25;
   const portrait = pvpPortraitUrl(
     isView
-      ? { raceId: side === "b" ? "dark_elf" : state.avatar?.raceId, classId: atkType === "magical" ? "mystic" : "fighter", name }
+      ? {
+          raceId:
+            fighterOrView.raceId ||
+            (side === "a" ? state.avatar?.raceId : null) ||
+            "human",
+          classId:
+            fighterOrView.classId ||
+            (fighterOrView.atkType === "magical" ? "mystic" : "fighter"),
+          genderId:
+            fighterOrView.genderId ||
+            (side === "a" ? state.avatar?.genderId : null) ||
+            "male",
+          name,
+        }
       : fighterOrView.sheet,
     side
   );
@@ -616,21 +707,43 @@ async function renderPvpDuelSetup(body, my) {
   const logged = typeof pvpSocialLoggedIn === "function" && pvpSocialLoggedIn();
   let inbox = [];
   let outbox = [];
-  let active = null;
+  let online = [];
   if (logged) {
-    const [inR, outR, actR] = await Promise.all([
+    const [inR, outR, actR, onR] = await Promise.all([
       pvpFetchDuelInbox(),
       pvpFetchDuelOutbox(),
       pvpFetchActiveMatch(),
+      typeof pvpFetchOnlineList === "function" ? pvpFetchOnlineList() : Promise.resolve({ ok: false }),
     ]);
     if (inR.ok) inbox = inR.rows || [];
     if (outR.ok) outbox = outR.rows || [];
+    if (onR && onR.ok) online = onR.rows || [];
     if (actR.ok && actR.match) {
       _pvpOnlineMatch = { matchId: actR.match.meta.matchId, match: actR.match };
       renderPvpArena();
       return;
     }
   }
+
+  const challengeFromName = async (name, btn) => {
+    if (!name) {
+      toast("Укажите имя", "warn");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    const challengeBtn = document.getElementById("pvpChallengeBtn");
+    if (challengeBtn) challengeBtn.disabled = true;
+    await pvpPublishCurrentSheet();
+    const r = await pvpChallengeName(name);
+    if (btn) btn.disabled = false;
+    if (challengeBtn) challengeBtn.disabled = false;
+    if (!r.ok) {
+      toast(r.error || "Ошибка", "warn");
+      return;
+    }
+    toast("Вызов отправлен «" + name + "»", "info");
+    renderPvpArena();
+  };
 
   body.innerHTML =
     pvpTabsHtml() +
@@ -642,7 +755,8 @@ async function renderPvpDuelSetup(body, my) {
     pvpSheetSummaryHtml(my, "Ваш лист", "a") +
     "</div>" +
     (logged
-      ? '<div class="pvp-setup">' +
+      ? pvpOnlineListHtml(online, "Вызвать") +
+        '<div class="pvp-setup">' +
         '<label class="pvp-field">Имя персонажа' +
         '<input type="text" id="pvpDuelName" class="pvp-input" maxlength="48" placeholder="Например HeroBob" value="' +
         pvpEsc(_pvpNameInput) +
@@ -699,6 +813,7 @@ async function renderPvpDuelSetup(body, my) {
 
   pvpBindTabs(body);
   pvpBindHelpButtons(body);
+  pvpBindOnlineList(body, "pvpDuelName", challengeFromName);
   const nameEl = document.getElementById("pvpDuelName");
   if (nameEl) {
     nameEl.oninput = () => {
@@ -709,19 +824,7 @@ async function renderPvpDuelSetup(body, my) {
   if (challengeBtn) {
     challengeBtn.onclick = async () => {
       const name = (document.getElementById("pvpDuelName")?.value || "").trim();
-      if (!name) {
-        toast("Укажите имя", "warn");
-        return;
-      }
-      challengeBtn.disabled = true;
-      const r = await pvpChallengeName(name);
-      challengeBtn.disabled = false;
-      if (!r.ok) {
-        toast(r.error || "Ошибка", "warn");
-        return;
-      }
-      toast("Вызов отправлен «" + name + "»", "info");
-      renderPvpArena();
+      await challengeFromName(name, challengeBtn);
     };
   }
   body.querySelectorAll("[data-pvp-accept]").forEach((btn) => {
@@ -766,11 +869,58 @@ async function renderPvpAsyncSetup(body, my) {
   const logged = typeof pvpSocialLoggedIn === "function" && pvpSocialLoggedIn();
   let inbox = [];
   let outbox = [];
+  let online = [];
   if (logged) {
-    const [inR, outR] = await Promise.all([pvpFetchAsyncInbox(), pvpFetchAsyncOutbox()]);
+    const [inR, outR, onR] = await Promise.all([
+      pvpFetchAsyncInbox(),
+      pvpFetchAsyncOutbox(),
+      typeof pvpFetchOnlineList === "function" ? pvpFetchOnlineList() : Promise.resolve({ ok: false }),
+    ]);
     if (inR.ok) inbox = inR.rows || [];
     if (outR.ok) outbox = outR.rows || [];
+    if (onR && onR.ok) online = onR.rows || [];
   }
+
+  const asyncAttackFromName = async (name, btn) => {
+    if (!name) {
+      toast("Укажите имя", "warn");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    const atkBtn = document.getElementById("pvpAsyncAttackBtn");
+    if (atkBtn) atkBtn.disabled = true;
+    await pvpPublishCurrentSheet();
+    const r = await pvpAsyncAttackName(name);
+    if (btn) btn.disabled = false;
+    if (atkBtn) atkBtn.disabled = false;
+    if (!r.ok) {
+      toast(r.error || "Ошибка", "warn");
+      return;
+    }
+    _pvpAsyncLast = r;
+    const youWin = r.winner === "a";
+    if (typeof recordPvpOutcome === "function") {
+      recordPvpOutcome({
+        mode: "async",
+        youWin,
+        draw: r.winner === "draw",
+        rating: r.rating?.rating,
+        matchKey: "async:" + (r.attackId || Date.now()),
+      });
+    }
+    toast(
+      youWin ? "Победа над тенью!" : r.winner === "b" ? "Тень устояла" : "Ничья",
+      youWin ? "info" : "warn"
+    );
+    if (r.rating && typeof toast === "function") {
+      const d = r.rating.delta || 0;
+      toast(
+        "Рейтинг " + r.rating.rating + (d >= 0 ? " (+" + d + ")" : " (" + d + ")"),
+        "system"
+      );
+    }
+    renderPvpArena();
+  };
 
   const last = _pvpAsyncLast;
   body.innerHTML =
@@ -781,7 +931,8 @@ async function renderPvpAsyncSetup(body, my) {
     pvpSheetSummaryHtml(my, "Ваш лист", "a") +
     "</div>" +
     (logged
-      ? '<div class="pvp-setup">' +
+      ? pvpOnlineListHtml(online, "Атака") +
+        '<div class="pvp-setup">' +
         '<label class="pvp-field">Имя цели' +
         '<input type="text" id="pvpAsyncName" class="pvp-input" maxlength="48" placeholder="Имя персонажа" value="' +
         pvpEsc(_pvpNameInput) +
@@ -836,6 +987,7 @@ async function renderPvpAsyncSetup(body, my) {
 
   pvpBindTabs(body);
   pvpBindHelpButtons(body);
+  pvpBindOnlineList(body, "pvpAsyncName", asyncAttackFromName);
   const nameEl = document.getElementById("pvpAsyncName");
   if (nameEl) {
     nameEl.oninput = () => {
@@ -846,41 +998,7 @@ async function renderPvpAsyncSetup(body, my) {
   if (atk) {
     atk.onclick = async () => {
       const name = (document.getElementById("pvpAsyncName")?.value || "").trim();
-      if (!name) {
-        toast("Укажите имя", "warn");
-        return;
-      }
-      atk.disabled = true;
-      await pvpPublishCurrentSheet();
-      const r = await pvpAsyncAttackName(name);
-      atk.disabled = false;
-      if (!r.ok) {
-        toast(r.error || "Ошибка", "warn");
-        return;
-      }
-      _pvpAsyncLast = r;
-      const youWin = r.winner === "a";
-      if (typeof recordPvpOutcome === "function") {
-        recordPvpOutcome({
-          mode: "async",
-          youWin,
-          draw: r.winner === "draw",
-          rating: r.rating?.rating,
-          matchKey: "async:" + (r.attackId || Date.now()),
-        });
-      }
-      toast(
-        youWin ? "Победа над тенью!" : r.winner === "b" ? "Тень устояла" : "Ничья",
-        youWin ? "info" : "warn"
-      );
-      if (r.rating && typeof toast === "function") {
-        const d = r.rating.delta || 0;
-        toast(
-          "Рейтинг " + r.rating.rating + (d >= 0 ? " (+" + d + ")" : " (" + d + ")"),
-          "system"
-        );
-      }
-      renderPvpArena();
+      await asyncAttackFromName(name, atk);
     };
   }
 }
@@ -961,6 +1079,9 @@ function renderPvpOnlineFight(body) {
     name: m.sheetA?.name || m.meta?.aName,
     level: m.sheetA?.level,
     atkType: m.sheetA?.atkType,
+    raceId: m.sheetA?.raceId,
+    classId: m.sheetA?.classId,
+    genderId: m.sheetA?.genderId,
     hp: m.hpA,
     hpMax: m.hpMaxA,
   };
@@ -968,6 +1089,9 @@ function renderPvpOnlineFight(body) {
     name: m.sheetB?.name || m.meta?.bName,
     level: m.sheetB?.level,
     atkType: m.sheetB?.atkType,
+    raceId: m.sheetB?.raceId,
+    classId: m.sheetB?.classId,
+    genderId: m.sheetB?.genderId,
     hp: m.hpB,
     hpMax: m.hpMaxB,
   };

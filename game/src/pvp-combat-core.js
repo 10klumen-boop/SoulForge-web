@@ -188,6 +188,7 @@ function buildCombatSheet(input) {
     level,
     raceId,
     classId,
+    genderId: input.genderId || avatar.genderId || "male",
     professionId: input.professionId || avatar.professionId || null,
     atkType,
     patk,

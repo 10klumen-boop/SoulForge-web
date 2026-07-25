@@ -68,6 +68,10 @@ async function pvpLookupName(name) {
   return pvpSocialApi("/pvp/sheet/lookup" + q);
 }
 
+async function pvpFetchOnlineList() {
+  return pvpSocialApi("/pvp/online");
+}
+
 async function pvpChallengeName(toName) {
   const sheet = pvpCurrentSheet();
   const cid = pvpSocialCharacterId();

@@ -1399,7 +1399,7 @@
     flex-shrink: 0; font-size: 11px; font-weight: 500; color: var(--txt-dim);
     opacity: .9;
   }
-  .lb-nick::before { content: "? "; opacity: .7; }
+  .lb-nick::before { content: "· "; opacity: .7; }
   .lb-me-tag {
     flex-shrink: 0; font-size: 10px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; color: #1a1208; background: var(--gold-soft);
@@ -7463,6 +7463,23 @@
   }
   .pvp-list-row:last-child { border-bottom: 0; }
   .pvp-list-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pvp-online-list {
+    margin: 10px 0 8px;
+    max-height: 220px;
+    overflow: auto;
+  }
+  .pvp-online-row {
+    cursor: pointer;
+  }
+  .pvp-online-row:hover {
+    color: var(--txt);
+  }
+  .pvp-online-meta {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    opacity: .85;
+  }
   @media (max-width: 640px) {
     .pvp-lists { grid-template-columns: 1fr; }
   }

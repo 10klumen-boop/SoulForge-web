@@ -133,6 +133,23 @@ function attachPvpMethods(db, store) {
     WHERE cs.char_name = ? COLLATE NOCASE
     LIMIT 2
   `);
+  const stmtOnlineSheets = db.prepare(`
+    SELECT
+      cs.user_id,
+      cs.character_id,
+      cs.char_name,
+      cs.sheet_json,
+      cs.power_score,
+      cs.published_at,
+      u.nick
+    FROM combat_sheets cs
+    JOIN write_leases wl ON wl.user_id = cs.user_id
+    JOIN users u ON u.id = cs.user_id
+    WHERE wl.expires_at > ?
+      AND cs.user_id != ?
+    ORDER BY cs.power_score DESC
+    LIMIT 40
+  `);
 
   const stmtInsertChallenge = db.prepare(`
     INSERT INTO duel_challenges (
@@ -390,6 +407,29 @@ function attachPvpMethods(db, store) {
       characterId: row.character_id,
       sheet,
     };
+  };
+
+  store.pvpListOnline = function pvpListOnline(user, now) {
+    now = now || Date.now();
+    const rows = stmtOnlineSheets.all(now, user.id);
+    const out = [];
+    for (const row of rows) {
+      const sheet = sanitizeSheet(parseJson(row.sheet_json, null));
+      if (!sheet || !sheet.name) continue;
+      out.push({
+        name: sheet.name,
+        level: sheet.level,
+        atkType: sheet.atkType,
+        raceId: sheet.raceId,
+        classId: sheet.classId,
+        genderId: sheet.genderId,
+        power: row.power_score || 0,
+        nick: row.nick || "",
+        publishedAt: row.published_at,
+        characterId: row.character_id,
+      });
+    }
+    return { ok: true, rows: out };
   };
 
   store.pvpChallenge = function pvpChallenge(user, body, now) {

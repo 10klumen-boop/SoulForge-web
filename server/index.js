@@ -814,6 +814,19 @@ app.get("/pvp/sheet/lookup", (req, res) => {
   }
 });
 
+app.get("/pvp/online", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpListOnline(user, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /pvp/online", e);
+    return jsonError(res, 500, "Ошибка списка онлайн");
+  }
+});
+
 app.post("/duel/challenge", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
