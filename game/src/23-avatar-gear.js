@@ -209,8 +209,15 @@ function openAvatarEquipPicker(slotId) {
   syncAvatarEquipFilterUi(slotId);
   renderAvatarEquipList();
   setAvatarEquipOpen(true);
+  // На телефоне focus() у поиска поднимает клавиатуру — только desktop.
   const search = document.getElementById("avatarEquipSearch");
-  if (search) setTimeout(() => search.focus(), 30);
+  if (search) {
+    let finePointer = false;
+    try {
+      finePointer = typeof matchMedia === "function" && matchMedia("(pointer: fine)").matches;
+    } catch (_) {}
+    if (finePointer) setTimeout(() => search.focus(), 30);
+  }
 }
 
 function renderAvatarEquipList() {
