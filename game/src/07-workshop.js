@@ -450,11 +450,14 @@ function renderWorkshopArmor(body) {
     const adenaLow = adenaNeed > 0 && (state.adena || 0) < adenaNeed ? "color:#ff6b6b" : "";
     const stockFrag = fragLow ? ' style="' + fragLow + '"' : "";
     const stockOre = oreLow ? ' style="' + oreLow + '"' : "";
+    const adenaBit = adenaNeed
+      ? ' + <b style="' + adenaLow + '">' + fmtAdena(adenaNeed) + "</b>"
+      : "";
     card.innerHTML =
       '<div class="ch"><img src="' + armor.icon + '" alt=""><div class="cn">' + armor.name + '</div><div class="cg" style="background:' + (GRADE_TAG[grade] || "#5fcf6b") + ';color:#10131a">' + grade + "</div></div>" +
       '<div class="cinfo">Рецепт: <b style="' + fragLow + '"><img class="cryreq" src="' + frag.icon + '" alt="">' + r.fragQty + " " + frag.name + "</b><br>" +
-      '<b style="' + cryLow + '"><img class="cryreq" src="' + (CRYSTAL_ICON[grade] || "") + '" alt="">' + r.cry + " крист. " + grade + "</b> + <b style="' + oreLow + '">' + r.oreSoul + " Soul Ore</b>" +
-      (adenaNeed ? " + <b style=\"" + adenaLow + "\">" + fmtAdena(adenaNeed) + "</b>" : "") + "</div>" +
+      '<b style="' + cryLow + '"><img class="cryreq" src="' + (CRYSTAL_ICON[grade] || "") + '" alt="">' + r.cry + " крист. " + grade +
+      '</b> + <b style="' + oreLow + '">' + r.oreSoul + " Soul Ore</b>" + adenaBit + "</div>" +
       '<div class="cstock">Материал: <b' + stockFrag + ">" + fmt(haveFrag) + "</b> · Soul Ore: <b" + stockOre + ">" + fmt(haveOre) + "</b></div>" +
       '<div class="cbtns"><button class="craftb" ' + (can ? "" : "disabled") + ">Скрафтить</button></div>";
     card.querySelector(".craftb").onclick = () => {
