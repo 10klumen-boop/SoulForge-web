@@ -157,15 +157,28 @@ function pvpPlayRoundFx(root, pack) {
   }, 520);
 }
 
+function pvpHotkeyCodeOf(skillOrKey) {
+  if (!skillOrKey) return "";
+  if (typeof skillOrKey === "string") {
+    const letter = skillOrKey.trim().toUpperCase();
+    return /^[A-Z]$/.test(letter) ? "Key" + letter : "";
+  }
+  if (skillOrKey.hotkeyCode) return String(skillOrKey.hotkeyCode);
+  return pvpHotkeyCodeOf(skillOrKey.hotkey || "");
+}
+
 function pvpBasicActHtml(act, opts) {
   opts = opts || {};
   const disabled = !!opts.disabled;
   const ico = act === "guard" ? PVP_ICO_GUARD : PVP_ICO_ATTACK;
   const key = act === "guard" ? "G" : "A";
+  const code = act === "guard" ? "KeyG" : "KeyA";
   const name = act === "guard" ? "Защита" : "Атака";
   return (
     '<button type="button" class="pvp-act pvp-act-basic pvp-act-skill" data-pvp-act="' +
     act +
+    '" data-hotkey-code="' +
+    code +
     '"' +
     (disabled ? " disabled" : "") +
     ">" +
@@ -191,7 +204,7 @@ function pvpHelpHtml() {
     "<li>Оба в облачном аккаунте; хотя бы раз откройте Арену (публикуется боевой лист).</li>" +
     "<li>Введите имя → «Вызвать на дуэль».</li>" +
     "<li>Соперник принимает во входящих — раундовый бой.</li>" +
-    "<li>Ход: атака, защита или скилл Q/E/R/F (оба выбирают, затем расчёт).</li>" +
+    "<li>Ход: <b>A</b> атака, <b>G</b> защита, <b>Q/E/R/F</b> скиллы (оба выбирают, затем расчёт).</li>" +
     "<li>Нет хода ~90 сек — за молчуна ходит AI.</li>" +
     "</ol>" +
     "</div>" +
@@ -922,12 +935,14 @@ function renderPvpOnlineFight(body) {
       const cds = side === "a" ? m.cdsA : m.cdsB;
       const cd = (cds && cds[s.id]) || 0;
       const locked = cd > 0 || yourPending || finished;
+      const code = pvpHotkeyCodeOf(s);
       return (
         '<button type="button" class="pvp-act pvp-act-skill' +
         (locked ? " locked" : "") +
         '" data-pvp-act="skill" data-skill-id="' +
         s.id +
         '"' +
+        (code ? ' data-hotkey-code="' + pvpEsc(code) + '"' : "") +
         (locked ? " disabled" : "") +
         ">" +
         (s.icon ? '<img class="pvp-act-ico" src="' + pvpEsc(s.icon) + '" alt="">' : "") +
@@ -1139,12 +1154,14 @@ function renderPvpPracticeFight(body) {
   const skillBtns = skills
     .map((s) => {
       const cd = a.cds[s.id] || 0;
+      const code = pvpHotkeyCodeOf(s);
       return (
         '<button type="button" class="pvp-act pvp-act-skill' +
         (cd > 0 ? " locked" : "") +
         '" data-pvp-act="skill" data-skill-id="' +
         s.id +
         '"' +
+        (code ? ' data-hotkey-code="' + pvpEsc(code) + '"' : "") +
         (cd > 0 ? " disabled" : "") +
         ">" +
         (s.icon ? '<img class="pvp-act-ico" src="' + pvpEsc(s.icon) + '" alt="">' : "") +
@@ -1286,6 +1303,31 @@ function renderPvpPracticeResult(body) {
   }
 }
 
+function wirePvpArenaHotkeys() {
+  if (typeof document === "undefined" || document._pvpHotkeysBound) return;
+  document._pvpHotkeysBound = true;
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!document.getElementById("screen-pvp-arena")?.classList.contains("active")) return;
+    const tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
+    const modalOpen =
+      (document.getElementById("modalBackdrop") && !document.getElementById("modalBackdrop").hidden) ||
+      (document.getElementById("achModalBackdrop") && !document.getElementById("achModalBackdrop").hidden) ||
+      (document.getElementById("achRewardBackdrop") && !document.getElementById("achRewardBackdrop").hidden) ||
+      (document.getElementById("storyBackdrop") && !document.getElementById("storyBackdrop").hidden);
+    if (modalOpen) return;
+    const fight = document.querySelector("#pvpArenaBody .pvp-fight:not(.is-over)");
+    if (!fight) return;
+    const btn = fight.querySelector(
+      '[data-hotkey-code="' + e.code + '"]:not([disabled])'
+    );
+    if (!btn) return;
+    e.preventDefault();
+    btn.click();
+  });
+}
+
 function bindPvpArenaUi() {
   const tile = document.getElementById("pvpArenaTile");
   if (tile && !tile._pvpBound) {
@@ -1306,6 +1348,7 @@ function bindPvpArenaUi() {
       showPvpArenaHelp();
     };
   }
+  wirePvpArenaHotkeys();
 }
 
 if (typeof document !== "undefined") {

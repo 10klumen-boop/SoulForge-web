@@ -264,6 +264,7 @@ test("migrateAvatarProfessionFields clears unknown id", () => {
 test("armor affinity active when kind matches", () => {
   global.ARMOR_SETS = {
     mithril: { id: "mithril", kind: "heavy", pieces: [] },
+    manticore: { id: "manticore", kind: "light", pieces: [] },
   };
   global.isArmorItem = (it) => !!it && it.kind === "armor";
   global.armorItemDef = (it) => ({ setId: it.setId });
@@ -281,6 +282,48 @@ test("armor affinity active when kind matches", () => {
   ];
   assert.strictEqual(avatarEquippedArmorKind(), null);
   assert.ok(!avatarArmorAffinityActive(a));
+});
+
+test("rogue / hawkeye prefer light armor", () => {
+  assert.strictEqual(PROFESSIONS.rogue.armorPref, "light");
+  assert.strictEqual(PROFESSIONS.hawkeye.armorPref, "light");
+  assert.strictEqual(PROFESSIONS.silver_ranger.armorPref, "light");
+  assert.strictEqual(PROFESSIONS.phantom_ranger.armorPref, "light");
+  assert.strictEqual(
+    professionArmorPref({ classId: "fighter", professionId: "rogue", professionTier: 1 }),
+    "light"
+  );
+  assert.strictEqual(
+    professionArmorPref({ classId: "fighter", professionId: "hawkeye", professionTier: 2 }),
+    "light"
+  );
+  global.ARMOR_SETS = {
+    manticore: { id: "manticore", kind: "light", pieces: [] },
+    mithril: { id: "mithril", kind: "heavy", pieces: [] },
+  };
+  global.isArmorItem = (it) => !!it && it.kind === "armor";
+  global.armorItemDef = (it) => ({ setId: it.setId });
+  global.iterEquippedGear = () => [
+    { item: { kind: "armor", setId: "manticore" } },
+    { item: { kind: "armor", setId: "manticore" } },
+  ];
+  const rogue = { classId: "fighter", professionId: "rogue", professionTier: 1 };
+  assert.ok(avatarArmorAffinityActive(rogue));
+  global.iterEquippedGear = () => [
+    { item: { kind: "armor", setId: "mithril" } },
+    { item: { kind: "armor", setId: "mithril" } },
+  ];
+  assert.ok(!avatarArmorAffinityActive(rogue));
+  const ids = passiveSkillIdsGrantedToAvatar({
+    raceId: "human",
+    classId: "fighter",
+    level: 10,
+    professionId: "rogue",
+    professionTier: 1,
+    created: true,
+  });
+  assert.ok(ids.indexOf("fighter_light_armor") >= 0);
+  assert.ok(ids.indexOf("fighter_heavy_armor") < 0);
 });
 
 test("human mystic wizard→sorcerer path", () => {

@@ -169,8 +169,8 @@ _reg({
 });
 _reg({
   id: "rogue", name: "Разбойник", tier: 1, baseClass: "fighter", races: ["human"], from: null,
-  role: "dagger", passiveIds: ["prof_rogue"],
-  desc: "Кинжал и тень. Позже — Искатель сокровищ или Стрелок.",
+  role: "dagger", armorPref: "light", passiveIds: ["prof_rogue"],
+  desc: "Кинжал, тень и лёгкая броня. Позже — Искатель сокровищ или Стрелок.",
 });
 _reg({
   id: "gladiator", name: "Гладиатор", tier: 2, baseClass: "fighter", races: ["human"], from: ["warrior"],
@@ -248,8 +248,8 @@ _reg({
 });
 _reg({
   id: "treasure_hunter", name: "Искатель сокровищ", tier: 2, baseClass: "fighter", races: ["human"], from: ["rogue"],
-  role: "dagger", passiveIds: ["prof_treasure_hunter"],
-  desc: "Кинжалы и полные карманы.",
+  role: "dagger", armorPref: "light", passiveIds: ["prof_treasure_hunter"],
+  desc: "Кинжалы, лёгкая броня и полные карманы.",
   skillOverlay: [{
     replaceId: "cleave",
     skill: {
@@ -266,8 +266,8 @@ _reg({
 });
 _reg({
   id: "hawkeye", name: "Стрелок", tier: 2, baseClass: "fighter", races: ["human"], from: ["rogue"],
-  role: "archer", passiveIds: ["prof_hawkeye"],
-  desc: "Лук и точный глаз.",
+  role: "archer", armorPref: "light", passiveIds: ["prof_hawkeye"],
+  desc: "Лук, точный глаз и лёгкая броня.",
   skillOverlay: [{
     replaceId: "cleave",
     skill: {
@@ -398,8 +398,8 @@ _reg({
 });
 _reg({
   id: "elven_scout", name: "Разведчик", tier: 1, baseClass: "fighter", races: ["elf"], from: null,
-  role: "dagger", passiveIds: ["prof_generic_1st_light"],
-  desc: "Лук и лес. Позже — Следопыт или Серебряный рейнджер.",
+  role: "dagger", armorPref: "light", passiveIds: ["prof_generic_1st_light"],
+  desc: "Лёгкая броня, кинжал и лес. Позже — Следопыт или Серебряный рейнджер.",
 });
 _reg({
   id: "temple_knight", name: "Храмовый рыцарь", tier: 2, baseClass: "fighter", races: ["elf"], from: ["elven_knight"],
@@ -440,8 +440,8 @@ _reg({
 });
 _reg({
   id: "plainswalker", name: "Следопыт", tier: 2, baseClass: "fighter", races: ["elf"], from: ["elven_scout"],
-  role: "dagger", passiveIds: ["prof_generic_2nd_light"],
-  desc: "Тропы и кинжалы опушки.",
+  role: "dagger", armorPref: "light", passiveIds: ["prof_generic_2nd_light"],
+  desc: "Тропы, кинжалы и лёгкая броня опушки.",
   skillOverlay: [{
     replaceId: "cleave",
     skill: {
@@ -458,8 +458,8 @@ _reg({
 });
 _reg({
   id: "silver_ranger", name: "Серебряный рейнджер", tier: 2, baseClass: "fighter", races: ["elf"], from: ["elven_scout"],
-  role: "archer", passiveIds: ["prof_generic_2nd_light"],
-  desc: "Серебряная стрела Евы.",
+  role: "archer", armorPref: "light", passiveIds: ["prof_generic_2nd_light"],
+  desc: "Серебряная стрела Евы · лёгкая броня.",
   skillOverlay: [{
     replaceId: "cleave",
     skill: {
@@ -552,8 +552,8 @@ _reg({
 });
 _reg({
   id: "assassin", name: "Убийца", tier: 1, baseClass: "fighter", races: ["dark_elf"], from: null,
-  role: "dagger", passiveIds: ["prof_generic_1st_light"],
-  desc: "Тень Шилен. Позже — Странник бездны или Призрачный рейнджер.",
+  role: "dagger", armorPref: "light", passiveIds: ["prof_generic_1st_light"],
+  desc: "Тень Шилен и лёгкая броня. Позже — Странник бездны или Призрачный рейнджер.",
 });
 _reg({
   id: "shillien_knight", name: "Рыцарь Шилен", tier: 2, baseClass: "fighter", races: ["dark_elf"], from: ["palus_knight"],
@@ -594,8 +594,8 @@ _reg({
 });
 _reg({
   id: "abyss_walker", name: "Странник бездны", tier: 2, baseClass: "fighter", races: ["dark_elf"], from: ["assassin"],
-  role: "dagger", passiveIds: ["prof_generic_2nd_light"],
-  desc: "Кинжалы бездны.",
+  role: "dagger", armorPref: "light", passiveIds: ["prof_generic_2nd_light"],
+  desc: "Кинжалы бездны · лёгкая броня.",
   skillOverlay: [{
     replaceId: "cleave",
     skill: {
@@ -612,8 +612,8 @@ _reg({
 });
 _reg({
   id: "phantom_ranger", name: "Призрачный рейнджер", tier: 2, baseClass: "fighter", races: ["dark_elf"], from: ["assassin"],
-  role: "archer", passiveIds: ["prof_generic_2nd_light"],
-  desc: "Стрелы из мглы.",
+  role: "archer", armorPref: "light", passiveIds: ["prof_generic_2nd_light"],
+  desc: "Стрелы из мглы · лёгкая броня.",
   skillOverlay: [{
     replaceId: "cleave",
     skill: {

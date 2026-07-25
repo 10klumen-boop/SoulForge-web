@@ -34,6 +34,10 @@ function combatRole(avatar) {
 function professionArmorPref(avatar) {
   const p = currentProfession(avatar);
   if (p?.armorPref) return p.armorPref;
+  const role = p?.role || combatRole(avatar);
+  if (typeof ROLE_ARMOR_PREF !== "undefined" && ROLE_ARMOR_PREF[role]) {
+    return ROLE_ARMOR_PREF[role];
+  }
   const cid = starterClassId(avatar);
   if (typeof STARTER_ARMOR_PREF !== "undefined" && STARTER_ARMOR_PREF[cid]) {
     return STARTER_ARMOR_PREF[cid];

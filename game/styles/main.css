@@ -5377,6 +5377,17 @@
   }
   .ws-armor-set-card,
   .ws-armor-kind-card { min-height: 168px; }
+  .ws-armor-kind-card.is-pref {
+    border-color: rgba(212, 175, 90, 0.55);
+    box-shadow: 0 0 0 1px rgba(212, 175, 90, 0.25), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  .ws-armor-pref-mark {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+  }
   .ws-armor-set-card { min-height: 210px; align-items: stretch; }
   .ws-armor-set-meta {
     font-size: 12px;

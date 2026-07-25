@@ -88,6 +88,9 @@ function pvpRemapSkill(farmSkill) {
     name: farmSkill.name,
     icon: farmSkill.icon,
     hotkey: farmSkill.hotkey,
+    hotkeyCode:
+      farmSkill.hotkeyCode ||
+      (farmSkill.hotkey ? "Key" + String(farmSkill.hotkey).toUpperCase() : null),
     unlockLevel: farmSkill.unlockLevel || 1,
     farmEffect: farmSkill.effect,
     pvpEffect: remap.pvpEffect,

@@ -14,7 +14,18 @@ function passiveSkillIdsGrantedToAvatar(avatar) {
   if (Array.isArray(raceIds)) ids.push(...raceIds);
   const classMap = typeof CLASS_PASSIVE_SKILL_IDS !== "undefined" ? CLASS_PASSIVE_SKILL_IDS : null;
   const classIds = classMap && a.classId ? classMap[a.classId] : null;
-  if (Array.isArray(classIds)) ids.push(...classIds);
+  if (Array.isArray(classIds)) {
+    const armorPref =
+      typeof professionArmorPref === "function" ? professionArmorPref(a) : null;
+    classIds.forEach((id) => {
+      // Воин: heavy → «Тяжёлая», light (разбойник/стрелок/craft) → «Лёгкая»
+      if (id === "fighter_heavy_armor" || id === "fighter_light_armor") {
+        ids.push(armorPref === "light" ? "fighter_light_armor" : "fighter_heavy_armor");
+        return;
+      }
+      ids.push(id);
+    });
+  }
   // Текущая профессия (2nd заменяет пассивы 1st — только leaf)
   if (typeof professionPassiveIds === "function") {
     const profIds = professionPassiveIds(a);

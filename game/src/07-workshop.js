@@ -144,6 +144,19 @@ function renderWorkshopArmorTypeHub(body) {
   body.appendChild(hub);
   const grid = hub.querySelector(".ws-armor-kind-grid");
   const kinds = typeof ARMOR_KINDS !== "undefined" ? ARMOR_KINDS : [];
+  const pref =
+    typeof professionArmorPref === "function" ? professionArmorPref(state.avatar) : null;
+  if (pref) {
+    const prefLabel =
+      (typeof ARMOR_KIND_LABELS !== "undefined" && ARMOR_KIND_LABELS[pref]) || pref;
+    const hint = hub.querySelector(".ws-armor-hub-hint");
+    if (hint) {
+      hint.innerHTML =
+        "Твоё сродство: <b>" +
+        prefLabel +
+        "</b> (≥2 куска → +6% урон/DEF). Дальше — сет и крафт.";
+    }
+  }
   kinds.forEach((k) => {
     const counts = workshopArmorKindReady(k.id);
     const ico =
@@ -151,11 +164,13 @@ function renderWorkshopArmorTypeHub(body) {
       "icons/armor_mithril_breastplate_i00.png";
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "ws-hub-card ws-armor-kind-card";
+    btn.className =
+      "ws-hub-card ws-armor-kind-card" + (pref && k.id === pref ? " is-pref" : "");
     btn.dataset.kind = k.id;
     btn.innerHTML =
       '<img class="ws-hub-ico-img" src="' + ico + '" alt="" draggable="false">' +
       "<strong>" + k.name + "</strong>" +
+      (pref && k.id === pref ? '<span class="ws-armor-pref-mark">сродство</span>' : "") +
       '<span class="ws-armor-set-meta">' +
       (counts.ready ? "можно " + counts.ready + "/" + counts.total : k.short) +
       "</span>" +
