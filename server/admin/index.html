@@ -1099,6 +1099,21 @@
       html += "</tbody></table>";
     }
 
+    html += "<h3>Склад аккаунта (" + (r.accountSnapshots || []).length + ")</h3>";
+    if (!(r.accountSnapshots || []).length) html += '<p class="muted">Пока нет снимков склада/почты</p>';
+    else {
+      html += "<table><thead><tr><th>#</th><th>Seq</th><th>Склад</th><th>Почта</th><th>Когда</th><th></th></tr></thead><tbody>";
+      (r.accountSnapshots || []).forEach((s) => {
+        html += "<tr><td>" + s.id + "</td><td>" + s.seq + "</td>" +
+          "<td>" + (s.warehouseCount || 0) + " шт</td>" +
+          "<td>" + (s.mailCount || 0) + "</td>" +
+          "<td><small>" + fmtTs(s.createdAt) + "</small></td>" +
+          '<td class="acts"><button type="button" class="ok" data-restore-wh="' + userId + '" data-sid="' + s.id + '">Restore WH</button>' +
+          '<button type="button" class="ghost" data-view-wh="' + userId + '" data-sid="' + s.id + '">JSON</button></td></tr>';
+      });
+      html += "</tbody></table>";
+    }
+
     html += "<h3>События (" + (r.events || []).length + ")</h3>";
     if (!(r.events || []).length) html += '<p class="muted">Пока нет</p>';
     else {
@@ -1151,6 +1166,12 @@
     $("detailBody").querySelectorAll("[data-view]").forEach((btn) => {
       btn.onclick = () => viewBackup(Number(btn.dataset.view), Number(btn.dataset.bid));
     });
+    $("detailBody").querySelectorAll("[data-restore-wh]").forEach((btn) => {
+      btn.onclick = () => restoreAccountSnapshot(Number(btn.dataset.restoreWh), Number(btn.dataset.sid));
+    });
+    $("detailBody").querySelectorAll("[data-view-wh]").forEach((btn) => {
+      btn.onclick = () => viewAccountSnapshot(Number(btn.dataset.viewWh), Number(btn.dataset.sid));
+    });
     const fe = $("dFilterEv");
     if (fe) fe.onclick = () => {
       $("evNick").value = u.nick;
@@ -1195,6 +1216,41 @@
     if (!w) { alert(JSON.stringify(r.backup, null, 2)); return; }
     w.document.write("<pre style='background:#111;color:#ddd;padding:12px;font:12px monospace'>" +
       esc(JSON.stringify(r.backup, null, 2)) + "</pre>");
+  }
+
+  async function restoreAccountSnapshot(userId, snapshotId) {
+    if (!confirm("Восстановить склад/почту аккаунта из снимка #" + snapshotId + "?\nУровень персонажей не меняется.")) return;
+    const r = await api("/admin/users/" + userId + "/account-snapshots/" + snapshotId + "/restore", { method: "POST", body: {} });
+    if (r.ok) {
+      alert("OK · seq=" + r.seq + " · склад " + (r.warehouseCount || 0) + " · почта " + (r.mailCount || 0));
+      if (state.selectedUserId === userId) openUser(userId);
+    } else alert(r.error || "Ошибка");
+  }
+
+  async function viewAccountSnapshot(userId, snapshotId) {
+    const r = await api("/admin/users/" + userId + "/account-snapshots/" + snapshotId);
+    if (!r.ok) { alert(r.error || "Ошибка"); return; }
+    const snap = r.snapshot || {};
+    const items = snap.payload?.accountWarehouse?.items || [];
+    const preview = items.map((it) => ({
+      uid: it.uid,
+      id: it.id,
+      plus: it.plus,
+      kind: it.kind,
+    }));
+    const body = {
+      id: snap.id,
+      seq: snap.seq,
+      warehouseCount: snap.warehouseCount,
+      mailCount: snap.mailCount,
+      createdAt: snap.createdAt,
+      warehouseItems: preview,
+      payload: snap.payload,
+    };
+    const w = window.open("", "_blank", "width=720,height=800");
+    if (!w) { alert(JSON.stringify(body, null, 2)); return; }
+    w.document.write("<pre style='background:#111;color:#ddd;padding:12px;font:12px monospace'>" +
+      esc(JSON.stringify(body, null, 2)) + "</pre>");
   }
 
   function refreshTab() {

@@ -1255,6 +1255,45 @@ admin.post("/users/:id/backups/:backupId/restore", (req, res) => {
   res.json({ ok: true, ...result });
 });
 
+admin.get("/users/:id/account-snapshots", (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!store.getUserById(userId)) return jsonError(res, 404, "Пользователь не найден");
+  const rows = store.listAccountSnapshots(userId, Number(req.query.limit) || 40);
+  res.json({ ok: true, rows });
+});
+
+admin.get("/users/:id/account-snapshots/:snapshotId", (req, res) => {
+  const userId = Number(req.params.id);
+  const snapshotId = Number(req.params.snapshotId);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!Number.isInteger(snapshotId) || snapshotId < 1) return jsonError(res, 400, "Некорректный snapshotId");
+  const row = store.getAccountSnapshot(userId, snapshotId);
+  if (!row) return jsonError(res, 404, "Снимок не найден");
+  res.json({ ok: true, snapshot: row });
+});
+
+admin.post("/users/:id/account-snapshots/:snapshotId/restore", (req, res) => {
+  const userId = Number(req.params.id);
+  const snapshotId = Number(req.params.snapshotId);
+  if (!Number.isInteger(userId) || userId < 1) return jsonError(res, 400, "Некорректный id");
+  if (!Number.isInteger(snapshotId) || snapshotId < 1) return jsonError(res, 400, "Некорректный snapshotId");
+  const user = store.getUserById(userId);
+  if (!user) return jsonError(res, 404, "Пользователь не найден");
+  const result = store.restoreAccountSnapshot(user, snapshotId);
+  if (!result.ok) {
+    const map = {
+      not_found: [404, "Снимок не найден"],
+      bad_snapshot: [500, "Повреждённый снимок"],
+      no_save: [404, "Нет сейва"],
+      bad_save: [500, "Повреждённый сейв"],
+    };
+    const [code, msg] = map[result.error] || [400, result.error || "Ошибка"];
+    return jsonError(res, code, msg);
+  }
+  res.json({ ok: true, ...result });
+});
+
 app.use("/admin", admin);
 
 if (fs.existsSync(ADMIN_DIR)) {

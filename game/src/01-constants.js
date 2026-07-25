@@ -5,7 +5,14 @@ const GAME_VERSION = "0.49.0";
 /** Кэш фона главного меню (assets/ui/home_bg.png) */
 const HOME_BG_VER = 1;
 const WMAP = {}; WEAPONS.forEach((w) => { WMAP[w.id] = w; });
-function uid() { return "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function uid() {
+  return (
+    "i" +
+    Date.now().toString(36) +
+    Math.random().toString(36).slice(2, 10) +
+    Math.random().toString(36).slice(2, 6)
+  );
+}
 function starterInventory() { return []; }
 
 // Свитки заточки — тирные иконки (game/icons/scrolls/, build_scroll_tier_icons.py).

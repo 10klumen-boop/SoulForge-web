@@ -84,6 +84,17 @@ function persistAccountStorage() {
   else if (typeof scheduleCloudSave === "function") scheduleCloudSave();
 }
 
+function noteWarehouseItemEvent(event, item) {
+  if (typeof logCharacterEvent !== "function" || !item) return;
+  logCharacterEvent(event, {
+    uid: item.uid || null,
+    itemId: item.id || null,
+    plus: item.plus != null ? item.plus : 0,
+    kind: item.kind || null,
+    fromCharId: state.activeCharacterId || null,
+  });
+}
+
 /** Положить предмет из инвентаря активного персонажа на склад аккаунта. */
 function depositInvItemToWarehouse(uid) {
   ensureAccountStorage();
@@ -110,6 +121,7 @@ function depositInvItemToWarehouse(uid) {
   if (!taken) return false;
   state.accountWarehouse.items.push(cloneInvItem(taken));
   persistAccountStorage();
+  noteWarehouseItemEvent("warehouse_deposit", taken);
   if (typeof toast === "function") {
     const def = typeof invItemDef === "function" ? invItemDef(taken) : null;
     toast("На склад: " + (def?.name || "?"), "success");
@@ -140,6 +152,7 @@ function withdrawWarehouseItemToInv(uid) {
   if (typeof ProgressStore !== "undefined") ProgressStore.set("inventory", inv);
   else state.inventory = inv;
   persistAccountStorage();
+  noteWarehouseItemEvent("warehouse_withdraw", taken);
   if (typeof toast === "function") {
     const def = typeof invItemDef === "function" ? invItemDef(taken) : null;
     toast("В инвентарь: " + (def?.name || "?"), "success");

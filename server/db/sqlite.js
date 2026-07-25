@@ -206,6 +206,18 @@ function initSchema(db) {
     );
     CREATE INDEX IF NOT EXISTS idx_character_backups_user_char
       ON character_backups(user_id, character_id, created_at DESC);
+    CREATE TABLE IF NOT EXISTS account_snapshots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      seq INTEGER NOT NULL DEFAULT 0,
+      payload TEXT NOT NULL,
+      warehouse_count INTEGER NOT NULL DEFAULT 0,
+      mail_count INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_account_snapshots_user
+      ON account_snapshots(user_id, created_at DESC);
     CREATE TABLE IF NOT EXISTS balance_alerts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -261,11 +273,17 @@ const CHARACTER_EVENT_TYPES = new Set([
   "chat_clan_create",
   "chat_clan_invite",
   "chat_clan_leave",
+  "warehouse_deposit",
+  "warehouse_withdraw",
 ]);
 
 const BACKUP_KEEP_PER_CHAR = Math.max(
   5,
   Math.min(200, Number(process.env.SOULFORGE_BACKUP_KEEP || 40))
+);
+const ACCOUNT_SNAPSHOT_KEEP = Math.max(
+  10,
+  Math.min(120, Number(process.env.SOULFORGE_ACCOUNT_SNAPSHOT_KEEP || 60))
 );
 
 function createSqliteStore(opts) {
@@ -434,6 +452,30 @@ function createSqliteStore(opts) {
     ORDER BY created_at DESC
     LIMIT ?
   `);
+  const stmtInsertAccountSnapshot = db.prepare(`
+    INSERT INTO account_snapshots (
+      user_id, seq, payload, warehouse_count, mail_count, created_at
+    ) VALUES (
+      @user_id, @seq, @payload, @warehouse_count, @mail_count, @created_at
+    )
+  `);
+  const stmtListAccountSnapshotIds = db.prepare(`
+    SELECT id FROM account_snapshots
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+  `);
+  const stmtDeleteAccountSnapshotById = db.prepare("DELETE FROM account_snapshots WHERE id = ?");
+  const stmtGetAccountSnapshot = db.prepare(
+    "SELECT * FROM account_snapshots WHERE id = ? AND user_id = ?"
+  );
+  const stmtListAccountSnapshots = db.prepare(`
+    SELECT id, user_id, seq, warehouse_count, mail_count, created_at,
+           length(payload) AS payload_bytes
+    FROM account_snapshots
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+    LIMIT ?
+  `);
   const stmtListEvents = db.prepare(`
     SELECT id, user_id, character_id, char_name, event, payload, adena, client_at, created_at
     FROM character_events
@@ -448,6 +490,47 @@ function createSqliteStore(opts) {
     const drop = ids.slice(BACKUP_KEEP_PER_CHAR);
     for (const id of drop) stmtDeleteBackupById.run(id);
     return drop.length;
+  }
+
+  function pruneAccountSnapshots(userId) {
+    const ids = stmtListAccountSnapshotIds.all(userId).map((r) => r.id);
+    if (ids.length <= ACCOUNT_SNAPSHOT_KEEP) return 0;
+    const drop = ids.slice(ACCOUNT_SNAPSHOT_KEEP);
+    for (const id of drop) stmtDeleteAccountSnapshotById.run(id);
+    return drop.length;
+  }
+
+  function buildAccountSnapshotPayload(data) {
+    const wh = data?.accountWarehouse && typeof data.accountWarehouse === "object"
+      ? data.accountWarehouse
+      : { items: [] };
+    const mail = data?.accountMail && typeof data.accountMail === "object"
+      ? data.accountMail
+      : { messages: [] };
+    const items = Array.isArray(wh.items) ? wh.items : [];
+    const messages = Array.isArray(mail.messages) ? mail.messages : [];
+    return {
+      accountWarehouse: { items },
+      accountMail: { messages },
+      warehouseCount: items.length,
+      mailCount: messages.length,
+    };
+  }
+
+  function insertAccountSnapshot(user, seq, data, now) {
+    const snap = buildAccountSnapshotPayload(data);
+    stmtInsertAccountSnapshot.run({
+      user_id: user.id,
+      seq: Math.max(0, Math.floor(Number(seq) || 0)),
+      payload: JSON.stringify({
+        accountWarehouse: snap.accountWarehouse,
+        accountMail: snap.accountMail,
+      }),
+      warehouse_count: snap.warehouseCount,
+      mail_count: snap.mailCount,
+      created_at: now,
+    });
+    pruneAccountSnapshots(user.id);
   }
 
   function insertBackupRows(user, seq, clientVersion, data, now) {
@@ -506,6 +589,7 @@ function createSqliteStore(opts) {
       pruneCharacterBackups(user.id, "legacy");
       n++;
     }
+    insertAccountSnapshot(user, seq, data, now);
     return n;
   }
 
@@ -1059,6 +1143,108 @@ function createSqliteStore(opts) {
       return { ok: true, seq: nextSeq, summary, characterId, backupId };
     },
 
+    listAccountSnapshots(userId, limit) {
+      limit = Math.min(200, Math.max(1, limit || 40));
+      return stmtListAccountSnapshots.all(userId, limit).map((r) => ({
+        id: r.id,
+        userId: r.user_id,
+        seq: r.seq,
+        warehouseCount: r.warehouse_count,
+        mailCount: r.mail_count,
+        payloadBytes: r.payload_bytes,
+        createdAt: r.created_at,
+      }));
+    },
+
+    getAccountSnapshot(userId, snapshotId) {
+      const row = stmtGetAccountSnapshot.get(snapshotId, userId);
+      if (!row) return null;
+      let payload = null;
+      try {
+        payload = JSON.parse(row.payload);
+      } catch (_) {
+        return null;
+      }
+      return {
+        id: row.id,
+        userId: row.user_id,
+        seq: row.seq,
+        warehouseCount: row.warehouse_count,
+        mailCount: row.mail_count,
+        createdAt: row.created_at,
+        payload,
+      };
+    },
+
+    /**
+     * Restore only accountWarehouse + accountMail. Does not change character levels.
+     */
+    restoreAccountSnapshot(user, snapshotId) {
+      const snap = stmtGetAccountSnapshot.get(snapshotId, user.id);
+      if (!snap) return { ok: false, error: "not_found" };
+      let payload;
+      try {
+        payload = JSON.parse(snap.payload);
+      } catch (_) {
+        return { ok: false, error: "bad_snapshot" };
+      }
+      const save = stmtGetSave.get(user.id);
+      if (!save) return { ok: false, error: "no_save" };
+      let data;
+      try {
+        data = JSON.parse(save.payload);
+      } catch (_) {
+        return { ok: false, error: "bad_save" };
+      }
+      const prevLevel = save.active_level;
+      const wh = payload.accountWarehouse && typeof payload.accountWarehouse === "object"
+        ? payload.accountWarehouse
+        : { items: [] };
+      const mail = payload.accountMail && typeof payload.accountMail === "object"
+        ? payload.accountMail
+        : { messages: [] };
+      data.accountWarehouse = {
+        items: Array.isArray(wh.items) ? wh.items : [],
+      };
+      data.accountMail = {
+        messages: Array.isArray(mail.messages) ? mail.messages : [],
+      };
+      const nextSeq = Math.max(0, Math.floor(Number(save.seq) || 0)) + 1;
+      const now = Date.now();
+      const { summary } = this.persistPlayerSave(
+        user,
+        nextSeq,
+        now,
+        save.client_version || "restore_wh",
+        data
+      );
+      stmtInsertEvent.run({
+        user_id: user.id,
+        character_id: "account",
+        char_name: save.active_name || null,
+        event: "admin",
+        payload: JSON.stringify({
+          action: "restore_account_snapshot",
+          snapshotId,
+          warehouseCount: data.accountWarehouse.items.length,
+          mailCount: data.accountMail.messages.length,
+          fromSeq: snap.seq,
+        }),
+        adena: Math.max(0, Math.floor(Number(save.adena) || 0)),
+        client_at: null,
+        created_at: now,
+      });
+      return {
+        ok: true,
+        seq: nextSeq,
+        summary,
+        snapshotId,
+        warehouseCount: data.accountWarehouse.items.length,
+        mailCount: data.accountMail.messages.length,
+        activeLevelUnchanged: summary.active_level === prevLevel,
+      };
+    },
+
     getLeaderboard(mode, limit) {
       limit = Math.min(100, Math.max(1, limit || 50));
       let order = "s.max_plus DESC, s.updated_at ASC";
@@ -1126,6 +1312,13 @@ function createSqliteStore(opts) {
         saves: stmtCountSaves.get().n,
         events: db.prepare("SELECT COUNT(*) AS n FROM character_events").get().n,
         backups: db.prepare("SELECT COUNT(*) AS n FROM character_backups").get().n,
+        accountSnapshots: (() => {
+          try {
+            return db.prepare("SELECT COUNT(*) AS n FROM account_snapshots").get().n;
+          } catch (_) {
+            return 0;
+          }
+        })(),
         alerts: db.prepare("SELECT COUNT(*) AS n FROM balance_alerts").get().n,
         chat: (() => {
           try {
@@ -1226,6 +1419,7 @@ function createSqliteStore(opts) {
         scores: this.listUserScores(userId),
         events: this.listCharacterEvents(userId, null, 80),
         backups: this.listCharacterBackups(userId, null, 40),
+        accountSnapshots: this.listAccountSnapshots(userId, 40),
       };
     },
 
@@ -1620,6 +1814,12 @@ function createSqliteStore(opts) {
     deleteUser(userId) {
       stmtDeleteUser.run(userId);
     },
+
+    close() {
+      try {
+        db.close();
+      } catch (_) {}
+    },
   };
 
   const persistDeps = {
@@ -1635,4 +1835,9 @@ function createSqliteStore(opts) {
   return store;
 }
 
-module.exports = { createSqliteStore, CHARACTER_EVENT_TYPES, BACKUP_KEEP_PER_CHAR };
+module.exports = {
+  createSqliteStore,
+  CHARACTER_EVENT_TYPES,
+  BACKUP_KEEP_PER_CHAR,
+  ACCOUNT_SNAPSHOT_KEEP,
+};
