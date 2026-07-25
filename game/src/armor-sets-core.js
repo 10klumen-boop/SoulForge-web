@@ -112,7 +112,8 @@ function addArmorFrag(fragId, qty, meta) {
     return next;
   });
   if (typeof save === "function") save();
-  if (!meta?.silent && typeof toast === "function") {
+  // Без toast: материалы часто падают и перекрывают action bar; feedback — floatText / дроп сессии.
+  if (meta?.notify && typeof toast === "function") {
     toast("🔩 " + def.name + " ×" + qty, "loot");
   }
   if (typeof logCharacterEvent === "function") {

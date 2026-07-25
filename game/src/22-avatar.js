@@ -4,9 +4,11 @@
 function renderAvatarHub() {
   migrateAvatar();
   const hub = document.getElementById("avatarHub");
+  const xpWrap = document.getElementById("topbarXp");
   if (!hub) return;
   if (needsAvatarSetup()) {
     hub.hidden = true;
+    if (xpWrap) xpWrap.hidden = true;
     return;
   }
   hub.hidden = false;
@@ -23,9 +25,18 @@ function renderAvatarHub() {
   } else if (icon) icon.src = info.icon;
   if (nameEl) nameEl.textContent = state.avatar.name;
   if (metaEl) {
-    metaEl.textContent =
-      info.className + " · ур. " + prog.level +
-      (prog.level >= AVATAR_MAX_LEVEL ? "" : " · " + prog.xp + "/" + prog.need);
+    metaEl.textContent = info.className + " · ур. " + prog.level;
+  }
+  const xpBar = document.getElementById("topbarXpBar");
+  const xpLabel = document.getElementById("topbarXpLabel");
+  if (xpWrap && xpBar && xpLabel) {
+    xpWrap.hidden = false;
+    const maxed = prog.level >= AVATAR_MAX_LEVEL;
+    xpBar.style.width = (maxed ? 100 : prog.pct) + "%";
+    xpLabel.textContent = maxed ? "MAX" : prog.xp + " / " + prog.need;
+    xpWrap.title = maxed
+      ? "Максимальный уровень"
+      : prog.xp + " / " + prog.need + " опыта души";
   }
 }
 

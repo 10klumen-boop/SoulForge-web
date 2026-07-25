@@ -161,6 +161,17 @@ function finishInvPointerDrag(e) {
   clearInvDragUi();
 }
 
+function invDragPreferScroll(e, dx, dy) {
+  // На таче вертикальный жест — скролл экрана, не drag слота.
+  if (e.pointerType && e.pointerType !== "touch") return false;
+  try {
+    if (typeof matchMedia === "function" && matchMedia("(pointer: fine)").matches && e.pointerType === "mouse") {
+      return false;
+    }
+  } catch (_) {}
+  return Math.abs(dy) >= Math.abs(dx);
+}
+
 document.addEventListener("pointermove", (e) => {
   if (!invPointerDrag || invPointerDrag.pointerId !== e.pointerId) return;
   if (invPointerDrag.armed) {
@@ -173,6 +184,10 @@ document.addEventListener("pointermove", (e) => {
   const dx = e.clientX - invPointerDrag.x;
   const dy = e.clientY - invPointerDrag.y;
   if (dx * dx + dy * dy < 36) return;
+  if (invDragPreferScroll(e, dx, dy)) {
+    clearInvDragUi();
+    return;
+  }
   e.preventDefault();
   armInvPointerDrag(e);
 });

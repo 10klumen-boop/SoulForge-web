@@ -226,14 +226,22 @@ function renderAvatarEquipList() {
     list.innerHTML = '<p class="avatar-equip-empty">' + msg + "</p>";
     return;
   }
-  const bestPower = avatarEquipItemPower(options[0]);
+  const equipped =
+    typeof ensureAvatarGear === "function" ? ensureAvatarGear()[_avatarEquipSlot] : null;
+  const equippedPower = avatarEquipItemPower(equipped);
+  const topPower = avatarEquipItemPower(options[0]);
   options.forEach((it, idx) => {
     const def = invItemDef(it);
     if (!def) return;
     const btn = document.createElement("button");
     btn.type = "button";
     const isArmor = typeof isArmorItem === "function" && isArmorItem(it);
-    const isBest = idx === 0 && bestPower > 0 && !isAccessoryItem(it);
+    // «лучшее» только если сильнее того, что уже надето (экип не в инвентаре)
+    const isBest =
+      idx === 0 &&
+      topPower > 0 &&
+      topPower > equippedPower &&
+      !isAccessoryItem(it);
     btn.className =
       "avatar-equip-opt" +
       (isAccessoryItem(it) ? " g-epic" : " g-" + def.grade) +

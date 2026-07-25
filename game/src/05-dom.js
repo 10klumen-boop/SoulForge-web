@@ -174,10 +174,19 @@ function showConfirm(opts) {
   });
 }
 
+/** Визуальные #toast-попапы выключены — текст только в журнал (gameLog). */
+const TOAST_POPUPS_ENABLED = false;
+
 function toast(msg, kind) {
   const k = kind || "info";
   // system — служебные уведомления (save/seal), не в журнал
   if (k !== "system" && typeof gameLog === "function") gameLog(msg, k);
-  const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 1800);
+  if (!TOAST_POPUPS_ENABLED) return;
+  const t = $("#toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove("show"), 1800);
 }
 const MAX_PLUS = 16;
