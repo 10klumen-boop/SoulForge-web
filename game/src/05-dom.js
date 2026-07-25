@@ -14,16 +14,67 @@ function fmtAdena(n) {
   if (n >= 1e3) return (n/1e3).toFixed(0) + "k";
   return String(n);
 }
+
+const SCREEN_LEAVE_MS = 300;
+let _screenLeaveTimer = null;
+
+function prefersReducedMotion() {
+  try {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  } catch (_) {
+    return false;
+  }
+}
+
 function show(screen) {
   if (typeof cloudGateScreen === "function" && !cloudGateScreen(screen)) {
     screen = "login";
   }
-  $$(".screen").forEach((s) => s.classList.remove("active"));
   const target = $("#screen-" + screen);
   if (!target) return;
-  target.classList.add("active");
+
+  const reduced = prefersReducedMotion();
+  const prev = gameDoc().querySelector(".screen.active");
+  const same = prev === target;
+
+  if (_screenLeaveTimer) {
+    clearTimeout(_screenLeaveTimer);
+    _screenLeaveTimer = null;
+  }
+  gameDoc().querySelectorAll(".screen.is-leaving").forEach((el) => {
+    if (el !== prev) el.classList.remove("is-leaving");
+  });
+
+  if (!same) {
+    if (prev) {
+      if (reduced) {
+        prev.classList.remove("active", "is-leaving");
+      } else {
+        prev.classList.remove("active");
+        prev.classList.add("is-leaving");
+        const leaving = prev;
+        _screenLeaveTimer = setTimeout(() => {
+          leaving.classList.remove("is-leaving");
+          _screenLeaveTimer = null;
+        }, SCREEN_LEAVE_MS);
+      }
+    } else {
+      $$(".screen").forEach((s) => s.classList.remove("active", "is-leaving"));
+    }
+
+    target.classList.remove("is-leaving", "active");
+    if (!reduced) {
+      // перезапуск enter-анимации при каждом входе на экран
+      void target.offsetWidth;
+    }
+    target.classList.add("active");
+  } else {
+    target.classList.remove("is-leaving");
+    target.classList.add("active");
+  }
+
   const app = gameDoc().querySelector(".app");
-  const subScreens = new Set(["mine", "ach", "avatar", "quests", "inv", "shop", "ench", "acc"]);
+  const subScreens = new Set(["mine", "ach", "avatar", "quests", "inv", "shop", "ench", "acc", "account-storage", "player-mail", "market", "pvp-arena"]);
   if (app) {
     const titleScreens = ["home", "settings", "patch", "author", "characters"];
     app.classList.toggle("hub-screen", screen === "menu");

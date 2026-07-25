@@ -1,7 +1,7 @@
 // ===== Рынок UI =====
 
 let _marketTab = "browse"; // browse | sell | mine
-let _marketFilterKind = ""; // "" | weapon | crystal | material | shot
+let _marketFilterKind = ""; // "" | weapon | armor | armor_piece | crystal | material | shot
 let _marketFilterGrade = ""; // "" | D | C | B | A
 let _marketSort = "new"; // new | price_asc | price_desc
 let _marketBusy = false;
@@ -10,6 +10,8 @@ let _marketBrowseCache = [];
 const MARKET_KIND_TABS = [
   { id: "", label: "Все", icon: "icons/warehouse_chest.png?v=1" },
   { id: "weapon", label: "Оружие", icon: "icons/weapon_elven_sword_i00.png" },
+  { id: "armor", label: "Броня", icon: "icons/btn_armor.png" },
+  { id: "armor_piece", label: "Куски", icon: "icons/etc_crystal_white_i00.png" },
   { id: "crystal", label: "Кристаллы", icon: "icons/etc_crystal_blue_i00.png" },
   { id: "material", label: "Руда", icon: "icons/etc_crystal_white_i00.png" },
   { id: "shot", label: "Заряды", icon: "icons/etc_spirit_bullet_blue_i00.png" },
@@ -34,7 +36,18 @@ function marketKindTabIcon(tab) {
   if (tab.id === "crystal" && typeof CRYSTAL_ICON !== "undefined") return CRYSTAL_ICON.D || tab.icon;
   if (tab.id === "material" && typeof ORE !== "undefined") return ORE.soul?.icon || tab.icon;
   if (tab.id === "shot" && typeof SHOT_ICON !== "undefined") return SHOT_ICON.soul?.D || tab.icon;
+  if (tab.id === "armor" && typeof UI_MENU_ICONS !== "undefined" && UI_MENU_ICONS.armor) {
+    return UI_MENU_ICONS.armor;
+  }
+  if (tab.id === "armor_piece" && typeof ARMOR_FRAGS !== "undefined") {
+    const first = Object.keys(ARMOR_FRAGS)[0];
+    if (first && ARMOR_FRAGS[first]?.icon) return ARMOR_FRAGS[first].icon;
+  }
   return tab.icon || "";
+}
+
+function marketShowsGradeTabs(kind) {
+  return kind === "weapon" || kind === "armor" || kind === "armor_piece";
 }
 
 function marketGradeTabIcon(tab) {
@@ -102,9 +115,8 @@ function marketFilterByGrade(rows, grade) {
 function marketFilterRows(rows, kind, grade) {
   let list = rows || [];
   if (kind) list = list.filter((r) => r.kind === kind);
-  if (grade && (kind === "weapon" || kind === "crystal" || kind === "shot" || !kind)) {
-    // grade applies to weapons always; for "all" kinds only weapons+crystal+shot get grade filter
-    if (kind === "weapon" || kind === "crystal" || kind === "shot") {
+  if (grade && (kind === "weapon" || kind === "armor" || kind === "armor_piece" || kind === "crystal" || kind === "shot" || !kind)) {
+    if (kind === "weapon" || kind === "armor" || kind === "armor_piece" || kind === "crystal" || kind === "shot") {
       list = marketFilterByGrade(list, grade);
     } else if (!kind) {
       list = list.filter((r) => {
@@ -152,7 +164,7 @@ function renderMarketSubTabs(hostId, items, activeId, onPick, extraClass) {
 function syncMarketGradeTabsVisibility() {
   const gradeHost = document.getElementById("marketGradeTabs");
   if (!gradeHost) return;
-  const show = _marketFilterKind === "weapon";
+  const show = marketShowsGradeTabs(_marketFilterKind);
   gradeHost.hidden = !show;
   if (!show) _marketFilterGrade = "";
 }
@@ -177,11 +189,11 @@ async function renderMarketBrowse(root) {
 function bindMarketBrowseFilters() {
   renderMarketSubTabs("marketKindTabs", MARKET_KIND_TABS, _marketFilterKind, (kind) => {
     _marketFilterKind = kind;
-    if (kind !== "weapon") _marketFilterGrade = "";
+    if (!marketShowsGradeTabs(kind)) _marketFilterGrade = "";
     bindMarketBrowseFilters();
     loadMarketBrowse();
   });
-  if (_marketFilterKind === "weapon") {
+  if (marketShowsGradeTabs(_marketFilterKind)) {
     renderMarketSubTabs("marketGradeTabs", MARKET_GRADE_TABS, _marketFilterGrade, (grade) => {
       _marketFilterGrade = grade;
       bindMarketBrowseFilters();
@@ -206,7 +218,7 @@ function paintMarketBrowseList() {
   const list = document.getElementById("marketList");
   if (!list) return;
   let rows = _marketBrowseCache;
-  if (_marketFilterKind === "weapon" && _marketFilterGrade) {
+  if (marketShowsGradeTabs(_marketFilterKind) && _marketFilterGrade) {
     rows = marketFilterByGrade(rows, _marketFilterGrade);
   }
   rows = marketSortRows(rows);
@@ -575,8 +587,20 @@ function suggestMarketWeaponPrice(it) {
   return MARKET_MIN_PRICE;
 }
 
+function suggestMarketArmorPrice(it) {
+  try {
+    const a = typeof AMAP !== "undefined" ? AMAP[it.id] : null;
+    if (typeof GRADE_VALUE !== "undefined" && a?.grade) {
+      const base = Math.floor((GRADE_VALUE[a.grade] || MARKET_MIN_PRICE) * 0.85);
+      return Math.max(MARKET_MIN_PRICE, base);
+    }
+  } catch (_) {}
+  return MARKET_MIN_PRICE;
+}
+
 function renderMarketSell(root) {
   const weapons = marketListableWeapons();
+  const armors = typeof marketListableArmor === "function" ? marketListableArmor() : [];
   const stacks = marketStackOptions();
   let sellKind = "weapon";
   let sellGrade = "";
@@ -629,7 +653,48 @@ function renderMarketSell(root) {
       return;
     }
 
+    if (sellKind === "armor") {
+      let list = armors;
+      if (sellGrade) {
+        list = list.filter((it) => ((typeof AMAP !== "undefined" && AMAP[it.id]?.grade) || "") === sellGrade);
+      }
+      if (!list.length) {
+        box.innerHTML = '<p class="market-empty">Нет брони в этом грейде.</p>';
+        return;
+      }
+      list.forEach((it) => {
+        const a = typeof AMAP !== "undefined" ? AMAP[it.id] : null;
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "market-sell-pick";
+        row.innerHTML =
+          '<img src="' + (a?.icon || "") + '" alt="">' +
+          '<div class="market-sell-info"><b>' + (a?.name || it.id) + "</b>" +
+          '<span class="market-card-meta">Грейд ' + (a?.grade || "?") +
+          (a?.slot ? " · " + a.slot : "") +
+          " · нажми, чтобы выставить</span></div>" +
+          '<span class="market-sell-go">→</span>';
+        row.onclick = () => {
+          Audio2.click();
+          openMarketListModal({
+            icon: a?.icon || "",
+            title: a?.name || it.id,
+            meta: "Броня · грейд " + (a?.grade || "?"),
+            suggestPrice: suggestMarketArmorPrice(it),
+            onConfirm: async ({ priceAdena }) => {
+              await submitMarketList({ kind: "armor", uid: it.uid, priceAdena });
+            },
+          });
+        };
+        box.appendChild(row);
+      });
+      return;
+    }
+
     let list = stacks.filter((st) => st.kind === sellKind);
+    if (sellKind === "armor_piece" && sellGrade) {
+      list = list.filter((st) => st.grade === sellGrade);
+    }
     if (!list.length) {
       box.innerHTML = '<p class="market-empty">Нет предметов в этой вкладке.</p>';
       return;
@@ -643,7 +708,9 @@ function renderMarketSell(root) {
           ? (typeof CRYSTAL_ICON !== "undefined" && CRYSTAL_ICON[st.grade]) || ""
           : st.kind === "material"
             ? (typeof ORE !== "undefined" && ORE[st.ore]?.icon) || ""
-            : (typeof SHOT_ICON !== "undefined" && SHOT_ICON[st.shotKind]?.[st.grade]) || "";
+            : st.kind === "armor_piece"
+              ? st.icon || ""
+              : (typeof SHOT_ICON !== "undefined" && SHOT_ICON[st.shotKind]?.[st.grade]) || "";
       row.innerHTML =
         (icon ? '<img src="' + icon + '" alt="">' : "") +
         '<div class="market-sell-info"><b>' + st.label.replace(/\s*×\d+$/, "") + "</b>" +
@@ -661,6 +728,7 @@ function renderMarketSell(root) {
             const payload = { kind: st.kind, qty, priceAdena };
             if (st.kind === "crystal") payload.grade = st.grade;
             if (st.kind === "material") payload.ore = st.ore;
+            if (st.kind === "armor_piece") payload.fragId = st.fragId;
             if (st.kind === "shot") {
               payload.shotKind = st.shotKind;
               payload.grade = st.grade;
@@ -677,14 +745,14 @@ function renderMarketSell(root) {
     const kindTabs = MARKET_KIND_TABS.filter((t) => t.id !== "");
     renderMarketSubTabs("marketSellKindTabs", kindTabs, sellKind, (kind) => {
       sellKind = kind;
-      if (kind !== "weapon") sellGrade = "";
+      if (!marketShowsGradeTabs(kind)) sellGrade = "";
       bind();
       paint();
     });
     const gradeHost = document.getElementById("marketSellGradeTabs");
     if (gradeHost) {
-      gradeHost.hidden = sellKind !== "weapon";
-      if (sellKind === "weapon") {
+      gradeHost.hidden = !marketShowsGradeTabs(sellKind);
+      if (marketShowsGradeTabs(sellKind)) {
         renderMarketSubTabs("marketSellGradeTabs", MARKET_GRADE_TABS, sellGrade, (grade) => {
           sellGrade = grade;
           bind();
@@ -742,7 +810,7 @@ async function renderMarketMine(root) {
     if (!list) return;
     let rows = mineCache;
     if (mineKind) rows = rows.filter((r) => r.kind === mineKind);
-    if (mineKind === "weapon" && mineGrade) rows = marketFilterByGrade(rows, mineGrade);
+    if (marketShowsGradeTabs(mineKind) && mineGrade) rows = marketFilterByGrade(rows, mineGrade);
     if (!rows.length) {
       list.innerHTML = '<p class="market-empty">Нет лотов в этой вкладке.</p>';
       return;
@@ -761,14 +829,14 @@ async function renderMarketMine(root) {
   const bind = () => {
     renderMarketSubTabs("marketMineKindTabs", MARKET_KIND_TABS, mineKind, (kind) => {
       mineKind = kind;
-      if (kind !== "weapon") mineGrade = "";
+      if (!marketShowsGradeTabs(kind)) mineGrade = "";
       bind();
       paint();
     });
     const gradeHost = document.getElementById("marketMineGradeTabs");
     if (gradeHost) {
-      gradeHost.hidden = mineKind !== "weapon";
-      if (mineKind === "weapon") {
+      gradeHost.hidden = !marketShowsGradeTabs(mineKind);
+      if (marketShowsGradeTabs(mineKind)) {
         renderMarketSubTabs("marketMineGradeTabs", MARKET_GRADE_TABS, mineGrade, (grade) => {
           mineGrade = grade;
           bind();

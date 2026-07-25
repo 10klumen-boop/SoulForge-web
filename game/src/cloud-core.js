@@ -941,7 +941,7 @@ let _cloudPushBusy = false;
 let _cloudPushAgain = false;
 const CLOUD_GATED_SCREENS = new Set([
   "home", "menu", "characters", "leaderboard",
-  "inv", "ench", "shop", "mine", "acc", "ach", "avatar", "quests",
+  "inv", "ench", "shop", "mine", "acc", "ach", "avatar", "quests", "pvp-arena",
 ]);
 
 function cloudMainMenuAllowed(opts) {

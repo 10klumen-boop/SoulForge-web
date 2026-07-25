@@ -3,11 +3,11 @@
 // Тесты: setup.loadGameJsonDataSync().
 
 const GAME_JSON_PACKS = [
-  { file: "src/data/json/story-zones.json", v: 1 },
-  { file: "src/data/json/quest-content.json", v: 1 },
-  { file: "src/data/json/zone-chapter-rewards.json", v: 1 },
-  { file: "src/data/json/achievements.json", v: 1 },
-  { file: "src/data/json/passive-skills.json", v: 2 },
+  { file: "src/data/json/story-zones.json", v: 7 },
+  { file: "src/data/json/quest-content.json", v: 3 },
+  { file: "src/data/json/zone-chapter-rewards.json", v: 4 },
+  { file: "src/data/json/achievements.json", v: 2 },
+  { file: "src/data/json/passive-skills.json", v: 6 },
 ];
 
 function applyGameJsonPack(data) {

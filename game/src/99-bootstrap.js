@@ -13,7 +13,29 @@
     saveNotice = saveNotice || "Не удалось загрузить сохранение — новый прогресс";
   }
 
-$("#mineBanner").onclick = openMine;
+$("#mineBanner") && ($("#mineBanner").onclick = () => {
+  const cur = typeof farmZoneById === "function" ? farmZoneById(state.farmZone) : null;
+  if (cur?.side && typeof storyFarmZones === "function") {
+    const zones = storyFarmZones();
+    const pick =
+      zones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || zones[0];
+    if (pick && typeof selectFarmZone === "function") selectFarmZone(pick.id);
+  }
+  openMine();
+});
+const farmPlayBanner = document.getElementById("farmPlayBanner");
+if (farmPlayBanner) {
+  farmPlayBanner.onclick = () => {
+    const cur = typeof farmZoneById === "function" ? farmZoneById(state.farmZone) : null;
+    if (!cur?.side && typeof freeFarmZones === "function") {
+      const zones = freeFarmZones();
+      const pick =
+        zones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || zones[0];
+      if (pick && typeof selectFarmZone === "function") selectFarmZone(pick.id);
+    }
+    openMine();
+  };
+}
 if (typeof wireDebugLog === "function") wireDebugLog();
 $("#mineBack").onclick = () => { Audio2.click(); stopMine(); renderMenu(); show("menu"); };
 const mineShotBtn = document.getElementById("mineShotToggle");
@@ -24,8 +46,11 @@ if (mineShotBtn) {
   };
 }
 $("#invTile").onclick = openInventory;
-$("#shopTile").onclick = openWorkshop;
+if (typeof wireAccountStorage === "function") wireAccountStorage();
+if (typeof wirePlayerMail === "function") wirePlayerMail();
+$("#shopTile").onclick = () => openWorkshop();
 if (typeof bindMarketUi === "function") bindMarketUi();
+if (typeof bindPvpArenaUi === "function") bindPvpArenaUi();
 $("#achTile").onclick = openAchievements;
 if (typeof wireDevPanel === "function") wireDevPanel();
 if (typeof wireQuestJournal === "function") wireQuestJournal();
@@ -88,7 +113,7 @@ document.addEventListener("keydown", (e) => {
     show(to);
   }
   else if (e.key === "Escape" && ($("#screen-characters").classList.contains("active") || $("#screen-leaderboard")?.classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
-  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active"))) { show("menu"); }
+  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
 
@@ -127,9 +152,6 @@ if (typeof wireStoryArcBar === "function") wireStoryArcBar();
 if (typeof wireMineStory === "function") wireMineStory();
 if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();
 if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
-if (typeof collectPassiveIncome === "function") {
-  try { collectPassiveIncome({ queueNotice: true }); } catch (e) { console.error("collectPassiveIncome failed:", e); }
-}
 renderMenu();
 if (typeof applyVersionLabels === "function") applyVersionLabels();
 show("login");

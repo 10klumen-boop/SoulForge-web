@@ -41,6 +41,30 @@ const ACH_LOGIC = {
   boss_slayer: {
     test: (c) => c.bossKills >= 1,
   },
+  pvp_first_blood: {
+    test: (c) => c.pvpWins >= 1,
+    progress: (c) => achProg(c.pvpWins, 1),
+  },
+  pvp_veteran: {
+    test: (c) => c.pvpWins >= 10,
+    progress: (c) => achProg(c.pvpWins, 10),
+  },
+  pvp_gladiator: {
+    test: (c) => c.pvpWins >= 25,
+    progress: (c) => achProg(c.pvpWins, 25),
+  },
+  pvp_shadow_hunter: {
+    test: (c) => c.pvpAsyncWins >= 5,
+    progress: (c) => achProg(c.pvpAsyncWins, 5),
+  },
+  pvp_rated_1100: {
+    test: (c) => c.pvpRating >= 1100,
+    progress: (c) => achProg(c.pvpRating, 1100),
+  },
+  pvp_iron_will: {
+    test: (c) => c.pvpLosses >= 10,
+    progress: (c) => achProg(c.pvpLosses, 10),
+  },
   first_enchant: {
     test: (c) => c.tries >= 1,
     progress: (c) => achProg(c.tries, 1),

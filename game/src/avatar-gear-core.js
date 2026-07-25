@@ -7,16 +7,26 @@
 const FEATURE_EPIC_JEWELRY_UI = false;
 
 const AVATAR_GEAR_SLOTS = [
-  { id: "earring_l", label: "Серьга", side: "left", row: 0, jewelry: true, placeholder: "icons/accessory_blessed_earring_of_zaken_i00.png" },
-  { id: "necklace", label: "Ожерелье", side: "left", row: 1, jewelry: true, placeholder: "icons/accessory_necklace_of_valakas_i00.png" },
-  { id: "ring_l", label: "Кольцо", side: "left", row: 2, jewelry: true, placeholder: "icons/accessory_ring_of_baium_i00.png" },
+  { id: "helmet", label: "Шлем", side: "left", row: 0, armor: true, placeholder: "icons/armor_helmet_i00.png" },
+  { id: "chest", label: "Доспех", side: "left", row: 1, armor: true, placeholder: "icons/armor_mithril_breastplate_i00.png" },
+  { id: "legs", label: "Поножи", side: "left", row: 2, armor: true, placeholder: "icons/armor_mithril_gaiters_i00.png" },
+  { id: "boots", label: "Сапоги", side: "left", row: 3, armor: true, placeholder: "icons/armor_mithril_boots_i00.png" },
+  { id: "earring_l", label: "Серьга", side: "left", row: 4, jewelry: true, placeholder: "icons/accessory_blessed_earring_of_zaken_i00.png" },
+  { id: "necklace", label: "Ожерелье", side: "left", row: 5, jewelry: true, placeholder: "icons/accessory_necklace_of_valakas_i00.png" },
+  { id: "ring_l", label: "Кольцо", side: "left", row: 6, jewelry: true, placeholder: "icons/accessory_ring_of_baium_i00.png" },
   { id: "weapon", label: "Оружие", side: "right", row: 0, placeholder: "icons/weapon_iron_glove_i00.png" },
-  { id: "earring_r", label: "Серьга", side: "right", row: 1, jewelry: true, placeholder: "icons/accessory_earring_of_antaras_i00.png" },
-  { id: "ring_r", label: "Кольцо", side: "right", row: 2, jewelry: true, placeholder: "icons/accessory_ring_of_baium_i00.png" },
+  { id: "gloves", label: "Перчатки", side: "right", row: 1, armor: true, placeholder: "icons/armor_mithril_gloves_i00.png" },
+  { id: "earring_r", label: "Серьга", side: "right", row: 2, jewelry: true, placeholder: "icons/accessory_earring_of_antaras_i00.png" },
+  { id: "ring_r", label: "Кольцо", side: "right", row: 3, jewelry: true, placeholder: "icons/accessory_ring_of_baium_i00.png" },
 ];
 
 function avatarGearSlotsForUi() {
-  return AVATAR_GEAR_SLOTS.filter((s) => FEATURE_EPIC_JEWELRY_UI || !s.jewelry);
+  const armorOn = typeof FEATURE_ARMOR_UI === "undefined" ? true : !!FEATURE_ARMOR_UI;
+  return AVATAR_GEAR_SLOTS.filter((s) => {
+    if (s.jewelry && !FEATURE_EPIC_JEWELRY_UI) return false;
+    if (s.armor && !armorOn) return false;
+    return true;
+  });
 }
 
 const WEAPON_GRADE_ENCH_MULT = { D: 0.6, C: 0.85, B: 1, A: 1.2 };
@@ -25,7 +35,19 @@ let _avatarEquipSlot = null;
 let _avatarEquipFilter = { q: "", grade: "", aff: "" };
 
 function defaultAvatarGear() {
-  return { weapon: null, earring_l: null, earring_r: null, ring_l: null, ring_r: null, necklace: null };
+  return {
+    weapon: null,
+    helmet: null,
+    chest: null,
+    legs: null,
+    gloves: null,
+    boots: null,
+    earring_l: null,
+    earring_r: null,
+    ring_l: null,
+    ring_r: null,
+    necklace: null,
+  };
 }
 
 function ensureAvatarGear() {
@@ -41,6 +63,9 @@ function ensureAvatarGear() {
 
 function avatarGearSnapshot(it) {
   if (!it) return null;
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    return { uid: it.uid, id: it.id, kind: "armor" };
+  }
   if (isAccessoryItem(it)) return { uid: it.uid, id: it.id, kind: "accessory" };
   const def = WMAP[it.id];
   const starter = !!it.starter || (def && typeof isNoGradeWeapon === "function" && isNoGradeWeapon(def));
@@ -49,6 +74,9 @@ function avatarGearSnapshot(it) {
 
 function avatarGearItemDef(item) {
   if (!item) return null;
+  if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) {
+    return typeof armorItemDef === "function" ? armorItemDef(item) : (AMAP && AMAP[item.id]) || null;
+  }
   if (item.kind === "accessory" || isAccessoryItem(item)) return COLLECTIBLES[item.id];
   return WMAP[item.id] || null;
 }
@@ -62,7 +90,15 @@ function slotAcceptsItem(slotId, it) {
   if (!it) return false;
   const slot = AVATAR_GEAR_SLOTS.find((s) => s.id === slotId);
   if (!slot) return false;
-  if (slotId === "weapon") return !isAccessoryItem(it) && !!WMAP[it.id];
+  if (slotId === "weapon") {
+    if (typeof isArmorItem === "function" && isArmorItem(it)) return false;
+    return !isAccessoryItem(it) && !!WMAP[it.id];
+  }
+  if (slot?.armor) {
+    if (typeof isArmorItem !== "function" || !isArmorItem(it)) return false;
+    const st = typeof armorSlotType === "function" ? armorSlotType(it) : null;
+    return st === slotId;
+  }
   if (!isAccessoryItem(it)) return false;
   const st = accessorySlotType(it);
   if (!st) return false;
@@ -89,7 +125,9 @@ function returnGearToInventory(item) {
   if (!item) return false;
   const inv = (state.inventory || []).slice();
   if (isInventoryFull()) return false;
-  if (item.kind === "accessory" || isAccessoryItem(item)) {
+  if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) {
+    inv.push({ uid: item.uid, id: item.id, kind: "armor" });
+  } else if (item.kind === "accessory" || isAccessoryItem(item)) {
     inv.push({ uid: item.uid, id: item.id, kind: "accessory" });
   } else {
     inv.push({
@@ -168,39 +206,77 @@ function avatarGearEnchantBonus(plus, behavior) {
     }
   }
   iterEquippedGear().forEach(({ item }) => {
-    if (item.kind === "weapon") return;
+    if (item.kind === "weapon" || item.kind === "armor") return;
+    if (typeof isArmorItem === "function" && isArmorItem(item)) return;
     const def = COLLECTIBLES[item.id];
     if (def?.bonuses?.enchant) b += def.bonuses.enchant;
   });
+  if (typeof avatarSetBonuses === "function") {
+    b += avatarSetBonuses().enchant || 0;
+  }
   return b;
 }
 
 function avatarGearMineAdenaMult() {
   let m = 1;
   iterEquippedGear().forEach(({ item }) => {
+    if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) return;
     const def = COLLECTIBLES[item.id];
     if (def?.bonuses?.mineAdena) m += def.bonuses.mineAdena;
   });
+  if (typeof avatarSetBonuses === "function") {
+    m += avatarSetBonuses().mineAdena || 0;
+  }
   return m;
 }
 
 function avatarGearXpMult() {
   let m = 1;
   iterEquippedGear().forEach(({ item }) => {
+    if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) return;
     const def = COLLECTIBLES[item.id];
     if (def?.bonuses?.avatarXp) m += def.bonuses.avatarXp;
   });
+  if (typeof avatarSetBonuses === "function") {
+    m += avatarSetBonuses().mineXp || 0;
+  }
   return m;
 }
 
 function avatarGearBonusSummary() {
   const lines = [];
   const ench = avatarGearEnchantBonus(safeLevel(), "regular");
-  if (ench > 0) lines.push("Экип: +" + (ench * 100).toFixed(2) + "% заточка");
+  if (ench > 0) {
+    lines.push(
+      "Экип: " +
+        (typeof formatArmorEnchantBonus === "function"
+          ? formatArmorEnchantBonus(ench)
+          : "+" + (ench * 100).toFixed(2) + "% заточка")
+    );
+  }
   const mineM = avatarGearMineAdenaMult();
   if (mineM > 1) lines.push("+" + Math.round((mineM - 1) * 100) + "% adena в задании");
   const xpM = avatarGearXpMult();
   if (xpM > 1) lines.push("+" + Math.round((xpM - 1) * 100) + "% опыт души");
+  if (typeof avatarSetBonuses === "function") {
+    const set = avatarSetBonuses();
+    (set.sets || []).forEach((s) => {
+      lines.push("Сет «" + s.name + "»: " + s.pieces + "/5");
+    });
+    if (set.bossResist > 0) {
+      lines.push("−" + Math.round(set.bossResist * 100) + "% HP босса зоны");
+    }
+  }
+  if (typeof avatarArmorSustainPct === "function") {
+    const sus = avatarArmorSustainPct();
+    if (sus > 0) lines.push("−" + Math.round(sus * 100) + "% HP golden/boss (броня)");
+  }
+  if (typeof armorAffinityHintLine === "function") {
+    lines.push(armorAffinityHintLine(state.avatar));
+  }
+  if (typeof gradePenaltyHintLine === "function") {
+    lines.push(gradePenaltyHintLine(state.avatar));
+  }
   return { lines, ench, mineM, xpM };
 }
 
@@ -219,8 +295,18 @@ function equipAvatarSlot(slotId, invItem) {
     toast("Эпическая бижутерия пока недоступна", "warn");
     return false;
   }
+  const armorOn = typeof FEATURE_ARMOR_UI === "undefined" ? true : !!FEATURE_ARMOR_UI;
+  if (slotMeta?.armor && !armorOn) {
+    toast("Броня пока недоступна", "warn");
+    return false;
+  }
   if (!slotAcceptsItem(slotId, invItem)) {
-    toast("Предмет не подходит для этого слота", "warn");
+    const need = slotMeta?.armor
+      ? "нужен предмет слота «" + slotMeta.label + "»"
+      : slotId === "weapon"
+        ? "нужно оружие"
+        : "предмет не подходит";
+    toast("Сюда не надеть: " + need, "warn");
     return false;
   }
   const idx = findInvIndexByUid(invItem.uid);
@@ -251,7 +337,24 @@ function equipAvatarSlot(slotId, invItem) {
   const def = avatarGearItemDef(snap);
   const slotLabel = AVATAR_GEAR_SLOTS.find((s) => s.id === slotId)?.label || "Слот";
   toast("Надето: " + (def?.name || "?") + " · " + slotLabel, "success");
-  renderAvatarGearSlots();
+  if (def?.grade && typeof isGradeOverLevel === "function" && isGradeOverLevel(def.grade, state.avatar?.level || 1)) {
+    const allowed = typeof avatarAllowedGrade === "function" ? avatarAllowedGrade(state.avatar?.level || 1) : "?";
+    if (snap?.kind === "weapon") {
+      toast("Грейд оружия «" + def.grade + "» выше «" + allowed + "» — без штрафа статов", "system");
+    } else {
+      toast("Грейд «" + def.grade + "» выше дозволенного («" + allowed + "») — статы брони ×0.5", "warn");
+    }
+  }
+  if (typeof avatarSetBonuses === "function" && (snap?.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(snap)))) {
+    const set = avatarSetBonuses();
+    const hit = (set.sets || [])[0];
+    if (hit && hit.tiers && hit.tiers.length) {
+      const last = hit.tiers[hit.tiers.length - 1];
+      toast("Сет «" + hit.name + "» " + hit.pieces + "/5 · бонус " + last + " шт. активен", "system");
+    }
+  }
+  if (typeof refreshInvPaperdoll === "function") refreshInvPaperdoll();
+  else if (typeof renderAvatarGearSlots === "function") renderAvatarGearSlots();
   renderAvatarHub();
   renderMenu();
   if ($("#screen-inv")?.classList.contains("active") && typeof renderInventory === "function") renderInventory();
@@ -279,13 +382,25 @@ function unequipAvatarSlot(slotId) {
   Audio2.click();
   const def = avatarGearItemDef(item);
   toast("Снято: " + (def?.name || "?"), "system");
-  renderAvatarGearSlots();
+  if (typeof refreshInvPaperdoll === "function") refreshInvPaperdoll();
+  else if (typeof renderAvatarGearSlots === "function") renderAvatarGearSlots();
   renderAvatarHub();
   renderMenu();
   if ($("#screen-inv")?.classList.contains("active") && typeof renderInventory === "function") renderInventory();
   if (typeof renderAvatarStatsPanel === "function") renderAvatarStatsPanel();
   if ($("#screen-avatar")?.classList.contains("active")) renderAvatarScreen();
   return true;
+}
+
+function equipArmorToAvatar(item) {
+  if (typeof FEATURE_ARMOR_UI !== "undefined" && !FEATURE_ARMOR_UI) {
+    toast("Броня пока недоступна", "warn");
+    return false;
+  }
+  if (typeof isArmorItem !== "function" || !isArmorItem(item)) return false;
+  const st = typeof armorSlotType === "function" ? armorSlotType(item) : null;
+  if (!st) return false;
+  return equipAvatarSlot(st, item);
 }
 
 function equipAccessoryToAvatar(item) {
@@ -320,6 +435,10 @@ function listEquippableForSlot(slotId) {
 
 function avatarEquipItemPower(it) {
   if (!it || isAccessoryItem(it)) return 0;
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    const def = typeof armorItemDef === "function" ? armorItemDef(it) : null;
+    return def ? (def.pdef || 0) + (def.mdef || 0) : 0;
+  }
   const def = WMAP[it.id];
   if (!def) return 0;
   const plus = it.plus || 0;
@@ -332,6 +451,10 @@ function avatarEquipItemPower(it) {
 function avatarEquipItemGrade(it) {
   if (!it) return "";
   if (isAccessoryItem(it)) return "epic";
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    const def = typeof armorItemDef === "function" ? armorItemDef(it) : null;
+    return def?.grade || "";
+  }
   const def = WMAP[it.id];
   if (!def) return "";
   if (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(def)) return "NG";

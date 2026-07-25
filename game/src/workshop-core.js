@@ -4,6 +4,12 @@
 // вынесены в data/workshop-balance.js.
 
 let wsTab = "soul";
+/** null = хаб (две кнопки), shots | armor = раздел */
+let wsMainTab = null;
+/** null = хаб подвидов (heavy/light/robe); иначе id из ARMOR_KINDS */
+let wsArmorKind = null;
+/** null = список сетов выбранного подвида; иначе id сета из ARMOR_SETS */
+let wsArmorSetId = null;
 
 
 function orePrice(type) {

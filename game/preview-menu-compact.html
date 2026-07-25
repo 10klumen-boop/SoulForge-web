@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SoulForge · превью меню · иконки</title>
+  <style>
+    :root {
+      --bg: #0e0a06;
+      --edge: #3a2c1a;
+      --edge2: #4a3822;
+      --gold: #c9a86a;
+      --gold-soft: #e7cf95;
+      --txt: #d9cdb2;
+      --txt-dim: #9a8b70;
+      --font-display: "Cinzel", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --font-ui: "Segoe UI", Tahoma, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(80, 50, 20, 0.35), transparent 60%),
+        var(--bg);
+      color: var(--txt);
+      font-family: var(--font-ui);
+      padding: 24px 20px 48px;
+    }
+    h1 {
+      font-family: var(--font-display);
+      color: var(--gold-soft);
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 6px;
+      text-align: center;
+    }
+    .note {
+      text-align: center;
+      color: var(--txt-dim);
+      font-size: 13px;
+      margin: 0 auto 18px;
+      max-width: 720px;
+      line-height: 1.45;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      background: linear-gradient(180deg, #2e2418, #201810);
+      border: 1px solid var(--edge2);
+      color: var(--txt-dim);
+      padding: 8px 16px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: var(--font-display);
+    }
+    .tab.on {
+      border-color: var(--gold);
+      color: var(--gold-soft);
+      background: rgba(201, 168, 106, 0.14);
+    }
+    .stage {
+      max-width: 980px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #241a10, #14100c);
+      border: 1px solid var(--edge2);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,.55);
+    }
+    .chapter-stub {
+      margin: 16px 18px 0;
+      padding: 14px 16px;
+      border: 1px solid rgba(201,168,106,.35);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(52,38,22,.9), rgba(18,12,8,.95));
+    }
+    .chapter-stub strong {
+      font-family: var(--font-display);
+      color: var(--gold-soft);
+      font-size: 16px;
+    }
+    .chapter-stub p {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: var(--txt-dim);
+    }
+    .panel { display: none; padding-bottom: 8px; }
+    .panel.on { display: block; }
+
+    /* —— NOW: bulky cards —— */
+    .grid-now {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      padding: 22px;
+    }
+    .tile-now {
+      background: linear-gradient(180deg, #2e2418, #201810);
+      border: 1px solid var(--edge2);
+      border-radius: 8px;
+      padding: 18px 16px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 168px;
+    }
+    .tile-now img { width: 80px; height: 80px; object-fit: contain; }
+    .tile-now .tname {
+      margin-top: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--gold-soft);
+      font-family: var(--font-display);
+    }
+    .tile-now .tcount {
+      font-size: 12px;
+      color: var(--txt-dim);
+      margin-top: 4px;
+    }
+
+    /* —— ICON BUTTONS: btn ≈ icon, label under —— */
+    .dock {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px 18px;
+      padding: 20px 22px 24px;
+    }
+    .menu-btn {
+      width: 88px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: inherit;
+      font: inherit;
+    }
+    .menu-btn .hit {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      border: 1px solid var(--edge2);
+      background:
+        linear-gradient(180deg, rgba(58, 42, 26, 0.95), rgba(22, 16, 10, 0.98));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 4px 12px rgba(0,0,0,.35);
+      display: grid;
+      place-items: center;
+      position: relative;
+      transition: border-color .15s, transform .15s, box-shadow .15s;
+    }
+    .menu-btn:hover .hit {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 8px 18px rgba(0,0,0,.45),
+        0 0 12px rgba(201,168,106,.2);
+    }
+    .menu-btn img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    }
+    .menu-btn .cap {
+      text-align: center;
+      line-height: 1.2;
+      min-height: 2.4em;
+    }
+    .menu-btn .tname {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+    }
+    .menu-btn .tcount {
+      display: block;
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--txt-dim);
+    }
+    .menu-btn .badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      border-radius: 9px;
+      background: #8a2828;
+      border: 1px solid rgba(231, 207, 149, 0.45);
+      color: #f2e6c8;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 16px;
+      text-align: center;
+    }
+
+    /* denser variant */
+    .dock.dense { gap: 12px 14px; padding-top: 16px; }
+    .dock.dense .menu-btn { width: 76px; }
+    .dock.dense .menu-btn .hit { width: 56px; height: 56px; border-radius: 9px; }
+    .dock.dense .menu-btn img { width: 42px; height: 42px; }
+    .dock.dense .menu-btn .tname { font-size: 10px; }
+
+    .metrics {
+      max-width: 980px;
+      margin: 16px auto 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .metrics div {
+      background: rgba(26, 20, 14, 0.8);
+      border: 1px solid var(--edge);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--txt-dim);
+    }
+    .metrics b {
+      display: block;
+      color: var(--gold-soft);
+      font-family: var(--font-display);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    @media (max-width: 640px) {
+      .metrics { grid-template-columns: 1fr; }
+      .dock { gap: 12px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Превью меню · иконки + подписи</h1>
+  <p class="note">
+    Кнопка = рамка под иконку, название и счётчик <b>под</b> кнопкой (не внутри карточки).
+    Боевой UI не тронут.
+  </p>
+
+  <div class="tabs">
+    <button type="button" class="tab on" data-panel="now">Сейчас</button>
+    <button type="button" class="tab" data-panel="icons">Иконки 64</button>
+    <button type="button" class="tab" data-panel="dense">Плотнее 56</button>
+  </div>
+
+  <div class="stage">
+    <div class="chapter-stub">
+      <strong>Глава 1: Говорящий остров</strong>
+      <p>Stub карточки главы — меняется только ряд меню.</p>
+    </div>
+
+    <div class="panel on" id="panel-now">
+      <div class="grid-now">
+        <div class="tile-now">
+          <img src="icons/char_menu.png?v=10" alt="" />
+          <div class="tname">Персонаж</div>
+          <div class="tcount">ыйвы · Мистик → Колдун · 40</div>
+        </div>
+        <div class="tile-now">
+          <img src="icons/quest_journal.png?v=10" alt="" />
+          <div class="tname">Журнал квестов</div>
+          <div class="tcount">Гл.1 · 1/3</div>
+        </div>
+        <div class="tile-now">
+          <img src="assets/ui/menubutton2_crop.png?v=10" alt="" />
+          <div class="tname">Инвентарь</div>
+          <div class="tcount">0 / 120</div>
+        </div>
+        <div class="tile-now">
+          <img src="icons/account_warehouse.png?v=1" alt="" />
+          <div class="tname">Склад</div>
+          <div class="tcount">1 / 40</div>
+        </div>
+        <div class="tile-now">
+          <img src="icons/etc_letter_envelope_i00.png?v=1" alt="" />
+          <div class="tname">Почта</div>
+          <div class="tcount">Игрокам · по имени</div>
+        </div>
+        <div class="tile-now">
+          <img src="assets/ui/inventory_book_crop.png?v=10" alt="" />
+          <div class="tname">Мастерская</div>
+          <div class="tcount">Заряды · броня · руда</div>
+        </div>
+        <div class="tile-now">
+          <img src="icons/warehouse_chest.png?v=1" alt="" />
+          <div class="tname">Рынок</div>
+          <div class="tcount">Лоты игроков · адена</div>
+        </div>
+        <div class="tile-now">
+          <img src="assets/ui/bloodhood_icon02_crop.png" alt="" />
+          <div class="tname">Достижения</div>
+          <div class="tcount">3 / 56</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-icons">
+      <div class="dock">
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/char_menu.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Персонаж</span><span class="tcount">ур. 40</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/quest_journal.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Квесты</span><span class="tcount">1 / 3</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="assets/ui/menubutton2_crop.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Инвентарь</span><span class="tcount">0 / 120</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/account_warehouse.png?v=1" alt="" /></span>
+          <span class="cap"><span class="tname">Склад</span><span class="tcount">1 / 40</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit">
+            <img src="icons/etc_letter_envelope_i00.png?v=1" alt="" />
+            <span class="badge">2</span>
+          </span>
+          <span class="cap"><span class="tname">Почта</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="assets/ui/inventory_book_crop.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Мастерская</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/warehouse_chest.png?v=1" alt="" /></span>
+          <span class="cap"><span class="tname">Рынок</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="assets/ui/bloodhood_icon02_crop.png" alt="" /></span>
+          <span class="cap"><span class="tname">Достижения</span><span class="tcount">3 / 56</span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-dense">
+      <div class="dock dense">
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/char_menu.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Персонаж</span><span class="tcount">ур. 40</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/quest_journal.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Квесты</span><span class="tcount">1 / 3</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="assets/ui/menubutton2_crop.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Инвентарь</span><span class="tcount">0 / 120</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/account_warehouse.png?v=1" alt="" /></span>
+          <span class="cap"><span class="tname">Склад</span><span class="tcount">1 / 40</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit">
+            <img src="icons/etc_letter_envelope_i00.png?v=1" alt="" />
+            <span class="badge">2</span>
+          </span>
+          <span class="cap"><span class="tname">Почта</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="assets/ui/inventory_book_crop.png?v=10" alt="" /></span>
+          <span class="cap"><span class="tname">Мастерская</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="icons/warehouse_chest.png?v=1" alt="" /></span>
+          <span class="cap"><span class="tname">Рынок</span></span>
+        </button>
+        <button type="button" class="menu-btn">
+          <span class="hit"><img src="assets/ui/bloodhood_icon02_crop.png" alt="" /></span>
+          <span class="cap"><span class="tname">Достижения</span><span class="tcount">3 / 56</span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics" id="m-now">
+    <div><b>Карточки</b>иконка + текст внутри большой плитки</div>
+    <div><b>~168px</b>высота кнопки</div>
+    <div><b>много воздуха</b>и равный вес всех пунктов</div>
+  </div>
+  <div class="metrics" id="m-icons" style="display:none">
+    <div><b>Hit 64×64</b>иконка 48 внутри рамки</div>
+    <div><b>подпись снизу</b>название + короткий счётчик</div>
+    <div><b>badge</b>на почте вместо длинного текста</div>
+  </div>
+  <div class="metrics" id="m-dense" style="display:none">
+    <div><b>Hit 56×56</b>ещё плотнее, ближе к L2 action bar</div>
+    <div><b>тот же паттерн</b>кнопка ≈ иконка, текст под ней</div>
+    <div><b>ряд компактный</b>глава получает больше места</div>
+  </div>
+
+  <script>
+    const map = {
+      now: ["panel-now", "m-now"],
+      icons: ["panel-icons", "m-icons"],
+      dense: ["panel-dense", "m-dense"],
+    };
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const id = tab.dataset.panel;
+        document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t === tab));
+        Object.entries(map).forEach(([k, [p, m]]) => {
+          document.getElementById(p).classList.toggle("on", k === id);
+          document.getElementById(m).style.display = k === id ? "grid" : "none";
+        });
+      });
+    });
+  </script>
+</body>
+</html>

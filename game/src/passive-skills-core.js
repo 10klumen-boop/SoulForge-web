@@ -15,6 +15,11 @@ function passiveSkillIdsGrantedToAvatar(avatar) {
   const classMap = typeof CLASS_PASSIVE_SKILL_IDS !== "undefined" ? CLASS_PASSIVE_SKILL_IDS : null;
   const classIds = classMap && a.classId ? classMap[a.classId] : null;
   if (Array.isArray(classIds)) ids.push(...classIds);
+  // Текущая профессия (2nd заменяет пассивы 1st — только leaf)
+  if (typeof professionPassiveIds === "function") {
+    const profIds = professionPassiveIds(a);
+    if (Array.isArray(profIds)) ids.push(...profIds);
+  }
   return ids;
 }
 

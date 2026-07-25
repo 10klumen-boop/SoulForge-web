@@ -27,7 +27,7 @@ function makeSave(adena, inv, extra) {
       {
         id: "c1",
         progress: {
-          avatar: { created: true, name: "Hero", level: 5, gear: {} },
+          avatar: { created: true, name: extra.name || "Hero", level: 5, gear: {} },
           adena,
           inventory: inv || [],
           crystals: Object.assign({ D: 10, C: 0, B: 0, A: 0 }, extra.crystals || {}),
@@ -54,9 +54,9 @@ store.persistPlayerSave(
   1,
   now,
   "0.42",
-  makeSave(100000, [{ uid: "i1", id: "sword_d", plus: 5, spent: 1000 }])
+  makeSave(100000, [{ uid: "i1", id: "sword_d", plus: 5, spent: 1000 }], { name: "SellerHero" })
 );
-store.persistPlayerSave(buyer, 1, now, "0.42", makeSave(500000, []));
+store.persistPlayerSave(buyer, 1, now, "0.42", makeSave(500000, [], { name: "BuyerHero" }));
 
 console.log("\n--- market escrow ---");
 
@@ -73,11 +73,11 @@ ok("inventory emptied", listed.data?.characters[0].progress.inventory.length ===
 const own = store.marketBuyListing(seller, listed.listing.id, { characterId: "c1" }, now + 1);
 ok("reject own buy", own.ok === false);
 
-store.persistPlayerSave(buyer, 2, now + 1, "0.42", makeSave(100, []));
+store.persistPlayerSave(buyer, 2, now + 1, "0.42", makeSave(100, [], { name: "BuyerHero" }));
 const poor2 = store.marketBuyListing(buyer, listed.listing.id, { characterId: "c1" }, now + 2);
 ok("reject insufficient adena", poor2.ok === false && /аден/i.test(poor2.error || ""), poor2.error);
 
-store.persistPlayerSave(buyer, 3, now + 3, "0.42", makeSave(500000, []));
+store.persistPlayerSave(buyer, 3, now + 3, "0.42", makeSave(500000, [], { name: "BuyerHero" }));
 const buy = store.marketBuyListing(buyer, listed.listing.id, { characterId: "c1" }, now + 4);
 ok("buy ok", buy.ok === true, buy.error);
 ok("buyer paid", !!(buy.buyer && buy.buyer.data.characters[0].progress.adena === 495000));
@@ -118,7 +118,7 @@ const starterBlock = (() => {
     (store.getSave(seller.id).seq || 1) + 1,
     now + 10,
     "0.42",
-    makeSave(100000, [{ uid: "s1", id: "sword_d", plus: 0, spent: 0, starter: true }])
+    makeSave(100000, [{ uid: "s1", id: "sword_d", plus: 0, spent: 0, starter: true }], { name: "SellerHero" })
   );
   return store.marketCreateListing(
     seller,
@@ -127,6 +127,77 @@ const starterBlock = (() => {
   );
 })();
 ok("reject starter", starterBlock.ok === false);
+
+console.log("\n--- market armor / pieces ---");
+
+store.persistPlayerSave(
+  seller,
+  (store.getSave(seller.id).seq || 1) + 1,
+  now + 20,
+  "0.42",
+  makeSave(
+    100000,
+    [{ uid: "arm1", id: "bone_helmet", kind: "armor" }],
+    { name: "SellerHero", materials: { soul: 5, spirit: 0, bone_helmet_piece: 7 } }
+  )
+);
+const armorList = store.marketCreateListing(
+  seller,
+  { characterId: "c1", kind: "armor", uid: "arm1", priceAdena: 3000 },
+  now + 21
+);
+ok("list armor", armorList.ok === true, armorList.error);
+ok("armor left inv", armorList.data?.characters[0].progress.inventory.length === 0);
+
+store.persistPlayerSave(buyer, (store.getSave(buyer.id).seq || 1) + 1, now + 22, "0.42", makeSave(500000, [], { name: "BuyerHero" }));
+const armorBuy = store.marketBuyListing(buyer, armorList.listing.id, { characterId: "c1" }, now + 23);
+ok("buy armor", armorBuy.ok === true, armorBuy.error);
+ok(
+  "buyer got armor",
+  !!(
+    armorBuy.buyer &&
+    armorBuy.buyer.data.characters[0].progress.inventory.some(
+      (x) => x.uid === "arm1" && x.kind === "armor"
+    )
+  )
+);
+
+const pieceList = store.marketCreateListing(
+  seller,
+  { characterId: "c1", kind: "armor_piece", fragId: "bone_helmet_piece", qty: 3, priceAdena: 2500 },
+  now + 24
+);
+ok("list armor_piece", pieceList.ok === true, pieceList.error);
+ok(
+  "piece stock",
+  pieceList.data.characters[0].progress.materials.bone_helmet_piece === 4,
+  String(pieceList.data?.characters[0].progress.materials.bone_helmet_piece)
+);
+
+const pieceCancel = store.marketCancelListing(seller, pieceList.listing.id, { characterId: "c1" }, now + 25);
+ok(
+  "cancel returns pieces",
+  pieceCancel.ok && pieceCancel.data.characters[0].progress.materials.bone_helmet_piece === 7
+);
+
+const badPiece = store.marketCreateListing(
+  seller,
+  { characterId: "c1", kind: "armor_piece", fragId: "soul", qty: 1, priceAdena: 2000 },
+  now + 26
+);
+ok("reject ore as armor_piece", badPiece.ok === false);
+
+const equippedBlock = (() => {
+  const payload = makeSave(100000, [{ uid: "arm2", id: "bone_helmet", kind: "armor" }], { name: "SellerHero" });
+  payload.characters[0].progress.avatar.gear = { helmet: { uid: "arm2", id: "bone_helmet", kind: "armor" } };
+  store.persistPlayerSave(seller, (store.getSave(seller.id).seq || 1) + 1, now + 28, "0.42", payload);
+  return store.marketCreateListing(
+    seller,
+    { characterId: "c1", kind: "armor", uid: "arm2", priceAdena: 3000 },
+    now + 29
+  );
+})();
+ok("reject equipped armor", equippedBlock.ok === false);
 
 console.log(failed ? `\nFAILED: ${failed}` : "\nAll market tests passed.");
 try {

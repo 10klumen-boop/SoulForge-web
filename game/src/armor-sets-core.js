@@ -1,0 +1,399 @@
+// ===== Броня / сеты: helpers + avatarSetBonuses + фрагменты / крафт =====
+
+function isArmorItem(it) {
+  if (!it) return false;
+  if (it.kind === "armor") return true;
+  return !!(typeof AMAP !== "undefined" && AMAP[it.id]);
+}
+
+function armorItemDef(it) {
+  if (!it || typeof AMAP === "undefined") return null;
+  return AMAP[it.id] || null;
+}
+
+function armorSlotType(it) {
+  const def = armorItemDef(it);
+  return def?.slot || null;
+}
+
+function armorFragDef(fragId) {
+  if (!fragId || typeof ARMOR_FRAGS === "undefined") return null;
+  return ARMOR_FRAGS[fragId] || null;
+}
+
+/** Enchant: доля шанса → «+0.10% (~+0.1 к 100 зат.)». */
+function formatArmorEnchantBonus(enchant) {
+  const e = Number(enchant) || 0;
+  if (!(e > 0)) return "";
+  const pct = (e * 100).toFixed(2);
+  const per100 = (e * 100).toFixed(1);
+  return "+" + pct + "% заточка (~+" + per100 + " к 100 зат.)";
+}
+
+/** Части бонуса порога (без префикса «N шт.»). */
+function formatArmorBonusParts(b) {
+  if (!b) return [];
+  const parts = [];
+  if (b.armorSustain) parts.push("−" + Math.round(b.armorSustain * 100) + "% HP golden/boss");
+  if (b.pdef) parts.push("+" + b.pdef + " P.Def");
+  if (b.mdef) parts.push("+" + b.mdef + " M.Def");
+  if (b.mineAdena) parts.push("+" + Math.round(b.mineAdena * 100) + "% adena");
+  if (b.enchant) parts.push(formatArmorEnchantBonus(b.enchant));
+  if (b.bossResist) parts.push("−" + Math.round(b.bossResist * 100) + "% HP босса зоны");
+  if (b.mineXp) parts.push("+" + Math.round(b.mineXp * 100) + "% XP фарма");
+  return parts;
+}
+
+function formatArmorSetBonusLine(th, b) {
+  const parts = formatArmorBonusParts(b);
+  return th + " шт.: " + (parts.join(" · ") || "—");
+}
+
+/** Σ P.Def / M.Def кусков сета. */
+function armorSetPieceDefTotals(setId) {
+  const out = { pdef: 0, mdef: 0, pieces: 0 };
+  const setDef = typeof ARMOR_SETS !== "undefined" ? ARMOR_SETS[setId] : null;
+  const pieces = setDef?.pieces || [];
+  pieces.forEach((id) => {
+    const a = typeof AMAP !== "undefined" ? AMAP[id] : null;
+    if (!a) return;
+    out.pdef += a.pdef || 0;
+    out.mdef += a.mdef || 0;
+    out.pieces++;
+  });
+  return out;
+}
+
+/**
+ * Оценка sustain только от Σ DEF полного сета (без set armorSustain).
+ * Та же формула, что avatarArmorSustainPct от def.
+ */
+function armorSetDefSustainEstimate(setId) {
+  const tot = armorSetPieceDefTotals(setId);
+  const weighted = (tot.pdef || 0) + (tot.mdef || 0) * 0.5;
+  const div = typeof ARMOR_SUSTAIN_DEF_DIV === "number" ? ARMOR_SUSTAIN_DEF_DIV : 620;
+  const fromDefCap = typeof ARMOR_SUSTAIN_FROM_DEF_CAP === "number" ? ARMOR_SUSTAIN_FROM_DEF_CAP : 0.1;
+  return Math.min(fromDefCap, weighted / Math.max(1, div));
+}
+
+/** Короткие строки превью для карточки сета в мастерской. */
+function armorSetBonusPreviewLines(setId, maxLines) {
+  maxLines = maxLines || 4;
+  const setDef = typeof ARMOR_SETS !== "undefined" ? ARMOR_SETS[setId] : null;
+  if (!setDef) return [];
+  const lines = [];
+  const tot = armorSetPieceDefTotals(setId);
+  const defSus = armorSetDefSustainEstimate(setId);
+  lines.push(
+    "Σ P.Def " + tot.pdef + " · M.Def " + tot.mdef +
+      (defSus > 0 ? " → ≈−" + Math.round(defSus * 100) + "% HP (от DEF)" : "")
+  );
+  const tiers = setDef.bonuses || {};
+  [2, 4, 5].forEach((th) => {
+    if (!tiers[th]) return;
+    const short = formatArmorBonusParts(tiers[th]).join(", ");
+    if (short) lines.push(th + ": " + short);
+  });
+  return lines.slice(0, maxLines);
+}
+
+function armorFragCount(fragId) {
+  if (!fragId || !state.materials) return 0;
+  return state.materials[fragId] || 0;
+}
+
+function addArmorFrag(fragId, qty, meta) {
+  const def = armorFragDef(fragId);
+  if (!def || !(qty > 0)) return null;
+  if (typeof ensureWorkshopState === "function") ensureWorkshopState();
+  ProgressStore.update("materials", (m) => {
+    const next = { ...(m || { soul: 0, spirit: 0 }) };
+    next[fragId] = (next[fragId] || 0) + qty;
+    return next;
+  });
+  if (typeof save === "function") save();
+  if (!meta?.silent && typeof toast === "function") {
+    toast("🔩 " + def.name + " ×" + qty, "loot");
+  }
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("loot_armor_frag", {
+      fragId,
+      qty,
+      source: meta?.source || "unknown",
+      zoneId: meta?.zoneId || state.farmZone || null,
+    });
+  }
+  return { def, qty };
+}
+
+function addArmorToInventory(armorId, meta) {
+  const def = typeof AMAP !== "undefined" ? AMAP[armorId] : null;
+  if (!def) return null;
+  if (!state.inventory) state.inventory = [];
+  if (typeof isInventoryFull === "function" && isInventoryFull()) {
+    if (typeof toast === "function") toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
+    return null;
+  }
+  const it = { uid: typeof uid === "function" ? uid() : String(Date.now()), id: armorId, kind: "armor" };
+  const inv = (state.inventory || []).slice();
+  inv.push(it);
+  ProgressStore.set("inventory", inv);
+  if (typeof save === "function") save();
+  if (typeof renderMenu === "function") renderMenu();
+  if (typeof checkAchievements === "function") checkAchievements();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("loot_armor", {
+      armorId,
+      armorName: def.name,
+      grade: def.grade || null,
+      slot: def.slot || null,
+      source: meta?.source || "unknown",
+      zoneId: meta?.zoneId || state.farmZone || null,
+    });
+  }
+  return it;
+}
+
+/** Сколько кусков каждого сета надето. */
+function equippedArmorSetCounts() {
+  const counts = {};
+  if (typeof iterEquippedGear !== "function") return counts;
+  iterEquippedGear().forEach(({ item }) => {
+    if (!isArmorItem(item)) return;
+    const def = armorItemDef(item);
+    if (!def?.setId) return;
+    counts[def.setId] = (counts[def.setId] || 0) + 1;
+  });
+  return counts;
+}
+
+/**
+ * Активные бонусы сетов: armorSustain / mineAdena / enchant / bossResist / mineXp.
+ * Пороги 2 / 4 / 5 — суммируются (полный сет получает все ступени).
+ */
+function avatarSetBonuses() {
+  const out = {
+    pdef: 0,
+    mdef: 0,
+    armorSustain: 0,
+    mineAdena: 0,
+    enchant: 0,
+    bossResist: 0,
+    mineXp: 0,
+    sets: [],
+  };
+  if (typeof ARMOR_SETS === "undefined" || !ARMOR_SETS) return out;
+  const counts = equippedArmorSetCounts();
+  const lv =
+    typeof avatarLevelForGrade === "function"
+      ? avatarLevelForGrade(typeof state !== "undefined" ? state.avatar : null)
+      : (typeof state !== "undefined" ? state.avatar?.level || 1 : 1);
+  Object.keys(counts).forEach((setId) => {
+    const set = ARMOR_SETS[setId];
+    if (!set) return;
+    const n = counts[setId] || 0;
+    // Куски выше дозволенного грейда — сет-бонусы не работают.
+    if (typeof isGradeOverLevel === "function" && set.grade && isGradeOverLevel(set.grade, lv)) {
+      return;
+    }
+    const active = [];
+    const tiers = set.bonuses || {};
+    [2, 4, 5].forEach((th) => {
+      if (n < th || !tiers[th]) return;
+      const b = tiers[th];
+      if (b.pdef) out.pdef += b.pdef;
+      if (b.mdef) out.mdef += b.mdef;
+      if (b.armorSustain) out.armorSustain += b.armorSustain;
+      if (b.mineAdena) out.mineAdena += b.mineAdena;
+      if (b.enchant) out.enchant += b.enchant;
+      if (b.bossResist) out.bossResist += b.bossResist;
+      if (b.mineXp) out.mineXp += b.mineXp;
+      active.push(th);
+    });
+    if (active.length) {
+      out.sets.push({ id: setId, name: set.name, pieces: n, tiers: active });
+    }
+  });
+  return out;
+}
+
+/** P.Def/M.Def от кусков брони (+ legacy set flat) — не в farm power. */
+function avatarArmorDefBonuses() {
+  const out = { pdef: 0, mdef: 0 };
+  const lv =
+    typeof avatarLevelForGrade === "function"
+      ? avatarLevelForGrade(typeof state !== "undefined" ? state.avatar : null)
+      : (typeof state !== "undefined" ? state.avatar?.level || 1 : 1);
+  if (typeof iterEquippedGear === "function") {
+    iterEquippedGear().forEach(({ item }) => {
+      if (!isArmorItem(item)) return;
+      const def = armorItemDef(item);
+      if (!def) return;
+      const pen =
+        typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
+      out.pdef += Math.round((def.pdef || 0) * pen);
+      out.mdef += Math.round((def.mdef || 0) * pen);
+    });
+  }
+  const set = avatarSetBonuses();
+  out.pdef += set.pdef || 0;
+  out.mdef += set.mdef || 0;
+  if (typeof avatarArmorAffinityMult === "function") {
+    const m = avatarArmorAffinityMult(typeof state !== "undefined" ? state.avatar : null);
+    if (m > 1) {
+      out.pdef = Math.round(out.pdef * m);
+      out.mdef = Math.round(out.mdef * m);
+    }
+  }
+  return out;
+}
+
+/**
+ * Доля снижения HP golden/boss от P.Def/M.Def кусков + set armorSustain.
+ * Кап ~15%; полный Mithril ≈ 10% от def + 4% от 2-set.
+ */
+function avatarArmorSustainPct() {
+  const def = avatarArmorDefBonuses();
+  const weighted = (def.pdef || 0) + (def.mdef || 0) * 0.5;
+  const div = typeof ARMOR_SUSTAIN_DEF_DIV === "number" ? ARMOR_SUSTAIN_DEF_DIV : 620;
+  const fromDefCap = typeof ARMOR_SUSTAIN_FROM_DEF_CAP === "number" ? ARMOR_SUSTAIN_FROM_DEF_CAP : 0.1;
+  let pct = Math.min(fromDefCap, weighted / Math.max(1, div));
+  if (typeof avatarSetBonuses === "function") {
+    pct += Math.max(0, avatarSetBonuses().armorSustain || 0);
+  }
+  const totalCap = typeof ARMOR_SUSTAIN_TOTAL_CAP === "number" ? ARMOR_SUSTAIN_TOTAL_CAP : 0.15;
+  return Math.min(totalCap, Math.max(0, pct));
+}
+
+function armorFragIdsForZone(zoneId) {
+  const map = typeof ARMOR_FRAG_ZONES !== "undefined" ? ARMOR_FRAG_ZONES : null;
+  if (!map || !map[zoneId]) return [];
+  let setIds = map[zoneId];
+  if (typeof setIds === "string") setIds = [setIds];
+  if (!Array.isArray(setIds) || !setIds.length) return [];
+  if (typeof ARMOR_SETS === "undefined" || !ARMOR_SETS) return [];
+  const pieceIds = {};
+  setIds.forEach((setId) => {
+    const pieces = ARMOR_SETS[setId]?.pieces || [];
+    pieces.forEach((pid) => {
+      pieceIds[pid] = true;
+    });
+  });
+  const frags = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS : {};
+  return Object.keys(frags).filter((fid) => {
+    const armorId = frags[fid]?.armorId;
+    return armorId && pieceIds[armorId];
+  });
+}
+
+function farmZoneIdForArmorSet(setId) {
+  if (typeof ARMOR_SETS !== "undefined" && ARMOR_SETS[setId]?.farmZoneId) {
+    return ARMOR_SETS[setId].farmZoneId;
+  }
+  const map = typeof ARMOR_FRAG_ZONES !== "undefined" ? ARMOR_FRAG_ZONES : null;
+  if (!map) return null;
+  const entry = Object.keys(map).find((zid) => {
+    let sets = map[zid];
+    if (typeof sets === "string") sets = [sets];
+    return Array.isArray(sets) && sets.indexOf(setId) >= 0;
+  });
+  return entry || null;
+}
+
+function rollArmorFragDrop(zoneId, mobType) {
+  const ids = armorFragIdsForZone(zoneId);
+  if (!ids.length) return null;
+  if (typeof ARMOR_FRAGS === "undefined" || !ARMOR_FRAGS) return null;
+  const cfg = typeof ARMOR_FRAG_DROP !== "undefined" ? ARMOR_FRAG_DROP : null;
+  if (!cfg) return null;
+  const type = mobType === "boss" || mobType === "golden" ? mobType : "normal";
+  const chance = cfg[type] || 0;
+  if (!(chance > 0) || Math.random() >= chance) return null;
+  const fragId = ids[Math.floor(Math.random() * ids.length)];
+  const range = type === "boss" ? cfg.qtyBoss : type === "golden" ? cfg.qtyGolden : cfg.qtyNormal;
+  const lo = Array.isArray(range) ? range[0] : 1;
+  const hi = Array.isArray(range) ? range[1] : lo;
+  const qty = lo >= hi ? lo : lo + Math.floor(Math.random() * (hi - lo + 1));
+  return { fragId, qty, def: ARMOR_FRAGS[fragId] };
+}
+
+/** @deprecated готовые куски с босса больше не падают — только фрагменты в forge-зоне. */
+function rollArmorBossDrop(zoneId) {
+  return null;
+}
+
+function grantArmorDrop(armorId, meta) {
+  const def = typeof AMAP !== "undefined" ? AMAP[armorId] : null;
+  if (!def) return null;
+  const it = addArmorToInventory(armorId, meta);
+  if (!it) return null;
+  if (!meta?.silent && typeof toast === "function") {
+    toast("🛡 Добыто: " + def.name + " (" + (def.grade || "?") + ") → в инвентарь", "loot");
+  }
+  return { item: it, def };
+}
+
+function armorCraftRecipe(armorId) {
+  if (typeof ARMOR_CRAFT === "undefined" || !ARMOR_CRAFT) return null;
+  return ARMOR_CRAFT.find((r) => r.armorId === armorId) || null;
+}
+
+function canCraftArmor(armorId) {
+  const r = armorCraftRecipe(armorId);
+  const armor = typeof AMAP !== "undefined" ? AMAP[armorId] : null;
+  if (!r || !armor) return { ok: false, reason: "unknown" };
+  const grade = armor.grade || "C";
+  const frags = armorFragCount(r.fragId);
+  const cry = state.crystals?.[grade] || 0;
+  const ore = state.materials?.soul || 0;
+  const adena = state.adena || 0;
+  if (frags < r.fragQty) return { ok: false, reason: "frag", need: r.fragQty, have: frags };
+  if (cry < r.cry) return { ok: false, reason: "cry", need: r.cry, have: cry, grade };
+  if (ore < r.oreSoul) return { ok: false, reason: "ore", need: r.oreSoul, have: ore };
+  if (adena < (r.adena || 0)) return { ok: false, reason: "adena", need: r.adena || 0, have: adena };
+  return { ok: true, recipe: r, armor, grade };
+}
+
+function craftArmor(armorId) {
+  const check = canCraftArmor(armorId);
+  if (!check.ok) {
+    if (typeof toast === "function") {
+      if (check.reason === "frag") toast("Не хватает материала (нужно " + check.need + ")", "warn");
+      else if (check.reason === "cry") toast("Не хватает кристаллов " + check.grade + " (нужно " + check.need + ")", "warn");
+      else if (check.reason === "ore") toast("Не хватает Soul Ore (нужно " + check.need + ")", "warn");
+      else if (check.reason === "adena") toast("Недостаточно adena", "warn");
+      else toast("Рецепт недоступен", "warn");
+    }
+    return null;
+  }
+  const r = check.recipe;
+  const grade = check.grade;
+  if (typeof isInventoryFull === "function" && isInventoryFull()) {
+    if (typeof toast === "function") toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
+    return null;
+  }
+  ProgressStore.update("materials", (m) => {
+    const next = { ...(m || { soul: 0, spirit: 0 }) };
+    next[r.fragId] = Math.max(0, (next[r.fragId] || 0) - r.fragQty);
+    next.soul = Math.max(0, (next.soul || 0) - r.oreSoul);
+    return next;
+  });
+  ProgressStore.update("crystals", (c) => {
+    const next = { ...(c || { D: 0, C: 0, B: 0, A: 0 }) };
+    next[grade] = Math.max(0, (next[grade] || 0) - r.cry);
+    return next;
+  });
+  if (r.adena > 0) {
+    ProgressStore.update("adena", (a) => Math.max(0, (a || 0) - r.adena));
+  }
+  const it = addArmorToInventory(armorId, { source: "craft" });
+  if (!it) return null;
+  if (typeof Audio2 !== "undefined" && Audio2.success) Audio2.success();
+  if (typeof save === "function") save();
+  if (typeof toast === "function") {
+    toast("🔨 Скрафчено: " + check.armor.name + " [" + grade + "]", "craft");
+  }
+  if (typeof achStat === "function") achStat("armorCrafted", 1);
+  if (typeof checkAchievements === "function") checkAchievements();
+  return it;
+}

@@ -166,16 +166,22 @@ body {
 
 /* —— Menu tiles —— */
 .tile {
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.tile .tile-hit {
   background: linear-gradient(180deg, #1a1816, #121010);
   border: 1px solid var(--edge2);
   border-radius: 4px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
-.tile:hover {
+.tile:hover .tile-hit {
   border-color: var(--accent-soft);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 12px var(--accent-glow);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55), 0 0 10px var(--accent-glow);
 }
-.tile .tname { color: var(--ash); font-family: inherit; text-transform: uppercase; font-size: 13px; letter-spacing: 0.04em; font-weight: 600; }
+.tile .tname { color: var(--ash); font-family: inherit; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; font-weight: 600; }
 #avatarTile:hover .tile-ico,
 #questTile:hover .tile-ico,
 #invTile:hover .tile-ico,

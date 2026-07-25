@@ -30,14 +30,22 @@ function weaponAffinityMult(w, forMystic) {
 
 function fighterWeaponPower(w, plus) {
   if (!w) return 0;
-  return Math.round(statAt(w.patk, w.ps, plus || 0) * weaponAffinityMult(w, false));
+  let v = Math.round(statAt(w.patk, w.ps, plus || 0) * weaponAffinityMult(w, false));
+  if (typeof avatarWeaponMasteryMult === "function") {
+    v = Math.round(v * avatarWeaponMasteryMult(w, typeof state !== "undefined" ? state.avatar : null));
+  }
+  return v;
 }
 
 function mysticWeaponPower(w, plus) {
   if (!w) return 0;
   const aff = weaponAffinity(w);
   const step = aff === "magical" ? Math.max(w.ms || 0, w.ps || 0) : (w.ms || 0);
-  return Math.round(statAt(w.matk, step, plus || 0) * weaponAffinityMult(w, true));
+  let v = Math.round(statAt(w.matk, step, plus || 0) * weaponAffinityMult(w, true));
+  if (typeof avatarWeaponMasteryMult === "function") {
+    v = Math.round(v * avatarWeaponMasteryMult(w, typeof state !== "undefined" ? state.avatar : null));
+  }
+  return v;
 }
 
 function mysticWeaponPowerStep(w) {

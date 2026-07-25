@@ -5,10 +5,12 @@ let _passiveIncomeNotice = null;
 
 function queuePassiveIncomeNotice(amount, sec) {
   if (!(amount > 0)) return;
-  const prev = _passiveIncomeNotice;
+  const cap = typeof passiveCapSec === "function" ? passiveCapSec() : 0;
+  const addSec = Math.max(0, Math.floor(Number(sec) || 0));
+  // Один снимок на показ модалки; не суммируем повторные collect (load/cloud).
   _passiveIncomeNotice = {
-    amount: (prev?.amount || 0) + amount,
-    sec: (prev?.sec || 0) + sec,
+    amount,
+    sec: Math.min(addSec, cap > 0 ? cap : addSec),
   };
 }
 
@@ -45,7 +47,7 @@ function ensurePassiveIncomeState() {
 function passiveCompletedChaptersCount() {
   if (typeof FARM_ZONES === "undefined" || !Array.isArray(FARM_ZONES)) return 0;
   if (typeof isZoneChapterComplete !== "function") return 0;
-  return FARM_ZONES.filter((z) => z.active && isZoneChapterComplete(z.id)).length;
+  return FARM_ZONES.filter((z) => z.active && !z.side && isZoneChapterComplete(z.id)).length;
 }
 
 function passiveCapSec() {
@@ -87,7 +89,7 @@ function passiveRatePerSec() {
       : (mults[chapter - 1] || mults[mults.length - 1] || 1);
   let rate = Math.max(0, base * (1 + power / Math.max(1, powerDiv)) * chMult);
   if (typeof passiveEffectMult === "function") {
-    rate *= passiveEffectMult("offlineIncomeMult", state.avatar?.raceId);
+    rate *= passiveEffectMult("offlineIncomeMult", state.avatar);
   } else if (typeof racialEffectMult === "function") {
     rate *= racialEffectMult("offlineIncomeMult", state.avatar?.raceId)
       * racialEffectMult("passiveIncomeMult", state.avatar?.raceId);

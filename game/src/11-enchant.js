@@ -207,7 +207,7 @@ function newWeapon() { Audio2.click(); goInventory(); }
 
 function sellWeapon() {
   if (busy || !cur || cur.broken) return;
-  if (cur.equipped) { toast("Сначала сними оружие в «Персонаж»", "warn"); return; }
+  if (cur.equipped) { toast("Сначала сними оружие в инвентаре", "warn"); return; }
   if (!canSellWeapon(cur.weapon, cur.plus)) { toast("Продать можно только с +4 и выше"); return; }
   const sv = sellValue(cur.weapon, cur.plus);
   ProgressStore.update("adena", (a) => (a || 0) + sv);

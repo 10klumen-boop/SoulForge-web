@@ -107,7 +107,11 @@ function renderEnch(resetVerdict) {
   const p = broken ? 0 : statAt(w.patk, w.ps, cur.plus);
   const m = broken ? 0 : statAt(w.matk, w.ms, cur.plus);
   const patkBox = $("#patk")?.closest(".box");
+  const matkBox = $("#matk")?.closest(".box");
   if (patkBox) patkBox.hidden = false;
+  const mysticPrimary = typeof avatarIsMystic === "function" && avatarIsMystic();
+  if (patkBox) patkBox.classList.toggle("is-primary", !mysticPrimary);
+  if (matkBox) matkBox.classList.toggle("is-primary", !!mysticPrimary);
   $("#patk").innerHTML = `${fmt(p)} <small>${cur.plus > 0 ? "+" + w.ps * cur.plus : ""}</small>`;
   $("#matk").innerHTML = `${fmt(m)} <small>${cur.plus > 0 ? "+" + w.ms * cur.plus : ""}</small>`;
 

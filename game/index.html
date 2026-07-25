@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m60" />
-<link rel="stylesheet" href="styles/dark-fantasy.css" />
+<link rel="stylesheet" href="styles/main.css?v=m104" />
+<link rel="stylesheet" href="styles/dark-fantasy.css?v=d12" />
 <script src="cloud-config.js"></script>
 
 </head>
@@ -29,7 +29,7 @@
       <span class="game-log-title">Журнал</span>
       <div class="game-log-head-actions">
         <button type="button" class="game-log-clear" id="gameLogClear" title="Очистить журнал">⟲</button>
-        <button type="button" class="game-log-collapse" id="gameLogCollapse" title="Свернуть">«</button>
+        <button type="button" class="game-log-collapse" id="gameLogCollapse" title="Свернуть">»</button>
       </div>
     </div>
     <div class="game-log-filters" id="gameLogFilters" role="toolbar" aria-label="Фильтры журнала"></div>
@@ -45,7 +45,7 @@
     <div class="game-chat-head">
       <span class="game-chat-title" id="gameChatTitle">Мир</span>
       <div class="game-chat-head-actions">
-        <button type="button" class="game-chat-collapse" id="gameChatCollapse" title="Свернуть">»</button>
+        <button type="button" class="game-chat-collapse" id="gameChatCollapse" title="Свернуть">«</button>
       </div>
     </div>
     <div class="game-chat-channels" id="gameChatChannels" role="tablist" aria-label="Каналы чата">
@@ -66,8 +66,8 @@
       <input type="text" id="gameChatInput" class="game-chat-input" maxlength="200" placeholder="Сообщение…" aria-label="Сообщение в чат" />
       <button type="submit" class="game-chat-send" id="gameChatSend" title="Отправить">➤</button>
     </form>
-    <div class="game-chat-resize-edge game-chat-resize-w" id="gameChatResizeW" title="Ширина" aria-hidden="true"></div>
-    <div class="game-chat-resize-edge game-chat-resize-h" id="gameChatResizeH" title="Высота" aria-hidden="true"></div>
+    <div class="game-chat-resize-edge game-chat-resize-w" id="gameChatResizeW" title="Ширина →" aria-hidden="true"></div>
+    <div class="game-chat-resize-edge game-chat-resize-h" id="gameChatResizeH" title="Высота ↑" aria-hidden="true"></div>
     <div class="game-chat-resize-corner" id="gameChatResize" title="Размер чата" aria-hidden="true"></div>
   </div>
 </aside>
@@ -255,6 +255,7 @@
           <button type="button" class="lb-tab" data-mode="power">Сила</button>
           <button type="button" class="lb-tab" data-mode="wealth">Богатство</button>
           <button type="button" class="lb-tab" data-mode="mobs">Мобы</button>
+          <button type="button" class="lb-tab" data-mode="pvp">PvP</button>
         </div>
         <p class="lb-status" id="lbStatus">—</p>
         <button type="button" class="lb-login-cta" id="lbLoginCta" hidden>Войти в аккаунт</button>
@@ -267,6 +268,160 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.49</p>
+        <ul>
+          <li><b>Броня</b> — слоты и сеты D/C (Bone…Demon), куски Material, крафт в Мастерской, сродство heavy/light/robe, портрет в сете.</li>
+          <li><b>Классы</b> — профессии 1/2, кап 40, пассивки расы/класса, мастерство оружия (мистик: жезл + маг. мечи), штраф грейда только на броню.</li>
+          <li><b>Хаб</b> — раздельно История / Фарм; инвентарь по вкладкам; paperdoll; Мастерская Заряды/Броня.</li>
+          <li><b>Соц. / экономика</b> — рынок (в т.ч. броня и куски), склад аккаунта, почта по имени (экип + стеки), уникальные имена.</li>
+          <li><b>Арена</b> — дуэль / async / тренировка, ELO-рейтинг, ачивки арены, VFX и мобильная вёрстка боя.</li>
+          <li><b>Фарм / UX</b> — side-зоны кусков, расширенные пулы мобов, фикс пассива/поручения (брифинг только в Истории).</li>
+        </ul>
+        <p class="patch-ver">v0.46.13</p>
+        <ul>
+          <li><b>Арена</b> — дуэль вызовом по имени (онлайн) и async PvP против тени билда; тренировка локально.</li>
+        </ul>
+        <p class="patch-ver">v0.46.12</p>
+        <ul>
+          <li><b>Арена</b> — тренировочные дуэли: раундовый бой по P.Atk/M.Atk vs DEF, скиллы Q/E/R/F, защита. Сила фарма не влияет.</li>
+        </ul>
+        <p class="patch-ver">v0.46.11</p>
+        <ul>
+          <li><b>Мистик</b> — пассивка мастерства оружия: жезл + магические мечи.</li>
+          <li><b>Грейд</b> — штраф за высокий грейд только на броню/сеты; оружие без штрафа.</li>
+        </ul>
+        <p class="patch-ver">v0.46.10</p>
+        <ul>
+          <li><b>Фарм</b> — расширен пул мобов (+бес, орк, гремлин, гризли, призрак, оборотень); у каждой зоны/расы свой набор, без копипаста.</li>
+        </ul>
+        <p class="patch-ver">v0.46.9</p>
+        <ul>
+          <li><b>Имена</b> — глобально уникальные имена персонажей (проверка при создании + в облаке).</li>
+          <li><b>Почта</b> — кроме экипа: адена, кристаллы, руда и заряды.</li>
+        </ul>
+        <p class="patch-ver">v0.46.8</p>
+        <ul>
+          <li><b>Пассивный доход</b> — фикс: оффлайн-часы больше не суммируются при загрузке/облаке (модалка только при «Играть»).</li>
+        </ul>
+        <p class="patch-ver">v0.46.7</p>
+        <ul>
+          <li><b>Почта</b> — отдельная плитка в меню; отправка любому игроку по имени персонажа (серверный эскроу, 7 дней).</li>
+          <li><b>Склад</b> — общий сундук аккаунта без вкладки почты.</li>
+        </ul>
+        <p class="patch-ver">v0.46.6</p>
+        <ul>
+          <li><b>Склад аккаунта</b> — общий сундук на всех персонажей (оружие/броня/бижу).</li>
+        </ul>
+        <p class="patch-ver">v0.46.5</p>
+        <ul>
+          <li><b>Персонаж</b> — раскладка «герой + вкладки»: Обзор / Пассивные / Боевые / Доход; бонусы чипами.</li>
+        </ul>
+        <p class="patch-ver">v0.46.4</p>
+        <ul>
+          <li><b>Уровень</b> — кап 40; 2-я профессия с 40 ур. (1-я по-прежнему с 10).</li>
+          <li><b>Класс</b> — пассивки сродства брони и мастерства оружия (+6% при своём типе).</li>
+          <li><b>Грейд</b> — без штрафа: D с 20 ур., C с 40; выше — статы ×0.5 и без бонусов сета.</li>
+        </ul>
+        <p class="patch-ver">v0.46.3</p>
+        <ul>
+          <li><b>Персонаж</b> — портрет в надетом сете (рендеры ivory-tower: раса × пол × сет), бейдж N/5.</li>
+        </ul>
+        <p class="patch-ver">v0.46.2</p>
+        <ul>
+          <li><b>Персонаж</b> — богаче фон портрета; надетый сет виден на аватаре (иконки кусков + бейдж N/5).</li>
+        </ul>
+        <p class="patch-ver">v0.46.1</p>
+        <ul>
+          <li><b>Классы</b> — 2-я профессия на ур. 20 (было 18); у каждой ветки своя wiki-иконка скилла.</li>
+          <li><b>Создание персонажа</b> — новые портреты рас/классов с ivory-tower (вместо «поплывших» l2-god апов).</li>
+        </ul>
+        <p class="patch-ver">v0.46.0</p>
+        <ul>
+          <li><b>Классы</b> — мягкая лестница профессий: 1-я на ур. 10, 2-я на ур. 20; иконки веток с masterwork.wiki.</li>
+          <li><b>Шаман</b> — свой боевой kit; классовые пассивы у воина/мистика/шамана.</li>
+          <li><b>Броня</b> — soft-сродство heavy/light/robe (+6% урон/DEF при ≥2 кусках).</li>
+        </ul>
+        <p class="patch-ver">v0.45.6</p>
+        <ul>
+          <li><b>Броня</b> — правильные wiki-иконки сетов (Manticore t42, Demon t54, Reinforced/Plated/Drake и др.); больше не подставляются Theca/Karmian.</li>
+          <li><b>Мастерская</b> — броня по подвидам: тяжёлая / лёгкая / роба, затем сет; на карточке превью 2/4/5 и Σ DEF.</li>
+          <li><b>Броня</b> — Material-иконки по сетам; разные шлемы/циркулеты; заточка в UI как «~+N к 100 зат.»; подсказка sustain от DEF.</li>
+          <li><b>Фарм</b> — сюжетная шапка скрыта в side-зонах (фикс CSS <code>hidden</code>).</li>
+          <li><b>Dev</b> — вкладка «Броня» как у оружия: сеты с иконкой chest.</li>
+          <li><b>Инвентарь</b> — «Бижутерия»; пустые ячейки на всех вкладках ресурсов.</li>
+        </ul>
+        <p class="patch-ver">v0.45.5</p>
+        <ul>
+          <li><b>Фарм</b> — свои фоны для «Свалки доспехов» и «Кузницы сплавов» (2 кадра на зону).</li>
+        </ul>
+        <p class="patch-ver">v0.45.4</p>
+        <ul>
+          <li><b>Броня</b> — все HF D/C сеты (17): D Bone…Knowledge, C Mithril…Demon; фарм по-прежнему две зоны (свалка / кузница).</li>
+        </ul>
+        <p class="patch-ver">v0.45.3</p>
+        <ul>
+          <li><b>Мастерская</b> — после «Броня» кнопки сетов (Bone…Karmian), рецепты только выбранного сета.</li>
+        </ul>
+        <p class="patch-ver">v0.45.2</p>
+        <ul>
+          <li><b>Ачивки</b> — side-зоны фарма больше не считаются главами Prelude («5 глав» и т.п.).</li>
+        </ul>
+        <p class="patch-ver">v0.45.1</p>
+        <ul>
+          <li><b>Фарм кусков</b> — две общие зоны: свалка (Bone / Brigandine / Manticore) и кузница (Mithril / Chain / Karmian), не по зоне на сет.</li>
+        </ul>
+        <p class="patch-ver">v0.45.0</p>
+        <ul>
+          <li><b>Броня D/C</b> — сеты Bone, Brigandine, Manticore, Mithril, Chain, Karmian; у каждого своя зона фарма кусков.</li>
+          <li><b>Material</b> — иконки кусков с wiki; крафт в Мастерской по сетам с подсказкой зоны.</li>
+          <li><b>Инвентарь</b> — кристаллизация закреплена внизу окна на всех вкладках.</li>
+        </ul>
+        <p class="patch-ver">v0.44.9</p>
+        <ul>
+          <li><b>Инвентарь</b> — вкладки по типу: Оружие / Броня / Бижа / Куски / Соски / Кристаллы / Руда; в «Все» сначала оружие, потом броня, потом бижа.</li>
+        </ul>
+        <p class="patch-ver">v0.44.8</p>
+        <ul>
+          <li><b>Фарм</b> — кузница мифрила без квестов и босса главы: только дроп фрагментов брони.</li>
+        </ul>
+        <p class="patch-ver">v0.44.7</p>
+        <ul>
+          <li><b>UI</b> — иконки кнопок «История» / «Фарм» и разделов Мастерской «Заряды» / «Броня».</li>
+        </ul>
+        <p class="patch-ver">v0.44.6</p>
+        <ul>
+          <li><b>Фикс</b> — восстановлен экран Мастерской (`#wsBody`); ломал DOM и пустое меню.</li>
+        </ul>
+        <p class="patch-ver">v0.44.5</p>
+        <ul>
+          <li><b>Меню</b> — вход в зоны двумя кнопками «История» / «Фарм»; фикс открытия Мастерской.</li>
+        </ul>
+        <p class="patch-ver">v0.44.4</p>
+        <ul>
+          <li><b>Меню</b> — отдельные поля <b>История</b> и <b>Фарм</b> (не вкладки); у фарма нет сюжета.</li>
+          <li><b>Мастерская</b> — экран выбора: две кнопки «Заряды» / «Броня».</li>
+        </ul>
+        <p class="patch-ver">v0.44.3</p>
+        <ul>
+          <li><b>Меню</b> — вкладки <b>История</b> / <b>Фарм</b>: сюжетные главы отдельно, кузница мифрила в фарме (вне цепочки Prelude).</li>
+          <li><b>Мастерская</b> — вкладки Заряды / Броня.</li>
+        </ul>
+        <p class="patch-ver">v0.44.2</p>
+        <ul>
+          <li><b>Броня · крафт</b> — куски Mithril больше не падают готовыми: фрагменты (Material) с side-зоны «Кузница мифрила» (гл. II), крафт в Мастерской (piece + крист. C + Soul Ore).</li>
+          <li><b>P.Def</b> — снижает HP golden/boss (sustain); сет 2/4/5 без пустого +def: sustain, +adena (I–II), заточка / −HP босса / XP.</li>
+          <li><b>UI</b> — <code>+N</code> на paperdoll не раздувает слот.</li>
+        </ul>
+        <p class="patch-ver">v0.44.1</p>
+        <ul>
+          <li><b>Инвентарь</b> — слева paperdoll в стиле L2 (оружие + 5 брони; бижутерия/щит — «скоро»); экип с экрана «Персонаж» убран.</li>
+        </ul>
+        <p class="patch-ver">v0.44</p>
+        <ul>
+          <li><b>Броня · Mithril</b> — 5 слотов (шлем, доспех, поножи, перчатки, сапоги), сет C-grade с бонусами 2/4/5: защита, +6% adena, шанс заточки и −HP босса зоны.</li>
+          <li><b>Дроп</b> — кусок сета в награде глав II–III; редкий дроп с zone boss на тех же главах.</li>
+          <li><b>Сила фарма</b> — по-прежнему от оружия/пассивов; def брони почти не крутит farm power.</li>
+        </ul>
         <p class="patch-ver">v0.43.3</p>
         <ul>
           <li><b>Фарм</b> — адена с мобов поднята (~3–7к обычный, ~18–43к золотой на гл.I); якоря экономики, пассив и цены автоудара подтянуты.</li>
@@ -462,7 +617,7 @@
       </div>
     </section>
 
-    <section class="screen menu-screen" id="screen-menu">
+    <section class="screen menu-screen" id="screen-menu" data-hub-mode="entry">
       <div class="hub-top-row"><button type="button" class="hub-back-btn" id="hubHomeBtn">← Главное меню</button></div>
       <div class="hero">
         <div class="hero-panel">
@@ -505,18 +660,74 @@
         </div>
       </div>
       <div class="farm-hub" id="farmHub">
-        <div class="farm-hub-head">
-          <span>Зоны фарма</span>
-          <small id="farmHubPower">Сила 0</small>
-        </div>
-        <div class="farm-zone-list" id="farmZoneList"></div>
-        <div class="farm-hub-play">
-          <button type="button" class="farm-story-read" id="farmStoryRead" title="Прочитать главу">Сюжет главы</button>
-          <button type="button" class="mine-banner" id="mineBanner">
-            <div><div class="mb-t" id="mineBannerTitle">Задание</div><div class="mb-d" id="mineBannerMeta">Prelude · лови цели за adena и оружие</div></div>
-            <div class="mb-go">Играть →</div>
+        <div class="farm-hub-power"><small id="farmHubPower">Сила 0</small></div>
+
+        <div class="farm-hub-entry" id="farmHubEntry">
+          <button type="button" class="farm-hub-entry-btn" id="farmEntryStory" data-farm-entry="story">
+            <img class="farm-hub-entry-ico" src="icons/btn_story.png?v=4" alt="" draggable="false">
+            <span class="farm-hub-entry-copy">
+              <strong>История</strong>
+              <small>Главы Prelude · сюжет и задания</small>
+            </span>
+          </button>
+          <button type="button" class="farm-hub-entry-btn" id="farmEntryFarm" data-farm-entry="farm">
+            <img class="farm-hub-entry-ico" src="icons/btn_farm.png?v=4" alt="" draggable="false">
+            <span class="farm-hub-entry-copy">
+              <strong>Фарм</strong>
+              <small>Кузница · фрагменты брони</small>
+            </span>
           </button>
         </div>
+
+        <section class="farm-field" id="storyField" aria-label="История" hidden>
+          <div class="farm-field-head-row">
+            <button type="button" class="farm-field-back" id="storyFieldBack" title="Назад">←</button>
+            <div class="farm-field-head">История</div>
+          </div>
+          <div class="farm-zone-list" id="storyZoneList"></div>
+          <div class="farm-hub-play">
+            <div class="farm-hub-story-actions" id="farmHubStoryActions">
+              <button type="button" class="farm-story-action" id="farmStoryArcBtn" title="Обзор глав Prelude">
+                <img class="farm-story-action-ico" src="icons/btn_chapters.png?v=1" alt="" draggable="false">
+                <span class="farm-story-action-copy">
+                  <strong>Главы</strong>
+                  <small>Обзор Prelude</small>
+                </span>
+              </button>
+              <button type="button" class="farm-story-action" id="farmStoryRead" title="Прочитать главу">
+                <img class="farm-story-action-ico" src="icons/btn_chapter_story.png?v=1" alt="" draggable="false">
+                <span class="farm-story-action-copy">
+                  <strong>Сюжет главы</strong>
+                  <small>Текст и лор</small>
+                </span>
+              </button>
+            </div>
+            <button type="button" class="mine-banner" id="mineBanner">
+              <div><div class="mb-t" id="mineBannerTitle">Задание</div><div class="mb-d" id="mineBannerMeta">Prelude · лови цели за adena и оружие</div></div>
+              <span class="mb-go" aria-hidden="true">
+                <img class="mb-go-ico" src="icons/btn_play.png?v=1" alt="">
+                <span class="mb-go-label">Играть</span>
+              </span>
+            </button>
+          </div>
+        </section>
+
+        <section class="farm-field" id="farmField" aria-label="Фарм" hidden>
+          <div class="farm-field-head-row">
+            <button type="button" class="farm-field-back" id="farmFieldBack" title="Назад">←</button>
+            <div class="farm-field-head">Фарм</div>
+          </div>
+          <div class="farm-zone-list" id="freeFarmZoneList"></div>
+          <div class="farm-hub-play">
+            <button type="button" class="mine-banner" id="farmPlayBanner">
+              <div><div class="mb-t" id="farmPlayTitle">Кузница</div><div class="mb-d" id="farmPlayMeta">Фрагменты брони · без сюжета</div></div>
+              <span class="mb-go" aria-hidden="true">
+                <img class="mb-go-ico" src="icons/btn_play.png?v=1" alt="">
+                <span class="mb-go-label">Играть</span>
+              </span>
+            </button>
+          </div>
+        </section>
       </div>
       <div class="story-arc-bar" id="storyArcBar" hidden>
         <button type="button" class="story-arc-btn" id="storyArcBtn" title="Сюжет и главы">
@@ -524,13 +735,46 @@
           <span class="story-arc-dots" id="storyArcDots"></span>
         </button>
       </div>
-      <div class="grid" id="homeGrid">
-        <div class="tile" id="avatarTile"><img class="tile-ico" src="icons/char_menu.png?v=10" alt="" aria-hidden="true"><div class="tname">Персонаж</div><div class="tcount" id="avatarTileMeta">Создать</div></div>
-        <div class="tile" id="questTile"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"><div class="tname">Журнал квестов</div><div class="tcount" id="questJournalMeta">Prelude</div></div>
-        <div class="tile" id="invTile"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"><div class="tname">Инвентарь</div><div class="tcount" id="invCount">0 предметов</div></div>
-        <div class="tile" id="shopTile"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"><div class="tname">Мастерская зарядов</div><div class="tcount">Покупай руду · крафти · продавай</div></div>
-        <div class="tile" id="marketTile"><img class="tile-ico" src="icons/warehouse_chest.png?v=1" alt="" aria-hidden="true"><div class="tname">Рынок</div><div class="tcount">Лоты игроков · адена</div></div>
-        <div class="tile" id="achTile"><img class="tile-ico" src="assets/ui/bloodhood_icon02_crop.png" alt="" aria-hidden="true"><div class="tname">Достижения</div><div class="tcount" id="achCount">0 / 43</div></div>
+      <div class="grid menu-dock" id="homeGrid">
+        <div class="tile" id="avatarTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="icons/char_menu.png?v=10" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Персонаж</span><span class="tcount" id="avatarTileMeta">Создать</span></span>
+        </div>
+        <div class="tile" id="questTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Квесты</span><span class="tcount" id="questJournalMeta">Prelude</span></span>
+        </div>
+        <div class="tile" id="invTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Инвентарь</span><span class="tcount" id="invCount">0 / 120</span></span>
+        </div>
+        <div class="tile" id="accountStorageTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="icons/account_warehouse.png?v=1" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Склад</span><span class="tcount" id="accountStorageMeta">0/40</span></span>
+        </div>
+        <div class="tile" id="playerMailTile" role="button" tabindex="0">
+          <span class="tile-hit">
+            <img class="tile-ico" src="icons/etc_letter_envelope_i00.png?v=1" alt="" aria-hidden="true">
+            <span class="tile-badge" id="playerMailBadge" hidden>0</span>
+          </span>
+          <span class="tile-cap"><span class="tname">Почта</span><span class="tcount" id="playerMailMeta" hidden></span></span>
+        </div>
+        <div class="tile" id="shopTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Мастерская</span></span>
+        </div>
+        <div class="tile" id="marketTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="icons/warehouse_chest.png?v=1" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Рынок</span></span>
+        </div>
+        <div class="tile" id="pvpArenaTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="icons/skill0029.png?v=2" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Арена</span><span class="tcount">Дуэль</span></span>
+        </div>
+        <div class="tile" id="achTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="assets/ui/bloodhood_icon02_crop.png" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Достижения</span><span class="tcount" id="achCount">0 / 43</span></span>
+        </div>
       </div>
     </section>
 
@@ -540,38 +784,57 @@
         <h2>Персонаж</h2>
       </div>
       <div class="avatar-screen sf-scroll">
-        <div class="avatar-gear-layout">
-          <div class="avatar-gear-col left" id="avatarGearLeft"></div>
-          <div class="avatar-card avatar-card-center">
-            <div class="avatar-portrait-wrap">
-              <div class="avatar-portrait-frame">
-                <img class="avatar-portrait" id="avatarPortrait" src="assets/portraits/human_fighter_male.png?v=7" alt="">
-              </div>
+        <div class="avatar-hero">
+          <div class="avatar-portrait-wrap">
+            <div class="avatar-portrait-frame">
+              <div class="avatar-portrait-aura" aria-hidden="true"></div>
+              <img class="avatar-portrait" id="avatarPortrait" src="assets/portraits/human_fighter_male.png?v=11" alt="">
+              <div class="avatar-armor-overlay" id="avatarArmorOverlay" hidden aria-hidden="true"></div>
             </div>
+            <div class="avatar-set-badge" id="avatarSetBadge" hidden></div>
           </div>
-          <div class="avatar-gear-col right" id="avatarGearRight"></div>
-        </div>
-        <div class="avatar-card avatar-card-stats">
-          <div class="avatar-card-body">
+          <div class="avatar-hero-info">
             <h3 class="avatar-name" id="avatarName">—</h3>
-            <p class="avatar-race" id="avatarRace">—</p>
-            <p class="avatar-gender" id="avatarGender">—</p>
+            <p class="avatar-meta-line">
+              <span id="avatarRace">—</span>
+              <span class="avatar-meta-sep" aria-hidden="true">·</span>
+              <span id="avatarGender">—</span>
+            </p>
             <p class="avatar-class" id="avatarClass">—</p>
+            <button type="button" class="avatar-profession-banner" id="avatarProfessionBanner" hidden></button>
             <p class="avatar-rank" id="avatarRank">Уровень 1</p>
             <div class="avatar-xp-track" aria-hidden="true"><div class="avatar-xp-bar" id="avatarXpBar"></div></div>
             <p class="avatar-xp-text" id="avatarXpText">0 / 100 опыта души</p>
-            <p class="avatar-class-desc" id="avatarClassDesc"></p>
             <div class="avatar-stat-grid" id="avatarStatGrid"></div>
             <div class="avatar-farm-row">
               <span>Сила фарма</span>
               <b id="avatarFarmPower">0</b>
             </div>
-            <p class="avatar-farm-hint">Зону выбирай в меню — здесь только статы и экипировка.</p>
-            <p class="avatar-perk" id="avatarPerk"></p>
+          </div>
+        </div>
+
+        <div class="avatar-tabs" role="tablist" aria-label="Разделы персонажа">
+          <button type="button" class="avatar-tab sel" role="tab" data-avatar-tab="overview" aria-selected="true">Обзор</button>
+          <button type="button" class="avatar-tab" role="tab" data-avatar-tab="passive" aria-selected="false">Пассивные</button>
+          <button type="button" class="avatar-tab" role="tab" data-avatar-tab="combat" aria-selected="false">Боевые</button>
+          <button type="button" class="avatar-tab" role="tab" data-avatar-tab="income" aria-selected="false">Доход</button>
+        </div>
+
+        <div class="avatar-tab-panels">
+          <div class="avatar-tab-panel" data-avatar-panel="overview" role="tabpanel">
+            <p class="avatar-class-desc" id="avatarClassDesc"></p>
+            <div class="avatar-perk-chips" id="avatarPerkChips"></div>
+            <p class="avatar-farm-hint">Зону выбирай в меню. Экипировка — в инвентаре.</p>
+          </div>
+          <div class="avatar-tab-panel" data-avatar-panel="passive" role="tabpanel" hidden>
+            <div class="avatar-skills-panel" id="avatarPassiveSkillsPanel"></div>
+          </div>
+          <div class="avatar-tab-panel" data-avatar-panel="combat" role="tabpanel" hidden>
+            <div class="avatar-skills-panel" id="avatarSkillsPanel"></div>
+          </div>
+          <div class="avatar-tab-panel" data-avatar-panel="income" role="tabpanel" hidden>
             <div class="avatar-boost-panel" id="passiveIncomePanel" hidden></div>
             <div class="avatar-boost-panel" id="autoClickerPanel" hidden></div>
-            <div class="avatar-skills-panel" id="avatarPassiveSkillsPanel"></div>
-            <div class="avatar-skills-panel" id="avatarSkillsPanel"></div>
           </div>
         </div>
       </div>
@@ -591,13 +854,32 @@
         <button class="back" data-to="menu">← В меню</button>
         <h2>Инвентарь</h2>
       </div>
-      <div class="wlist sf-scroll" id="invList"></div>
+      <div class="inv-layout">
+        <aside class="inv-paperdoll" id="invPaperdoll" aria-label="Экипировка"></aside>
+        <div class="inv-bag" id="invList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-account-storage">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img src="icons/account_warehouse.png?v=1" alt="" class="inv-head-ico"> Склад аккаунта</h2>
+      </div>
+      <div class="account-storage-body sf-scroll" id="accountStorageBody"></div>
+    </section>
+
+    <section class="screen" id="screen-player-mail">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2>Почта <span class="account-mail-badge" id="playerMailHeadBadge" hidden>0</span></h2>
+      </div>
+      <div class="account-storage-body sf-scroll" id="playerMailBody"></div>
     </section>
 
     <section class="screen" id="screen-shop">
       <div class="panel-head">
-        <button class="back" data-to="menu">← В меню</button>
-        <h2><img src="assets/ui/inventory_book.png" alt="" class="inv-head-ico"> Мастерская зарядов</h2>
+        <button type="button" class="back" id="shopBackBtn">← В меню</button>
+        <h2 id="shopTitle"><img src="assets/ui/inventory_book.png" alt="" class="inv-head-ico"> Мастерская</h2>
       </div>
       <div class="wsbody sf-scroll" id="wsBody"></div>
     </section>
@@ -613,6 +895,15 @@
         <button type="button" class="market-tab" data-market-tab="mine">Мои лоты</button>
       </div>
       <div class="market-body sf-scroll" id="marketBody"></div>
+    </section>
+
+    <section class="screen" id="screen-pvp-arena">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2>Арена</h2>
+        <button type="button" class="pvp-help-btn" id="pvpHelpBtn" title="Как устроена арена">?</button>
+      </div>
+      <div class="pvp-arena-body sf-scroll" id="pvpArenaBody"></div>
     </section>
 
     <section class="screen" id="screen-ach">
@@ -772,6 +1063,7 @@
     </div>
     <div class="avatar-equip-list" id="avatarEquipList"></div>
     <div class="avatar-equip-actions">
+      <button type="button" class="btn btn-ghost" id="avatarEquipEnchant" hidden>Заточить</button>
       <button type="button" class="btn btn-ghost" id="avatarEquipUnequip">Снять</button>
       <button type="button" class="btn btn-primary" id="avatarEquipClose">Закрыть</button>
     </div>
@@ -805,6 +1097,18 @@
     <div class="avatar-setup-actions">
       <button type="button" class="btn btn-ghost" id="avatarSetupBack">В меню</button>
       <button type="button" class="btn btn-primary story-ok" id="avatarSetupNext">Далее</button>
+    </div>
+  </div>
+</div>
+<div class="avatar-setup-backdrop" id="professionPickBackdrop" hidden>
+  <div class="avatar-setup-box avatar-setup-wide" role="dialog" aria-modal="true" aria-labelledby="professionPickTitle">
+    <div class="story-ornament" aria-hidden="true">◆</div>
+    <h2 class="story-title" id="professionPickTitle">Профессия</h2>
+    <p class="story-eyebrow">Смена класса</p>
+    <p class="avatar-pick-lead" id="professionPickLead">Выбери ветку профессии.</p>
+    <div class="avatar-pick-grid avatar-pick-grid-class" id="professionPickGrid"></div>
+    <div class="avatar-setup-actions">
+      <button type="button" class="btn btn-ghost" id="professionPickLater">Позже</button>
     </div>
   </div>
 </div>
@@ -867,85 +1171,100 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="weapons-data.js"></script>
-<script src="src/01-constants.js?v=407"></script>
+<script src="weapons-data.js?v=2"></script>
+<script src="src/01-constants.js?v=440"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
-<script src="src/02-state.js?v=45"></script>
+<script src="src/02-state.js?v=47"></script>
 <script src="src/data/audio-data.js?v=2"></script>
 <script src="src/03-audio.js?v=3"></script>
 <script src="src/04-settings.js"></script>
-<script src="src/05-dom.js?v=41"></script>
+<script src="src/05-dom.js?v=44"></script>
 <script src="src/data/enchant-balance.js?v=3"></script>
-<script src="src/06-rules.js?v=9"></script>
+<script src="src/data/armor-sets-data.js?v=9"></script>
+<script src="src/06-rules.js?v=11"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
-<script src="src/workshop-core.js?v=2"></script>
-<script src="src/07-workshop.js?v=3"></script>
+<script src="src/workshop-core.js?v=6"></script>
+<script src="src/07-workshop.js?v=14"></script>
 <script src="src/data/farm-balance.js?v=8"></script>
-<script src="src/08-menu.js"></script>
-<script src="src/09-inventory.js?v=58"></script>
-<script src="src/enchant-ui.js"></script>
-<script src="src/inventory-ui.js?v=2"></script>
+<script src="src/08-menu.js?v=5"></script>
+<script src="src/09-inventory.js?v=61"></script>
+<script src="src/enchant-ui.js?v=2"></script>
+<script src="src/inventory-ui.js?v=9"></script>
+<script src="src/account-storage-core.js?v=4"></script>
+<script src="src/account-storage-ui.js?v=5"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js"></script>
-<script src="src/11-enchant.js?v=12"></script>
+<script src="src/11-enchant.js?v=13"></script>
 <script src="src/mine-ui.js"></script>
-<script src="src/mine-core.js?v=8"></script>
+<script src="src/mine-core.js?v=11"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js"></script>
 <script src="src/cloud-ui.js"></script>
-<script src="src/market-core.js?v=1"></script>
-<script src="src/market-ui.js?v=5"></script>
-<script src="src/chat-core.js?v=4"></script>
-<script src="src/chat-ui.js?v=3"></script>
+<script src="src/market-core.js?v=3"></script>
+<script src="src/market-ui.js?v=6"></script>
+<script src="src/player-mail-core.js?v=2"></script>
+<script src="src/player-mail-ui.js?v=2"></script>
+<script src="src/chat-core.js?v=5"></script>
+<script src="src/chat-ui.js?v=4"></script>
 <script src="src/progress-store.js"></script>
 <script src="src/15-game-log.js"></script>
 <script src="src/16-accessory.js?v=2"></script>
-<script src="src/data/achievement-data.js?v=3"></script>
+<script src="src/data/achievement-data.js?v=4"></script>
 <script src="src/data/economy-balance.js?v=4"></script>
-<script src="src/achievements-core.js?v=4"></script>
+<script src="src/achievements-core.js?v=6"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
 <script src="src/19-home.js?v=2"></script>
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js"></script>
 <script src="src/intro-core.js"></script>
-<script src="src/21-intro.js?v=5"></script>
-<script src="src/33-ui-icons.js"></script>
-<script src="src/34-avatar-portraits.js"></script>
+<script src="src/21-intro.js?v=6"></script>
+<script src="src/33-ui-icons.js?v=11"></script>
+<script src="src/data/avatar-set-portraits-data.js?v=1"></script>
+<script src="src/34-avatar-portraits.js?v=4"></script>
 <script src="src/35-characters.js?v=44"></script>
 <script src="src/data/avatar-data.js"></script>
-<script src="src/data/passive-skills-data.js?v=1"></script>
-<script src="src/passive-skills-core.js?v=1"></script>
-<script src="src/avatar-core.js?v=3"></script>
-<script src="src/22-avatar.js?v=11"></script>
-<script src="src/avatar-gear-core.js?v=2"></script>
-<script src="src/23-avatar-gear.js?v=4"></script>
-<script src="src/story-zones-core.js?v=2"></script>
-<script src="src/25-story-zones.js?v=6"></script>
-<script src="src/data/mine-visuals-data.js"></script>
+<script src="src/data/professions-data.js?v=4"></script>
+<script src="src/data/passive-skills-data.js?v=2"></script>
+<script src="src/passive-skills-core.js?v=2"></script>
+<script src="src/professions-core.js?v=4"></script>
+<script src="src/avatar-core.js?v=6"></script>
+<script src="src/22-avatar.js?v=20"></script>
+<script src="src/professions-ui.js?v=4"></script>
+<script src="src/avatar-gear-core.js?v=11"></script>
+<script src="src/armor-sets-core.js?v=8"></script>
+<script src="src/avatar-armor-display.js?v=2"></script>
+<script src="src/23-avatar-gear.js?v=11"></script>
+<script src="src/story-zones-core.js?v=4"></script>
+<script src="src/25-story-zones.js?v=10"></script>
+<script src="src/data/mine-visuals-data.js?v=14"></script>
 <script src="src/26-mine-visuals.js?v=40"></script>
 <script src="src/data/quest-data.js?v=2"></script>
-<script src="src/quest-core.js"></script>
-<script src="src/27-quests.js?v=44"></script>
-<script src="src/quest-journal-core.js?v=2"></script>
-<script src="src/29-quest-journal.js?v=5"></script>
-<script src="src/prelude-finale-core.js"></script>
+<script src="src/quest-core.js?v=4"></script>
+<script src="src/27-quests.js?v=46"></script>
+<script src="src/quest-journal-core.js?v=4"></script>
+<script src="src/29-quest-journal.js?v=8"></script>
+<script src="src/prelude-finale-core.js?v=2"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
-<script src="src/data/combat-skills-data.js"></script>
-<script src="src/combat-skills-core.js"></script>
+<script src="src/data/combat-skills-data.js?v=2"></script>
+<script src="src/combat-skills-core.js?v=2"></script>
 <script src="src/31-combat-skills.js?v=9"></script>
+<script src="src/data/pvp-balance.js?v=1"></script>
+<script src="src/pvp-combat-core.js?v=1"></script>
+<script src="src/pvp-social-core.js?v=2"></script>
+<script src="src/pvp-combat-ui.js?v=9"></script>
 <script src="src/32-debug-log.js"></script>
-<script src="src/avatar-math.js?v=7"></script>
-<script src="src/avatar-stats-core.js?v=3"></script>
-<script src="src/24-avatar-stats.js?v=11"></script>
+<script src="src/avatar-math.js?v=11"></script>
+<script src="src/avatar-stats-core.js?v=5"></script>
+<script src="src/24-avatar-stats.js?v=21"></script>
 <script src="src/data/passive-income-balance.js?v=4"></script>
-<script src="src/passive-income-core.js?v=5"></script>
+<script src="src/passive-income-core.js?v=8"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
 <script src="src/data/auto-clicker-balance.js?v=7"></script>
 <script src="src/auto-clicker-core.js?v=6"></script>
 <script src="src/auto-clicker-ui.js?v=5"></script>
-<script src="src/data-loader.js?v=4"></script>
-<script src="src/99-bootstrap.js?v=49"></script>
+<script src="src/data-loader.js?v=16"></script>
+<script src="src/99-bootstrap.js?v=57"></script>
 
 </body>
 </html>

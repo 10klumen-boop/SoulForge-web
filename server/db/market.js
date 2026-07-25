@@ -7,9 +7,26 @@ const MARKET_MIN_PRICE = 1000;
 const MARKET_MAX_PRICE = 50_000_000_000;
 const MARKET_LISTING_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MARKET_MAX_LISTINGS = 10;
-const MARKET_KINDS = new Set(["weapon", "crystal", "material", "shot"]);
+const MARKET_KINDS = new Set(["weapon", "crystal", "material", "shot", "armor", "armor_piece"]);
 const GRADES = new Set(["D", "C", "B", "A"]);
 const ORES = new Set(["soul", "spirit"]);
+
+function isArmorPieceId(fragId) {
+  const id = String(fragId || "");
+  if (id.length < 8 || id.length > 80) return false;
+  return /^[a-z0-9_]+_piece$/i.test(id);
+}
+
+function isUidEquippedAnywhere(progress, uid) {
+  const want = String(uid || "");
+  if (!want) return false;
+  const gear = progress.avatar?.gear || {};
+  for (const k of Object.keys(gear)) {
+    const g = gear[k];
+    if (g && String(g.uid) === want) return true;
+  }
+  return false;
+}
 
 function ensureMarketSchema(db) {
   db.exec(`
@@ -119,6 +136,7 @@ function takeWeapon(progress, uid) {
   const it = inv[idx];
   if (it.starter) return { ok: false, error: "Стартовое оружие нельзя выставлять" };
   if (it.kind === "accessory") return { ok: false, error: "Аксессуары пока нельзя выставлять" };
+  if (it.kind === "armor") return { ok: false, error: "Броня выставляется отдельно" };
   const gearUid = progress.avatar?.gear?.weapon?.uid;
   if (gearUid && String(gearUid) === want) {
     return { ok: false, error: "Сначала сними оружие" };
@@ -143,6 +161,71 @@ function giveWeapon(progress, item) {
     plus: snap.plus,
     spent: snap.spent,
   });
+  return { ok: true };
+}
+
+function sanitizeArmorItem(it) {
+  if (!it || typeof it !== "object") return null;
+  if (it.kind !== "armor") return null;
+  const id = String(it.id || "").slice(0, 64);
+  const uid = String(it.uid || "").slice(0, 64);
+  if (!id || !uid) return null;
+  return { kind: "armor", uid, id };
+}
+
+function takeArmor(progress, uid) {
+  const want = String(uid || "");
+  const inv = progress.inventory || [];
+  const idx = inv.findIndex((it) => it && String(it.uid) === want);
+  if (idx < 0) return { ok: false, error: "Броня не найдена в инвентаре" };
+  const it = inv[idx];
+  if (it.kind !== "armor") return { ok: false, error: "Это не броня" };
+  if (isUidEquippedAnywhere(progress, want)) {
+    return { ok: false, error: "Сначала сними броню" };
+  }
+  const snap = sanitizeArmorItem(it);
+  if (!snap) return { ok: false, error: "Некорректная броня" };
+  inv.splice(idx, 1);
+  progress.inventory = inv;
+  return { ok: true, item: snap, qty: 1 };
+}
+
+function giveArmor(progress, item) {
+  const snap = sanitizeArmorItem(item);
+  if (!snap) return { ok: false, error: "Некорректная броня" };
+  if (!Array.isArray(progress.inventory)) progress.inventory = [];
+  if (progress.inventory.length >= 120) {
+    return { ok: false, error: "Инвентарь покупателя полон" };
+  }
+  progress.inventory.push({
+    uid: snap.uid,
+    id: snap.id,
+    kind: "armor",
+  });
+  return { ok: true };
+}
+
+function takeArmorPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isArmorPieceId(fid)) return { ok: false, error: "Неверный кусок брони" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!progress.materials || typeof progress.materials !== "object") {
+    progress.materials = { soul: 0, spirit: 0 };
+  }
+  const have = Math.max(0, Math.floor(Number(progress.materials[fid]) || 0));
+  if (have < n) return { ok: false, error: "Не хватает кусков брони" };
+  progress.materials[fid] = have - n;
+  return { ok: true, item: { kind: "armor_piece", fragId: fid }, qty: n };
+}
+
+function giveArmorPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isArmorPieceId(fid)) return { ok: false, error: "Неверный кусок брони" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!progress.materials || typeof progress.materials !== "object") {
+    progress.materials = { soul: 0, spirit: 0 };
+  }
+  progress.materials[fid] = Math.max(0, Math.floor(Number(progress.materials[fid]) || 0)) + n;
   return { ok: true };
 }
 
@@ -209,9 +292,13 @@ function takeFromProgress(progress, body) {
   const kind = String(body.kind || "").toLowerCase();
   if (!MARKET_KINDS.has(kind)) return { ok: false, error: "Неизвестный тип лота" };
   if (kind === "weapon") return takeWeapon(progress, body.uid);
+  if (kind === "armor") return takeArmor(progress, body.uid);
   if (kind === "crystal") return takeCrystal(progress, body.grade, body.qty);
   if (kind === "material") return takeMaterial(progress, body.ore, body.qty);
   if (kind === "shot") return takeShot(progress, body.shotKind || body.shot_kind, body.grade, body.qty);
+  if (kind === "armor_piece") {
+    return takeArmorPiece(progress, body.fragId || body.frag_id || body.id, body.qty);
+  }
   return { ok: false, error: "Неизвестный тип лота" };
 }
 
@@ -219,9 +306,11 @@ function giveToProgress(progress, item, qty) {
   const kind = String(item?.kind || "").toLowerCase();
   const n = Math.max(1, Math.floor(Number(qty) || 1));
   if (kind === "weapon") return giveWeapon(progress, item);
+  if (kind === "armor") return giveArmor(progress, item);
   if (kind === "crystal") return giveCrystal(progress, item.grade, n);
   if (kind === "material") return giveMaterial(progress, item.ore, n);
   if (kind === "shot") return giveShot(progress, item.shotKind || item.shot_kind, item.grade, n);
+  if (kind === "armor_piece") return giveArmorPiece(progress, item.fragId || item.frag_id || item.id, n);
   return { ok: false, error: "Неизвестный тип предмета" };
 }
 
@@ -695,6 +784,7 @@ module.exports = {
   takeFromProgress,
   giveToProgress,
   sanitizeWeaponItem,
+  sanitizeArmorItem,
   validatePrice,
   sellerPayout,
   syncActiveRoot,

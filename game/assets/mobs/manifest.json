@@ -130,5 +130,41 @@
     "w": 529,
     "h": 480,
     "sheetW": 512
+  },
+  "imp": {
+    "slug": "imp",
+    "w": 283,
+    "h": 480,
+    "sheetW": 512
+  },
+  "orc": {
+    "slug": "orc",
+    "w": 296,
+    "h": 480,
+    "sheetW": 512
+  },
+  "gremlin": {
+    "slug": "gremlin",
+    "w": 278,
+    "h": 480,
+    "sheetW": 512
+  },
+  "grizzly": {
+    "slug": "grizzly",
+    "w": 398,
+    "h": 480,
+    "sheetW": 512
+  },
+  "specter": {
+    "slug": "specter",
+    "w": 250,
+    "h": 480,
+    "sheetW": 500
+  },
+  "werewolf": {
+    "slug": "werewolf",
+    "w": 278,
+    "h": 480,
+    "sheetW": 512
   }
 }

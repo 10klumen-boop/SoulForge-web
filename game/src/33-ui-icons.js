@@ -1,7 +1,7 @@
 // ===== UI-иконки — расы, классы, зоны, квесты =====
 // Расы/классы: портреты с l2-god.ru (Powerwiki GoD), см. game/tools/install_race_icons_from_l2god.py
 
-const UI_RACE_ICON_VER = 11;
+const UI_RACE_ICON_VER = 12;
 
 /** Портреты рас (воинский облик) — выбор расы при создании. */
 const UI_RACE_ICONS = {
@@ -47,8 +47,23 @@ const UI_MENU_ICONS = {
   character: "icons/char_menu.png?v=10",
   quest: "icons/quest_journal.png?v=10",
   inventory: "assets/ui/menubutton2_crop.png?v=10",
+  warehouse: "icons/account_warehouse.png?v=1",
+  mail: "icons/etc_letter_envelope_i00.png?v=1",
+  market: "icons/warehouse_chest.png?v=1",
   workshop: "assets/ui/inventory_book_crop.png?v=10",
   achievements: "assets/ui/bloodhood_icon02_crop.png",
+};
+
+/** Кнопки входа История/Фарм и разделы мастерской. */
+const UI_HUB_BTN_VER = 4;
+const UI_HUB_BTN_ICONS = {
+  story: "icons/btn_story.png?v=" + UI_HUB_BTN_VER,
+  farm: "icons/btn_farm.png?v=" + UI_HUB_BTN_VER,
+  shots: "icons/btn_shots.png?v=" + UI_HUB_BTN_VER,
+  armor: "icons/btn_armor.png?v=" + UI_HUB_BTN_VER,
+  chapters: "icons/btn_chapters.png?v=1",
+  chapterStory: "icons/btn_chapter_story.png?v=1",
+  play: "icons/btn_play.png?v=1",
 };
 
 /** Иконка «задание» / квест-баннер по умолчанию. */
@@ -64,6 +79,22 @@ const UI_ZONE_RACE_CHIP_ICONS = {
     dwarf: "icons/zones/banana_mine_dwarf.png?v=3",
   },
   elven_ruins: {
+    human: "icons/zones/elven_ruins_human.png?v=3",
+    elf: "icons/zones/elven_ruins_elf.png?v=3",
+    dark_elf: "icons/zones/elven_ruins_dark_elf.png?v=3",
+    orc: "icons/zones/elven_ruins_orc.png?v=3",
+    dwarf: "icons/zones/elven_ruins_dwarf.png?v=3",
+  },
+  // Side-фарм кусков D-сетов
+  scrap_field: {
+    human: "icons/zones/scrap_field_human.png?v=1",
+    elf: "icons/zones/scrap_field_elf.png?v=1",
+    dark_elf: "icons/zones/scrap_field_dark_elf.png?v=1",
+    orc: "icons/zones/scrap_field_orc.png?v=1",
+    dwarf: "icons/zones/scrap_field_dwarf.png?v=1",
+  },
+  // Временно те же чипы, что у руин — отдельный AI-набор позже
+  mithril_forge: {
     human: "icons/zones/elven_ruins_human.png?v=3",
     elf: "icons/zones/elven_ruins_elf.png?v=3",
     dark_elf: "icons/zones/elven_ruins_dark_elf.png?v=3",
@@ -183,8 +214,14 @@ function applyUiIconsToQuestNpcs() {
 function syncMenuTileIcons() {
   const charIco = document.querySelector("#avatarTile .tile-ico");
   const questIco = document.querySelector("#questTile .tile-ico");
+  const whIco = document.querySelector("#accountStorageTile .tile-ico");
+  const mailIco = document.querySelector("#playerMailTile .tile-ico");
+  const marketIco = document.querySelector("#marketTile .tile-ico");
   if (charIco) charIco.src = UI_MENU_ICONS.character;
   if (questIco) questIco.src = UI_MENU_ICONS.quest;
+  if (whIco && UI_MENU_ICONS.warehouse) whIco.src = UI_MENU_ICONS.warehouse;
+  if (mailIco && UI_MENU_ICONS.mail) mailIco.src = UI_MENU_ICONS.mail;
+  if (marketIco && UI_MENU_ICONS.market) marketIco.src = UI_MENU_ICONS.market;
 }
 
 function devWorldIconEntries() {

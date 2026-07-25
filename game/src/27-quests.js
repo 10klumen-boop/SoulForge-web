@@ -92,6 +92,9 @@ function flushPendingQuestBriefing() {
   const questId = backdrop?.dataset.pendingQuestBriefing;
   if (!questId) return;
   if (typeof isStoryBackdropOpen === "function" && isStoryBackdropOpen()) return;
+  // Не всплывать вне хаба «История» (кроме force-пути через requestMine).
+  const hub = document.getElementById("screen-menu")?.dataset?.hubMode;
+  if (hub !== "story") return;
   const zoneId = backdrop.dataset.pendingQuestZone || "banana_mine";
   delete backdrop.dataset.pendingQuestBriefing;
   delete backdrop.dataset.pendingQuestZone;
@@ -101,14 +104,24 @@ function flushPendingQuestBriefing() {
 }
 
 function maybeShowQuestBriefing(zoneId, opts) {
+  opts = opts || {};
   if (!state.avatar?.created) return;
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  if (zone?.side) return;
+  // По умолчанию — только в хабе «История» (не при входе в меню / Фарм).
+  if (!opts.force) {
+    const hub = document.getElementById("screen-menu")?.dataset?.hubMode;
+    if (hub !== "story") return;
+  }
   const def = activeZoneQuest(zoneId);
   if (!def || isQuestStepComplete(def.id)) return;
   if (questBriefingSeen(def.id) && questKillsDone(def.id) > 0) return;
-  setTimeout(() => showQuestBriefingForQuest(def, opts || {}), opts?.delay || 280);
+  setTimeout(() => showQuestBriefingForQuest(def, opts), opts.delay || 280);
 }
 
 function requestMineWithQuestBriefing(zoneId) {
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  if (zone?.side) return false;
   const def = activeZoneQuest(zoneId);
   if (def && !questBriefingSeen(def.id)) {
     window._pendingMineAfterQuest = true;
@@ -122,6 +135,11 @@ function renderMineQuestHud() {
   const el = document.getElementById("mineQuestHud");
   if (!el) return;
   const zoneId = state.farmZone || "banana_mine";
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  if (zone?.side) {
+    el.hidden = true;
+    return;
+  }
   if (isZoneBossPending(zoneId)) {
     const boss = zoneBossDef(zoneId);
     const grind = zoneBossGrindKills(zoneId);

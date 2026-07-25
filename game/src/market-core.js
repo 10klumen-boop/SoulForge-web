@@ -18,6 +18,15 @@ function marketListingTitle(listing) {
     const plus = Math.max(0, Number(item.plus) || 0);
     return name + (plus ? " +" + plus : "");
   }
+  if (kind === "armor") {
+    const a = typeof AMAP !== "undefined" ? AMAP[item.id] : null;
+    return a?.name || item.id || "Броня";
+  }
+  if (kind === "armor_piece") {
+    const fid = item.fragId || item.id;
+    const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
+    return frag?.name || fid || "Кусок брони";
+  }
   if (kind === "crystal") {
     return "Кристалл " + (item.grade || "?");
   }
@@ -40,6 +49,15 @@ function marketListingIcon(listing) {
     const w = typeof WMAP !== "undefined" ? WMAP[item.id] : null;
     return w?.icon || "icons/weapon_generic.png";
   }
+  if (kind === "armor") {
+    const a = typeof AMAP !== "undefined" ? AMAP[item.id] : null;
+    return a?.icon || "icons/btn_armor.png";
+  }
+  if (kind === "armor_piece") {
+    const fid = item.fragId || item.id;
+    const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
+    return frag?.icon || "icons/etc_crystal_white_i00.png";
+  }
   if (kind === "crystal") {
     const map = typeof CRYSTAL_ICON !== "undefined" ? CRYSTAL_ICON : null;
     return (map && map[item.grade]) || "icons/etc_crystal_blue_i00.png";
@@ -60,6 +78,17 @@ function marketListingGrade(listing) {
   if (kind === "weapon") {
     const w = typeof WMAP !== "undefined" ? WMAP[item.id] : null;
     return w?.grade || "";
+  }
+  if (kind === "armor") {
+    const a = typeof AMAP !== "undefined" ? AMAP[item.id] : null;
+    return a?.grade || "";
+  }
+  if (kind === "armor_piece") {
+    const fid = item.fragId || item.id;
+    const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
+    const armorId = frag?.armorId;
+    if (armorId && typeof AMAP !== "undefined") return AMAP[armorId]?.grade || "";
+    return "";
   }
   return item.grade || "";
 }
@@ -168,8 +197,28 @@ function marketListableWeapons() {
   return inv.filter((it) => {
     if (!it || !it.uid || !it.id) return false;
     if (it.starter) return false;
-    if (it.kind === "accessory") return false;
+    if (it.kind === "accessory" || it.kind === "armor") return false;
+    if (typeof isArmorItem === "function" && isArmorItem(it)) return false;
+    if (typeof isAccessoryItem === "function" && isAccessoryItem(it)) return false;
+    if (typeof WMAP !== "undefined" && !WMAP[it.id]) return false;
     if (gearUid && String(gearUid) === String(it.uid)) return false;
+    return true;
+  });
+}
+
+function marketListableArmor() {
+  const inv = state.inventory || [];
+  const gear = state.avatar?.gear || {};
+  const equipped = new Set();
+  Object.keys(gear).forEach((k) => {
+    const g = gear[k];
+    if (g?.uid) equipped.add(String(g.uid));
+  });
+  return inv.filter((it) => {
+    if (!it || !it.uid || !it.id) return false;
+    if (typeof isArmorItem !== "function" || !isArmorItem(it)) return false;
+    if (typeof AMAP !== "undefined" && !AMAP[it.id]) return false;
+    if (equipped.has(String(it.uid))) return false;
     return true;
   });
 }
@@ -189,6 +238,22 @@ function marketStackOptions() {
       out.push({ kind: "material", ore, max: n, label: name + " ×" + n });
     }
   });
+  if (typeof ARMOR_FRAGS !== "undefined" && ARMOR_FRAGS) {
+    Object.keys(ARMOR_FRAGS).forEach((fragId) => {
+      const n = Math.max(0, Math.floor(Number(mats[fragId]) || 0));
+      if (n <= 0) return;
+      const frag = ARMOR_FRAGS[fragId];
+      const armor = frag?.armorId && typeof AMAP !== "undefined" ? AMAP[frag.armorId] : null;
+      out.push({
+        kind: "armor_piece",
+        fragId,
+        max: n,
+        grade: armor?.grade || "",
+        label: (frag?.name || fragId) + " ×" + n,
+        icon: frag?.icon || "",
+      });
+    });
+  }
   const shots = state.shots || {};
   ["soul", "spirit"].forEach((sk) => {
     ["D", "C", "B", "A"].forEach((g) => {

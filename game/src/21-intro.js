@@ -113,11 +113,7 @@ function dismissIntro(fromFirstRun) {
   if (typeof markStoryChapterSeen === "function") markStoryChapterSeen("banana_mine");
   if (typeof flushPendingZoneStory === "function") flushPendingZoneStory();
   if (backdrop) delete backdrop.dataset.firstRun;
-  if (fromFirstRun && typeof maybeShowQuestBriefing === "function") {
-    maybeShowQuestBriefing("banana_mine", { delay: 520 });
-  } else if (typeof flushPendingQuestBriefing === "function") {
-    flushPendingQuestBriefing();
-  }
+  // Поручение не показываем после пролога — только при входе в «Историю».
 }
 
 function showIntro(opts) {
@@ -196,11 +192,7 @@ async function runGameEntryModals() {
       flushPendingZoneStory();
       return;
     }
-    const zoneId = state.farmZone || "banana_mine";
-    if (typeof maybeShowQuestBriefing === "function") {
-      maybeShowQuestBriefing(zoneId, { delay: 320 });
-    }
+    // Брифинг поручения — только при входе в «Историю», не при входе в хаб.
     if (typeof tryTriggerPreludeFinale === "function") tryTriggerPreludeFinale();
-    else if (typeof flushPendingQuestBriefing === "function") flushPendingQuestBriefing();
   }, 360);
 }

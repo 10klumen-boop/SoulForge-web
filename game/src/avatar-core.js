@@ -5,7 +5,7 @@
 // ===== Персонаж: логика и UI создания =====
 // Данные рас/классов (L2_CLASSES, L2_RACES, L2_RACE_CLASSES) вынесены в data/avatar-data.js.
 
-const AVATAR_MAX_LEVEL = 20;
+const AVATAR_MAX_LEVEL = 40;
 const AVATAR_XP_BASE = 100;
 
 function avatarArchetypeIcon(raceId, classId) {
@@ -21,7 +21,7 @@ function defaultAvatar() {
   const gear = typeof defaultAvatarGear === "function"
     ? defaultAvatarGear()
     : { weapon: null, earring_l: null, earring_r: null, ring_l: null, ring_r: null, necklace: null };
-  return { raceId: "", classId: "", genderId: "", name: "", level: 1, xp: 0, created: false, gear };
+  return { raceId: "", classId: "", genderId: "", name: "", level: 1, xp: 0, created: false, gear, professionId: null, professionTier: 0 };
 }
 
 function avatarRaceInfo(raceId) {
@@ -38,23 +38,25 @@ function avatarDisplayInfo(a) {
   a = a || state.avatar || {};
   const race = avatarRaceInfo(a.raceId);
   const cls = avatarClassInfo(a.classId, a.raceId);
+  const prof = typeof currentProfession === "function" ? currentProfession(a) : null;
+  const className = prof ? cls.name + " → " + prof.name : cls.name;
   if (!race || !a.classId) {
     return {
       icon: cls.icon,
-      name: cls.name,
+      name: className,
       raceName: "",
-      className: cls.name,
-      desc: cls.desc,
-      fullTitle: cls.name,
+      className,
+      desc: prof ? prof.desc : cls.desc,
+      fullTitle: className,
     };
   }
   return {
-    icon: cls.icon,
-    name: cls.name + " · " + race.name,
+    icon: prof?.icon || cls.icon,
+    name: className + " · " + race.name,
     raceName: race.name,
-    className: cls.name,
-    desc: race.desc + " " + cls.desc,
-    fullTitle: race.name + " — " + cls.name,
+    className,
+    desc: race.desc + " " + (prof ? prof.desc : cls.desc),
+    fullTitle: race.name + " — " + className,
   };
 }
 
@@ -74,6 +76,12 @@ function migrateAvatar() {
     if (next.created && !next.genderId) next.genderId = "male";
     if (next.created && next.prologueSeen == null && state.storySeen) next.prologueSeen = true;
     if (next.created && next.prologueSeen == null) next.prologueSeen = false;
+    if (typeof migrateAvatarProfessionFields === "function") {
+      migrateAvatarProfessionFields(next);
+    } else {
+      if (next.professionId == null) next.professionId = null;
+      if (next.professionTier == null) next.professionTier = 0;
+    }
     if (!next.created) {
       // Пустой слот ростера ждёт мастер создания — не поднимаем «Странника» из чужого прогресса.
       let emptySlot = false;
@@ -108,9 +116,10 @@ function avatarXpToLevel(level) {
 function avatarTitle(level) {
   const lv = Math.max(1, Math.min(AVATAR_MAX_LEVEL, level || 1));
   if (lv <= 4) return "Новичок";
-  if (lv <= 8) return "Подмастерье";
-  if (lv <= 12) return "Адепт";
-  if (lv <= 16) return "Мастер";
+  if (lv <= 9) return "Подмастерье";
+  if (lv <= 19) return "Адепт";
+  if (lv <= 29) return "Мастер";
+  if (lv <= 39) return "Ветеран";
   return "Грандмастер";
 }
 
@@ -132,11 +141,11 @@ function avatarEnchantBonus(plus, behavior) {
   const minLvl = 9;
   let bonus = 0;
   if (lvl >= minLvl) {
-    const cap = 0.005;
-    bonus = Math.min(cap, (lvl - (minLvl - 1)) * 0.0005);
+    const cap = 0.006;
+    bonus = Math.min(cap, (lvl - (minLvl - 1)) * 0.00035);
   }
   if (typeof passiveEffectSum === "function") {
-    bonus += passiveEffectSum("enchantChanceAdd", state.avatar.raceId, lvl);
+    bonus += passiveEffectSum("enchantChanceAdd", state.avatar, lvl);
   } else if (typeof racialEffectSum === "function") {
     bonus += racialEffectSum("enchantChanceAdd", state.avatar.raceId, lvl);
   }
@@ -149,14 +158,64 @@ function needsAvatarSetup() {
   return !a.created || !String(a.name || "").trim() || !a.raceId || !a.classId || !a.genderId;
 }
 
+function isAvatarNameTakenLocally(name, excludeCharId) {
+  const want = String(name || "").trim().toLowerCase();
+  if (want.length < 2) return false;
+  const chars = Array.isArray(state.characters) ? state.characters : [];
+  for (const c of chars) {
+    if (!c || (excludeCharId && c.id === excludeCharId)) continue;
+    const av = c.progress?.avatar;
+    if (!av?.created) continue;
+    const n = String(av.name || "").trim().toLowerCase();
+    if (n && n === want) return true;
+  }
+  return false;
+}
+
+function validateAvatarNameLocal(name, opts) {
+  opts = opts || {};
+  const n = String(name || "").trim().slice(0, 16);
+  if (n.length < 2) return { ok: false, error: "Имя: 2–16 символов" };
+  if (isAvatarNameTakenLocally(n, opts.excludeCharId || state.activeCharacterId)) {
+    return { ok: false, error: "Имя уже занято другим персонажем аккаунта" };
+  }
+  return { ok: true, name: n };
+}
+
+async function checkAvatarNameAvailable(name, opts) {
+  opts = opts || {};
+  const local = validateAvatarNameLocal(name, opts);
+  if (!local.ok) return local;
+  if (typeof cloudEnabled !== "function" || !cloudEnabled()) return local;
+  if (typeof readCloudAuth !== "function" || !readCloudAuth()?.token) return local;
+  try {
+    const q = new URLSearchParams({ name: local.name });
+    const cid = opts.excludeCharId || state.activeCharacterId;
+    if (cid) q.set("characterId", cid);
+    const headers = typeof authHeaders === "function" ? authHeaders(false) : {};
+    const res = await fetch(cloudApiUrl("/chars/name-available?" + q.toString()), { headers });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { ok: false, error: data.error || "Не удалось проверить имя" };
+    }
+    if (data.available === false) {
+      return { ok: false, error: data.error || "Имя уже занято" };
+    }
+    return { ok: true, name: local.name };
+  } catch (e) {
+    return { ok: false, error: "Сеть недоступна — проверь имя позже" };
+  }
+}
+
 function createAvatar(name, raceId, classId, genderId) {
   migrateAvatar();
-  const n = String(name || "").trim().slice(0, 16);
+  const local = validateAvatarNameLocal(name, { excludeCharId: state.activeCharacterId });
+  if (!local.ok) return false;
+  const n = local.name;
   const race = avatarRaceInfo(raceId);
   const branches = L2_RACE_CLASSES[raceId] || [];
   const gender = typeof normalizeAvatarGender === "function" ? normalizeAvatarGender(genderId) : "male";
   if (!race || !branches.includes(classId)) return false;
-  if (n.length < 2) return false;
   const base = typeof defaultAvatar === "function" ? defaultAvatar() : {
     raceId: "", classId: "", genderId: "", name: "", level: 1, xp: 0, created: false, gear: { weapon: null },
   };
@@ -170,6 +229,8 @@ function createAvatar(name, raceId, classId, genderId) {
     created: true,
     prologueSeen: false,
     starterGranted: false,
+    professionId: null,
+    professionTier: 0,
   }));
   if (typeof grantStarterWeapon === "function") {
     const item = grantStarterWeapon(classId);
@@ -221,6 +282,15 @@ function grantAvatarXp(amount, opts) {
   if (leveled) save();
   if (leveled && typeof notifyFarmZoneUnlocks === "function") notifyFarmZoneUnlocks();
   if (leveled && typeof renderMenuFarmHub === "function") renderMenuFarmHub();
+  if (leveled && typeof canChooseProfession === "function" && canChooseProfession(state.avatar)) {
+    if (typeof toast === "function") {
+      const t = typeof pendingProfessionTier === "function" ? pendingProfessionTier(state.avatar) : 0;
+      toast(
+        t === 2 ? "Доступна 2-я профессия — открой Персонажа" : "Доступна 1-я профессия — открой Персонажа",
+        "success"
+      );
+    }
+  }
   renderAvatarHub();
   renderMenu();
   if (typeof refreshZoneStoryUnlocks === "function") refreshZoneStoryUnlocks();
@@ -245,7 +315,7 @@ function onMineAvatarXp(golden) {
   // Чуть выше, чтобы киллы главы подводили к reqLevel следующей зоны
   let amt = golden ? 10 + ch * 3 : 3 + ch * 2;
   if (typeof passiveEffectMult === "function") {
-    amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar.raceId));
+    amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar));
   } else if (typeof racialEffectMult === "function") {
     amt = Math.round(amt * racialEffectMult("mineXpMult", state.avatar.raceId));
   }

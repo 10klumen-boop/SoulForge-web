@@ -57,12 +57,39 @@ function ensureStoryProgress() {
       next.chaptersSeen.banana_mine = true;
       next.unlocksShown.banana_mine = true;
     }
+    // Вычистить side-зоны, попавшие в chaptersSeen/unlocksShown по ошибке.
+    const zones = typeof FARM_ZONES !== "undefined" ? FARM_ZONES : [];
+    zones.forEach((z) => {
+      if (!z?.side) return;
+      if (next.chaptersSeen[z.id]) delete next.chaptersSeen[z.id];
+      if (next.unlocksShown[z.id]) delete next.unlocksShown[z.id];
+    });
     return next;
   });
 }
 
 function farmZoneById(id) {
   return FARM_ZONES.find((z) => z.id === id) || FARM_ZONES[0];
+}
+
+/** Сюжетные зоны Prelude (без side-фарма вроде кузницы). */
+function isStoryFarmZone(zoneOrId) {
+  const z = typeof zoneOrId === "string" ? farmZoneById(zoneOrId) : zoneOrId;
+  return !!(z && !z.side);
+}
+
+/** Свободный фарм вне цепочки глав. */
+function isFreeFarmZone(zoneOrId) {
+  const z = typeof zoneOrId === "string" ? farmZoneById(zoneOrId) : zoneOrId;
+  return !!(z && z.side);
+}
+
+function storyFarmZones() {
+  return (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => !z.side);
+}
+
+function freeFarmZones() {
+  return (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => z.side);
 }
 
 function zoneMineConfig(zoneId) {
@@ -87,6 +114,10 @@ function storyChapterSeen(zoneId) {
 
 function markStoryChapterSeen(zoneId) {
   ensureStoryProgress();
+  // Side-фарм не главы Prelude — не пишем в chaptersSeen (ломает ачивки «5 глав»).
+  if (typeof isFreeFarmZone === "function" && isFreeFarmZone(zoneId)) return;
+  const z = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  if (z?.side) return;
   if (state.storyProgress.chaptersSeen[zoneId]) return;
   state.storyProgress.chaptersSeen[zoneId] = true;
   save();
@@ -94,11 +125,11 @@ function markStoryChapterSeen(zoneId) {
 
 function storyChaptersDoneCount() {
   ensureStoryProgress();
-  return FARM_ZONES.filter((z) => z.active && state.storyProgress.chaptersSeen[z.id]).length;
+  return storyFarmZones().filter((z) => z.active && state.storyProgress.chaptersSeen[z.id]).length;
 }
 
 function storyChaptersActiveCount() {
-  return FARM_ZONES.filter((z) => z.active).length;
+  return storyFarmZones().filter((z) => z.active).length;
 }
 
 function zoneStoryBodyHtml(view, opts) {

@@ -17,8 +17,10 @@ function renderAvatarHub() {
   const metaEl = document.getElementById("avatarHubMeta");
   const wrap = hub.querySelector(".avatar-hub-btn");
   if (wrap) wrap.className = "avatar-hub-btn race-" + (state.avatar.raceId || "human");
-  if (icon && typeof avatarPortraitForAvatar === "function") icon.src = avatarPortraitForAvatar(state.avatar);
-  else if (icon) icon.src = info.icon;
+  if (icon && typeof avatarPortraitForAvatar === "function") {
+    if (typeof bindAvatarPortraitFallback === "function") bindAvatarPortraitFallback(icon);
+    icon.src = avatarPortraitForAvatar(state.avatar);
+  } else if (icon) icon.src = info.icon;
   if (nameEl) nameEl.textContent = state.avatar.name;
   if (metaEl) {
     metaEl.textContent =
@@ -34,12 +36,13 @@ function renderAvatarScreen() {
   const rankBonus = avatarEnchantBonus(safeLevel(), "regular");
   const gearBonus = typeof avatarGearEnchantBonus === "function" ? avatarGearEnchantBonus(safeLevel(), "regular") : 0;
   const bonusPct = ((rankBonus + gearBonus) * 100).toFixed(2);
-  const portraitWrap = document.querySelector(".avatar-portrait-wrap");
+  const portraitWrap = document.querySelector("#screen-avatar .avatar-portrait-wrap");
   if (portraitWrap) {
     portraitWrap.className = "avatar-portrait-wrap race-" + (state.avatar.raceId || "human");
   }
   const portraitEl = $("#avatarPortrait");
   if (portraitEl && typeof avatarPortraitForAvatar === "function") {
+    if (typeof bindAvatarPortraitFallback === "function") bindAvatarPortraitFallback(portraitEl);
     portraitEl.src = avatarPortraitForAvatar(state.avatar);
     portraitEl.alt = state.avatar.name || "Портрет";
   }
@@ -57,25 +60,129 @@ function renderAvatarScreen() {
   $("#avatarXpText").textContent =
     prog.level >= AVATAR_MAX_LEVEL ? "Максимальный уровень" : prog.xp + " / " + prog.need + " опыта души";
   $("#avatarClassDesc").textContent = info.desc;
-  const perk = $("#avatarPerk");
-  const minLvl = typeof isMysticArchetype === "function" && isMysticArchetype(state.avatar.classId) ? 10 : 9;
-  if (perk) {
-    const lines = [];
-    if (prog.level < minLvl) {
-      lines.push("С " + minLvl + " уровня: бонус уровня к заточке с +4.");
-    } else if (parseFloat(bonusPct) > 0) {
-      lines.push("Бонус к заточке с +4: +" + bonusPct + "% (уровень + экипировка).");
-    }
-    const gearSum = typeof avatarGearBonusSummary === "function" ? avatarGearBonusSummary() : null;
-    if (gearSum && gearSum.lines.length) lines.push(gearSum.lines.join(" · "));
-    perk.textContent = lines.join(" ");
-  }
-  if (typeof renderAvatarGearSlots === "function") renderAvatarGearSlots();
+  renderAvatarPerkChips(prog, bonusPct);
   if (typeof renderAvatarStatsPanel === "function") renderAvatarStatsPanel();
   if (typeof renderPassiveIncomePanel === "function") renderPassiveIncomePanel();
   if (typeof renderAutoClickerPanel === "function") renderAutoClickerPanel();
   if (typeof renderAvatarPassiveSkillsPanel === "function") renderAvatarPassiveSkillsPanel();
   if (typeof renderAvatarSkillsPanel === "function") renderAvatarSkillsPanel();
+  if (typeof renderProfessionBanner === "function") renderProfessionBanner();
+  if (typeof renderAvatarArmorDisplay === "function") renderAvatarArmorDisplay();
+  applyAvatarTab(getAvatarTab());
+}
+
+const AVATAR_TAB_KEY = "sf_avatar_tab";
+const AVATAR_TABS = ["overview", "passive", "combat", "income"];
+
+function getAvatarTab() {
+  try {
+    let t = sessionStorage.getItem(AVATAR_TAB_KEY);
+    if (t === "skills") t = "passive";
+    if (t && AVATAR_TABS.indexOf(t) >= 0) return t;
+  } catch (_) {}
+  return "overview";
+}
+
+function setAvatarTab(tabId) {
+  const id = AVATAR_TABS.indexOf(tabId) >= 0 ? tabId : "overview";
+  try {
+    sessionStorage.setItem(AVATAR_TAB_KEY, id);
+  } catch (_) {}
+  applyAvatarTab(id);
+}
+
+function applyAvatarTab(tabId) {
+  const id = AVATAR_TABS.indexOf(tabId) >= 0 ? tabId : "overview";
+  document.querySelectorAll("#screen-avatar .avatar-tab").forEach((btn) => {
+    const on = btn.dataset.avatarTab === id;
+    btn.classList.toggle("sel", on);
+    btn.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  document.querySelectorAll("#screen-avatar .avatar-tab-panel").forEach((panel) => {
+    panel.hidden = panel.dataset.avatarPanel !== id;
+  });
+}
+
+function avatarPerkChipHtml(label, text, kind) {
+  if (!text) return "";
+  const cls = "avatar-perk-chip" + (kind === "warn" ? " is-warn" : kind === "ok" ? " is-ok" : "");
+  return '<div class="' + cls + '"><b>' + label + "</b><span>" + text + "</span></div>";
+}
+
+function renderAvatarPerkChips(prog, bonusPct) {
+  const box = document.getElementById("avatarPerkChips");
+  if (!box) return;
+  const chips = [];
+  const minLvl = typeof isMysticArchetype === "function" && isMysticArchetype(state.avatar.classId) ? 10 : 9;
+  if (prog.level < minLvl) {
+    chips.push(avatarPerkChipHtml("Заточка", "С " + minLvl + " ур.: бонус уровня к заточке с +4"));
+  } else if (parseFloat(bonusPct) > 0) {
+    chips.push(avatarPerkChipHtml("Заточка", "+" + bonusPct + "% с +4 (уровень + экип)", "ok"));
+  }
+  const gearSum = typeof avatarGearBonusSummary === "function" ? avatarGearBonusSummary() : null;
+  if (gearSum && gearSum.lines && gearSum.lines.length) {
+    const skip = new Set();
+    if (typeof armorAffinityHintLine === "function") skip.add(armorAffinityHintLine(state.avatar));
+    if (typeof gradePenaltyHintLine === "function") skip.add(gradePenaltyHintLine(state.avatar));
+    const gearLines = gearSum.lines.filter((ln) => !skip.has(ln));
+    if (gearLines.length) chips.push(avatarPerkChipHtml("Экип", gearLines.join(" · "), "ok"));
+  }
+  if (typeof professionArmorPref === "function") {
+    const pref = professionArmorPref(state.avatar);
+    const label =
+      (typeof ARMOR_KIND_LABELS !== "undefined" && ARMOR_KIND_LABELS[pref]) || pref || "—";
+    const active = typeof avatarArmorAffinityActive === "function" && avatarArmorAffinityActive(state.avatar);
+    const pct = Math.round(((typeof ARMOR_AFFINITY_MULT === "number" ? ARMOR_AFFINITY_MULT : 1.06) - 1) * 100);
+    chips.push(
+      avatarPerkChipHtml(
+        "Броня",
+        active ? "«" + label + "» · +" + pct + "% урон/DEF" : "Нужно ≥2 шт. («" + label + "»)",
+        active ? "ok" : ""
+      )
+    );
+  }
+  if (typeof professionWeaponCats === "function") {
+    const cats = professionWeaponCats(state.avatar) || [];
+    if (cats.length) {
+      const names = cats
+        .slice(0, 3)
+        .map((c) => (typeof WEAPON_CAT_LABELS !== "undefined" && WEAPON_CAT_LABELS[c]) || c)
+        .join(", ");
+      const w = typeof ensureAvatarGear === "function" ? ensureAvatarGear()?.weapon : null;
+      const wdef = w && typeof WMAP !== "undefined" ? WMAP[w.id] : null;
+      const masterOn = wdef && typeof avatarWeaponMasteryActive === "function" && avatarWeaponMasteryActive(wdef, state.avatar);
+      const wpct = Math.round(((typeof WEAPON_MASTERY_MULT === "number" ? WEAPON_MASTERY_MULT : 1.06) - 1) * 100);
+      chips.push(
+        avatarPerkChipHtml(
+          "Оружие",
+          masterOn
+            ? names + (cats.length > 3 ? "…" : "") + " · +" + wpct + "%"
+            : names + (cats.length > 3 ? "…" : ""),
+          masterOn ? "ok" : ""
+        )
+      );
+    }
+  }
+  if (typeof gradePenaltyHintLine === "function") {
+    const g = gradePenaltyHintLine(state.avatar);
+    if (g) {
+      const over = typeof avatarHasOvergradeGear === "function" && avatarHasOvergradeGear(state.avatar);
+      chips.push(avatarPerkChipHtml("Грейд", g, over ? "warn" : "ok"));
+    }
+  }
+  box.innerHTML = chips.join("");
+}
+
+function bindAvatarScreenTabs() {
+  const tabs = document.querySelector("#screen-avatar .avatar-tabs");
+  if (!tabs || tabs.dataset.bound === "1") return;
+  tabs.dataset.bound = "1";
+  tabs.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-avatar-tab]");
+    if (!btn || !tabs.contains(btn)) return;
+    Audio2.click();
+    setAvatarTab(btn.dataset.avatarTab);
+  });
 }
 
 function renderAvatarPassiveSkillsPanel() {
@@ -85,24 +192,30 @@ function renderAvatarPassiveSkillsPanel() {
     el.innerHTML = "";
     return;
   }
-  const skills = passiveSkillsForAvatar(state.avatar).filter((s) => s.kind === "racial");
+  const skills = passiveSkillsForAvatar(state.avatar).filter(
+    (s) => s.kind === "racial" || s.kind === "class" || s.kind === "profession"
+  );
   if (!skills.length) {
     el.innerHTML = "";
     return;
   }
+  const racial = skills.filter((s) => s.kind === "racial");
+  const classish = skills.filter((s) => s.kind === "class" || s.kind === "profession");
+  const rowHtml = (s) =>
+    '<div class="avatar-skill-row unlocked">' +
+    '<img src="' + (s.icon || "") + '" alt="">' +
+    "<div><b>" + s.name + "</b>" +
+    "<p>" + (s.blurb || s.desc || "") + "</p>" +
+    (s.gameplay ? '<p class="avatar-passive-gameplay">' + s.gameplay + "</p>" : "") +
+    "</div></div>";
   el.innerHTML =
     '<h4 class="avatar-skills-title">Пассивные умения</h4>' +
-    '<p class="avatar-skills-hint">Расовые · всегда действуют</p>' +
-    skills.map((s) => {
-      return (
-        '<div class="avatar-skill-row unlocked">' +
-        '<img src="' + (s.icon || "") + '" alt="">' +
-        "<div><b>" + s.name + "</b>" +
-        "<p>" + (s.blurb || s.desc || "") + "</p>" +
-        (s.gameplay ? '<p class="avatar-passive-gameplay">' + s.gameplay + "</p>" : "") +
-        "</div></div>"
-      );
-    }).join("");
+    (racial.length
+      ? '<p class="avatar-skills-hint">Расовые · всегда действуют</p>' + racial.map(rowHtml).join("")
+      : "") +
+    (classish.length
+      ? '<p class="avatar-skills-hint">Класс / профессия</p>' + classish.map(rowHtml).join("")
+      : "");
 }
 
 function openAvatar(fromScreen) {
@@ -258,11 +371,21 @@ function renderAvatarClassGrid() {
     const cls = avatarClassInfo(cid, race.id);
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "avatar-pick-card" + (_avatarSetupDraft.classId === cid ? " sel" : "");
+    btn.className = "avatar-pick-card avatar-class-card" + (_avatarSetupDraft.classId === cid ? " sel" : "");
     btn.innerHTML =
       '<img src="' + cls.icon + '" alt="">' +
       "<strong>" + cls.name + "</strong>" +
-      "<span>" + cls.desc + "</span>";
+      "<span>" + cls.desc + "</span>" +
+      (typeof professionPreviewIds === "function"
+        ? (function () {
+            const ids = professionPreviewIds(race.id, cid);
+            if (!ids.length) return "";
+            const names = ids
+              .map((id) => (typeof PROFESSIONS !== "undefined" && PROFESSIONS[id] ? PROFESSIONS[id].name : id))
+              .join(" / ");
+            return '<small class="avatar-race-passive avatar-class-later"><span>Позже: ' + names + "</span></small>";
+          })()
+        : "");
     btn.onclick = () => {
       Audio2.click();
       _avatarSetupDraft.classId = cid;
@@ -376,10 +499,21 @@ function maybeShowAvatarSetup() {
   setAvatarSetupOpen(true);
 }
 
-function submitAvatarSetup() {
+async function submitAvatarSetup() {
   const inp = document.getElementById("avatarNameInput");
   const name = inp ? inp.value : "";
-  if (!createAvatar(name, _avatarSetupDraft.raceId, _avatarSetupDraft.classId, _avatarSetupDraft.genderId)) {
+  const check =
+    typeof checkAvatarNameAvailable === "function"
+      ? await checkAvatarNameAvailable(name, { excludeCharId: state.activeCharacterId })
+      : typeof validateAvatarNameLocal === "function"
+        ? validateAvatarNameLocal(name)
+        : { ok: String(name || "").trim().length >= 2, error: "Укажи имя" };
+  if (!check.ok) {
+    toast(check.error || "Имя недоступно", "warn");
+    if (inp) inp.focus();
+    return;
+  }
+  if (!createAvatar(check.name || name, _avatarSetupDraft.raceId, _avatarSetupDraft.classId, _avatarSetupDraft.genderId)) {
     toast("Укажи имя (2–16 символов) и заверши выбор расы, пола и класса", "warn");
     if (inp) inp.focus();
     return;
@@ -398,6 +532,7 @@ function submitAvatarSetup() {
 }
 
 function wireAvatar() {
+  bindAvatarScreenTabs();
   const backdrop = document.getElementById("avatarSetupBackdrop");
   const nextBtn = document.getElementById("avatarSetupNext");
   const backBtn = document.getElementById("avatarSetupBack");

@@ -91,6 +91,10 @@
       "label": "Коллекции"
     },
     {
+      "id": "pvp",
+      "label": "Арена"
+    },
+    {
       "id": "secret",
       "label": "Секретные"
     }
@@ -204,6 +208,75 @@
         "ore": {
           "soul": 50
         }
+      }
+    },
+    {
+      "id": "pvp_first_blood",
+      "title": "Первая кровь",
+      "desc": "Выиграй дуэль или async PvP",
+      "category": "pvp",
+      "icon": "icons/pvp_act_attack.png",
+      "reward": {
+        "adena": 5000
+      }
+    },
+    {
+      "id": "pvp_veteran",
+      "title": "Ветеран арены",
+      "desc": "Одержи 10 побед на арене",
+      "category": "pvp",
+      "icon": "icons/pvp_act_guard.png",
+      "reward": {
+        "adena": 25000,
+        "ore": {
+          "soul": 30
+        }
+      }
+    },
+    {
+      "id": "pvp_gladiator",
+      "title": "Гладиатор",
+      "desc": "Одержи 25 побед на арене",
+      "category": "pvp",
+      "icon": "icons/btn_armor.png",
+      "reward": {
+        "adena": 75000,
+        "ore": {
+          "spirit": 40
+        }
+      }
+    },
+    {
+      "id": "pvp_shadow_hunter",
+      "title": "Охотник на тени",
+      "desc": "Победи 5 теней в async PvP",
+      "category": "pvp",
+      "icon": "icons/etc_spirit_bullet_blue_i00.png",
+      "reward": {
+        "adena": 20000,
+        "ore": {
+          "soul": 25
+        }
+      }
+    },
+    {
+      "id": "pvp_rated_1100",
+      "title": "Рейтинг 1100",
+      "desc": "Достигни PvP-рейтинга 1100",
+      "category": "pvp",
+      "icon": "icons/warehouse_chest.png",
+      "reward": {
+        "adena": 40000
+      }
+    },
+    {
+      "id": "pvp_iron_will",
+      "title": "Железная воля",
+      "desc": "Проиграй 10 рейтинговых боёв и не сдавайся",
+      "category": "pvp",
+      "icon": "icons/pvp_act_guard.png",
+      "reward": {
+        "adena": 15000
       }
     },
     {

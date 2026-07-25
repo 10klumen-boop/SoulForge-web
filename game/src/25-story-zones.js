@@ -96,7 +96,9 @@ function showZoneChapter(zoneId, opts) {
 function dismissZoneChapter(fromUnlock) {
   const backdrop = document.getElementById("storyBackdrop");
   const zoneId = backdrop?.dataset.zoneId;
-  if (zoneId) markStoryChapterSeen(zoneId);
+  if (zoneId && !(typeof isFreeFarmZone === "function" && isFreeFarmZone(zoneId))) {
+    markStoryChapterSeen(zoneId);
+  }
   if (backdrop) {
     delete backdrop.dataset.storyMode;
     delete backdrop.dataset.zoneId;
@@ -111,12 +113,18 @@ function dismissZoneChapter(fromUnlock) {
     gameLog(v.storyTag + ": «" + v.story.title + "»", "system");
   }
   if (typeof renderStoryArcBar === "function") renderStoryArcBar();
-  if (fromUnlock && zoneId && typeof maybeShowQuestBriefing === "function") {
-    maybeShowQuestBriefing(zoneId, { chainStory: true, delay: 420 });
-  }
+  // Брифинг поручения — только в хабе «История» (см. setMenuFarmEntry / maybeShowQuestBriefing).
   if (typeof flushPendingZoneStory === "function") flushPendingZoneStory();
   if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
   if (typeof checkAchievements === "function") checkAchievements();
+  if (
+    fromUnlock &&
+    zoneId &&
+    typeof maybeShowQuestBriefing === "function" &&
+    document.getElementById("screen-menu")?.dataset?.hubMode === "story"
+  ) {
+    maybeShowQuestBriefing(zoneId, { chainStory: true, delay: 420 });
+  }
 }
 
 function queueZoneStoryUnlock(zoneId) {
@@ -146,7 +154,7 @@ function refreshZoneStoryUnlocks() {
   ensureStoryProgress();
   let queued = null;
   FARM_ZONES.forEach((zone) => {
-    if (!zone.active) return;
+    if (!zone.active || zone.side) return;
     if (!zoneRaceView(zone).story) return;
     if (state.storyProgress.unlocksShown[zone.id]) return;
     if (typeof canEnterFarmZone !== "function" || !canEnterFarmZone(zone)) return;
@@ -182,44 +190,7 @@ function flushPendingZoneStory() {
 
 function renderStoryArcBar() {
   const bar = document.getElementById("storyArcBar");
-  const titleEl = document.getElementById("storyArcTitle");
-  const dotsEl = document.getElementById("storyArcDots");
-  if (!bar || !dotsEl) return;
-  if (!state.avatar?.created) {
-    bar.hidden = true;
-    return;
-  }
-  bar.hidden = false;
-  ensureStoryProgress();
-  const done = storyChaptersDoneCount();
-  const thread = raceThreadForAvatar();
-  const cur = zoneRaceView(state.farmZone || "banana_mine");
-  if (titleEl) {
-    titleEl.innerHTML =
-      '<span class="story-arc-main">' + thread.title + "</span>" +
-      '<span class="story-arc-sub">' + done + "/" + FARM_ZONES.length + " · " + cur.name + "</span>";
-  }
-  dotsEl.innerHTML = "";
-  FARM_ZONES.forEach((zone) => {
-    const v = zoneRaceView(zone);
-    const dot = document.createElement("button");
-    dot.type = "button";
-    dot.className = "story-arc-dot";
-    dot.title = v.storyTag + " — " + v.name + " (нажми, чтобы прочитать)";
-    if (!zone.active) dot.classList.add("future");
-    else if (state.storyProgress.chaptersSeen[zone.id]) dot.classList.add("done");
-    else if (typeof canEnterFarmZone === "function" && canEnterFarmZone(zone)) dot.classList.add("open");
-    else dot.classList.add("locked");
-    dot.onclick = (e) => {
-      e.stopPropagation();
-      if (typeof Audio2 !== "undefined") Audio2.click();
-      const seen = !!state.storyProgress.chaptersSeen[zone.id];
-      const open = zone.active && typeof canEnterFarmZone === "function" && canEnterFarmZone(zone);
-      if (seen || open) readZoneStory(zone.id, { firstUnlock: false });
-      else if (typeof toast === "function") toast("Глава ещё закрыта", "warn");
-    };
-    dotsEl.appendChild(dot);
-  });
+  if (bar) bar.hidden = true; // обзор глав — кнопка «Главы» в хабе «История»
 }
 
 function openStoryArcOverview() {
@@ -229,13 +200,12 @@ function openStoryArcOverview() {
   }
   const backdrop = document.getElementById("storyBackdrop");
   const body = document.getElementById("storyBody");
-  const title = document.getElementById("storyTitle");
-  const eyebrow = document.getElementById("storyEyebrow");
   const btn = document.getElementById("storyOk");
   if (!backdrop || !body) return;
   ensureStoryProgress();
   const thread = raceThreadForAvatar();
   const race = currentAvatarRace();
+  const zones = typeof storyFarmZones === "function" ? storyFarmZones() : FARM_ZONES.filter((z) => !z.side);
   const done = storyChaptersDoneCount();
   const parts = [
     '<p class="story-epigraph">' + PRELUDE_EPIGRAPH + "</p>",
@@ -245,7 +215,7 @@ function openStoryArcOverview() {
     '<p class="story-arc-hd"><b>Твои главы</b> · <a href="https://www.youtube.com/watch?v=tOHJ571xPiU" target="_blank" rel="noopener noreferrer">лор Prelude</a> · нажми главу, чтобы перечитать</p>',
     '<ul class="story-arc-list">',
   ];
-  FARM_ZONES.forEach((zone) => {
+  zones.forEach((zone) => {
     const v = zoneRaceView(zone);
     const s = v.story;
     const seen = !!state.storyProgress.chaptersSeen[zone.id];
@@ -265,7 +235,7 @@ function openStoryArcOverview() {
   renderStoryPanel({
     title: STORY_ARC.title,
     eyebrow: "Prelude · " + thread.title,
-    chapter: done + "/" + FARM_ZONES.length + " глав",
+    chapter: done + "/" + zones.filter((z) => z.active).length + " глав",
     icon: curRaceIcon(),
     bodyHtml: parts.join(""),
     cta: "Закрыть",
@@ -302,7 +272,9 @@ function renderMineStoryBar(zoneId) {
   const leadEl = document.getElementById("mineStoryLead");
   const questEl = document.getElementById("mineStoryQuest");
   if (!bar) return;
-  if (!state.avatar?.created) {
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  // Свободный фарм — без сюжетной полосы
+  if (!state.avatar?.created || zone?.side) {
     bar.hidden = true;
     return;
   }
@@ -364,6 +336,15 @@ function wireMineStory() {
       if (typeof Audio2 !== "undefined") Audio2.click();
       const zoneId = state.farmZone || "banana_mine";
       if (typeof readZoneStory === "function") readZoneStory(zoneId, { firstUnlock: false });
+    };
+  }
+  const farmArcBtn = document.getElementById("farmStoryArcBtn");
+  if (farmArcBtn && !farmArcBtn.dataset.wired) {
+    farmArcBtn.dataset.wired = "1";
+    farmArcBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      if (typeof openStoryArcOverview === "function") openStoryArcOverview();
     };
   }
 }

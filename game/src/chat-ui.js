@@ -17,10 +17,10 @@ function wireChatResize() {
     if (!drag) return;
     const dx = e.clientX - drag.x0;
     const dy = e.clientY - drag.y0;
-    // Панель справа: тянем влево → шире, вниз → выше
+    // Панель слева снизу: вправо → шире, вверх → выше
     const next = {
-      w: drag.mode === "h" ? drag.w0 : drag.w0 - dx,
-      h: drag.mode === "w" ? drag.h0 : drag.h0 + dy,
+      w: drag.mode === "h" ? drag.w0 : drag.w0 + dx,
+      h: drag.mode === "w" ? drag.h0 : drag.h0 - dy,
     };
     applyChatSize(next);
   };

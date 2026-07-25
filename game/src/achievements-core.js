@@ -157,6 +157,11 @@ function achievementContext() {
     avatarLevel: state.avatar?.level || 0,
     mineVisits: s.mineVisits || 0,
     bossKills: s.bossKills || 0,
+    pvpWins: s.pvpWins || 0,
+    pvpLosses: s.pvpLosses || 0,
+    pvpAsyncWins: s.pvpAsyncWins || 0,
+    pvpDuelWins: s.pvpDuelWins || 0,
+    pvpRating: s.pvpRating || 1000,
     questSteps: achQuestStepsDone(),
     farmPower: typeof avatarFarmPower === "function" ? avatarFarmPower() : 0,
     chapter1Complete,
@@ -201,9 +206,16 @@ function achievementContext() {
     storyOrcBarracks: !!(state.storyProgress?.chaptersSeen?.orc_barracks),
     storyDarkCavern: !!(state.storyProgress?.chaptersSeen?.dark_cavern),
     storyDwarvenDepths: !!(state.storyProgress?.chaptersSeen?.dwarven_depths),
-    storyChaptersRead: state.storyProgress?.chaptersSeen
-      ? Object.keys(state.storyProgress.chaptersSeen).filter((k) => state.storyProgress.chaptersSeen[k]).length
-      : 0,
+    storyChaptersRead:
+      typeof storyChaptersDoneCount === "function"
+        ? storyChaptersDoneCount()
+        : state.storyProgress?.chaptersSeen
+          ? Object.keys(state.storyProgress.chaptersSeen).filter((k) => {
+              if (!state.storyProgress.chaptersSeen[k]) return false;
+              const z = typeof farmZoneById === "function" ? farmZoneById(k) : null;
+              return !!(z && !z.side);
+            }).length
+          : 0,
     preludeChaptersComplete: typeof preludeChaptersCompleteCount === "function" ? preludeChaptersCompleteCount() : 0,
     preludeFinaleSeen: !!(state.storyProgress?.preludeFinaleSeen),
   };

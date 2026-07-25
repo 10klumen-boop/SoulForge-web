@@ -147,15 +147,34 @@ function applyChapterReward(zoneId, opts) {
       return next;
     });
   }
+  let armorGranted = null;
+  if (rw.armorId && typeof grantArmorDrop === "function") {
+    const res = grantArmorDrop(rw.armorId, { source: "chapter", zoneId, silent: !!opts.silent });
+    if (res) armorGranted = res.def;
+  }
+  let fragGranted = [];
+  if (rw.armorFrags && typeof addArmorFrag === "function") {
+    Object.keys(rw.armorFrags).forEach((fragId) => {
+      const qty = rw.armorFrags[fragId] || 0;
+      if (qty <= 0) return;
+      const res = addArmorFrag(fragId, qty, { source: "chapter", zoneId, silent: true });
+      if (res) fragGranted.push({ name: res.def.name, qty: res.qty });
+    });
+  }
   ensureChapterRewardsState();
   ProgressStore.update("questProgress", (q) => ({ ...(q || {}), chapterRewards: { ...(q?.chapterRewards || {}), [zoneId]: true } }));
   save();
   if ($("#adena")) $("#adena").textContent = fmt(state.adena);
   if (!opts.silent && typeof gameLog === "function") {
     const view = typeof zoneRaceView === "function" ? zoneRaceView(zoneId) : { name: zoneId };
-    gameLog("Награда главы «" + (view.name || zoneId) + "»: +" + fmtAdena(adena) + " adena", "success");
+    let msg = "Награда главы «" + (view.name || zoneId) + "»: +" + fmtAdena(adena) + " adena";
+    if (armorGranted) msg += " · " + armorGranted.name;
+    if (fragGranted.length) {
+      msg += " · " + fragGranted.map((f) => f.name + " ×" + f.qty).join(", ");
+    }
+    gameLog(msg, "success");
   }
-  return { adena, rw };
+  return { adena, rw, armor: armorGranted, frags: fragGranted };
 }
 
 function chapterRewardBodyHtml(zoneId) {
@@ -172,6 +191,18 @@ function chapterRewardBodyHtml(zoneId) {
   if (rw.crystals) {
     Object.keys(rw.crystals).forEach((g) => {
       if (rw.crystals[g]) parts.push("<li>Кристалл " + g + " ×" + rw.crystals[g] + "</li>");
+    });
+  }
+  if (rw.armorId && typeof AMAP !== "undefined" && AMAP[rw.armorId]) {
+    const a = AMAP[rw.armorId];
+    parts.push("<li>🛡 " + a.name + " [" + (a.grade || "?") + "]</li>");
+  }
+  if (rw.armorFrags && typeof ARMOR_FRAGS !== "undefined") {
+    Object.keys(rw.armorFrags).forEach((fragId) => {
+      const qty = rw.armorFrags[fragId] || 0;
+      if (!qty) return;
+      const f = ARMOR_FRAGS[fragId];
+      parts.push("<li>🔩 " + (f?.name || fragId) + " ×" + qty + "</li>");
     });
   }
   parts.push("</ul></div>");

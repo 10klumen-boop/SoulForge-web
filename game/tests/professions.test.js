@@ -1,0 +1,309 @@
+// ===== Unit-тесты: профессии, shaman kit, class passives, armor affinity =====
+const assert = require("assert");
+const { loadScripts, loadGameJsonDataSync } = require("./setup");
+
+loadGameJsonDataSync();
+
+global.ProgressStore = {
+  set(key, val) {
+    state[key] = val;
+  },
+  update(key, fn) {
+    state[key] = fn(state[key]);
+  },
+};
+global.save = () => {};
+global.toast = () => {};
+global.gameLog = () => {};
+global.renderAvatarScreen = () => {};
+global.renderAvatarHub = () => {};
+global.renderMenu = () => {};
+global.renderAvatarSkillsPanel = () => {};
+global.renderCharacterRoster = () => {};
+global.isMysticArchetype = (classId) => classId === "mystic" || classId === "shaman";
+
+global.state = {
+  avatar: {
+    created: true,
+    raceId: "human",
+    classId: "fighter",
+    level: 10,
+    professionId: null,
+    professionTier: 0,
+    gear: {},
+  },
+};
+
+loadScripts([
+  "src/data/combat-skills-data.js",
+  "src/data/professions-data.js",
+  "src/passive-skills-core.js",
+  "src/professions-core.js",
+  "src/combat-skills-core.js",
+]);
+
+function test(name, fn) {
+  try {
+    fn();
+    console.log("  ok  " + name);
+  } catch (e) {
+    console.error("  FAIL  " + name);
+    throw e;
+  }
+}
+
+console.log("professions.test.js");
+
+test("shaman has dedicated combat kit", () => {
+  const shaman = combatSkillsForClass("shaman");
+  const mystic = combatSkillsForClass("mystic");
+  assert.ok(shaman.length >= 4);
+  assert.notStrictEqual(shaman[0].id, mystic[0].id);
+  assert.strictEqual(shaman[0].id, "totem_strike");
+});
+
+test("CLASS_PASSIVE_SKILL_IDS filled for starters", () => {
+  assert.ok(CLASS_PASSIVE_SKILL_IDS.fighter.length >= 1);
+  assert.ok(CLASS_PASSIVE_SKILL_IDS.mystic.length >= 1);
+  assert.ok(CLASS_PASSIVE_SKILL_IDS.shaman.length >= 1);
+});
+
+test("class passives grant at level", () => {
+  const a = { raceId: "human", classId: "fighter", level: 12, created: true };
+  const ids = passiveSkillIdsGrantedToAvatar(a);
+  assert.ok(ids.indexOf("fighter_blade") >= 0);
+  assert.ok(ids.indexOf("fighter_guard") >= 0);
+  assert.ok(ids.indexOf("human_steady") >= 0);
+  const skills = passiveSkillsForAvatar(a);
+  assert.ok(skills.some((s) => s.id === "fighter_blade"));
+});
+
+test("starter armor pref", () => {
+  assert.strictEqual(professionArmorPref({ classId: "fighter" }), "heavy");
+  assert.strictEqual(professionArmorPref({ classId: "mystic" }), "robe");
+  assert.strictEqual(professionArmorPref({ classId: "shaman" }), "robe");
+});
+
+test("human fighter 1st choices at lvl 10", () => {
+  state.avatar = {
+    created: true,
+    raceId: "human",
+    classId: "fighter",
+    level: 10,
+    professionId: null,
+    professionTier: 0,
+  };
+  const choices = availableProfessionChoices(state.avatar);
+  const ids = choices.map((c) => c.id).sort();
+  assert.deepStrictEqual(ids, ["knight", "rogue", "warrior"]);
+});
+
+test("no 1st choice below level 10", () => {
+  state.avatar.level = 9;
+  assert.strictEqual(availableProfessionChoices(state.avatar).length, 0);
+});
+
+test("choose warrior then 2nd gladiator/warlord", () => {
+  state.avatar.level = 10;
+  assert.ok(chooseProfession("warrior", { silent: true }));
+  assert.strictEqual(state.avatar.professionId, "warrior");
+  assert.strictEqual(state.avatar.professionTier, 1);
+  state.avatar.level = 40;
+  const second = availableProfessionChoices(state.avatar).map((c) => c.id).sort();
+  assert.deepStrictEqual(second, ["gladiator", "warlord"]);
+  assert.ok(chooseProfession("gladiator", { silent: true }));
+  assert.strictEqual(state.avatar.professionId, "gladiator");
+  assert.strictEqual(state.avatar.professionTier, 2);
+  assert.strictEqual(availableProfessionChoices(state.avatar).length, 0);
+});
+
+test("no 2nd profession below level 40", () => {
+  state.avatar = {
+    created: true,
+    raceId: "human",
+    classId: "fighter",
+    level: 20,
+    professionId: "warrior",
+    professionTier: 1,
+  };
+  assert.strictEqual(availableProfessionChoices(state.avatar).length, 0);
+  state.avatar.level = 39;
+  assert.strictEqual(availableProfessionChoices(state.avatar).length, 0);
+  state.avatar.level = 40;
+  assert.ok(availableProfessionChoices(state.avatar).length >= 1);
+});
+
+test("grade unlock D@20 C@40", () => {
+  assert.strictEqual(avatarAllowedGrade(1), "NG");
+  assert.strictEqual(avatarAllowedGrade(19), "NG");
+  assert.strictEqual(avatarAllowedGrade(20), "D");
+  assert.strictEqual(avatarAllowedGrade(39), "D");
+  assert.strictEqual(avatarAllowedGrade(40), "C");
+  assert.ok(isGradeOverLevel("D", 10));
+  assert.ok(!isGradeOverLevel("D", 20));
+  assert.ok(isGradeOverLevel("C", 20));
+  assert.ok(!isGradeOverLevel("C", 40));
+  assert.strictEqual(avatarGradePenaltyMult("C", 20), GRADE_OVERLEVEL_MULT);
+  assert.strictEqual(avatarGradePenaltyMult("C", 40), 1);
+});
+
+test("weapon mastery by role cats", () => {
+  const fighter = { classId: "fighter", professionId: null };
+  assert.ok(avatarWeaponMasteryActive({ cat: "Sword" }, fighter));
+  assert.strictEqual(avatarWeaponMasteryMult({ cat: "Sword" }, fighter), WEAPON_MASTERY_MULT);
+  const mage = { classId: "mystic", professionId: "wizard", professionTier: 1 };
+  // wizard role mage → Blunt + Sword
+  assert.ok(professionWeaponCats(mage).indexOf("Blunt") >= 0);
+  assert.ok(professionWeaponCats(mage).indexOf("Sword") >= 0);
+  assert.ok(avatarWeaponMasteryActive({ cat: "Blunt" }, mage));
+  assert.ok(avatarWeaponMasteryActive({ cat: "Sword", weaponKind: "magical" }, mage));
+  assert.ok(!avatarWeaponMasteryActive({ cat: "Sword", weaponKind: "physical" }, mage));
+  assert.ok(!avatarWeaponMasteryActive({ cat: "Bow" }, mage));
+});
+
+test("overgrade hint ignores weapon-only overgrade", () => {
+  global.state = {
+    avatar: {
+      created: true,
+      classId: "mystic",
+      level: 10,
+      raceId: "human",
+      gear: {
+        weapon: { kind: "weapon", id: "dummy_c", grade: "C" },
+      },
+    },
+  };
+  global.iterEquippedGear = () => [
+    { slot: "weapon", item: state.avatar.gear.weapon },
+  ];
+  global.avatarGearItemDef = (it) => (it ? { grade: it.grade, name: "C sword" } : null);
+  assert.ok(!avatarHasOvergradeGear(state.avatar));
+  const line = gradePenaltyHintLine(state.avatar);
+  assert.ok(/оружие/i.test(line));
+});
+
+test("2nd profession passives replace 1st (only leaf)", () => {
+  const a = {
+    raceId: "human",
+    classId: "fighter",
+    level: 40,
+    professionId: "gladiator",
+    professionTier: 2,
+    created: true,
+  };
+  const ids = passiveSkillIdsGrantedToAvatar(a);
+  assert.ok(ids.indexOf("prof_gladiator") >= 0);
+  assert.ok(ids.indexOf("prof_warrior") < 0);
+});
+
+test("skill overlay on gladiator", () => {
+  state.avatar = {
+    created: true,
+    raceId: "human",
+    classId: "fighter",
+    level: 40,
+    professionId: "gladiator",
+    professionTier: 2,
+  };
+  const skills = combatSkillsForAvatar();
+  assert.ok(skills.some((s) => s.id === "whirlwind"));
+  assert.ok(!skills.some((s) => s.id === "blood_rage"));
+});
+
+test("elf / dwarf / orc shaman trees exist", () => {
+  state.avatar = {
+    created: true,
+    raceId: "elf",
+    classId: "fighter",
+    level: 10,
+    professionId: null,
+    professionTier: 0,
+  };
+  assert.ok(availableProfessionChoices(state.avatar).some((p) => p.id === "elven_knight"));
+
+  state.avatar = {
+    created: true,
+    raceId: "dwarf",
+    classId: "fighter",
+    level: 10,
+    professionId: null,
+    professionTier: 0,
+  };
+  const dwarf = availableProfessionChoices(state.avatar).map((p) => p.id).sort();
+  assert.deepStrictEqual(dwarf, ["artisan", "scavenger"]);
+
+  state.avatar = {
+    created: true,
+    raceId: "orc",
+    classId: "shaman",
+    level: 10,
+    professionId: null,
+    professionTier: 0,
+  };
+  assert.deepStrictEqual(
+    availableProfessionChoices(state.avatar).map((p) => p.id),
+    ["orc_shaman"]
+  );
+  chooseProfession("orc_shaman", { silent: true });
+  state.avatar.level = 40;
+  assert.deepStrictEqual(
+    availableProfessionChoices(state.avatar).map((p) => p.id).sort(),
+    ["overlord", "warcryer"]
+  );
+});
+
+test("migrateAvatarProfessionFields clears unknown id", () => {
+  const next = migrateAvatarProfessionFields({
+    professionId: "nope",
+    professionTier: 2,
+  });
+  assert.strictEqual(next.professionId, null);
+  assert.strictEqual(next.professionTier, 0);
+});
+
+test("armor affinity active when kind matches", () => {
+  global.ARMOR_SETS = {
+    mithril: { id: "mithril", kind: "heavy", pieces: [] },
+  };
+  global.isArmorItem = (it) => !!it && it.kind === "armor";
+  global.armorItemDef = (it) => ({ setId: it.setId });
+  global.iterEquippedGear = () => [
+    { item: { kind: "armor", setId: "mithril" } },
+    { item: { kind: "armor", setId: "mithril" } },
+  ];
+  const a = { classId: "fighter", professionId: null };
+  assert.strictEqual(avatarEquippedArmorKind(), "heavy");
+  assert.ok(avatarArmorAffinityActive(a));
+  assert.strictEqual(avatarArmorAffinityMult(a), ARMOR_AFFINITY_MULT);
+
+  global.iterEquippedGear = () => [
+    { item: { kind: "armor", setId: "mithril" } },
+  ];
+  assert.strictEqual(avatarEquippedArmorKind(), null);
+  assert.ok(!avatarArmorAffinityActive(a));
+});
+
+test("human mystic wizard→sorcerer path", () => {
+  state.avatar = {
+    created: true,
+    raceId: "human",
+    classId: "mystic",
+    level: 10,
+    professionId: null,
+    professionTier: 0,
+  };
+  const first = availableProfessionChoices(state.avatar).map((p) => p.id).sort();
+  assert.deepStrictEqual(first, ["cleric", "wizard"]);
+  chooseProfession("wizard", { silent: true });
+  state.avatar.level = 40;
+  const second = availableProfessionChoices(state.avatar).map((p) => p.id).sort();
+  assert.deepStrictEqual(second, ["necromancer", "sorcerer", "warlock"]);
+});
+
+test("profession preview ids for create UI", () => {
+  const ids = professionPreviewIds("human", "fighter");
+  assert.ok(ids.indexOf("warrior") >= 0);
+  assert.ok(ids.indexOf("knight") >= 0);
+});
+
+console.log("All professions tests passed.");

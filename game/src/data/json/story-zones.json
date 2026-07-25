@@ -214,6 +214,70 @@
         "targets": "соперники на погрузке",
         "mechanic": "Мешок adena — голос на выборах. Опереди конкурента у кратера, пока не стемнело."
       }
+    },
+    "mithril_forge": {
+      "human": {
+        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
+        "questRef": "Фарм C-кусков · все C-сеты",
+        "targets": "кузнечные мародёры",
+        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+      },
+      "elf": {
+        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
+        "questRef": "Фарм C-кусков · все C-сеты",
+        "targets": "кузнечные мародёры",
+        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+      },
+      "dark_elf": {
+        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
+        "questRef": "Фарм C-кусков · все C-сеты",
+        "targets": "кузнечные мародёры",
+        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+      },
+      "orc": {
+        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
+        "questRef": "Фарм C-кусков · все C-сеты",
+        "targets": "кузнечные мародёры",
+        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+      },
+      "dwarf": {
+        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
+        "questRef": "Фарм C-кусков · все C-сеты",
+        "targets": "кузнечные мародёры",
+        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+      }
+    },
+    "scrap_field": {
+      "human": {
+        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
+        "questRef": "Фарм D-кусков · все D-сеты",
+        "targets": "падальщики свалки",
+        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+      },
+      "elf": {
+        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
+        "questRef": "Фарм D-кусков · все D-сеты",
+        "targets": "падальщики свалки",
+        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+      },
+      "dark_elf": {
+        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
+        "questRef": "Фарм D-кусков · все D-сеты",
+        "targets": "падальщики свалки",
+        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+      },
+      "orc": {
+        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
+        "questRef": "Фарм D-кусков · все D-сеты",
+        "targets": "падальщики свалки",
+        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+      },
+      "dwarf": {
+        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
+        "questRef": "Фарм D-кусков · все D-сеты",
+        "targets": "падальщики свалки",
+        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+      }
     }
   },
   "FARM_ZONES": [
@@ -456,6 +520,236 @@
               "Гильдия <b>Серого столба</b> жаждет разгадать тайну древних мастеров — образцы креплений, что держат эти своды тысячи лет и не осыпались. А по полю уже рыщут расхитители и соперники, тащащие куски бесценного камня в чужие карманы.",
               "Тебе нет дела до легенд и призраков. Тебе нужны звонкая adena и заветный чертёж — тот, что решит исход выборов старейшины в твою пользу.",
               "Пусть эльфы шепчутся со своей магией где-то в стороне. Здесь, под сводами, правят лишь верный молот да быстрая рука. Всё прочее — пустой звук."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "scrap_field",
+      "chapter": 1,
+      "side": true,
+      "name": "Свалка доспехов",
+      "desc": "Куски всех D-сетов брони",
+      "storyTag": "Фарм · D-куски",
+      "reqPower": 30,
+      "reqLevel": 2,
+      "targetPower": 50,
+      "icon": "icons/armor_brigandine_i00.png",
+      "active": true,
+      "mine": {
+        "bgs": [
+          "assets/locations/scrap-field.jpg",
+          "assets/locations/scrap-field-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1020,
+        "goldenChance": 0.052,
+        "rewardScale": 0.9
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Свалка доспехов",
+          "desc": "Material D-grade",
+          "storyTag": "Фарм · Куски",
+          "mine": {
+            "title": "Свалка доспехов",
+            "hint": "Куски D-сетов — в Мастерскую!"
+          },
+          "story": {
+            "title": "Свалка доспехов",
+            "eyebrow": "Свободный фарм",
+            "cta": "На поле",
+            "paragraphs": [
+              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Свалка доспехов",
+          "desc": "Material D-grade",
+          "storyTag": "Фарм · Куски",
+          "mine": {
+            "title": "Свалка доспехов",
+            "hint": "Куски D-сетов — в Мастерскую!"
+          },
+          "story": {
+            "title": "Свалка доспехов",
+            "eyebrow": "Свободный фарм",
+            "cta": "На поле",
+            "paragraphs": [
+              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Свалка доспехов",
+          "desc": "Material D-grade",
+          "storyTag": "Фарм · Куски",
+          "mine": {
+            "title": "Свалка доспехов",
+            "hint": "Куски D-сетов — в Мастерскую!"
+          },
+          "story": {
+            "title": "Свалка доспехов",
+            "eyebrow": "Свободный фарм",
+            "cta": "На поле",
+            "paragraphs": [
+              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Свалка доспехов",
+          "desc": "Material D-grade",
+          "storyTag": "Фарм · Куски",
+          "mine": {
+            "title": "Свалка доспехов",
+            "hint": "Куски D-сетов — в Мастерскую!"
+          },
+          "story": {
+            "title": "Свалка доспехов",
+            "eyebrow": "Свободный фарм",
+            "cta": "На поле",
+            "paragraphs": [
+              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Свалка доспехов",
+          "desc": "Material D-grade",
+          "storyTag": "Фарм · Куски",
+          "mine": {
+            "title": "Свалка доспехов",
+            "hint": "Куски D-сетов — в Мастерскую!"
+          },
+          "story": {
+            "title": "Свалка доспехов",
+            "eyebrow": "Свободный фарм",
+            "cta": "На поле",
+            "paragraphs": [
+              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "mithril_forge",
+      "chapter": 2,
+      "side": true,
+      "name": "Кузница сплавов",
+      "desc": "Куски всех C-сетов брони",
+      "storyTag": "Фарм · C-куски",
+      "reqPower": 90,
+      "reqLevel": 4,
+      "targetPower": 106,
+      "icon": "icons/armor_mithril_breastplate_i00.png",
+      "active": true,
+      "mine": {
+        "bgs": [
+          "assets/locations/mithril-forge.jpg",
+          "assets/locations/mithril-forge-2.jpg"
+        ],
+        "overlay": "mine-zone-elven",
+        "spawnMs": 1140,
+        "goldenChance": 0.055,
+        "rewardScale": 1
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Кузница мифрила",
+          "desc": "Material C-grade",
+          "storyTag": "Фарм · C-куски",
+          "mine": {
+            "title": "Кузница сплавов",
+            "hint": "Куски C-сетов — хватай!"
+          },
+          "story": {
+            "title": "Кузница сплавов",
+            "eyebrow": "Свободный фарм",
+            "cta": "К кузнице",
+            "paragraphs": [
+              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Жила у руин",
+          "desc": "Material C-grade",
+          "storyTag": "Фарм · C-куски",
+          "mine": {
+            "title": "Кузница сплавов",
+            "hint": "Куски C-сетов — хватай!"
+          },
+          "story": {
+            "title": "Кузница сплавов",
+            "eyebrow": "Свободный фарм",
+            "cta": "К кузнице",
+            "paragraphs": [
+              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Чужая кузница",
+          "desc": "Material C-grade",
+          "storyTag": "Фарм · C-куски",
+          "mine": {
+            "title": "Кузница сплавов",
+            "hint": "Куски C-сетов — хватай!"
+          },
+          "story": {
+            "title": "Кузница сплавов",
+            "eyebrow": "Свободный фарм",
+            "cta": "К кузнице",
+            "paragraphs": [
+              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Огненная жила",
+          "desc": "Material C-grade",
+          "storyTag": "Фарм · C-куски",
+          "mine": {
+            "title": "Кузница сплавов",
+            "hint": "Куски C-сетов — хватай!"
+          },
+          "story": {
+            "title": "Кузница сплавов",
+            "eyebrow": "Свободный фарм",
+            "cta": "К кузнице",
+            "paragraphs": [
+              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Чужая наковальня",
+          "desc": "Material C-grade",
+          "storyTag": "Фарм · C-куски",
+          "mine": {
+            "title": "Кузница сплавов",
+            "hint": "Куски C-сетов — хватай!"
+          },
+          "story": {
+            "title": "Кузница сплавов",
+            "eyebrow": "Свободный фарм",
+            "cta": "К кузнице",
+            "paragraphs": [
+              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
+              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
             ]
           }
         }
@@ -844,6 +1138,16 @@
     "dwarven_depths": {
       "dwarf": 0.08,
       "human": 0.04
+    },
+    "mithril_forge": {
+      "dwarf": 0.08,
+      "human": 0.04,
+      "orc": 0.04
+    },
+    "scrap_field": {
+      "human": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
     }
   }
 }

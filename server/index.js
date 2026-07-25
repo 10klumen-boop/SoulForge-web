@@ -390,16 +390,40 @@ app.put("/save", (req, res) => {
       lease: leasePayload(store.getWriteLease(user.id)),
     });
   } catch (e) {
+    if (e && e.code === "name_taken") {
+      return res.status(409).json({
+        ok: false,
+        error: e.message || "Имя персонажа уже занято",
+        nameTaken: e.nameTaken || null,
+      });
+    }
     console.error("PUT /save failed:", e);
     return jsonError(res, 500, "Не удалось сохранить");
+  }
+});
+
+app.get("/chars/name-available", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const name = req.query.name;
+    const excludeSlotId = req.query.characterId || req.query.slotId || null;
+    const result = store.isCharacterNameAvailable(name, {
+      excludeUserId: user.id,
+      excludeSlotId: excludeSlotId ? String(excludeSlotId) : null,
+    });
+    res.json(result);
+  } catch (e) {
+    console.error("GET /chars/name-available", e);
+    return jsonError(res, 500, "Ошибка проверки имени");
   }
 });
 
 app.get("/leaderboard/:mode", (req, res) => {
   const mode = String(req.params.mode || "enchant").toLowerCase();
   const limit = Number(req.query.limit) || 50;
-  if (!["enchant", "power", "wealth", "mobs", "default"].includes(mode)) {
-    return jsonError(res, 400, "mode: enchant | power | wealth | mobs");
+  if (!["enchant", "power", "wealth", "mobs", "pvp", "default"].includes(mode)) {
+    return jsonError(res, 400, "mode: enchant | power | wealth | mobs | pvp");
   }
   const rows = store.getLeaderboard(mode === "default" ? "enchant" : mode, limit);
   res.json(rows);
@@ -669,6 +693,259 @@ app.post("/chat/clan/leave", (req, res) => {
   } catch (e) {
     console.error("POST /chat/clan/leave", e);
     return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.get("/mail/inbox", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.mailInbox(user, {
+      characterId: req.query.characterId,
+    }, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка почты");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /mail/inbox", e);
+    return jsonError(res, 500, "Ошибка почты");
+  }
+});
+
+app.get("/mail/outbox", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.mailOutbox(user, {
+      characterId: req.query.characterId,
+    }, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка почты");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /mail/outbox", e);
+    return jsonError(res, 500, "Ошибка почты");
+  }
+});
+
+app.post("/mail/send", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const lease = requireWriteLease(req, res, user);
+  if (!lease) return;
+  try {
+    const result = store.mailSend(user, req.body || {}, lease.now);
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось отправить");
+    res.json({
+      ok: true,
+      parcel: result.parcel,
+      save: saveResponsePayload(result),
+      lease: leasePayload(store.getWriteLease(user.id)),
+    });
+  } catch (e) {
+    console.error("POST /mail/send", e);
+    return jsonError(res, 500, "Не удалось отправить письмо");
+  }
+});
+
+app.post("/mail/claim/:id", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const lease = requireWriteLease(req, res, user);
+  if (!lease) return;
+  try {
+    const result = store.mailClaim(user, req.params.id, req.body || {}, lease.now);
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось получить");
+    res.json({
+      ok: true,
+      parcel: result.parcel,
+      save: saveResponsePayload(result),
+      lease: leasePayload(store.getWriteLease(user.id)),
+    });
+  } catch (e) {
+    console.error("POST /mail/claim", e);
+    return jsonError(res, 500, "Не удалось получить письмо");
+  }
+});
+
+app.post("/mail/cancel/:id", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  const lease = requireWriteLease(req, res, user);
+  if (!lease) return;
+  try {
+    const result = store.mailCancel(user, req.params.id, req.body || {}, lease.now);
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось отменить");
+    res.json({
+      ok: true,
+      parcelId: result.parcelId,
+      status: result.status,
+      save: saveResponsePayload(result),
+      lease: leasePayload(store.getWriteLease(user.id)),
+    });
+  } catch (e) {
+    console.error("POST /mail/cancel", e);
+    return jsonError(res, 500, "Не удалось отменить письмо");
+  }
+});
+
+// ===== PvP / дуэли =====
+app.post("/pvp/sheet", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpPublishSheet(user, req.body || {}, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось опубликовать");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /pvp/sheet", e);
+    return jsonError(res, 500, "Ошибка публикации листа");
+  }
+});
+
+app.get("/pvp/sheet/lookup", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpLookupSheet(req.query.name);
+    if (!result.ok) return jsonError(res, 400, result.error || "Не найден");
+    res.json({ ok: true, preview: result.preview });
+  } catch (e) {
+    console.error("GET /pvp/sheet/lookup", e);
+    return jsonError(res, 500, "Ошибка поиска");
+  }
+});
+
+app.post("/duel/challenge", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpChallenge(user, req.body || {}, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Не удалось вызвать");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /duel/challenge", e);
+    return jsonError(res, 500, "Ошибка вызова");
+  }
+});
+
+app.get("/duel/inbox", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpChallengeInbox(user, { characterId: req.query.characterId }, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /duel/inbox", e);
+    return jsonError(res, 500, "Ошибка inbox дуэлей");
+  }
+});
+
+app.get("/duel/outbox", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpChallengeOutbox(user, { characterId: req.query.characterId }, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /duel/outbox", e);
+    return jsonError(res, 500, "Ошибка outbox дуэлей");
+  }
+});
+
+app.post("/duel/respond/:id", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpRespondChallenge(user, req.params.id, req.body || {}, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка ответа");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /duel/respond", e);
+    return jsonError(res, 500, "Ошибка ответа на вызов");
+  }
+});
+
+app.get("/duel/match/active", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpActiveMatch(user, { characterId: req.query.characterId }, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /duel/match/active", e);
+    return jsonError(res, 500, "Ошибка матча");
+  }
+});
+
+app.get("/duel/match/:id", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpGetMatch(
+      user,
+      req.params.id,
+      { characterId: req.query.characterId },
+      Date.now()
+    );
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /duel/match", e);
+    return jsonError(res, 500, "Ошибка матча");
+  }
+});
+
+app.post("/duel/match/:id/action", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpMatchAction(user, req.params.id, req.body || {}, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка хода");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /duel/match/action", e);
+    return jsonError(res, 500, "Ошибка хода");
+  }
+});
+
+app.post("/pvp/async/attack", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpAsyncAttack(user, req.body || {}, Date.now());
+    if (!result.ok) return jsonError(res, 400, result.error || "Атака не удалась");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /pvp/async/attack", e);
+    return jsonError(res, 500, "Ошибка async PvP");
+  }
+});
+
+app.get("/pvp/async/inbox", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpAsyncInbox(user, { characterId: req.query.characterId });
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /pvp/async/inbox", e);
+    return jsonError(res, 500, "Ошибка inbox");
+  }
+});
+
+app.get("/pvp/async/outbox", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.pvpAsyncOutbox(user, { characterId: req.query.characterId });
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /pvp/async/outbox", e);
+    return jsonError(res, 500, "Ошибка outbox");
   }
 });
 

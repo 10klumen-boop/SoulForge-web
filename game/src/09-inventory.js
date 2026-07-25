@@ -2,26 +2,29 @@
 
 const INV_GRADE_RANK = { NG: 0, D: 1, C: 2, B: 3, A: 4, S: 5 };
 
+/** Порядок групп в сумке и вкладки фильтра. */
+const INV_KIND_RANK = { weapon: 0, armor: 1, accessory: 2 };
+
 const INV_TABS = [
   { id: "all", label: "Все" },
-  { id: "A", label: "A" },
-  { id: "B", label: "B" },
-  { id: "C", label: "C" },
-  { id: "D", label: "D" },
-  { id: "NG", label: "NG" },
-  { id: "epic", label: "★" },
+  { id: "weapon", label: "Оружие" },
+  { id: "armor", label: "Броня" },
+  { id: "accessory", label: "Бижутерия" },
+  { id: "frag", label: "Куски" },
+  { id: "shot", label: "Соски" },
+  { id: "crystal", label: "Кристаллы" },
+  { id: "ore", label: "Руда" },
 ];
+
+const INV_RESOURCE_TABS = { frag: 1, shot: 1, crystal: 1, ore: 1 };
+
+function isInvResourceTab(tabId) {
+  return !!INV_RESOURCE_TABS[tabId];
+}
 
 function ensureInvTab() {
   if (state.invTab && INV_TABS.some((t) => t.id === state.invTab)) return;
-  if (state.invGradeFilter && !state.invGradeFilter.all) {
-    const keys = ["A", "B", "C", "D", "NG", "epic"].filter((k) => state.invGradeFilter[k]);
-    if (keys.length === 1) {
-      state.invTab = keys[0];
-      delete state.invGradeFilter;
-      return;
-    }
-  }
+  // Старые вкладки по грейду (A/B/C/…) → «Все»
   state.invTab = "all";
   delete state.invGradeFilter;
 }
@@ -31,7 +34,18 @@ function inventoryTabId() {
   return state.invTab;
 }
 
+function inventoryItemKind(it) {
+  if (!it) return null;
+  if (isAccessoryItem(it)) return "accessory";
+  if (typeof isArmorItem === "function" && isArmorItem(it)) return "armor";
+  return "weapon";
+}
+
 function inventoryItemGradeKey(it) {
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    const def = invItemDef(it);
+    return def?.grade || "C";
+  }
   if (isAccessoryItem(it)) return "epic";
   const def = invItemDef(it);
   if (!def) return null;
@@ -41,8 +55,8 @@ function inventoryItemGradeKey(it) {
 
 function inventoryItemMatchesTab(it, tabId) {
   if (tabId === "all") return true;
-  const key = inventoryItemGradeKey(it);
-  return key != null && key === tabId;
+  if (isInvResourceTab(tabId)) return false;
+  return inventoryItemKind(it) === tabId;
 }
 
 function setInvTab(id) {
@@ -52,17 +66,90 @@ function setInvTab(id) {
   save();
 }
 
+function listArmorFragStacks() {
+  if (typeof ARMOR_FRAGS === "undefined" || !ARMOR_FRAGS) return [];
+  return Object.keys(ARMOR_FRAGS)
+    .map((id) => {
+      const def = ARMOR_FRAGS[id];
+      const qty = (state.materials && state.materials[id]) || 0;
+      return { id, def, qty };
+    })
+    .filter((row) => row.qty > 0)
+    .sort((a, b) => String(a.def?.name || a.id).localeCompare(String(b.def?.name || b.id), "ru", { sensitivity: "base" }));
+}
+
+function listShotStacks() {
+  if (typeof ensureWorkshopState === "function") ensureWorkshopState();
+  const shots = state.shots || { soul: {}, spirit: {} };
+  const out = [];
+  ["soul", "spirit"].forEach((kind) => {
+    ["D", "C", "B", "A"].forEach((grade) => {
+      const qty = (shots[kind] && shots[kind][grade]) || 0;
+      if (qty <= 0) return;
+      out.push({
+        id: kind + "_" + grade,
+        kind,
+        grade,
+        qty,
+        name: (kind === "spirit" ? "Spiritshot" : "Soulshot") + " " + grade,
+        icon: typeof SHOT_ICON !== "undefined" ? SHOT_ICON[kind]?.[grade] || SHOT_ICON[kind] : null,
+      });
+    });
+  });
+  return out;
+}
+
+function listCrystalStacks() {
+  if (!state.crystals) state.crystals = { D: 0, C: 0, B: 0, A: 0 };
+  return ["D", "C", "B", "A"]
+    .map((g) => ({
+      grade: g,
+      qty: state.crystals[g] || 0,
+      icon: typeof CRYSTAL_ICON !== "undefined" ? CRYSTAL_ICON[g] : null,
+      color: typeof CRYSTAL_COLOR !== "undefined" ? CRYSTAL_COLOR[g] : null,
+    }))
+    .filter((row) => row.qty > 0);
+}
+
+function listOreStacks() {
+  if (typeof ensureWorkshopState === "function") ensureWorkshopState();
+  const mats = state.materials || {};
+  return ["soul", "spirit"]
+    .map((ty) => {
+      const o = typeof ORE !== "undefined" ? ORE[ty] : null;
+      return {
+        id: ty,
+        qty: mats[ty] || 0,
+        name: o?.name || (ty === "soul" ? "Soul Ore" : "Spirit Ore"),
+        icon: o?.icon || null,
+      };
+    })
+    .filter((row) => row.qty > 0);
+}
+
+function countInvResourceTabItems(tabId) {
+  if (tabId === "frag") return listArmorFragStacks().length;
+  if (tabId === "shot") return listShotStacks().length;
+  if (tabId === "crystal") return listCrystalStacks().length;
+  if (tabId === "ore") return listOreStacks().length;
+  return 0;
+}
+
 function countInvTabItems(tabId) {
+  if (isInvResourceTab(tabId)) return countInvResourceTabItems(tabId);
   const inv = state.inventory || [];
   return inv.slice(0, INV_CAP).filter((it) => inventoryItemMatchesTab(it, tabId)).length;
 }
 
 function inventorySortMode() {
-  return "grade";
+  return "kind";
 }
 
 function inventoryItemPower(it, def) {
   if (!def || isAccessoryItem(it)) return 0;
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    return (def.pdef || 0) + (def.mdef || 0);
+  }
   const plus = it.plus || 0;
   const p = typeof statAt === "function" ? statAt(def.patk, def.ps, plus) : (def.patk || 0);
   const m = typeof statAt === "function" ? statAt(def.matk, def.ms, plus) : (def.matk || 0);
@@ -74,8 +161,12 @@ function inventoryItemPower(it, def) {
 }
 
 function compareInventoryItems(a, b, mode) {
-  const aa = isAccessoryItem(a), ab = isAccessoryItem(b);
-  if (aa !== ab) return aa ? 1 : -1;
+  const kindA = inventoryItemKind(a);
+  const kindB = inventoryItemKind(b);
+  const rankA = INV_KIND_RANK[kindA] ?? 99;
+  const rankB = INV_KIND_RANK[kindB] ?? 99;
+  if (rankA !== rankB) return rankA - rankB;
+
   const da = invItemDef(a), db = invItemDef(b);
   if (!da && !db) return 0;
   if (!da) return 1;
@@ -88,22 +179,16 @@ function compareInventoryItems(a, b, mode) {
   const gradeB = INV_GRADE_RANK[db.grade] ?? 0;
   const powerA = inventoryItemPower(a, da);
   const powerB = inventoryItemPower(b, db);
-  if (mode === "grade") {
-    if (gradeB !== gradeA) return gradeB - gradeA;
-    if (plusB !== plusA) return plusB - plusA;
-  } else if (mode === "plus") {
-    if (plusB !== plusA) return plusB - plusA;
-    if (gradeB !== gradeA) return gradeB - gradeA;
-  } else if (mode === "power") {
-    if (powerB !== powerA) return powerB - powerA;
-    if (plusB !== plusA) return plusB - plusA;
-  }
+  // Внутри группы: грейд ↓, заточка ↓, сила ↓, имя
+  if (gradeB !== gradeA) return gradeB - gradeA;
+  if (plusB !== plusA) return plusB - plusA;
+  if (mode === "power" && powerB !== powerA) return powerB - powerA;
   return String(da.name || "").localeCompare(String(db.name || ""), "ru", { sensitivity: "base" });
 }
 
 function applyInventorySort(mode) {
   mode = mode || inventorySortMode();
-  state.invSort = "grade";
+  state.invSort = "kind";
   if (state.inventory && state.inventory.length > 1) {
     state.inventory.sort((a, b) => compareInventoryItems(a, b, mode));
   }
@@ -155,12 +240,18 @@ function addToInventory(weaponId, meta) {
 
 function invItemDef(it) {
   if (!it) return null;
+  if (it.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(it))) {
+    return typeof armorItemDef === "function" ? armorItemDef(it) : (typeof AMAP !== "undefined" ? AMAP[it.id] : null);
+  }
   if (it.kind === "accessory" || COLLECTIBLES[it.id]) return COLLECTIBLES[it.id];
   return WMAP[it.id] || null;
 }
 
 function isAccessoryItem(it) {
-  return !!(it && (it.kind === "accessory" || COLLECTIBLES[it.id]));
+  if (!it) return false;
+  if (it.kind === "armor") return false;
+  if (typeof isArmorItem === "function" && isArmorItem(it)) return false;
+  return !!(it.kind === "accessory" || COLLECTIBLES[it.id]);
 }
 
 function addCollectibleToInventory(collectibleId) {
@@ -221,6 +312,10 @@ function migrateCollectiblesToInventory() {
 
 function normalizeInvItem(it) {
   if (!it) return it;
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    it.kind = "armor";
+    return it;
+  }
   if (isAccessoryItem(it)) return it;
   if (it.spent == null) it.spent = 0;
   if (it.max != null) {

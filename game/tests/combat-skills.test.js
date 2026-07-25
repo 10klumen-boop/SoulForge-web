@@ -60,11 +60,12 @@ function runTests() {
     assert.strictEqual(skills[0].id, "power_strike");
   });
 
-  test("combatSkillsForClass picks mystic for mystic/shaman", () => {
+  test("combatSkillsForClass picks mystic and shaman kits", () => {
     const m = combatSkillsForClass("mystic");
     assert.strictEqual(m[0].id, "soul_burst");
     const s = combatSkillsForClass("shaman");
-    assert.strictEqual(s[0].id, "soul_burst");
+    assert.strictEqual(s[0].id, "totem_strike");
+    assert.notStrictEqual(s[0].id, m[0].id);
   });
 
   test("combatSkillsForAvatar returns empty if no avatar", () => {

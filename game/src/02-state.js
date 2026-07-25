@@ -39,6 +39,8 @@ function defaultState() {
     achievements: { unlocked: {}, stats: {} },
     passiveIncome: { lastCollectAt: 0, warehouseLv: 0 },
     autoClicker: { until: 0, enabled: true, pauseStartedAt: 0 },
+    accountWarehouse: { items: [] },
+    accountMail: { messages: [] },
     devTune: {},
     balanceResetVer: BALANCE_RESET_VER,
   };
@@ -118,6 +120,8 @@ function applyBalanceResetIfNeeded(st) {
   st.audioVol = keepAudio;
   st.alwaysOnTop = keepTop;
   st.devTune = {};
+  st.accountWarehouse = { items: [] };
+  st.accountMail = { messages: [] };
   st.balanceResetVer = BALANCE_RESET_VER;
   st.farmZone = "banana_mine";
   st.storySeen = false;
@@ -156,6 +160,10 @@ function mergeSavedData(data) {
     if (!st.questProgress.bossGrind) st.questProgress.bossGrind = {};
   }
   applyBalanceResetIfNeeded(st);
+  if (!st.accountWarehouse || typeof st.accountWarehouse !== "object") st.accountWarehouse = { items: [] };
+  if (!Array.isArray(st.accountWarehouse.items)) st.accountWarehouse.items = [];
+  if (!st.accountMail || typeof st.accountMail !== "object") st.accountMail = { messages: [] };
+  if (!Array.isArray(st.accountMail.messages)) st.accountMail.messages = [];
   if (typeof initCharacters === "function") initCharacters();
   if (st.autoShots == null) st.autoShots = true;
   if (!st.audioVol || typeof st.audioVol !== "object") st.audioVol = defaultAudioVol();
@@ -349,7 +357,8 @@ function applyLoadedSave(loaded) {
   if (typeof migrateFarmZone === "function") migrateFarmZone();
   if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();
   if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
-  if (typeof collectPassiveIncome === "function") collectPassiveIncome({ queueNotice: true });
+  // Оффлайн-адену забираем один раз при «Играть» (showPassiveIncomeEntryModal),
+  // иначе queueNotice суммирует часы после load + cloud sync.
   if (typeof refreshProgressUI === "function") refreshProgressUI();
   else {
     try {

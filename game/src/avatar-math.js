@@ -74,6 +74,17 @@ function avatarStatBonusesFromGear() {
 
     }
 
+    if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) {
+      const def = typeof armorItemDef === "function" ? armorItemDef(item) : (typeof AMAP !== "undefined" ? AMAP[item.id] : null);
+      if (!def) return;
+      const lv = state.avatar?.level || 1;
+      const pen =
+        typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
+      if (def.pdef) out.pdef += Math.round(def.pdef * pen);
+      if (def.mdef) out.mdef += Math.round(def.mdef * pen);
+      return;
+    }
+
     const def = COLLECTIBLES[item.id];
 
     const b = def?.bonuses;
@@ -89,6 +100,12 @@ function avatarStatBonusesFromGear() {
     if (b.mdef) out.mdef += b.mdef;
 
   });
+
+  if (typeof avatarSetBonuses === "function") {
+    const set = avatarSetBonuses();
+    if (set.pdef) out.pdef += set.pdef;
+    if (set.mdef) out.mdef += set.mdef;
+  }
 
   return out;
 
@@ -157,8 +174,12 @@ function avatarFarmPower() {
   const mystic = avatarIsMystic();
   const primary = mystic ? s.matk * 1.06 : s.patk;
   const secondary = mystic ? s.patk : s.matk;
+  // Броня/сет-def — sustain, не якорь farm power (модель 2C).
+  const armorDef = typeof avatarArmorDefBonuses === "function" ? avatarArmorDefBonuses() : { pdef: 0, mdef: 0 };
+  const pdef = Math.max(0, (s.pdef || 0) - (armorDef.pdef || 0));
+  const mdef = Math.max(0, (s.mdef || 0) - (armorDef.mdef || 0));
   const power = Math.round(
-    primary * 1.0 + secondary * 0.72 + s.pdef * 0.36 + s.mdef * 0.36 + Math.max(0, (state.avatar?.level || 1) - 1) * 1.5 + s.farmBonus
+    primary * 1.0 + secondary * 0.72 + pdef * 0.36 + mdef * 0.36 + Math.max(0, (state.avatar?.level || 1) - 1) * 1.5 + s.farmBonus
   );
   return Math.max(1, power);
 }
@@ -244,7 +265,11 @@ function avatarMineClickDamage() {
   const ch = zone?.chapter || 1;
   const raw = avatarMineClickRaw();
   const chapterScale = 1 + (ch - 1) * 0.035;
-  return Math.max(4, Math.round((raw * chapterScale) / 4.2));
+  let dmg = Math.max(4, Math.round((raw * chapterScale) / 4.2));
+  if (typeof avatarArmorAffinityMult === "function") {
+    dmg = Math.max(4, Math.round(dmg * avatarArmorAffinityMult(state.avatar)));
+  }
+  return dmg;
 }
 
 /** Прибавка урона от заточки (для HUD). */
@@ -280,6 +305,17 @@ function mineMobMaxHp(type, zoneId) {
   if (type === "boss") {
     const boss = typeof zoneBossDef === "function" ? zoneBossDef(zoneId) : { hpMult: 14 };
     hp = Math.round(hp * Math.max(1, (boss.hpMult || 14) / 12));
+    if (typeof avatarSetBonuses === "function") {
+      const resist = Math.min(0.35, Math.max(0, avatarSetBonuses().bossResist || 0));
+      if (resist > 0) hp = Math.round(hp * (1 - resist));
+    }
+  }
+  if (type === "golden" || type === "boss") {
+    const sustain =
+      typeof avatarArmorSustainPct === "function"
+        ? Math.min(0.2, Math.max(0, avatarArmorSustainPct()))
+        : 0;
+    if (sustain > 0) hp = Math.round(hp * (1 - sustain));
   }
   const zone = farmZoneById(zoneId || state.farmZone || "banana_mine");
   const ch = zone?.chapter || 1;
@@ -300,7 +336,7 @@ function expectedFarmPowerAtLevel(level) {
   const cls = classStatBonus(a.classId);
   const lb = avatarLevelStatBonus(level);
   const racialFarm = typeof passiveEffectSum === "function"
-    ? passiveEffectSum("farmBonus", a.raceId, level)
+    ? passiveEffectSum("farmBonus", a, level)
     : (typeof racialEffectSum === "function" ? racialEffectSum("farmBonus", a.raceId, level) : 0);
   const patk = race.patk + cls.patk + lb.atk;
   const matk = race.matk + cls.matk + lb.atk;

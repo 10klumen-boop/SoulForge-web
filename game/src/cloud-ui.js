@@ -143,6 +143,11 @@ function formatLbValue(mode, row) {
     const n = typeof fmt === "function" ? fmt(v) : String(v);
     return n + " мобов";
   }
+  if (mode === "pvp") {
+    const wins = row.pvpWins != null ? row.pvpWins : "";
+    const base = typeof fmt === "function" ? fmt(v) : String(v);
+    return wins !== "" ? base + " · " + wins + "W" : base;
+  }
   return typeof fmt === "function" ? fmt(v) : String(v);
 }
 
@@ -154,7 +159,7 @@ async function renderLeaderboard() {
   list.innerHTML = "";
   const auth = readCloudAuth();
   const pending = readPendingSubmissions().length;
-  const modeLabel = { enchant: "Заточка", power: "Сила", wealth: "Богатство", mobs: "Мобы" }[_lbMode] || _lbMode;
+  const modeLabel = { enchant: "Заточка", power: "Сила", wealth: "Богатство", mobs: "Мобы", pvp: "PvP" }[_lbMode] || _lbMode;
 
   if (cta) {
     cta.hidden = !!(auth?.nick) || !cloudEnabled();
@@ -190,7 +195,9 @@ async function renderLeaderboard() {
     const empty = document.createElement("p");
     empty.className = "lb-empty";
     empty.textContent = auth?.nick
-      ? "Пока пусто — заточи оружие или заверши фарм, затем обнови."
+      ? _lbMode === "pvp"
+        ? "Пока пусто — сыграй дуэль или async PvP на Арене."
+        : "Пока пусто — заточи оружие или заверши фарм, затем обнови."
       : "Пока пусто. Войди и сыграй, чтобы появиться в таблице.";
     list.appendChild(empty);
     return;

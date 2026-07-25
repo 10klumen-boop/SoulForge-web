@@ -9,7 +9,7 @@ const CHAT_MAX_LEN = 200;
 const CHAT_SIZE_MIN_W = 260;
 const CHAT_SIZE_MAX_W = 560;
 const CHAT_SIZE_MIN_H = 280;
-const CHAT_SIZE_DEFAULT = { w: 300, h: 520 };
+const CHAT_SIZE_DEFAULT = { w: 300, h: 360 };
 
 const CHAT_CHANNELS = [
   { id: "world", label: "Мир", short: "Мир" },

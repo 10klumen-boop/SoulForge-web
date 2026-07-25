@@ -393,7 +393,7 @@ function mineNormalReward() {
   if (typeof avatarMineRewardMult === "function") amt = Math.round(amt * avatarMineRewardMult(state.farmZone || "banana_mine"));
   const normalFn = typeof passiveEffectMult === "function" ? passiveEffectMult
     : (typeof racialEffectMult === "function" ? racialEffectMult : null);
-  if (normalFn) amt = Math.round(amt * normalFn("normalAdenaMult", state.avatar?.raceId));
+  if (normalFn) amt = Math.round(amt * normalFn("normalAdenaMult", state.avatar || state.avatar?.raceId));
   return amt;
 }
 
@@ -403,7 +403,7 @@ function mineGoldenReward() {
   if (typeof avatarMineRewardMult === "function") amt = Math.round(amt * avatarMineRewardMult(state.farmZone || "banana_mine"));
   const goldenFn = typeof passiveEffectMult === "function" ? passiveEffectMult
     : (typeof racialEffectMult === "function" ? racialEffectMult : null);
-  if (goldenFn) amt = Math.round(amt * goldenFn("goldenAdenaMult", state.avatar?.raceId));
+  if (goldenFn) amt = Math.round(amt * goldenFn("goldenAdenaMult", state.avatar || state.avatar?.raceId));
   return amt;
 }
 
@@ -808,6 +808,22 @@ function finishMobKill(g, type, dropAt, guard) {
     reward = mineGuardApplyAdena(reward);
     color = "#ff6b4a";
     if (typeof gameLog === "function") gameLog("☠ " + (bossDef?.name || "Босс") + " повержен!", "success");
+    if (typeof rollArmorFragDrop === "function") {
+      const fragDrop = rollArmorFragDrop(zoneId, "boss");
+      if (fragDrop && typeof addArmorFrag === "function") {
+        const granted = addArmorFrag(fragDrop.fragId, fragDrop.qty, { source: "zone_boss", zoneId });
+        if (granted) {
+          trackMineSessionLoot({
+            kind: "armor_frag",
+            id: fragDrop.fragId,
+            name: fragDrop.def.name,
+            qty: fragDrop.qty,
+            icon: fragDrop.def.icon,
+          });
+          floatText(dropAt.x, dropAt.y - 56, fragDrop.def.name + " ×" + fragDrop.qty, "#7fd1ff");
+        }
+      }
+    }
   } else if (type === "golden") {
     reward = mineGoldenReward();
     reward = Math.round(reward * guard.mult);
@@ -831,6 +847,24 @@ function finishMobKill(g, type, dropAt, guard) {
     reward = Math.round(reward * guard.mult);
     reward = mineGuardApplyAdena(reward);
     color = "#9be6a6";
+  }
+  if (type === "golden" || type === "normal") {
+    if (typeof rollArmorFragDrop === "function") {
+      const fragDrop = rollArmorFragDrop(zoneId, type);
+      if (fragDrop && typeof addArmorFrag === "function") {
+        const granted = addArmorFrag(fragDrop.fragId, fragDrop.qty, { source: type, zoneId });
+        if (granted) {
+          trackMineSessionLoot({
+            kind: "armor_frag",
+            id: fragDrop.fragId,
+            name: fragDrop.def.name,
+            qty: fragDrop.qty,
+            icon: fragDrop.def.icon,
+          });
+          floatText(dropAt.x, dropAt.y - 72, fragDrop.def.name + " ×" + fragDrop.qty, "#7fd1ff");
+        }
+      }
+    }
   }
   if (guard && guard.bySkill && typeof floatText === "function") {
     floatText(dropAt.x, dropAt.y - 48, "скилл-финиш", "#9ad4ff");

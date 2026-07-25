@@ -15,13 +15,38 @@ function resetMineSkillRuntime() {
 }
 
 function combatSkillsForClass(classId) {
+  if (COMBAT_SKILLS[classId]) return COMBAT_SKILLS[classId];
   const arch = typeof isMysticArchetype === "function" && isMysticArchetype(classId) ? "mystic" : "fighter";
   return COMBAT_SKILLS[arch] || COMBAT_SKILLS.fighter;
 }
 
+function applyProfessionSkillOverlay(skills, avatar) {
+  const list = (skills || []).map((s) => Object.assign({}, s));
+  if (typeof professionSkillOverlay !== "function") return list;
+  const overlay = professionSkillOverlay(avatar);
+  if (!overlay || !overlay.length) return list;
+  overlay.forEach((entry) => {
+    if (!entry || !entry.skill) return;
+    const idx = list.findIndex(
+      (s) =>
+        (entry.replaceId && s.id === entry.replaceId) ||
+        (entry.replaceHotkey && s.hotkey === entry.replaceHotkey)
+    );
+    if (idx < 0) return;
+    const base = list[idx];
+    list[idx] = Object.assign({}, base, entry.skill, {
+      hotkey: entry.skill.hotkey || base.hotkey,
+      hotkeyCode: entry.skill.hotkeyCode || base.hotkeyCode,
+      unlockLevel: entry.skill.unlockLevel != null ? entry.skill.unlockLevel : base.unlockLevel,
+    });
+  });
+  return list;
+}
+
 function combatSkillsForAvatar() {
   if (!state.avatar?.created) return [];
-  return combatSkillsForClass(state.avatar.classId || "fighter");
+  const base = combatSkillsForClass(state.avatar.classId || "fighter");
+  return applyProfessionSkillOverlay(base, state.avatar);
 }
 
 function isCombatSkillUnlocked(skill) {

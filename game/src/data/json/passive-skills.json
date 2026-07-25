@@ -131,6 +131,561 @@
       "effects": [
         { "type": "enchantChanceAdd", "value": 0.004 }
       ]
+    },
+    "fighter_blade": {
+      "id": "fighter_blade",
+      "kind": "class",
+      "name": "Клинок новичка",
+      "blurb": "+4% адена с фарма",
+      "desc": "Путь воина начинается с честного удара. Клинок учит забирать добычу быстрее — без лишней суеты.",
+      "gameplay": "Адена с фарма ×1.04.",
+      "icon": "icons/skill0029.png?v=2",
+      "unlockLevel": 8,
+      "effects": [
+        { "type": "farmAdenaMult", "value": 1.04 }
+      ]
+    },
+    "fighter_heavy_armor": {
+      "id": "fighter_heavy_armor",
+      "kind": "class",
+      "name": "Тяжёлая броня",
+      "blurb": "Сродство: тяжёлая броня +6% урон/DEF",
+      "desc": "Воин держит вес стали. Два и больше куска тяжёлой брони дают бонус к урону клика и защите.",
+      "gameplay": "При ≥2 шт. heavy: урон клика и P/M.Def брони ×1.06.",
+      "icon": "icons/skill0279.png?v=2",
+      "unlockLevel": 1,
+      "effects": []
+    },
+    "fighter_weapon_mastery": {
+      "id": "fighter_weapon_mastery",
+      "kind": "class",
+      "name": "Мастерство оружия",
+      "blurb": "Своё оружие (меч/древко/кастет…): +6% силы",
+      "desc": "Рука помнит клинок. Оружие класса воина бьёт увереннее; после смены профессии список сужается под роль.",
+      "gameplay": "+6% к силе оружия подходящей категории (cat).",
+      "icon": "icons/skill0003.png?v=2",
+      "unlockLevel": 1,
+      "effects": []
+    },
+    "fighter_guard": {
+      "id": "fighter_guard",
+      "kind": "class",
+      "name": "Стойка новичка",
+      "blurb": "+1 к мощи фарма",
+      "desc": "Щит и шаг вперёд. Воин держит ритм боя на поле чуть увереннее сверстников.",
+      "gameplay": "+1 к farmBonus.",
+      "icon": "icons/skill0279.png?v=2",
+      "unlockLevel": 12,
+      "effects": [
+        { "type": "farmBonus", "value": 1 }
+      ]
+    },
+    "mystic_focus": {
+      "id": "mystic_focus",
+      "kind": "class",
+      "name": "Фокус ученика",
+      "blurb": "+4% XP с заданий",
+      "desc": "Мистик слышит шёпот свитков раньше, чем клинок. Уроки поля оседают глубже.",
+      "gameplay": "XP за убийства на поле ×1.04.",
+      "icon": "icons/skill1297.png?v=2",
+      "unlockLevel": 8,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.04 }
+      ]
+    },
+    "mystic_robe": {
+      "id": "mystic_robe",
+      "kind": "class",
+      "name": "Роба ученика",
+      "blurb": "Сродство: роба +6% урон/DEF",
+      "desc": "Ткань и руны. Два куска робы усиливают удар и защиту мистика.",
+      "gameplay": "При ≥2 шт. robe: урон клика и P/M.Def брони ×1.06.",
+      "icon": "icons/skill1184.png?v=2",
+      "unlockLevel": 1,
+      "effects": []
+    },
+    "mystic_weapon_mastery": {
+      "id": "mystic_weapon_mastery",
+      "kind": "class",
+      "name": "Мастерство жезла",
+      "blurb": "Жезл / магический меч: +6% силы",
+      "desc": "Жезл и зачарованный клинок — продолжение воли. Дробящее и магические мечи раскрывают силу мистика.",
+      "gameplay": "+6% к силе оружия категорий Blunt и Sword (для мечей — только маг./унив. сродство).",
+      "icon": "icons/skill1230.png?v=2",
+      "unlockLevel": 1,
+      "effects": []
+    },
+    "mystic_veil": {
+      "id": "mystic_veil",
+      "kind": "class",
+      "name": "Покров ученика",
+      "blurb": "+3% адена с фарма",
+      "desc": "Тонкая вуаль магии тянет крохи адены из каждого боя — незаметно, но верно.",
+      "gameplay": "Адена с фарма ×1.03.",
+      "icon": "icons/skill1184.png?v=2",
+      "unlockLevel": 12,
+      "effects": [
+        { "type": "farmAdenaMult", "value": 1.03 }
+      ]
+    },
+    "shaman_totem": {
+      "id": "shaman_totem",
+      "kind": "class",
+      "name": "Тотем ученика",
+      "blurb": "+1 к мощи фарма",
+      "desc": "Духи предков касаются тотема: удар на поле чуть тяжелее.",
+      "gameplay": "+1 к farmBonus.",
+      "icon": "icons/skill1090.png?v=2",
+      "unlockLevel": 8,
+      "effects": [
+        { "type": "farmBonus", "value": 1 }
+      ]
+    },
+    "shaman_robe": {
+      "id": "shaman_robe",
+      "kind": "class",
+      "name": "Роба шамана",
+      "blurb": "Сродство: роба +6% урон/DEF",
+      "desc": "Роба хранит тепло тотема. Два куска робы усиливают удар и защиту шамана.",
+      "gameplay": "При ≥2 шт. robe: урон клика и P/M.Def брони ×1.06.",
+      "icon": "icons/skill1090.png?v=2",
+      "unlockLevel": 1,
+      "effects": []
+    },
+    "shaman_weapon_mastery": {
+      "id": "shaman_weapon_mastery",
+      "kind": "class",
+      "name": "Мастерство тотема",
+      "blurb": "Дубина/жезл: +6% силы",
+      "desc": "Дробящее оружие — проводник крови и духа.",
+      "gameplay": "+6% к силе оружия категории Blunt.",
+      "icon": "icons/skill1258.png?v=2",
+      "unlockLevel": 1,
+      "effects": []
+    },
+    "shaman_blood": {
+      "id": "shaman_blood",
+      "kind": "class",
+      "name": "Кровь ученика",
+      "blurb": "+5% XP с заданий",
+      "desc": "Кекай принимает кровь охоты: шаман растёт быстрее на поле.",
+      "gameplay": "XP за убийства на поле ×1.05.",
+      "icon": "icons/skill1258.png?v=2",
+      "unlockLevel": 12,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.05 }
+      ]
+    },
+    "prof_warrior": {
+      "id": "prof_warrior",
+      "kind": "profession",
+      "name": "Путь воина",
+      "blurb": "+3% адена с фарма",
+      "desc": "Первая профессия воина: честный рубёж и мешок адены.",
+      "gameplay": "Адена с фарма ×1.03.",
+      "icon": "icons/skill0008.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.03 }]
+    },
+    "prof_knight": {
+      "id": "prof_knight",
+      "kind": "profession",
+      "name": "Клятва рыцаря",
+      "blurb": "+3% XP с заданий",
+      "desc": "Рыцарь учится держать удар — и выносить больше уроков с поля.",
+      "gameplay": "XP за убийства ×1.03.",
+      "icon": "icons/skill0279.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "mineXpMult", "value": 1.03 }]
+    },
+    "prof_rogue": {
+      "id": "prof_rogue",
+      "kind": "profession",
+      "name": "Тень разбойника",
+      "blurb": "+4% адена с обычных мобов",
+      "desc": "Лёгкий шаг, быстрый карман: обычная добыча сытнее.",
+      "gameplay": "Адена с обычных мобов ×1.04.",
+      "icon": "icons/skill0016.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "normalAdenaMult", "value": 1.04 }]
+    },
+    "prof_gladiator": {
+      "id": "prof_gladiator",
+      "kind": "profession",
+      "name": "Ярость арены",
+      "blurb": "+5% адена с фарма",
+      "desc": "Гладиатор живёт боем: каждый клинок кормит мешок.",
+      "gameplay": "Адена с фарма ×1.05.",
+      "icon": "icons/skill0008.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.05 }]
+    },
+    "prof_warlord": {
+      "id": "prof_warlord",
+      "kind": "profession",
+      "name": "Клич полководца",
+      "blurb": "+1 к мощи фарма · +3% XP",
+      "desc": "Полководец давит числом ударов и опытом войны.",
+      "gameplay": "+1 farmBonus, XP ×1.03.",
+      "icon": "icons/skill0176.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "farmBonus", "value": 1 },
+        { "type": "mineXpMult", "value": 1.03 }
+      ]
+    },
+    "prof_paladin": {
+      "id": "prof_paladin",
+      "kind": "profession",
+      "name": "Свет паладина",
+      "blurb": "+4% XP · +2% оффлайн-адены",
+      "desc": "Святой путь: опыт поля и спокойный запас вне боя.",
+      "gameplay": "XP ×1.04, оффлайн ×1.02.",
+      "icon": "icons/skill1126.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.04 },
+        { "type": "offlineIncomeMult", "value": 1.02 }
+      ]
+    },
+    "prof_dark_avenger": {
+      "id": "prof_dark_avenger",
+      "kind": "profession",
+      "name": "Тень мстителя",
+      "blurb": "+5% адена с золотых",
+      "desc": "Мститель берёт с достойной добычи больше.",
+      "gameplay": "Адена с золотых ×1.05.",
+      "icon": "icons/skill1147.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "goldenAdenaMult", "value": 1.05 }]
+    },
+    "prof_treasure_hunter": {
+      "id": "prof_treasure_hunter",
+      "kind": "profession",
+      "name": "Нюх искателя",
+      "blurb": "+5% адена с обычных",
+      "desc": "Искатель сокровищ не оставляет мелочи на поле.",
+      "gameplay": "Адена с обычных ×1.05.",
+      "icon": "icons/skill0016.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "normalAdenaMult", "value": 1.05 }]
+    },
+    "prof_hawkeye": {
+      "id": "prof_hawkeye",
+      "kind": "profession",
+      "name": "Глаз стрелка",
+      "blurb": "+4% адена с фарма · +3% XP",
+      "desc": "Точный выстрел — ровная добыча и опыт.",
+      "gameplay": "Адена ×1.04, XP ×1.03.",
+      "icon": "icons/skill0019.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "farmAdenaMult", "value": 1.04 },
+        { "type": "mineXpMult", "value": 1.03 }
+      ]
+    },
+    "prof_wizard": {
+      "id": "prof_wizard",
+      "kind": "profession",
+      "name": "Искра мага",
+      "blurb": "+3% адена с фарма",
+      "desc": "Первая школа магии кормит свитки аденой с поля.",
+      "gameplay": "Адена с фарма ×1.03.",
+      "icon": "icons/skill1184.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.03 }]
+    },
+    "prof_cleric": {
+      "id": "prof_cleric",
+      "kind": "profession",
+      "name": "Молитва клерика",
+      "blurb": "+3% XP · +2% оффлайн",
+      "desc": "Клерик растёт молитвой и спокойным запасом.",
+      "gameplay": "XP ×1.03, оффлайн ×1.02.",
+      "icon": "icons/skill1011.png?v=2",
+      "unlockLevel": 10,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.03 },
+        { "type": "offlineIncomeMult", "value": 1.02 }
+      ]
+    },
+    "prof_sorcerer": {
+      "id": "prof_sorcerer",
+      "kind": "profession",
+      "name": "Пламя чародея",
+      "blurb": "+5% адена с фарма",
+      "desc": "Чародей выжигает добычу чище.",
+      "gameplay": "Адена с фарма ×1.05.",
+      "icon": "icons/skill1230.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.05 }]
+    },
+    "prof_necromancer": {
+      "id": "prof_necromancer",
+      "kind": "profession",
+      "name": "Шёпот некроманта",
+      "blurb": "+5% адена с золотых",
+      "desc": "Некромант тянет силу из редкой добычи.",
+      "gameplay": "Адена с золотых ×1.05.",
+      "icon": "icons/skill1148.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "goldenAdenaMult", "value": 1.05 }]
+    },
+    "prof_warlock": {
+      "id": "prof_warlock",
+      "kind": "profession",
+      "name": "Узы колдуна",
+      "blurb": "+4% XP · +1 farmBonus",
+      "desc": "Колдун связывает поле узами силы.",
+      "gameplay": "XP ×1.04, +1 farmBonus.",
+      "icon": "icons/skill1128.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.04 },
+        { "type": "farmBonus", "value": 1 }
+      ]
+    },
+    "prof_bishop": {
+      "id": "prof_bishop",
+      "kind": "profession",
+      "name": "Благословение епископа",
+      "blurb": "+5% XP · +3% оффлайн",
+      "desc": "Епископ благословляет рост и запас.",
+      "gameplay": "XP ×1.05, оффлайн ×1.03.",
+      "icon": "icons/skill1218.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.05 },
+        { "type": "offlineIncomeMult", "value": 1.03 }
+      ]
+    },
+    "prof_prophet": {
+      "id": "prof_prophet",
+      "kind": "profession",
+      "name": "Песнь пророка",
+      "blurb": "+4% адена · +2% оффлайн",
+      "desc": "Пророк слышит ритм добычи и покоя.",
+      "gameplay": "Адена ×1.04, оффлайн ×1.02.",
+      "icon": "icons/skill1204.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "farmAdenaMult", "value": 1.04 },
+        { "type": "offlineIncomeMult", "value": 1.02 }
+      ]
+    },
+    "prof_generic_1st_melee": {
+      "id": "prof_generic_1st_melee",
+      "kind": "profession",
+      "name": "Путь стали",
+      "blurb": "+3% адена с фарма",
+      "desc": "Первая воинская профессия укрепляет добычу.",
+      "gameplay": "Адена с фарма ×1.03.",
+      "icon": "icons/skill0029.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.03 }]
+    },
+    "prof_generic_1st_tank": {
+      "id": "prof_generic_1st_tank",
+      "kind": "profession",
+      "name": "Путь щита",
+      "blurb": "+3% XP с заданий",
+      "desc": "Рыцарская школа: больше опыта с поля.",
+      "gameplay": "XP ×1.03.",
+      "icon": "icons/skill0279.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "mineXpMult", "value": 1.03 }]
+    },
+    "prof_generic_1st_light": {
+      "id": "prof_generic_1st_light",
+      "kind": "profession",
+      "name": "Путь тени",
+      "blurb": "+4% адена с обычных",
+      "desc": "Лёгкая школа: сытнее обычная добыча.",
+      "gameplay": "Адена с обычных ×1.04.",
+      "icon": "icons/skill0016.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "normalAdenaMult", "value": 1.04 }]
+    },
+    "prof_generic_2nd_melee": {
+      "id": "prof_generic_2nd_melee",
+      "kind": "profession",
+      "name": "Мастерство стали",
+      "blurb": "+5% адена с фарма",
+      "desc": "Вторая профессия воина: сильнее мешок с поля.",
+      "gameplay": "Адена с фарма ×1.05.",
+      "icon": "icons/skill0008.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.05 }]
+    },
+    "prof_generic_2nd_tank": {
+      "id": "prof_generic_2nd_tank",
+      "kind": "profession",
+      "name": "Мастерство щита",
+      "blurb": "+4% XP · +2% оффлайн",
+      "desc": "Вторая рыцарская профессия: рост и запас.",
+      "gameplay": "XP ×1.04, оффлайн ×1.02.",
+      "icon": "icons/skill1126.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.04 },
+        { "type": "offlineIncomeMult", "value": 1.02 }
+      ]
+    },
+    "prof_generic_2nd_light": {
+      "id": "prof_generic_2nd_light",
+      "kind": "profession",
+      "name": "Мастерство тени",
+      "blurb": "+5% адена с обычных",
+      "desc": "Вторая лёгкая профессия: обычная добыча щедрее.",
+      "gameplay": "Адена с обычных ×1.05.",
+      "icon": "icons/skill0019.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "normalAdenaMult", "value": 1.05 }]
+    },
+    "prof_generic_1st_mage": {
+      "id": "prof_generic_1st_mage",
+      "kind": "profession",
+      "name": "Путь свитка",
+      "blurb": "+3% адена с фарма",
+      "desc": "Первая магическая профессия кормит поле аденой.",
+      "gameplay": "Адена с фарма ×1.03.",
+      "icon": "icons/skill1184.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.03 }]
+    },
+    "prof_generic_1st_support": {
+      "id": "prof_generic_1st_support",
+      "kind": "profession",
+      "name": "Путь молитвы",
+      "blurb": "+3% XP · +2% оффлайн",
+      "desc": "Поддержка: опыт и спокойный доход.",
+      "gameplay": "XP ×1.03, оффлайн ×1.02.",
+      "icon": "icons/skill1011.png?v=2",
+      "unlockLevel": 10,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.03 },
+        { "type": "offlineIncomeMult", "value": 1.02 }
+      ]
+    },
+    "prof_generic_2nd_mage": {
+      "id": "prof_generic_2nd_mage",
+      "kind": "profession",
+      "name": "Мастерство свитка",
+      "blurb": "+5% адена с фарма",
+      "desc": "Вторая магическая профессия усиливает добычу.",
+      "gameplay": "Адена с фарма ×1.05.",
+      "icon": "icons/skill1230.png?v=2",
+      "unlockLevel": 20,
+      "effects": [{ "type": "farmAdenaMult", "value": 1.05 }]
+    },
+    "prof_generic_2nd_support": {
+      "id": "prof_generic_2nd_support",
+      "kind": "profession",
+      "name": "Мастерство молитвы",
+      "blurb": "+5% XP · +3% оффлайн",
+      "desc": "Вторая поддержка: рост и запас сильнее.",
+      "gameplay": "XP ×1.05, оффлайн ×1.03.",
+      "icon": "icons/skill1218.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.05 },
+        { "type": "offlineIncomeMult", "value": 1.03 }
+      ]
+    },
+    "prof_scavenger": {
+      "id": "prof_scavenger",
+      "kind": "profession",
+      "name": "Жила собирателя",
+      "blurb": "+4% адена · +3% оффлайн",
+      "desc": "Собиратель не оставляет руду и крохи.",
+      "gameplay": "Адена ×1.04, оффлайн ×1.03.",
+      "icon": "icons/skill0254.png?v=2",
+      "unlockLevel": 10,
+      "effects": [
+        { "type": "farmAdenaMult", "value": 1.04 },
+        { "type": "offlineIncomeMult", "value": 1.03 }
+      ]
+    },
+    "prof_artisan": {
+      "id": "prof_artisan",
+      "kind": "profession",
+      "name": "Рука ремесленника",
+      "blurb": "+0,3% к рисковой заточке",
+      "desc": "Ремесленник слышит наковальню раньше других.",
+      "gameplay": "+0.3 п.п. к шансу рисковой заточки.",
+      "icon": "icons/skill0172.png?v=2",
+      "unlockLevel": 10,
+      "effects": [{ "type": "enchantChanceAdd", "value": 0.003 }]
+    },
+    "prof_bounty_hunter": {
+      "id": "prof_bounty_hunter",
+      "kind": "profession",
+      "name": "Контракт охотника",
+      "blurb": "+5% адена · +4% оффлайн",
+      "desc": "Охотник за головами знает цену контракта.",
+      "gameplay": "Адена ×1.05, оффлайн ×1.04.",
+      "icon": "icons/skill0254.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "farmAdenaMult", "value": 1.05 },
+        { "type": "offlineIncomeMult", "value": 1.04 }
+      ]
+    },
+    "prof_warsmith": {
+      "id": "prof_warsmith",
+      "kind": "profession",
+      "name": "Молот кузнеца войны",
+      "blurb": "+0,5% к рисковой заточке · +3% оффлайн",
+      "desc": "Кузнец войны точит судьбу клана и свой запас.",
+      "gameplay": "+0.5 п.п. заточки, оффлайн ×1.03.",
+      "icon": "icons/skill0172.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "enchantChanceAdd", "value": 0.005 },
+        { "type": "offlineIncomeMult", "value": 1.03 }
+      ]
+    },
+    "prof_orc_shaman": {
+      "id": "prof_orc_shaman",
+      "kind": "profession",
+      "name": "Голос плато",
+      "blurb": "+3% XP · +1 farmBonus",
+      "desc": "Шаман орков слышит Паагрио на поле.",
+      "gameplay": "XP ×1.03, +1 farmBonus.",
+      "icon": "icons/skill1090.png?v=2",
+      "unlockLevel": 10,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.03 },
+        { "type": "farmBonus", "value": 1 }
+      ]
+    },
+    "prof_overlord": {
+      "id": "prof_overlord",
+      "kind": "profession",
+      "name": "Воля властителя",
+      "blurb": "+5% XP · +1 farmBonus",
+      "desc": "Властитель ведёт клан силой и опытом.",
+      "gameplay": "XP ×1.05, +1 farmBonus.",
+      "icon": "icons/skill1101.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "mineXpMult", "value": 1.05 },
+        { "type": "farmBonus", "value": 1 }
+      ]
+    },
+    "prof_warcryer": {
+      "id": "prof_warcryer",
+      "kind": "profession",
+      "name": "Крик войны",
+      "blurb": "+5% адена · +3% XP",
+      "desc": "Крикун поднимает ярость добычи.",
+      "gameplay": "Адена ×1.05, XP ×1.03.",
+      "icon": "icons/skill1258.png?v=2",
+      "unlockLevel": 20,
+      "effects": [
+        { "type": "farmAdenaMult", "value": 1.05 },
+        { "type": "mineXpMult", "value": 1.03 }
+      ]
     }
   },
   "RACE_PASSIVE_SKILL_IDS": {
@@ -140,5 +695,9 @@
     "orc": ["orc_hand", "orc_blood"],
     "dwarf": ["dwarf_vein", "dwarf_hammer"]
   },
-  "CLASS_PASSIVE_SKILL_IDS": {}
+  "CLASS_PASSIVE_SKILL_IDS": {
+    "fighter": ["fighter_heavy_armor", "fighter_weapon_mastery", "fighter_blade", "fighter_guard"],
+    "mystic": ["mystic_robe", "mystic_weapon_mastery", "mystic_focus", "mystic_veil"],
+    "shaman": ["shaman_robe", "shaman_weapon_mastery", "shaman_totem", "shaman_blood"]
+  }
 }

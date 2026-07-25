@@ -85,13 +85,22 @@ function selectFarmZone(zoneId) {
 
 
 
-function recommendedFarmZoneId() {
+function recommendedFarmZoneId(opts) {
+  opts = opts || {};
+  const mode = opts.mode; // "story" | "farm" | undefined (= story preference)
   let best = null;
   FARM_ZONES.forEach((z) => {
     if (!z.active || !canEnterFarmZone(z)) return;
+    if (mode === "farm" && !z.side) return;
+    if (mode !== "farm" && z.side) return;
     if (!best || (z.chapter || 0) > (best.chapter || 0)) best = z;
   });
-  return best?.id || FARM_ZONES[0]?.id;
+  if (best) return best.id;
+  if (mode === "farm") {
+    const side = FARM_ZONES.find((z) => z.side && z.active);
+    return side?.id || null;
+  }
+  return FARM_ZONES.find((z) => !z.side)?.id || FARM_ZONES[0]?.id;
 }
 
 
@@ -121,14 +130,14 @@ function notifyFarmZoneUnlocks() {
     if (!z.active || state.farmNotify[z.id]) return;
     if (!canEnterFarmZone(z)) return;
     state.farmNotify[z.id] = true;
-    if (z.chapter > 1) {
+    if (z.chapter > 1 || z.side) {
       const v = typeof zoneRaceView === "function" ? zoneRaceView(z) : z;
       if (typeof toast === "function") {
-        toast(v.storyTag + ": " + v.name, "success");
+        toast((z.side ? "Фарм: " : (v.storyTag + ": ")) + v.name, "success");
       }
       if (typeof gameLog === "function") {
         gameLog(
-          "Этап открыт: " + v.name + " · ур. " + z.reqLevel + "+ · сила " + fmt(z.reqPower) + "+",
+          (z.side ? "Фарм открыт: " : "Этап открыт: ") + v.name + " · ур. " + z.reqLevel + "+ · сила " + fmt(z.reqPower) + "+",
           "system"
         );
       }
@@ -342,7 +351,7 @@ function avatarMineRewardMult(zoneId) {
   let out = Math.min(1.58, Math.max(0.82, mult));
   const farmMultFn = typeof passiveEffectMult === "function" ? passiveEffectMult
     : (typeof racialEffectMult === "function" ? racialEffectMult : null);
-  if (farmMultFn) out *= farmMultFn("farmAdenaMult", race, lvl);
+  if (farmMultFn) out *= farmMultFn("farmAdenaMult", state.avatar || race, lvl);
   return out;
 
 }

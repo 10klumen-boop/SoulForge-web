@@ -60,6 +60,9 @@ function runTests() {
         assert.ok(PASSIVE_SKILLS[id], "missing skill " + id);
       });
     });
+    assert.ok(CLASS_PASSIVE_SKILL_IDS.fighter && CLASS_PASSIVE_SKILL_IDS.fighter.length >= 1);
+    assert.ok(PASSIVE_SKILLS.fighter_blade);
+    assert.ok(PASSIVE_SKILLS.prof_gladiator);
   });
 
   console.log("\n--- summary ---");

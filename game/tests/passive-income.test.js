@@ -104,6 +104,21 @@ function runTests() {
     assert.strictEqual(peekPassiveIncomeNotice(), null);
   });
 
+  test("queueNotice does not stack hours beyond cap", () => {
+    takePassiveIncomeNotice();
+    global._done = new Set();
+    state.passiveIncome = { lastCollectAt: Date.now() - 10 * 3600 * 1000, warehouseLv: 0 };
+    const cap = passiveCapSec();
+    collectPassiveIncome({ queueNotice: true });
+    // Симулируем повторный collect после «отката» якоря (как после cloud apply).
+    state.passiveIncome.lastCollectAt = Date.now() - 10 * 3600 * 1000;
+    collectPassiveIncome({ queueNotice: true });
+    const notice = peekPassiveIncomeNotice();
+    assert.ok(notice);
+    assert.ok(notice.sec <= cap, "sec=" + notice.sec + " cap=" + cap);
+    takePassiveIncomeNotice();
+  });
+
   test("warehouseNextPrice follows ladder", () => {
     state.passiveIncome = { lastCollectAt: Date.now(), warehouseLv: 0 };
     assert.strictEqual(warehouseNextPrice(), 5_000_000);

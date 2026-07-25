@@ -38,6 +38,58 @@ function updateInvCrystHover(e) {
   setCrystallizeIco(cz, pointInElement(e, cz) ? "drag" : "normal");
 }
 
+function invGearSlotUnderPoint(e) {
+  if (!e) return null;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  if (!el || typeof el.closest !== "function") return null;
+  return el.closest(".inv-gear-slot:not(.is-stub)");
+}
+
+function clearInvGearDropHints() {
+  document.querySelectorAll(".inv-gear-slot.drop-ok, .inv-gear-slot.drop-no, .inv-gear-slot.drop-over").forEach((s) => {
+    s.classList.remove("drop-ok", "drop-no", "drop-over");
+  });
+}
+
+function updateInvGearDropHover(e) {
+  if (!invPointerDrag || !invPointerDrag.armed) return;
+  const inv = state.inventory || [];
+  const it = inv[invPointerDrag.idx];
+  clearInvGearDropHints();
+  if (!it || typeof slotAcceptsItem !== "function") return;
+  document.querySelectorAll("#invPaperdoll .inv-gear-slot:not(.is-stub)").forEach((slotEl) => {
+    const sid = slotEl.dataset.slot;
+    if (!sid) return;
+    if (slotAcceptsItem(sid, it)) slotEl.classList.add("drop-ok");
+    else slotEl.classList.add("drop-no");
+  });
+  const over = invGearSlotUnderPoint(e);
+  if (over) over.classList.add("drop-over");
+}
+
+function tryEquipFromInvDrag(e, invIdx) {
+  const over = invGearSlotUnderPoint(e);
+  if (!over) return false;
+  const slotId = over.dataset.slot;
+  const inv = state.inventory || [];
+  const it = inv[invIdx];
+  if (!slotId || !it) return false;
+  if (typeof slotAcceptsItem !== "function" || !slotAcceptsItem(slotId, it)) {
+    const slotMeta = typeof AVATAR_GEAR_SLOTS !== "undefined"
+      ? AVATAR_GEAR_SLOTS.find((s) => s.id === slotId)
+      : null;
+    const need = slotMeta?.armor
+      ? "сюда только " + (slotMeta.label || slotId).toLowerCase()
+      : slotId === "weapon"
+        ? "сюда только оружие"
+        : "предмет не подходит";
+    toast("Нельзя надеть: " + need, "warn");
+    return true;
+  }
+  if (typeof equipAvatarSlot === "function") equipAvatarSlot(slotId, it);
+  return true;
+}
+
 function removeInvDragGhost() {
   if (invDragGhost) {
     invDragGhost.remove();
@@ -82,6 +134,7 @@ function armInvPointerDrag(e) {
   moveInvDragGhost(e);
   const cz = invCrystallizeZone();
   if (cz) setCrystallizeIco(cz, pointInElement(e, cz) ? "drag" : "normal");
+  updateInvGearDropHover(e);
 }
 
 function finishInvPointerDrag(e) {
@@ -90,11 +143,19 @@ function finishInvPointerDrag(e) {
   dragSrc = null;
   if (pd && pd.armed) {
     invSuppressClickUntil = Date.now() + 320;
-    const cz = invCrystallizeZone();
-    if (cz && e && pointInElement(e, cz)) {
-      const inv = state.inventory || [];
-      const it = inv[pd.idx];
-      if (it && !isAccessoryItem(it)) crystallizeAt(pd.idx);
+    const inv = state.inventory || [];
+    const it = inv[pd.idx];
+    if (e && tryEquipFromInvDrag(e, pd.idx)) {
+      /* equipped or rejected with toast */
+    } else {
+      const cz = invCrystallizeZone();
+      if (cz && e && pointInElement(e, cz)) {
+        if (it && !isAccessoryItem(it) && !(typeof isArmorItem === "function" && isArmorItem(it))) {
+          crystallizeAt(pd.idx);
+        } else if (it && typeof isArmorItem === "function" && isArmorItem(it)) {
+          toast("Броню нельзя кристаллизовать", "warn");
+        }
+      }
     }
   }
   clearInvDragUi();
@@ -106,6 +167,7 @@ document.addEventListener("pointermove", (e) => {
     e.preventDefault();
     moveInvDragGhost(e);
     updateInvCrystHover(e);
+    updateInvGearDropHover(e);
     return;
   }
   const dx = e.clientX - invPointerDrag.x;
@@ -130,6 +192,7 @@ function clearInvDragUi() {
   invPointerDrag = null;
   removeInvDragGhost();
   $$(".inv-slot.dragover,.inv-slot.dragging").forEach((s) => s.classList.remove("dragover", "dragging"));
+  clearInvGearDropHints();
   const cz = invCrystallizeZone();
   if (cz) setCrystallizeIco(cz, "normal");
 }
@@ -150,6 +213,10 @@ async function crystallizeAt(idx) {
   const inv = state.inventory || [];
   const it = inv[idx];
   if (!it || isAccessoryItem(it)) return;
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    toast("Броню нельзя кристаллизовать", "warn");
+    return;
+  }
   const w = WMAP[it.id];
   if (!w) return;
   if (typeof weaponCanEnchant === "function" && !weaponCanEnchant(w)) {
@@ -206,7 +273,8 @@ function attachCrystallizeZone(zone) {
   });
 }
 
-function attachInvSlotCryst(slot, idx) {
+function attachInvItemDrag(slot, idx, opts) {
+  opts = opts || {};
   slot.dataset.invIdx = String(idx);
   slot.classList.add("inv-draggable");
   const endPointer = (e) => {
@@ -226,83 +294,48 @@ function attachInvSlotCryst(slot, idx) {
   });
   slot.addEventListener("pointerup", endPointer);
   slot.addEventListener("pointercancel", endPointer);
-  slot.addEventListener("contextmenu", (e) => {
-    const inv = state.inventory || [];
-    const it = inv[idx];
-    if (!it || isAccessoryItem(it)) return;
-    e.preventDefault();
-    crystallizeAt(idx);
-  });
+  if (opts.crystallize) {
+    slot.addEventListener("contextmenu", (e) => {
+      const inv = state.inventory || [];
+      const it = inv[idx];
+      if (!it || isAccessoryItem(it) || (typeof isArmorItem === "function" && isArmorItem(it))) return;
+      e.preventDefault();
+      crystallizeAt(idx);
+    });
+  }
 }
 
-function renderEquippedWeaponSlot(list) {
-  if (typeof equippedWeaponItem !== "function") return false;
-  const it = equippedWeaponItem();
-  if (!it) return false;
-  normalizeInvItem(it);
-  const w = WMAP[it.id];
-  if (!w) return false;
-  const p = statAt(w.patk, w.ps, it.plus), m = statAt(w.matk, w.ms, it.plus);
-  const ng = w.grade === "NG" || (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(w));
-  const block = document.createElement("div");
-  block.className = "inv-equipped";
-  block.innerHTML = '<div class="inv-equipped-head"><b>Надето</b><span>' +
-    (ng ? "Тренировочное NG — не точится" : "Клик — заточка без снятия") + "</span></div>";
-  const slot = document.createElement("div");
-  slot.className = "inv-slot filled equipped g-" + (w.grade || "NG");
-  const gradeTag = w.grade === "NG" ? "NG" : w.grade;
-  slot.title =
-    w.name + " [" + gradeTag + "]" + (it.plus ? " +" + it.plus : "") +
-    (w.grade === "NG" ? "\nТренировочное — не точится" : "") +
-    "\nP.Atk " + fmt(p) + " · M.Atk " + fmt(m) +
-    "\nНадето на персонаже · клик — заточка";
-  slot.innerHTML =
-    '<span class="inv-eq-badge">E</span>' +
-    '<img src="' + w.icon + '" alt="" loading="lazy" draggable="false" onerror="this.style.visibility=\'hidden\'">' +
-    (it.plus ? '<span class="ip">+' + it.plus + "</span>" : "");
-  slot.onclick = () => {
-    if (invClickBlocked()) return;
-    Audio2.click();
-    if (ng) {
-      toast("«" + w.name + "» без грейда — не точится", "warn");
-      return;
-    }
-    openEnchant(it, { equipped: true });
-  };
-  block.appendChild(slot);
-  const meta = document.createElement("div");
-  meta.className = "inv-equipped-meta";
-  meta.innerHTML =
-    '<span class="g-' + (w.grade || "NG") + '">' + w.name + "</span>" +
-    (it.plus ? " +" + it.plus : "") +
-    " · " + (typeof weaponEquipStatLabel === "function" ? weaponEquipStatLabel(w, it.plus || 0) : "P.Atk " + fmt(p));
-  block.appendChild(meta);
-  list.appendChild(block);
-  return true;
+function attachInvSlotCryst(slot, idx) {
+  attachInvItemDrag(slot, idx, { crystallize: true });
 }
 
 function buildInvTabs(tabId) {
   const tabs = document.createElement("div");
   tabs.className = "inv-tabs";
   tabs.setAttribute("role", "tablist");
-  tabs.setAttribute("aria-label", "Вкладки инвентаря по грейду");
+  tabs.setAttribute("aria-label", "Вкладки инвентаря по типу");
   INV_TABS.forEach((t) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    const gradeClass = t.id !== "all" && t.id !== "epic" ? " g-" + t.id : "";
     const active = tabId === t.id;
-    btn.className = "inv-tab" + gradeClass + (active ? " active" : "");
+    btn.className = "inv-tab inv-tab-" + t.id + (active ? " active" : "");
     btn.setAttribute("role", "tab");
     btn.setAttribute("aria-selected", active ? "true" : "false");
     const n = countInvTabItems(t.id);
     btn.innerHTML = t.id !== "all" && n
-      ? `${t.label} <span class="inv-tab-n">(${n})</span>`
+      ? t.label + ' <span class="inv-tab-n">(' + n + ")</span>"
       : t.label;
-    btn.title = t.id === "all"
-      ? "Все предметы"
-      : t.id === "epic"
-        ? "Эпические аксессуары"
-        : "Только грейд " + t.label;
+    const titles = {
+      all: "Все предметы сумки",
+      weapon: "Оружие",
+      armor: "Броня",
+      accessory: "Бижутерия",
+      frag: "Куски брони (Material)",
+      shot: "Soulshot / Spiritshot",
+      crystal: "Кристаллы",
+      ore: "Soul Ore / Spirit Ore",
+    };
+    btn.title = titles[t.id] || t.label;
     btn.onclick = () => {
       if (typeof Audio2 !== "undefined") Audio2.click();
       setInvTab(t.id);
@@ -319,7 +352,128 @@ function appendInvEmptySlot(grid) {
   grid.appendChild(empty);
 }
 
+function appendInvStackSlot(grid, opts) {
+  const slot = document.createElement("div");
+  const gClass = opts.gradeClass ? " " + opts.gradeClass : "";
+  slot.className = "inv-slot filled inv-stack" + gClass;
+  slot.title = opts.title || opts.name || "";
+  const ico = opts.icon
+    ? '<img src="' + opts.icon + '" alt="" loading="lazy" draggable="false" onerror="this.style.visibility=\'hidden\'">'
+    : "";
+  const qty = opts.qty > 0 ? '<span class="inv-stack-qty">×' + fmt(opts.qty) + "</span>" : "";
+  const lbl = opts.badge ? '<span class="inv-stack-badge">' + opts.badge + "</span>" : "";
+  slot.innerHTML = ico + qty + lbl;
+  if (opts.onclick) slot.onclick = opts.onclick;
+  grid.appendChild(slot);
+}
+
+function fillInvResourceGrid(grid, tabId) {
+  let filled = 0;
+  const cap = typeof INV_CAP === "number" ? INV_CAP : 120;
+  let hasStacks = false;
+
+  function note(text) {
+    const e = document.createElement("div");
+    e.className = "empty inv-empty-note";
+    e.textContent = text;
+    grid.appendChild(e);
+  }
+
+  if (tabId === "frag") {
+    const stacks = listArmorFragStacks();
+    if (!stacks.length) note("Нет кусков брони. Фарми зоны в меню «Фарм».");
+    else {
+      hasStacks = true;
+      stacks.forEach((row) => {
+        appendInvStackSlot(grid, {
+          name: row.def.name,
+          icon: row.def.icon,
+          qty: row.qty,
+          title: row.def.name + "\n×" + row.qty + " · крафт в Мастерской → Броня",
+        });
+        filled++;
+      });
+    }
+  } else if (tabId === "shot") {
+    const stacks = listShotStacks();
+    if (!stacks.length) note("Нет зарядов. Крафти в Мастерской → Заряды.");
+    else {
+      hasStacks = true;
+      stacks.forEach((row) => {
+        const icon =
+          (typeof SHOT_ICON !== "undefined" && SHOT_ICON[row.kind] && SHOT_ICON[row.kind][row.grade]) ||
+          row.icon ||
+          "";
+        appendInvStackSlot(grid, {
+          name: row.name,
+          icon,
+          qty: row.qty,
+          badge: row.grade,
+          gradeClass: "g-" + row.grade,
+          title: row.name + "\n×" + row.qty,
+        });
+        filled++;
+      });
+    }
+  } else if (tabId === "crystal") {
+    const stacks = listCrystalStacks();
+    if (!stacks.length) note("Нет кристаллов. Кристаллизуй оружие в сумке.");
+    else {
+      hasStacks = true;
+      stacks.forEach((row) => {
+        appendInvStackSlot(grid, {
+          name: "Crystal " + row.grade,
+          icon: row.icon,
+          qty: row.qty,
+          badge: row.grade,
+          gradeClass: "g-" + row.grade,
+          title: "Crystal (" + row.grade + "-Grade)\n×" + row.qty,
+        });
+        filled++;
+      });
+    }
+  } else if (tabId === "ore") {
+    const stacks = listOreStacks();
+    if (!stacks.length) note("Нет руды. Добывай на поле и за квесты.");
+    else {
+      hasStacks = true;
+      stacks.forEach((row) => {
+        appendInvStackSlot(grid, {
+          name: row.name,
+          icon: row.icon,
+          qty: row.qty,
+          title: row.name + "\n×" + row.qty,
+        });
+        filled++;
+      });
+    }
+  }
+
+  // Пустые ячейки — только когда есть стаки (иначе одна заметка на всю сетку)
+  if (hasStacks) {
+    for (let i = filled; i < cap; i++) appendInvEmptySlot(grid);
+  }
+
+  if (tabId === "crystal") {
+    const sellWrap = document.createElement("div");
+    sellWrap.className = "inv-res-actions";
+    const tv = typeof crystalsTotalValue === "function" ? crystalsTotalValue() : 0;
+    const sbtn = document.createElement("button");
+    sbtn.type = "button";
+    sbtn.className = "cryst-sell";
+    sbtn.disabled = tv <= 0;
+    sbtn.textContent = "Продать все · " + fmtAdena(tv);
+    sbtn.onclick = sellCrystals;
+    sellWrap.appendChild(sbtn);
+    grid.appendChild(sellWrap);
+  }
+}
+
 function fillInvGrid(grid, tabId, shown) {
+  if (typeof isInvResourceTab === "function" && isInvResourceTab(tabId)) {
+    fillInvResourceGrid(grid, tabId);
+    return;
+  }
   if (tabId === "all") {
     for (let idx = 0; idx < INV_CAP; idx++) {
       const it = shown[idx];
@@ -347,9 +501,26 @@ function appendInvItemSlot(grid, it, idx) {
   const slot = document.createElement("div");
   if (isAccessoryItem(it)) {
     slot.className = "inv-slot filled g-epic";
-    slot.title = def.name + "\nЭпическая бижутерия · клик — детали · надень в «Персонаж»";
+    slot.title = def.name + "\nЭпическая бижутерия · клик — детали · надень в инвентаре";
     slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
     slot.onclick = () => { if (invClickBlocked()) return; Audio2.click(); openAccessory(it); };
+  } else if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    const slotRu = def.slot === "helmet" ? "шлем" : def.slot === "chest" ? "доспех" : def.slot === "legs" ? "поножи" : def.slot === "gloves" ? "перчатки" : def.slot === "boots" ? "сапоги" : def.slot;
+    slot.className = "inv-slot filled g-" + (def.grade || "C");
+    slot.title = def.name + " [" + (def.grade || "?") + "]\nP.Def " + (def.pdef || 0) + " · M.Def " + (def.mdef || 0) +
+      "\nСлот: " + slotRu + " · клик — надеть · тяни на слот экипа";
+    slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
+    slot.onclick = () => {
+      if (invClickBlocked()) return;
+      Audio2.click();
+      if (typeof equipArmorToAvatar === "function") equipArmorToAvatar(it);
+      else if (typeof firstFreeSlotForItem === "function") {
+        const sid = firstFreeSlotForItem(it);
+        if (sid && typeof equipAvatarSlot === "function") equipAvatarSlot(sid, it);
+      }
+      if (typeof renderInventory === "function") renderInventory();
+    };
+    attachInvItemDrag(slot, idx);
   } else {
     const w = def;
     const p = statAt(w.patk, w.ps, it.plus), m = statAt(w.matk, w.ms, it.plus);
@@ -357,7 +528,7 @@ function appendInvItemSlot(grid, it, idx) {
     slot.className = "inv-slot filled g-" + (w.grade || "NG");
     const gradeTag = w.grade === "NG" ? "NG" : w.grade;
     slot.title = `${w.name} [${gradeTag}]${it.plus ? " +" + it.plus : ""}\nP.Atk ${fmt(p)} · M.Atk ${fmt(m)}` +
-      (ng ? "\nNG — клик: продать за " + fmtAdena(typeof sellValue === "function" ? sellValue(w, 0) : 1000) : "\nКлик — заточка · зажми и потяни на кристаллизацию · ПКМ");
+      (ng ? "\nNG — клик: продать за " + fmtAdena(typeof sellValue === "function" ? sellValue(w, 0) : 1000) : "\nКлик — заточка · тяни на слот оружия или кристаллизацию · ПКМ");
     slot.innerHTML = `<img src="${w.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">${it.plus ? `<span class="ip">+${it.plus}</span>` : ""}`;
     slot.onclick = () => {
       if (invClickBlocked()) return;
@@ -368,105 +539,106 @@ function appendInvItemSlot(grid, it, idx) {
       }
       openEnchant(it);
     };
-    if (!ng) attachInvSlotCryst(slot, idx);
+    if (ng) attachInvItemDrag(slot, idx);
+    else attachInvSlotCryst(slot, idx);
   }
   grid.appendChild(slot);
 }
 
+function appendInvCrystallizeFooter(list) {
+  const cz = document.createElement("div");
+  cz.className = "inv-crystallize inv-crystallize-footer";
+  cz.id = "invCrystallize";
+  cz.innerHTML =
+    '<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="' +
+    CRYSTALLIZE_ICON.normal +
+    '" alt="" draggable="false"></div>' +
+    '<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Тяни оружие сюда или на слот экипа слева · ПКМ по оружию</span></div>';
+  attachCrystallizeZone(cz);
+  list.appendChild(cz);
+}
+
 function renderInventory() {
-  const list = $("#invList"); list.innerHTML = "";
+  const list = $("#invList");
+  if (!list) return;
+  list.innerHTML = "";
   if (!state.crystals) state.crystals = { D: 0, C: 0, B: 0, A: 0 };
   const inv = state.inventory || [];
   const tabId = inventoryTabId();
   const sortMode = inventorySortMode();
-  if (inv.length > 1) {
-    applyInventorySort(sortMode);
-  }
+  if (inv.length > 1) applyInventorySort(sortMode);
 
   const shown = inv.slice(0, INV_CAP);
-  const visible = shown
-    .map((it, idx) => ({ it, idx }))
-    .filter((row) => inventoryItemMatchesTab(row.it, tabId));
+  const resourceTab = typeof isInvResourceTab === "function" && isInvResourceTab(tabId);
+  const visible = resourceTab
+    ? []
+    : shown.map((it, idx) => ({ it, idx })).filter((row) => inventoryItemMatchesTab(row.it, tabId));
 
-  const bar = document.createElement("div"); bar.className = "inv-bar";
+  if (typeof renderGearPaperdoll === "function") {
+    renderGearPaperdoll(document.getElementById("invPaperdoll"));
+  }
+
+  const scroll = document.createElement("div");
+  scroll.className = "inv-bag-scroll sf-scroll";
+
+  const bar = document.createElement("div");
+  bar.className = "inv-bar";
   const title = document.createElement("div");
   title.className = "inv-bar-title";
-  const countLabel = tabId !== "all"
-    ? `${visible.length} из ${inv.length}/${INV_CAP}`
-    : `${inv.length}/${INV_CAP}`;
-  title.innerHTML = `Инвентарь <span>(${countLabel})</span>`;
+  let countLabel;
+  if (resourceTab) {
+    const n = countInvTabItems(tabId);
+    countLabel = n ? String(n) : "пусто";
+  } else if (tabId !== "all") {
+    countLabel = visible.length + " из " + inv.length + "/" + INV_CAP;
+  } else {
+    countLabel = inv.length + "/" + INV_CAP;
+  }
+  title.innerHTML = "Сумка <span>(" + countLabel + ")</span>";
   bar.appendChild(title);
-  list.appendChild(bar);
-
-  const res = document.createElement("div");
-  res.className = "inv-res";
-
-  const rowCryst = document.createElement("div");
-  rowCryst.className = "inv-res-row";
-  rowCryst.innerHTML = '<span class="cl">Кристаллы:</span>';
-  ["D", "C", "B", "A"].forEach((g) => {
-    rowCryst.innerHTML +=
-      `<span class="cr" title="Crystal (${g}-Grade)">` +
-      `<img class="cicon" src="${CRYSTAL_ICON[g]}" alt="${g}">` +
-      `<span class="cr-meta"><span class="cr-lbl" style="color:${CRYSTAL_COLOR[g]}">${g}</span><b>${fmt(state.crystals[g] || 0)}</b></span></span>`;
-  });
-  const tv = crystalsTotalValue();
-  const sbtn = document.createElement("button");
-  sbtn.className = "cryst-sell";
-  sbtn.disabled = tv <= 0;
-  sbtn.textContent = "Продать все · " + fmtAdena(tv);
-  sbtn.onclick = sellCrystals;
-  rowCryst.appendChild(sbtn);
-  res.appendChild(rowCryst);
-
-  ensureWorkshopState();
-  const rowOre = document.createElement("div");
-  rowOre.className = "inv-res-row";
-  rowOre.innerHTML = '<span class="cl">Руда:</span>';
-  ["soul", "spirit"].forEach((ty) => {
-    const o = ORE[ty];
-    const short = ty === "soul" ? "Soul" : "Spirit";
-    rowOre.innerHTML +=
-      `<span class="cr" title="${o.name}">` +
-      `<img class="cicon" src="${o.icon}" alt="">` +
-      `<span class="cr-meta"><span class="cr-lbl">${short}</span><b>${fmt(state.materials[ty] || 0)}</b></span></span>`;
-  });
-  res.appendChild(rowOre);
-  list.appendChild(res);
-
-  const cz = document.createElement("div");
-  cz.className = "inv-crystallize";
-  cz.id = "invCrystallize";
-  cz.innerHTML = `<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="${CRYSTALLIZE_ICON.normal}" alt="" draggable="false"></div>` +
-    `<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Зажми оружие и потяни на иконку · или ПКМ по слоту</span></div>`;
-  attachCrystallizeZone(cz);
-  list.appendChild(cz);
-
-  const hasEquipped = renderEquippedWeaponSlot(list);
-
-  if (!inv.length && !hasEquipped) {
-    const e = document.createElement("div"); e.className = "empty";
-    e.innerHTML = "Инвентарь пуст.<br>Добудь оружие в <b>задании</b> — лови цели на поле.";
-    list.appendChild(e); return;
-  }
-
-  if (!inv.length && hasEquipped) {
-    const e = document.createElement("div"); e.className = "empty inv-empty-note";
-    e.innerHTML = "В сумке пусто — тренировочное оружие надето. Добывай D+ в задании.";
-    list.appendChild(e);
-  }
-
-  if (!inv.length) return;
+  scroll.appendChild(bar);
 
   const gridPanel = document.createElement("div");
   gridPanel.className = "inv-grid-panel";
   gridPanel.appendChild(buildInvTabs(tabId));
 
+  if (resourceTab) {
+    const grid = document.createElement("div");
+    grid.className = "inv-grid inv-grid-res";
+    fillInvGrid(grid, tabId, shown);
+    gridPanel.appendChild(grid);
+    scroll.appendChild(gridPanel);
+    list.appendChild(scroll);
+    appendInvCrystallizeFooter(list);
+    return;
+  }
+
+  const hasEquipped = typeof equippedWeaponItem === "function" && !!equippedWeaponItem();
+  if (!inv.length && !hasEquipped) {
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.innerHTML = "Сумка пуста.<br>Добудь оружие в <b>задании</b> — лови цели на поле.";
+    scroll.appendChild(e);
+  } else if (!inv.length && hasEquipped) {
+    const e = document.createElement("div");
+    e.className = "empty inv-empty-note";
+    e.innerHTML = "В сумке пусто — оружие надето слева. Добывай D+ в задании.";
+    scroll.appendChild(e);
+  } else if (tabId !== "all" && !visible.length) {
+    const e = document.createElement("div");
+    e.className = "empty inv-empty-note";
+    const labels = { weapon: "оружия", armor: "брони", accessory: "бижутерии" };
+    e.textContent = "В этой вкладке нет " + (labels[tabId] || "предметов") + ".";
+    scroll.appendChild(e);
+  }
+
   const grid = document.createElement("div");
   grid.className = "inv-grid";
   fillInvGrid(grid, tabId, shown);
   gridPanel.appendChild(grid);
-  list.appendChild(gridPanel);
+  scroll.appendChild(gridPanel);
+  list.appendChild(scroll);
+  appendInvCrystallizeFooter(list);
 }
 
 async function sellNgWeaponFromInventory(it) {
@@ -474,7 +646,7 @@ async function sellNgWeaponFromInventory(it) {
   const w = WMAP[it.id];
   if (!w || (typeof isNgSellWeapon === "function" && !isNgSellWeapon(w))) return;
   if (typeof isEquippedWeaponItem === "function" && isEquippedWeaponItem(it)) {
-    toast("Сначала сними оружие в «Персонаж»", "warn");
+    toast("Сначала сними оружие в инвентаре", "warn");
     return;
   }
   const sv = typeof sellValue === "function" ? sellValue(w, it.plus || 0) : 1000;

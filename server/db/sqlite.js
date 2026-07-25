@@ -14,7 +14,9 @@ const {
   rowsToCsv,
 } = require("./balance-analytics");
 const { attachMarketMethods } = require("./market");
+const { attachMailMethods } = require("./mail");
 const { attachChatMethods } = require("./chat");
+const { attachPvpMethods } = require("./pvp");
 
 function ensureScoreColumn(db, name, ddl) {
   const cols = db.prepare("PRAGMA table_info(scores)").all();
@@ -128,6 +130,10 @@ function initSchema(db) {
     );
   `);
   migrateScoresToCharacters(db);
+  ensureScoreColumn(db, "mobs", "INTEGER NOT NULL DEFAULT 0");
+  ensureScoreColumn(db, "pvp_rating", "INTEGER NOT NULL DEFAULT 1000");
+  ensureScoreColumn(db, "pvp_wins", "INTEGER NOT NULL DEFAULT 0");
+  ensureScoreColumn(db, "pvp_losses", "INTEGER NOT NULL DEFAULT 0");
   db.exec(`
     CREATE TABLE IF NOT EXISTS player_saves (
       user_id INTEGER PRIMARY KEY,
@@ -304,6 +310,24 @@ function createSqliteStore(opts) {
       client_version = excluded.client_version,
       updated_at = excluded.updated_at
   `);
+  const stmtUpdatePvpScore = db.prepare(`
+    UPDATE scores
+    SET pvp_rating = @pvp_rating,
+        pvp_wins = @pvp_wins,
+        pvp_losses = @pvp_losses,
+        char_name = COALESCE(@char_name, char_name),
+        updated_at = @updated_at
+    WHERE user_id = @user_id AND character_id = @character_id
+  `);
+  const stmtInsertPvpScore = db.prepare(`
+    INSERT OR IGNORE INTO scores (
+      user_id, character_id, char_name, max_plus, farm_power, earned, adena, mobs,
+      pvp_rating, pvp_wins, pvp_losses, client_version, updated_at
+    ) VALUES (
+      @user_id, @character_id, @char_name, 0, 0, 0, 0, 0,
+      @pvp_rating, @pvp_wins, @pvp_losses, NULL, @updated_at
+    )
+  `);
   const stmtDeleteScoresForUser = db.prepare("DELETE FROM scores WHERE user_id = ?");
   const stmtDeleteOrphanScores = db.prepare(`
     DELETE FROM scores
@@ -343,6 +367,12 @@ function createSqliteStore(opts) {
     ) VALUES (
       @user_id, @slot_id, @nick, @name, @race_id, @class_id, @gender_id, @level, @adena, @farm_zone, @created
     )
+  `);
+  const stmtFindCharsByName = db.prepare(`
+    SELECT user_id, slot_id, name, nick
+    FROM player_characters
+    WHERE created = 1 AND name IS NOT NULL AND name != ''
+      AND name = ? COLLATE NOCASE
   `);
   const stmtCountSaves = db.prepare("SELECT COUNT(*) AS n FROM player_saves");
   const stmtUpdatePassword = db.prepare("UPDATE users SET pass_hash = ? WHERE id = ?");
@@ -521,6 +551,56 @@ function createSqliteStore(opts) {
       return { id: info.lastInsertRowid };
     },
 
+    /**
+     * Глобальная уникальность имени персонажа (case-insensitive).
+     * @param {string} name
+     * @param {{ excludeUserId?: number, excludeSlotId?: string }} [opts]
+     */
+    isCharacterNameAvailable(name, opts) {
+      opts = opts || {};
+      const n = String(name || "").trim().slice(0, 48);
+      if (n.length < 2) {
+        return { ok: false, available: false, error: "Имя слишком короткое (2–16)" };
+      }
+      const rows = stmtFindCharsByName.all(n);
+      const exUser = opts.excludeUserId != null ? Number(opts.excludeUserId) : null;
+      const exSlot = opts.excludeSlotId != null ? String(opts.excludeSlotId) : null;
+      const conflict = rows.find((r) => {
+        if (exUser != null && Number(r.user_id) === exUser && (!exSlot || String(r.slot_id) === exSlot)) {
+          return false;
+        }
+        return true;
+      });
+      if (conflict) {
+        return {
+          ok: true,
+          available: false,
+          name: conflict.name,
+          takenByNick: conflict.nick || null,
+          error: "Имя «" + n + "» уже занято",
+        };
+      }
+      return { ok: true, available: true, name: n };
+    },
+
+    /** Конфликт имён в сейве с чужими персонажами (для PUT /save). */
+    findCharacterNameConflict(userId, data) {
+      const chars = Array.isArray(data?.characters) ? data.characters : [];
+      for (const slot of chars) {
+        if (!slot?.id || !slot.progress?.avatar?.created) continue;
+        const name = String(slot.progress.avatar.name || "").trim();
+        if (name.length < 2) continue;
+        const check = this.isCharacterNameAvailable(name, {
+          excludeUserId: userId,
+          excludeSlotId: String(slot.id),
+        });
+        if (check.ok && !check.available) {
+          return { name, takenByNick: check.takenByNick };
+        }
+      }
+      return null;
+    },
+
     insertSession(token, userId, exp) {
       stmtInsertSession.run(token, userId, exp);
     },
@@ -556,6 +636,90 @@ function createSqliteStore(opts) {
         updated_at: row.updated_at || Date.now(),
       };
       stmtUpsertScore.run(payload);
+    },
+
+    /**
+     * ELO после дуэли / async. winner: "a" | "b" | "draw".
+     * @returns {{ a: object, b: object } | null}
+     */
+    applyPvpOutcome(payload, now) {
+      const ts = now || Date.now();
+      const a = payload?.a;
+      const b = payload?.b;
+      const winner = String(payload?.winner || "draw");
+      if (!a?.userId || !a?.characterId || !b?.userId || !b?.characterId) return null;
+
+      const ensure = (side) => {
+        const cid = String(side.characterId).slice(0, 64);
+        stmtInsertPvpScore.run({
+          user_id: side.userId,
+          character_id: cid,
+          char_name: side.charName ? String(side.charName).slice(0, 48) : null,
+          pvp_rating: 1000,
+          pvp_wins: 0,
+          pvp_losses: 0,
+          updated_at: ts,
+        });
+        const row = stmtGetScore.get(side.userId, cid);
+        return {
+          userId: side.userId,
+          characterId: cid,
+          charName: side.charName || row?.char_name || null,
+          rating: row?.pvp_rating != null ? row.pvp_rating : 1000,
+          wins: row?.pvp_wins || 0,
+          losses: row?.pvp_losses || 0,
+        };
+      };
+
+      const ra = ensure(a);
+      const rb = ensure(b);
+      const expectedA = 1 / (1 + Math.pow(10, (rb.rating - ra.rating) / 400));
+      const expectedB = 1 - expectedA;
+      let scoreA = 0.5;
+      let scoreB = 0.5;
+      if (winner === "a") {
+        scoreA = 1;
+        scoreB = 0;
+      } else if (winner === "b") {
+        scoreA = 0;
+        scoreB = 1;
+      }
+      const K = 24;
+      const deltaA = Math.round(K * (scoreA - expectedA));
+      const deltaB = Math.round(K * (scoreB - expectedB));
+      const nextA = {
+        ...ra,
+        rating: Math.max(100, ra.rating + deltaA),
+        wins: ra.wins + (winner === "a" ? 1 : 0),
+        losses: ra.losses + (winner === "b" ? 1 : 0),
+        delta: deltaA,
+      };
+      const nextB = {
+        ...rb,
+        rating: Math.max(100, rb.rating + deltaB),
+        wins: rb.wins + (winner === "b" ? 1 : 0),
+        losses: rb.losses + (winner === "a" ? 1 : 0),
+        delta: deltaB,
+      };
+      stmtUpdatePvpScore.run({
+        user_id: nextA.userId,
+        character_id: nextA.characterId,
+        char_name: nextA.charName,
+        pvp_rating: nextA.rating,
+        pvp_wins: nextA.wins,
+        pvp_losses: nextA.losses,
+        updated_at: ts,
+      });
+      stmtUpdatePvpScore.run({
+        user_id: nextB.userId,
+        character_id: nextB.characterId,
+        char_name: nextB.charName,
+        pvp_rating: nextB.rating,
+        pvp_wins: nextB.wins,
+        pvp_losses: nextB.losses,
+        updated_at: ts,
+      });
+      return { a: nextA, b: nextB };
     },
 
     getSave(userId) {
@@ -629,6 +793,13 @@ function createSqliteStore(opts) {
     },
 
     persistPlayerSave(user, seq, savedAt, clientVersion, data) {
+      const conflict = this.findCharacterNameConflict(user.id, data);
+      if (conflict) {
+        const err = new Error("Имя «" + conflict.name + "» уже занято другим игроком");
+        err.code = "name_taken";
+        err.nameTaken = conflict.name;
+        throw err;
+      }
       const summary = summarizeSaveData(data);
       const payload = JSON.stringify(data);
       const now = Date.now();
@@ -892,6 +1063,7 @@ function createSqliteStore(opts) {
       limit = Math.min(100, Math.max(1, limit || 50));
       let order = "s.max_plus DESC, s.updated_at ASC";
       let valueExpr = "s.max_plus";
+      let whereExtra = "";
       if (mode === "power") {
         order = "s.farm_power DESC, s.updated_at ASC";
         valueExpr = "s.farm_power";
@@ -901,6 +1073,10 @@ function createSqliteStore(opts) {
       } else if (mode === "mobs") {
         order = "s.mobs DESC, s.updated_at ASC";
         valueExpr = "s.mobs";
+      } else if (mode === "pvp") {
+        order = "s.pvp_rating DESC, s.pvp_wins DESC, s.updated_at ASC";
+        valueExpr = "s.pvp_rating";
+        whereExtra = " WHERE (COALESCE(s.pvp_wins, 0) + COALESCE(s.pvp_losses, 0)) > 0";
       } else {
         mode = "enchant";
       }
@@ -910,8 +1086,10 @@ function createSqliteStore(opts) {
                   s.character_id AS character_id,
                   s.char_name AS char_name,
                   ${valueExpr} AS value,
-                  s.max_plus, s.farm_power, s.earned, s.adena, s.mobs, s.updated_at
+                  s.max_plus, s.farm_power, s.earned, s.adena, s.mobs,
+                  s.pvp_rating, s.pvp_wins, s.pvp_losses, s.updated_at
            FROM scores s JOIN users u ON u.id = s.user_id
+           ${whereExtra}
            ORDER BY ${order}
            LIMIT ?`
         )
@@ -931,6 +1109,9 @@ function createSqliteStore(opts) {
           earned: r.earned,
           adena: r.adena,
           mobs: r.mobs || 0,
+          pvpRating: r.pvp_rating != null ? r.pvp_rating : 1000,
+          pvpWins: r.pvp_wins || 0,
+          pvpLosses: r.pvp_losses || 0,
           updatedAt: r.updated_at,
           mode,
         };
@@ -1441,12 +1622,15 @@ function createSqliteStore(opts) {
     },
   };
 
-  attachMarketMethods(db, store, {
+  const persistDeps = {
     persistPlayerSaveInternal(user, seq, savedAt, clientVersion, data) {
       return store.persistPlayerSave(user, seq, savedAt, clientVersion, data);
     },
-  });
+  };
+  attachMarketMethods(db, store, persistDeps);
+  attachMailMethods(db, store, persistDeps);
   attachChatMethods(db, store);
+  attachPvpMethods(db, store);
 
   return store;
 }

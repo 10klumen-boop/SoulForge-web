@@ -65,7 +65,7 @@ const PRELUDE_FINALE_EPILOGUE = {
 };
 
 function activePreludeZones() {
-  return FARM_ZONES.filter((z) => z.active);
+  return FARM_ZONES.filter((z) => z.active && !z.side);
 }
 
 function preludeChaptersCompleteCount() {

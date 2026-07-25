@@ -30,7 +30,14 @@ function ensureQuestProgress() {
 function prevFarmZone(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
   const i = FARM_ZONES.findIndex((z) => z.id === zone.id);
-  return i > 0 ? FARM_ZONES[i - 1] : null;
+  if (i <= 0) return null;
+  // Side-зоны (mithril_forge и т.п.) не входят в основную цепочку глав.
+  for (let j = i - 1; j >= 0; j--) {
+    const z = FARM_ZONES[j];
+    if (z && z.side) continue;
+    return z;
+  }
+  return null;
 }
 
 function questNpc(zoneId, race) {
@@ -59,6 +66,8 @@ function questStepDef(questId) {
 function zoneQuestSteps(zoneId, race) {
   const zone = farmZoneById(zoneId);
   if (!zone) return [];
+  // Side-фарм (кузница мифрила и т.п.) — только дроп, без поручений Prelude.
+  if (zone.side) return [];
   const npc = questNpc(zoneId, race);
   const beat = typeof zoneStoryBeat === "function" ? zoneStoryBeat(zoneId, race) : {};
   const view = typeof zoneRaceView === "function" ? zoneRaceView(zoneId, race) : zone;
@@ -119,6 +128,8 @@ function isZoneBossDefeated(zoneId) {
 }
 
 function isZoneBossPending(zoneId) {
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  if (zone?.side) return false;
   return allZoneQuestsComplete(zoneId) && !isZoneBossDefeated(zoneId);
 }
 
@@ -169,6 +180,8 @@ function setZoneBossQueued(zoneId, queued) {
 
 /** Босс явится на поле (первый раз после квестов или после N зачисток). */
 function shouldOfferZoneBoss(zoneId) {
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  if (zone?.side) return false;
   if (!isZoneBossPending(zoneId)) return false;
   return isZoneBossQueued(zoneId) || zoneBossGrindKills(zoneId) >= ZONE_BOSS_GRIND_KILLS;
 }
@@ -185,10 +198,16 @@ function queueZoneBossSpawn(zoneId) {
 }
 
 function isZoneChapterComplete(zoneId) {
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  // Side-фарм не имеет главы/босса — «завершён» с точки зрения цепочки.
+  if (zone?.side) return true;
   return allZoneQuestsComplete(zoneId) && isZoneBossDefeated(zoneId);
 }
 
 function isPrevZoneChapterComplete(zone) {
+  zone = typeof zone === "string" ? farmZoneById(zone) : zone;
+  // Side-фарм вне сюжетной цепочки — только сила/уровень.
+  if (zone?.side) return true;
   const prev = prevFarmZone(zone);
   if (!prev) return true;
   return isZoneChapterComplete(prev.id);
@@ -374,7 +393,9 @@ function migrateQuestProgress() {
   });
   if (!state.questProgress._migratedV2) {
     for (let i = 0; i < maxIdx; i++) {
-      const zid = FARM_ZONES[i].id;
+      const z = FARM_ZONES[i];
+      if (!z || z.side) continue;
+      const zid = z.id;
       zoneQuestSteps(zid).forEach((q) => {
         markQuestStepComplete(q.id);
         markQuestBriefingSeen(q.id);
@@ -382,6 +403,7 @@ function migrateQuestProgress() {
       markZoneBossDefeated(zid);
     }
     FARM_ZONES.forEach((zone, i) => {
+      if (zone.side) return;
       const legacyKey = "quest_" + zone.id;
       if (state.questProgress.completed[legacyKey]) {
         zoneQuestSteps(zone.id).forEach((q) => {
@@ -407,7 +429,7 @@ function repairQuestProgressIntegrity() {
   const q = state.questProgress;
   let dirty = false;
   FARM_ZONES.forEach((zone) => {
-    if (!zone.active) return;
+    if (!zone.active || zone.side) return;
     const steps = zoneQuestSteps(zone.id);
     const allFlagged = steps.every((step) => isQuestStepComplete(step.id));
     const totalKills = steps.reduce(
