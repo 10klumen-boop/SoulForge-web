@@ -221,6 +221,7 @@ function selectCharacter(id) {
   if (typeof refreshProgressUI === "function") refreshProgressUI();
   syncUiAfterCharacterSwap();
   renderCharacterRoster();
+  if (typeof pvpEnsureOnlinePresence === "function") pvpEnsureOnlinePresence();
   const a = state.avatar;
   if (a?.created && typeof gameLog === "function") {
     gameLog("Активен: " + a.name, "system");

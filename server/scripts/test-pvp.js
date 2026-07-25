@@ -92,6 +92,47 @@ assert.ok(r.ok, r.error);
 r = store.pvpAsyncInbox(bob, { characterId: "c1" });
 assert.ok(r.ok && r.rows.length >= 1);
 
+// Онлайн: один слот на аккаунт (последний опубликованный лист), не все персонажи.
+store.persistPlayerSave(bob, 2, now + 20, "0.46", {
+  activeCharacterId: "c2",
+  characters: [
+    {
+      id: "c1",
+      progress: {
+        avatar: { created: true, name: "HeroBob", level: 12, raceId: "human", classId: "mystic", gear: {} },
+        adena: 1000,
+        inventory: [],
+        crystals: { D: 0, C: 0, B: 0, A: 0 },
+        materials: { soul: 0, spirit: 0 },
+        shots: { soul: { D: 0, C: 0, B: 0, A: 0 }, spirit: { D: 0, C: 0, B: 0, A: 0 } },
+        totals: { tries: 0, fails: 0, earned: 0 },
+      },
+    },
+    {
+      id: "c2",
+      progress: {
+        avatar: { created: true, name: "BobAlt", level: 8, raceId: "human", classId: "fighter", gear: {} },
+        adena: 500,
+        inventory: [],
+        crystals: { D: 0, C: 0, B: 0, A: 0 },
+        materials: { soul: 0, spirit: 0 },
+        shots: { soul: { D: 0, C: 0, B: 0, A: 0 }, spirit: { D: 0, C: 0, B: 0, A: 0 } },
+        totals: { tries: 0, fails: 0, earned: 0 },
+      },
+    },
+  ],
+});
+store.claimWriteLease(bob.id, "dev-bob", now + 30, 90_000, true);
+r = store.pvpPublishSheet(bob, { characterId: "c1", sheet: makeSheet("HeroBob", "mystic") }, now + 40);
+assert.ok(r.ok, r.error);
+r = store.pvpPublishSheet(bob, { characterId: "c2", sheet: makeSheet("BobAlt", "fighter") }, now + 50);
+assert.ok(r.ok, r.error);
+r = store.pvpListOnline(alice, now + 60);
+assert.ok(r.ok, r.error);
+const bobRows = (r.rows || []).filter((x) => x.nick === "BobPvpxx");
+assert.strictEqual(bobRows.length, 1, "online should list one char per account, got " + bobRows.length);
+assert.strictEqual(bobRows[0].name, "BobAlt");
+
 console.log("pvp server tests ok");
 try {
   if (typeof store.close === "function") store.close();

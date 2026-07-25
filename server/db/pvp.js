@@ -147,6 +147,13 @@ function attachPvpMethods(db, store) {
     JOIN users u ON u.id = cs.user_id
     LEFT JOIN write_leases wl ON wl.user_id = cs.user_id
     WHERE cs.user_id != ?
+      AND cs.rowid = (
+        SELECT cs2.rowid
+        FROM combat_sheets cs2
+        WHERE cs2.user_id = cs.user_id
+        ORDER BY cs2.published_at DESC, cs2.character_id DESC
+        LIMIT 1
+      )
       AND (
         (wl.expires_at IS NOT NULL AND wl.expires_at > ?)
         OR cs.published_at > ?
@@ -419,6 +426,7 @@ function attachPvpMethods(db, store) {
   store.pvpListOnline = function pvpListOnline(user, now) {
     now = now || Date.now();
     // Lease (~90s) или лист, опубликованный за последние 15 мин (мобильные вкладки часто режут heartbeat).
+    // На аккаунт — только последний опубликованный лист (= персонаж, которым сейчас играют / открыли Арену).
     const recentMs = 15 * 60 * 1000;
     const recentAfter = now - recentMs;
     const rows = stmtOnlineSheets.all(user.id, now, recentAfter, now);
