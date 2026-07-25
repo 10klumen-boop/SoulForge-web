@@ -296,6 +296,7 @@ function pvpOnlineListHtml(rows, actionLabel) {
               r.nick && String(r.nick).toLowerCase() !== String(name).toLowerCase()
                 ? " · " + r.nick
                 : "";
+            const live = !!r.live;
             const meta =
               "ур. " +
               (r.level || "?") +
@@ -304,30 +305,34 @@ function pvpOnlineListHtml(rows, actionLabel) {
               (r.atkType === "magical" ? " · маг." : " · физ.") +
               nick;
             return (
-              '<div class="pvp-list-row pvp-online-row" data-pvp-online-name="' +
+              '<div class="pvp-list-row pvp-online-row' +
+              (live ? " is-live" : "") +
+              '" data-pvp-online-name="' +
               pvpEsc(name) +
               '" role="button" tabindex="0">' +
-              "<span><b>" +
+              '<div class="pvp-online-main">' +
+              '<span class="pvp-online-dot" aria-hidden="true"></span>' +
+              "<div><b>" +
               pvpEsc(name) +
               '</b><small class="pvp-online-meta">' +
+              (live ? "онлайн · " : "недавно · ") +
               pvpEsc(meta) +
-              "</small></span>" +
-              '<span class="pvp-list-acts">' +
-              '<button type="button" class="pvp-chip" data-pvp-online-act="' +
+              "</small></div></div>" +
+              '<button type="button" class="pvp-chip pvp-online-act" data-pvp-online-act="' +
               pvpEsc(name) +
               '">' +
               pvpEsc(label) +
-              "</button>" +
-              "</span></div>"
+              "</button></div>"
             );
           })
           .join("")
-      : '<p class="pvp-hint">Сейчас никого онлайн</p>';
+      : '<p class="pvp-online-empty">Никого нет — пусть соперник откроет Арену</p>';
   return (
     '<div class="pvp-list-block pvp-online-list">' +
-    '<div class="pvp-skills-title">Онлайн</div>' +
+    '<div class="pvp-skills-title">Соперники</div>' +
+    '<div class="pvp-online-body">' +
     body +
-    "</div>"
+    "</div></div>"
   );
 }
 

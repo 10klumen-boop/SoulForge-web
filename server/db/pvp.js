@@ -141,13 +141,20 @@ function attachPvpMethods(db, store) {
       cs.sheet_json,
       cs.power_score,
       cs.published_at,
-      u.nick
+      u.nick,
+      wl.expires_at AS lease_expires
     FROM combat_sheets cs
-    JOIN write_leases wl ON wl.user_id = cs.user_id
     JOIN users u ON u.id = cs.user_id
-    WHERE wl.expires_at > ?
-      AND cs.user_id != ?
-    ORDER BY cs.power_score DESC
+    LEFT JOIN write_leases wl ON wl.user_id = cs.user_id
+    WHERE cs.user_id != ?
+      AND (
+        (wl.expires_at IS NOT NULL AND wl.expires_at > ?)
+        OR cs.published_at > ?
+      )
+    ORDER BY
+      CASE WHEN wl.expires_at IS NOT NULL AND wl.expires_at > ? THEN 1 ELSE 0 END DESC,
+      cs.power_score DESC,
+      cs.published_at DESC
     LIMIT 40
   `);
 
@@ -411,11 +418,15 @@ function attachPvpMethods(db, store) {
 
   store.pvpListOnline = function pvpListOnline(user, now) {
     now = now || Date.now();
-    const rows = stmtOnlineSheets.all(now, user.id);
+    // Lease (~90s) или лист, опубликованный за последние 15 мин (мобильные вкладки часто режут heartbeat).
+    const recentMs = 15 * 60 * 1000;
+    const recentAfter = now - recentMs;
+    const rows = stmtOnlineSheets.all(user.id, now, recentAfter, now);
     const out = [];
     for (const row of rows) {
       const sheet = sanitizeSheet(parseJson(row.sheet_json, null));
       if (!sheet || !sheet.name) continue;
+      const live = !!(row.lease_expires && row.lease_expires > now);
       out.push({
         name: sheet.name,
         level: sheet.level,
@@ -427,6 +438,7 @@ function attachPvpMethods(db, store) {
         nick: row.nick || "",
         publishedAt: row.published_at,
         characterId: row.character_id,
+        live,
       });
     }
     return { ok: true, rows: out };

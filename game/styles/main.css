@@ -7464,24 +7464,79 @@
   .pvp-list-row:last-child { border-bottom: 0; }
   .pvp-list-acts { display: flex; gap: 6px; flex-wrap: wrap; }
   .pvp-online-list {
-    margin: 10px 0 8px;
-    max-height: 220px;
-    overflow: auto;
+    margin: 10px 0 12px;
+    max-height: none;
+    overflow: visible;
+  }
+  .pvp-online-body {
+    max-height: min(42vh, 280px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pvp-online-empty {
+    margin: 0;
+    padding: 10px 4px 4px;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--txt-dim);
   }
   .pvp-online-row {
     cursor: pointer;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 10px;
   }
-  .pvp-online-row:hover {
+  .pvp-online-row:hover,
+  .pvp-online-row:active {
     color: var(--txt);
+  }
+  .pvp-online-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+  .pvp-online-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: rgba(160, 140, 100, 0.45);
+  }
+  .pvp-online-row.is-live .pvp-online-dot {
+    background: #58d977;
+    box-shadow: 0 0 6px rgba(88, 217, 119, 0.45);
   }
   .pvp-online-meta {
     display: block;
     margin-top: 2px;
     font-size: 11px;
     opacity: .85;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .pvp-online-act {
+    flex: 0 0 auto;
+    margin-left: auto;
   }
   @media (max-width: 640px) {
     .pvp-lists { grid-template-columns: 1fr; }
+    .pvp-online-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .pvp-online-act {
+      width: 100%;
+      margin-left: 0;
+      text-align: center;
+      min-height: 40px;
+    }
+    .pvp-online-body {
+      max-height: min(38vh, 260px);
+    }
   }
 
   /* ===== Арена / дуэли (тренировка) ===== */
