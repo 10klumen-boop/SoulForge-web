@@ -216,12 +216,13 @@ async function renderLeaderboard() {
       '<span class="lb-val"></span>';
     const nameEl = el.querySelector(".lb-name");
     const hero = row.charName || row.name || "—";
-    const account = row.nick || "";
+    const account = String(row.nick || "").trim();
     const main = document.createElement("span");
     main.className = "lb-name-main";
     main.textContent = hero;
     nameEl.appendChild(main);
-    if (account && String(account).toLowerCase() !== String(hero).toLowerCase()) {
+    // Всегда показываем ник аккаунта (даже если = имени героя) — иначе кажется, что его «нет»
+    if (account) {
       const nickEl = document.createElement("span");
       nickEl.className = "lb-nick";
       nickEl.textContent = account;

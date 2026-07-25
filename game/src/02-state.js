@@ -39,6 +39,7 @@ function defaultState() {
     achievements: { unlocked: {}, stats: {} },
     passiveIncome: { lastCollectAt: 0, warehouseLv: 0 },
     autoClicker: { until: 0, enabled: true, pauseStartedAt: 0, frozenRemainingMs: 0 },
+    resourceFavorites: [],
     accountWarehouse: { items: [] },
     accountMail: { messages: [] },
     devTune: {},
@@ -77,7 +78,7 @@ function freshCharacterProgressSnapshot() {
     "avatar", "adena", "farmZone", "storyProgress", "questProgress",
     "records", "totals", "storySeen", "inventory", "crystals",
     "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
-    "passiveIncome", "autoClicker",
+    "passiveIncome", "autoClicker", "resourceFavorites",
   ];
   const p = {};
   keys.forEach((k) => { p[k] = JSON.parse(JSON.stringify(d[k])); });

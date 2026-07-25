@@ -113,7 +113,7 @@ function closeConfirm(result) {
   backdrop.hidden = true;
   document.removeEventListener("keydown", _confirmKeyHandler);
   if (_confirmLockTimer) {
-    clearInterval(_confirmLockTimer);
+    clearTimeout(_confirmLockTimer);
     _confirmLockTimer = null;
   }
   _confirmEscapeAsOk = false;
@@ -164,7 +164,7 @@ function showConfirm(opts) {
       try { stale(false); } catch (_) {}
     }
     if (_confirmLockTimer) {
-      clearInterval(_confirmLockTimer);
+      clearTimeout(_confirmLockTimer);
       _confirmLockTimer = null;
     }
     _confirmResolve = resolve;
@@ -223,24 +223,19 @@ function showConfirm(opts) {
     if (lockMs > 0) {
       okBtn.disabled = true;
       cancelBtn.disabled = true;
-      let left = Math.ceil(lockMs / 1000);
       const hint = document.createElement("p");
       hint.className = "modal-lock-hint";
-      hint.textContent = "Подождите " + left + "…";
+      const sec = Math.round(lockMs / 100) / 10;
+      hint.textContent =
+        "Подождите " + (Number.isInteger(sec) ? String(sec) : String(sec).replace(".", ",")) + "…";
       bodyEl.appendChild(hint);
-      _confirmLockTimer = setInterval(() => {
-        left -= 1;
-        if (left <= 0) {
-          clearInterval(_confirmLockTimer);
-          _confirmLockTimer = null;
-          _confirmLocked = false;
-          okBtn.disabled = false;
-          cancelBtn.disabled = false;
-          if (hint.parentNode) hint.parentNode.removeChild(hint);
-          return;
-        }
-        hint.textContent = "Подождите " + left + "…";
-      }, 1000);
+      _confirmLockTimer = setTimeout(() => {
+        _confirmLockTimer = null;
+        _confirmLocked = false;
+        okBtn.disabled = false;
+        cancelBtn.disabled = false;
+        if (hint.parentNode) hint.parentNode.removeChild(hint);
+      }, lockMs);
     }
 
     backdrop.hidden = false;

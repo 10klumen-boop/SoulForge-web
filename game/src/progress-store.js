@@ -8,7 +8,7 @@ const CHARACTER_PROGRESS_KEYS = [
   "avatar", "adena", "farmZone", "storyProgress", "questProgress",
   "records", "totals", "storySeen", "inventory", "crystals",
   "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
-  "passiveIncome", "autoClicker",
+  "passiveIncome", "autoClicker", "resourceFavorites",
 ];
 
 const ProgressStore = (function () {

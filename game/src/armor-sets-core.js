@@ -124,6 +124,7 @@ function addArmorFrag(fragId, qty, meta) {
       zoneId: meta?.zoneId || state.farmZone || null,
     });
   }
+  if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
   return { def, qty };
 }
 

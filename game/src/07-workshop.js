@@ -1,6 +1,32 @@
 // ===== Мастерская: UI (рендер панели, кнопки, HUD) =====
 // Core logic (buyOre, craftShot, sellShots, applyMineShotDamageMult) вынесено в workshop-core.js.
 
+function craftFavBtnHtml(kind, id, defaultTarget) {
+  const on = typeof isResourceFavorited === "function" && isResourceFavorited(kind, id);
+  return (
+    '<button type="button" class="craft-fav-btn' + (on ? " on" : "") +
+    '" data-fav-kind="' + kind +
+    '" data-fav-id="' + String(id).replace(/"/g, "") +
+    '" data-fav-default="' + Math.max(1, Math.floor(Number(defaultTarget) || 1)) +
+    '" title="Избранное — цель дофарма в окне фарма" aria-label="Избранное">★</button>'
+  );
+}
+
+function bindCraftFavButtons(root) {
+  if (!root || typeof promptResourceFavorite !== "function") return;
+  root.querySelectorAll(".craft-fav-btn").forEach((btn) => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      promptResourceFavorite(
+        btn.getAttribute("data-fav-kind"),
+        btn.getAttribute("data-fav-id"),
+        Number(btn.getAttribute("data-fav-default")) || 1
+      );
+    };
+  });
+}
+
 function openWorkshop(tab) {
   // onclick передаёт Event — не путать с "shots"/"armor"
   wsMainTab = tab === "armor" || tab === "shots" ? tab : null;
@@ -308,13 +334,14 @@ function renderWorkshop() {
   ["soul", "spirit"].forEach((ty) => {
     const o = ORE[ty];
     oreHtml += `<div class="ore-card">
-      <div class="oh"><img src="${o.icon}" alt=""><div><div class="on">${o.name}</div><div class="opx">${fmtAdena(orePrice(ty))} adena/шт</div></div><div class="oc">${fmt(state.materials[ty] || 0)}</div></div>
+      <div class="oh"><img src="${o.icon}" alt=""><div><div class="on">${o.name}</div><div class="opx">${fmtAdena(orePrice(ty))} adena/шт</div></div><div class="oc">${fmt(state.materials[ty] || 0)} ${craftFavBtnHtml("ore", ty, 100)}</div></div>
       <div class="buyrow" data-ore="${ty}">
         <button data-q="10">+10</button><button data-q="100">+100</button><button data-q="1000">+1000</button>
       </div></div>`;
   });
   oreHtml += "</div>";
   shop.innerHTML = oreHtml;
+  bindCraftFavButtons(shop);
   body.appendChild(shop);
   shop.querySelectorAll(".buyrow").forEach((row) => {
     const ty = row.dataset.ore;
@@ -357,12 +384,13 @@ function renderWorkshop() {
     card.className = "craft-card";
     card.innerHTML = `
       <div class="ch"><img src="${SHOT_ICON[ty][g]}" alt=""><div class="cn">${SHOT_TYPE[ty].item}</div><div class="cg" style="background:${GRADE_TAG[g]};color:#10131a">${g}</div></div>
-      <div class="cinfo">Рецепт: <b style="${cryLow}"><img class="cryreq" src="${CRYSTAL_ICON[g]}" alt="">${r.cry} крист. ${g}</b> + <b style="${oreLow}">${r.ore} ${ORE[oreKey].name}</b><br>Выход: <b>${batch}</b> зарядов · продажа <b>${r.sell}</b> adena/шт</div>
-      <div class="cstock">Склад: <b>${fmt(stock)}</b> <span style="color:var(--txt-dim)">(${fmtAdena(stock * r.sell)})</span></div>
+      <div class="cinfo">Рецепт: <b style="${cryLow}"><img class="cryreq" src="${CRYSTAL_ICON[g]}" alt="">${r.cry} крист. ${g}</b>${craftFavBtnHtml("crystal", g, r.cry)} + <b style="${oreLow}">${r.ore} ${ORE[oreKey].name}</b>${craftFavBtnHtml("ore", oreKey, r.ore)}<br>Выход: <b>${batch}</b> зарядов · продажа <b>${r.sell}</b> adena/шт</div>
+      <div class="cstock">Склад: <b>${fmt(stock)}</b> <span style="color:var(--txt-dim)">(${fmtAdena(stock * r.sell)})</span> ${craftFavBtnHtml("shot", ty + ":" + g, batch)}</div>
       <div class="cbtns">
         <button class="craftb" ${canCraft ? "" : "disabled"}>Скрафтить ×${batch}</button>
         <button class="sellb" ${stock > 0 ? "" : "disabled"}>Продать</button>
       </div>`;
+    bindCraftFavButtons(card);
     card.querySelector(".craftb").onclick = () => craftShot(ty, g);
     card.querySelector(".sellb").onclick = () => sellShots(ty, g);
     grid.appendChild(card);
@@ -455,11 +483,13 @@ function renderWorkshopArmor(body) {
       : "";
     card.innerHTML =
       '<div class="ch"><img src="' + armor.icon + '" alt=""><div class="cn">' + armor.name + '</div><div class="cg" style="background:' + (GRADE_TAG[grade] || "#5fcf6b") + ';color:#10131a">' + grade + "</div></div>" +
-      '<div class="cinfo">Рецепт: <b style="' + fragLow + '"><img class="cryreq" src="' + frag.icon + '" alt="">' + r.fragQty + " " + frag.name + "</b><br>" +
+      '<div class="cinfo">Рецепт: <b style="' + fragLow + '"><img class="cryreq" src="' + frag.icon + '" alt="">' + r.fragQty + " " + frag.name + "</b>" + craftFavBtnHtml("frag", r.fragId, r.fragQty) + "<br>" +
       '<b style="' + cryLow + '"><img class="cryreq" src="' + (CRYSTAL_ICON[grade] || "") + '" alt="">' + r.cry + " крист. " + grade +
-      '</b> + <b style="' + oreLow + '">' + r.oreSoul + " Soul Ore</b>" + adenaBit + "</div>" +
+      "</b>" + craftFavBtnHtml("crystal", grade, r.cry) +
+      ' + <b style="' + oreLow + '">' + r.oreSoul + " Soul Ore</b>" + craftFavBtnHtml("ore", "soul", r.oreSoul) + adenaBit + "</div>" +
       '<div class="cstock">Материал: <b' + stockFrag + ">" + fmt(haveFrag) + "</b> · Soul Ore: <b" + stockOre + ">" + fmt(haveOre) + "</b></div>" +
       '<div class="cbtns"><button class="craftb" ' + (can ? "" : "disabled") + ">Скрафтить</button></div>";
+    bindCraftFavButtons(card);
     card.querySelector(".craftb").onclick = () => {
       craftArmor(r.armorId);
       renderWorkshop();

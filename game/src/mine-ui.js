@@ -20,6 +20,7 @@ function renderMineSessionLoot() {
     el.innerHTML = "";
     el.classList.remove("is-open");
     mineSessionLootOpen = false;
+    if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
     return;
   }
   el.hidden = false;
@@ -41,6 +42,7 @@ function renderMineSessionLoot() {
       "</span>" +
       '<span class="mine-loot-empty">пока нет предметов</span>' +
       "</div>";
+    if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
     return;
   }
 
@@ -84,10 +86,92 @@ function renderMineSessionLoot() {
       renderMineSessionLoot();
     };
   }
+  if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
 }
 
 function renderMineHudStats() {
   syncMineShotHud();
+  if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
+}
+
+function renderMineResourceFavorites() {
+  const el =
+    typeof gameDoc === "function"
+      ? gameDoc().getElementById("mineResourceFav")
+      : document.getElementById("mineResourceFav");
+  if (!el) return;
+  const rows =
+    typeof listResourceFavoritesResolved === "function" ? listResourceFavoritesResolved() : [];
+  if (!rows.length) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  el.hidden = false;
+  el.innerHTML =
+    '<div class="mine-fav-head"><span class="mine-fav-lbl">Дофарм</span></div>' +
+    '<div class="mine-fav-row">' +
+    rows
+      .map((row) => {
+        const leftCls = row.done ? " is-done" : " is-need";
+        const leftTxt = row.done ? "готово" : "ещё " + (typeof fmt === "function" ? fmt(row.left) : row.left);
+        const title =
+          (row.name || "") +
+          " · " +
+          row.have +
+          "/" +
+          row.target +
+          (row.done ? " ✓" : " · осталось " + row.left);
+        const gClass = row.grade ? " g-" + row.grade : "";
+        const icon = row.icon
+          ? '<img src="' + row.icon + '" alt="" loading="lazy" draggable="false">'
+          : "";
+        return (
+          '<button type="button" class="mine-fav-chip' +
+          leftCls +
+          gClass +
+          '" data-fav-kind="' +
+          row.kind +
+          '" data-fav-id="' +
+          String(row.id).replace(/"/g, "") +
+          '" title="' +
+          title.replace(/"/g, "&quot;") +
+          '">' +
+          icon +
+          '<span class="mine-fav-meta">' +
+          '<span class="mine-fav-name">' +
+          (row.name || "?") +
+          "</span>" +
+          '<span class="mine-fav-qty">' +
+          (typeof fmt === "function" ? fmt(row.have) : row.have) +
+          "/" +
+          (typeof fmt === "function" ? fmt(row.target) : row.target) +
+          '</span>' +
+          '<span class="mine-fav-left">' +
+          leftTxt +
+          "</span>" +
+          "</span>" +
+          "</button>"
+        );
+      })
+      .join("") +
+    "</div>";
+
+  el.querySelectorAll(".mine-fav-chip").forEach((btn) => {
+    btn.onclick = () => {
+      if (typeof removeResourceFavorite !== "function") return;
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      removeResourceFavorite(btn.getAttribute("data-fav-kind"), btn.getAttribute("data-fav-id"));
+      if (typeof toast === "function") toast("Убрано из избранного", "info");
+      renderMineResourceFavorites();
+      if (
+        document.getElementById("screen-shop")?.classList?.contains("active") &&
+        typeof renderWorkshop === "function"
+      ) {
+        renderWorkshop();
+      }
+    };
+  });
 }
 
 function syncMineShotHud() {

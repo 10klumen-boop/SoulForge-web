@@ -564,7 +564,7 @@ async function pvpNotifyIncomingChallenges(rows) {
         okText: "Принять",
         cancelText: "Позже",
         sticky: true,
-        lockMs: 3000,
+        lockMs: 1500,
       });
       if (accept) {
         await pvpAcceptChallengeAndOpen(row.id);
