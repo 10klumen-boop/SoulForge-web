@@ -67,6 +67,7 @@ function enterGameHub() {
   if (typeof renderMenu === "function") renderMenu();
   show("menu");
   if (typeof Audio2 !== "undefined") Audio2.open();
+  if (typeof pvpEnsureOnlinePresence === "function") pvpEnsureOnlinePresence();
   if (typeof runGameEntryModals === "function") {
     Promise.resolve(runGameEntryModals()).catch((e) => console.error("runGameEntryModals failed:", e));
   }

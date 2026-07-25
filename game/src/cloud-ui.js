@@ -274,6 +274,7 @@ function enterMainMenuFromLogin(opts) {
   if (typeof openHome === "function") openHome();
   else if (typeof show === "function") show("home");
   if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
+  if (typeof pvpEnsureOnlinePresence === "function") pvpEnsureOnlinePresence();
   const emptyRoster =
     typeof listCreatedCharacters === "function"
       ? listCreatedCharacters().length === 0

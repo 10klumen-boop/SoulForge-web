@@ -11,6 +11,12 @@ let _pvpLobbyPollTimer = null;
 let _pvpLobbySig = "";
 let _pvpAsyncLast = null;
 let _pvpNameInput = "";
+let _pvpChallengeWatchTimer = null;
+let _pvpNotifiedChallengeIds = new Set();
+let _pvpChallengeAlertBusy = false;
+let _pvpInboxCount = 0;
+
+const PVP_CHALLENGE_WATCH_MS = 4000;
 
 const PVP_HELP_SEEN_KEY = "sf_arena_help_seen_v1";
 const PVP_ICO_ATTACK = "icons/pvp_act_attack.png?v=1";
@@ -478,6 +484,142 @@ function pvpStopLobbyPoll() {
   }
 }
 
+function pvpStopChallengeWatch() {
+  if (_pvpChallengeWatchTimer) {
+    clearInterval(_pvpChallengeWatchTimer);
+    _pvpChallengeWatchTimer = null;
+  }
+}
+
+function pvpUpdateArenaBadge(n) {
+  _pvpInboxCount = Math.max(0, n | 0);
+  const badge = document.getElementById("pvpArenaBadge");
+  if (!badge) return;
+  if (_pvpInboxCount <= 0) {
+    badge.hidden = true;
+    badge.textContent = "0";
+    return;
+  }
+  badge.hidden = false;
+  badge.textContent = _pvpInboxCount > 99 ? "99+" : String(_pvpInboxCount);
+}
+
+function pvpIsBlockingUiOpen() {
+  const ids = ["modalBackdrop", "achModalBackdrop", "achRewardBackdrop", "storyBackdrop"];
+  return ids.some((id) => {
+    const el = document.getElementById(id);
+    return el && !el.hidden;
+  });
+}
+
+function pvpIsArenaScreenActive() {
+  return !!document.getElementById("screen-pvp-arena")?.classList.contains("active");
+}
+
+async function pvpAcceptChallengeAndOpen(challengeId) {
+  const r = await pvpRespondChallenge(challengeId, true);
+  if (!r.ok) {
+    if (typeof toast === "function") toast(r.error || "Не удалось принять", "warn");
+    return false;
+  }
+  if (r.matchId && r.match) {
+    _pvpOnlineMatch = { matchId: r.matchId, match: r.match };
+    pvpStopLobbyPoll();
+    pvpStartMatchPoll();
+  }
+  if (typeof toast === "function") toast("Дуэль началась", "info");
+  openPvpArena();
+  return true;
+}
+
+async function pvpNotifyIncomingChallenges(rows) {
+  if (!rows || !rows.length) return;
+  if (_pvpChallengeAlertBusy) return;
+  if (pvpIsArenaScreenActive()) {
+    rows.forEach((r) => _pvpNotifiedChallengeIds.add(r.id));
+    if (_pvpTab === "duel") {
+      try {
+        renderPvpArena();
+      } catch (_) {}
+    }
+    return;
+  }
+  if (pvpIsBlockingUiOpen()) return;
+
+  _pvpChallengeAlertBusy = true;
+  try {
+    for (const row of rows) {
+      if (pvpIsArenaScreenActive() || pvpIsBlockingUiOpen()) break;
+      _pvpNotifiedChallengeIds.add(row.id);
+      const name = row.fromName || "Соперник";
+      if (typeof Audio2 !== "undefined" && Audio2.quest) Audio2.quest();
+      if (typeof toast === "function") toast(name + " вызывает вас на дуэль", "warn");
+      if (typeof showConfirm !== "function") {
+        openPvpArena();
+        break;
+      }
+      const accept = await showConfirm({
+        title: "Вызов на дуэль",
+        message: name + " вызывает вас на бой.\nПринять сейчас?",
+        okText: "Принять",
+        cancelText: "Позже",
+      });
+      if (accept) {
+        await pvpAcceptChallengeAndOpen(row.id);
+        break;
+      }
+    }
+  } finally {
+    _pvpChallengeAlertBusy = false;
+  }
+}
+
+async function pvpChallengeWatchTick() {
+  if (typeof pvpSocialLoggedIn !== "function" || !pvpSocialLoggedIn()) {
+    pvpStopChallengeWatch();
+    pvpUpdateArenaBadge(0);
+    return;
+  }
+  if (_pvpOnlineMatch?.match) return;
+  const inR = await pvpFetchDuelInbox();
+  if (!inR.ok) return;
+  const rows = inR.rows || [];
+  const liveIds = new Set(rows.map((r) => r.id));
+  for (const id of [..._pvpNotifiedChallengeIds]) {
+    if (!liveIds.has(id)) _pvpNotifiedChallengeIds.delete(id);
+  }
+  pvpUpdateArenaBadge(rows.length);
+  const fresh = rows.filter((r) => !_pvpNotifiedChallengeIds.has(r.id));
+  if (fresh.length) await pvpNotifyIncomingChallenges(fresh);
+}
+
+/** Глобальный опрос входящих вызовов, пока онлайн в облаке (не только на арене). */
+function pvpStartChallengeWatch() {
+  pvpStopChallengeWatch();
+  if (typeof pvpSocialLoggedIn !== "function" || !pvpSocialLoggedIn()) {
+    pvpUpdateArenaBadge(0);
+    return;
+  }
+  pvpChallengeWatchTick().catch(() => {});
+  _pvpChallengeWatchTimer = setInterval(() => {
+    pvpChallengeWatchTick().catch(() => {});
+  }, PVP_CHALLENGE_WATCH_MS);
+}
+
+/** После входа / в хабе: публикуем лист (онлайн) и слушаем вызовы. */
+function pvpEnsureOnlinePresence() {
+  if (typeof pvpSocialLoggedIn !== "function" || !pvpSocialLoggedIn()) {
+    pvpStopChallengeWatch();
+    pvpUpdateArenaBadge(0);
+    _pvpNotifiedChallengeIds.clear();
+    return;
+  }
+  if (typeof pvpPublishCurrentSheet === "function") {
+    pvpPublishCurrentSheet().catch(() => {});
+  }
+  pvpStartChallengeWatch();
+}
+
 function pvpDuelLobbySig(inbox, outbox) {
   return JSON.stringify({
     in: (inbox || []).map((r) => r.id),
@@ -514,6 +656,7 @@ function pvpStartDuelLobbyPoll() {
     }
     const inbox = inR.ok ? inR.rows || [] : [];
     const outbox = outR.ok ? outR.rows || [] : [];
+    if (typeof pvpUpdateArenaBadge === "function") pvpUpdateArenaBadge(inbox.length);
     const sig = pvpDuelLobbySig(inbox, outbox);
     if (sig !== _pvpLobbySig) {
       _pvpLobbySig = sig;
@@ -532,6 +675,7 @@ function openPvpArena() {
   if (typeof pvpPublishCurrentSheet === "function" && typeof pvpSocialLoggedIn === "function" && pvpSocialLoggedIn()) {
     pvpPublishCurrentSheet().catch(() => {});
   }
+  pvpEnsureOnlinePresence();
   renderPvpArena();
   if (!pvpHelpSeen()) {
     setTimeout(() => showPvpArenaHelp({ title: "Добро пожаловать на арену", okText: "В бой" }), 120);
@@ -867,6 +1011,7 @@ async function renderPvpDuelSetup(body, my) {
     ]);
     if (inR.ok) inbox = inR.rows || [];
     if (outR.ok) outbox = outR.rows || [];
+    if (typeof pvpUpdateArenaBadge === "function") pvpUpdateArenaBadge(inbox.length);
     if (onR && onR.ok) online = onR.rows || [];
     if (actR.ok && actR.match) {
       _pvpOnlineMatch = { matchId: actR.match.meta.matchId, match: actR.match };
@@ -1645,6 +1790,7 @@ function bindPvpArenaUi() {
     };
   }
   wirePvpArenaHotkeys();
+  pvpEnsureOnlinePresence();
 }
 
 if (typeof document !== "undefined") {

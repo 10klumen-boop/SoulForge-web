@@ -5494,10 +5494,10 @@
   .farm-zone-chip.sel { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(201,168,106,.25), 0 6px 16px rgba(0,0,0,.3); background: rgba(201,168,106,.1); }
   .farm-zone-chip.ok { border-color: rgba(120,200,120,.3); }
   .farm-zone-chip.rec:not(.sel) { border-color: rgba(201,168,106,.55); box-shadow: 0 0 12px rgba(201,168,106,.14); }
-  .farm-zone-chip.rec strong::after { content: " ?"; color: var(--gold); font-size: 11px; }
+  .farm-zone-chip.rec strong::after { content: " \2605"; color: var(--gold); font-size: 11px; } /* ★ */
   .farm-zone-chip.lock { opacity: .82; }
   .farm-zone-chip.soon { opacity: .5; cursor: not-allowed; }
-  .farm-zone-chip.story-done strong::after { content: " ?"; color: var(--gold); font-size: 12px; }
+  .farm-zone-chip.story-done strong::after { content: " \2713"; color: var(--gold); font-size: 12px; } /* ✓ */
   .farm-hub-story-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -457,6 +457,8 @@ async function cloudLogout() {
   await bindSaveToCloudNick(null);
   writeCloudAuth(null);
   _cloudDevBypass = false;
+  if (typeof pvpStopChallengeWatch === "function") pvpStopChallengeWatch();
+  if (typeof pvpUpdateArenaBadge === "function") pvpUpdateArenaBadge(0);
   if (typeof syncCloudUI === "function") syncCloudUI();
   if (typeof show === "function") show("login");
 }

@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m116" />
+<link rel="stylesheet" href="styles/main.css?v=m117" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d14" />
 <script src="cloud-config.js"></script>
 
@@ -275,6 +275,12 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.49.11</p>
+        <ul>
+          <li><b>Арена</b> — уведомление о входящем вызове на дуэль, пока онлайн (модалка + бейдж на плитке).</li>
+          <li><b>Фарм</b> — фикс «?» у рекомендуемой зоны (снова ★ / ✓).</li>
+          <li><b>Android</b> — WebView APK на https://soulfgonline.com/.</li>
+        </ul>
         <p class="patch-ver">v0.49.10</p>
         <ul>
           <li><b>Мобайл / Арена</b> — фикс «Ваш лист», компактные карточки соперников, топбар без налезания портрета на аденой.</li>
@@ -779,7 +785,10 @@
           <span class="tile-cap"><span class="tname">Рынок</span></span>
         </div>
         <div class="tile" id="pvpArenaTile" role="button" tabindex="0">
-          <span class="tile-hit"><img class="tile-ico" src="icons/skill0029.png?v=2" alt="" aria-hidden="true"></span>
+          <span class="tile-hit">
+            <img class="tile-ico" src="icons/skill0029.png?v=2" alt="" aria-hidden="true">
+            <span class="tile-badge" id="pvpArenaBadge" hidden>0</span>
+          </span>
           <span class="tile-cap"><span class="tname">Арена</span><span class="tcount">Дуэль</span></span>
         </div>
         <div class="tile" id="achTile" role="button" tabindex="0">
@@ -1209,8 +1218,8 @@
 <script src="src/mine-ui.js"></script>
 <script src="src/mine-core.js?v=11"></script>
 <script src="src/13-portable-save.js"></script>
-<script src="src/cloud-core.js?v=4"></script>
-<script src="src/cloud-ui.js"></script>
+<script src="src/cloud-core.js?v=5"></script>
+<script src="src/cloud-ui.js?v=2"></script>
 <script src="src/market-core.js?v=3"></script>
 <script src="src/market-ui.js?v=6"></script>
 <script src="src/player-mail-core.js?v=2"></script>
@@ -1225,7 +1234,7 @@
 <script src="src/achievements-core.js?v=6"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
-<script src="src/19-home.js?v=2"></script>
+<script src="src/19-home.js?v=3"></script>
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js"></script>
 <script src="src/intro-core.js"></script>
@@ -1263,7 +1272,7 @@
 <script src="src/data/pvp-balance.js?v=1"></script>
 <script src="src/pvp-combat-core.js?v=3"></script>
 <script src="src/pvp-social-core.js?v=3"></script>
-<script src="src/pvp-combat-ui.js?v=17"></script>
+<script src="src/pvp-combat-ui.js?v=18"></script>
 <script src="src/32-debug-log.js"></script>
 <script src="src/avatar-math.js?v=11"></script>
 <script src="src/avatar-stats-core.js?v=5"></script>
