@@ -8,7 +8,7 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const { createStore } = require("./db");
-const { maxPlusFromRecords, parseSavePayload, resolveActiveCharacterId } = require("./db/save-utils");
+const { maxPlusFromRecords, parseSavePayload, resolveActiveCharacterId, summarizeSaveData } = require("./db/save-utils");
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = process.env.HOST || "0.0.0.0";
@@ -372,6 +372,29 @@ app.put("/save", (req, res) => {
       data: prevData,
       lease: leasePayload(store.getWriteLease(user.id)),
     });
+  }
+  // Защита от отката: устаревшая вкладка с большим seq, но меньшим уровнем того же персонажа.
+  if (prev && !body.allowProgressRegression) {
+    const incoming = summarizeSaveData(data);
+    const prevLvl = Math.max(1, Math.floor(Number(prev.active_level) || 1));
+    const nextLvl = Math.max(1, Math.floor(Number(incoming.active_level) || 1));
+    const sameName =
+      prev.active_name &&
+      incoming.active_name &&
+      String(prev.active_name) === String(incoming.active_name);
+    if (sameName && nextLvl + 1 < prevLvl) {
+      const prevData = parseSavePayload(prev);
+      return res.status(409).json({
+        ok: false,
+        error: "Откат уровня персонажа отклонён — на сервере более сильный прогресс",
+        conflict: true,
+        regression: true,
+        seq: prev.seq,
+        savedAt: prev.saved_at,
+        data: prevData,
+        lease: leasePayload(store.getWriteLease(user.id)),
+      });
+    }
   }
   try {
     if (typeof body.farmPower === "number") data.farmPower = body.farmPower;

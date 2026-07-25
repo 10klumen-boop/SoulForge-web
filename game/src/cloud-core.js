@@ -562,8 +562,13 @@ function setWriteLockBanner(show, opts) {
         try {
           const remote = await fetchCloudSave();
           if (remote.ok && !remote.empty) {
-            applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
-            if (typeof toast === "function") toast("Прогресс обновлён с сервера", "success");
+            const localSeq = typeof maxStoredSeq === "function" ? maxStoredSeq() : 0;
+            if ((remote.seq || 0) >= localSeq) {
+              applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+              if (typeof toast === "function") toast("Прогресс обновлён с сервера", "success");
+            } else if (typeof toast === "function") {
+              toast("Локальный прогресс новее сервера — не перезаписываем", "warn");
+            }
           }
         } catch (e) {}
       };
@@ -796,12 +801,17 @@ async function pushCloudSave(opts) {
     if (res.status === 409 && json.data) {
       const localSeq = typeof maxStoredSeq === "function" ? maxStoredSeq() : sentSeq;
       // Only apply remote if it is actually newer than local — never roll back combat progress.
-      if ((json.seq || 0) > localSeq) {
+      if ((json.seq || 0) > localSeq || json.regression) {
         applyCloudSaveData(json.data, json.seq, json.savedAt);
         if (opts.notify && typeof toast === "function") {
-          toast("Сейв с другого устройства новее — загружен с сервера", "warn");
+          toast(
+            json.regression
+              ? "Откат прогресса отклонён — загружен сейв с сервера"
+              : "Сейв с другого устройства новее — загружен с сервера",
+            "warn"
+          );
         }
-        return { ok: false, conflict: true, applied: true };
+        return { ok: false, conflict: true, applied: true, regression: !!json.regression };
       }
       return { ok: false, conflict: true, applied: false, stale: true };
     }
@@ -879,7 +889,18 @@ async function syncCloudProgress(opts) {
   if (!remote.ok) return remote;
 
   if (!remote.empty) {
-    applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+    const localSeq = typeof maxStoredSeq === "function" ? maxStoredSeq() : 0;
+    // Не затирать локальный прогресс более старым облаком (типичный откат при 2 вкладках/устройствах).
+    if ((remote.seq || 0) > localSeq) {
+      applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+    } else if ((remote.seq || 0) < localSeq && localSaveHasProgress()) {
+      // Локаль новее — после lease зальём на сервер.
+    } else if ((remote.seq || 0) === localSeq) {
+      // Равный seq: берём сервер только если локаль пустая.
+      if (!localSaveHasProgress()) {
+        applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
+      }
+    }
   }
 
   const lease = await acquireWriteLease({
@@ -922,6 +943,16 @@ async function syncCloudProgress(opts) {
       toast("Новый облачный сейв — можно играть", "success");
     }
     return { ok: true, empty: true };
+  }
+
+  // Локаль новее сервера — догоняем облако, иначе устаревшая вкладка снова откатит.
+  const localSeqAfter = typeof maxStoredSeq === "function" ? maxStoredSeq() : 0;
+  if ((remote.seq || 0) < localSeqAfter && localSaveHasProgress()) {
+    const up = await pushCloudSave({ force: true });
+    if (up.ok && opts.notify && typeof toast === "function") {
+      toast("Локальный прогресс новее — отправлен в облако", "success");
+    }
+    return { ok: true, uploaded: true, summary: remote.summary, ...up };
   }
 
   if (opts.notify && typeof toast === "function") {
