@@ -10,6 +10,7 @@ let mineOverlayPaused = false;
 let mineWeaponsByGrade = null;
 let mineSession = null;
 let mineSessionLootOpen = false;
+let mineResourceFavOpen = false;
 
 function mineSessionLootKey(entry) {
   if (entry.kind === "weapon") return "w:" + entry.id + ":" + (entry.plus || 0);
@@ -162,6 +163,7 @@ function openMine() {
     loot: {},
   };
   mineSessionLootOpen = false;
+  mineResourceFavOpen = false;
   resetMineGuardSession();
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
   $("#mineEarned").textContent = "0";

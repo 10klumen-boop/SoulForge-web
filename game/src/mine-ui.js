@@ -105,23 +105,32 @@ function renderMineResourceFavorites() {
   if (!rows.length) {
     el.hidden = true;
     el.innerHTML = "";
+    el.classList.remove("is-open");
+    mineResourceFavOpen = false;
     return;
   }
   el.hidden = false;
-  el.innerHTML =
-    '<div class="mine-fav-head"><span class="mine-fav-lbl">Дофарм</span></div>' +
-    '<div class="mine-fav-row">' +
+  const open = !!mineResourceFavOpen;
+  el.classList.toggle("is-open", open);
+  const needLeft = rows.reduce((n, r) => n + (r.done ? 0 : 1), 0);
+  const countLabel = needLeft > 0 ? needLeft : rows.length;
+
+  const bodyHtml =
+    '<div class="mine-loot-body mine-fav-body">' +
     rows
       .map((row) => {
         const leftCls = row.done ? " is-done" : " is-need";
-        const leftTxt = row.done ? "готово" : "ещё " + (typeof fmt === "function" ? fmt(row.left) : row.left);
+        const leftTxt = row.done
+          ? "готово"
+          : "ещё " + (typeof fmt === "function" ? fmt(row.left) : row.left);
         const title =
           (row.name || "") +
           " · " +
           row.have +
           "/" +
           row.target +
-          (row.done ? " ✓" : " · осталось " + row.left);
+          (row.done ? " ✓" : " · осталось " + row.left) +
+          " · тап — убрать";
         const gClass = row.grade ? " g-" + row.grade : "";
         const icon = row.icon
           ? '<img src="' + row.icon + '" alt="" loading="lazy" draggable="false">'
@@ -146,7 +155,7 @@ function renderMineResourceFavorites() {
           (typeof fmt === "function" ? fmt(row.have) : row.have) +
           "/" +
           (typeof fmt === "function" ? fmt(row.target) : row.target) +
-          '</span>' +
+          "</span>" +
           '<span class="mine-fav-left">' +
           leftTxt +
           "</span>" +
@@ -157,8 +166,34 @@ function renderMineResourceFavorites() {
       .join("") +
     "</div>";
 
+  el.innerHTML =
+    '<button type="button" class="mine-loot-toggle" id="mineResourceFavToggle" aria-expanded="' +
+    (open ? "true" : "false") +
+    '">' +
+    '<span class="mine-loot-chevron" aria-hidden="true"></span>' +
+    '<span class="mine-loot-title">' +
+    '<span class="mine-loot-lbl">Дофарм</span>' +
+    '<span class="mine-loot-count' +
+    (needLeft <= 0 ? " is-done" : "") +
+    '">' +
+    countLabel +
+    "</span>" +
+    "</span>" +
+    "</button>" +
+    bodyHtml;
+
+  const toggle = el.querySelector("#mineResourceFavToggle");
+  if (toggle) {
+    toggle.onclick = () => {
+      mineResourceFavOpen = !mineResourceFavOpen;
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      renderMineResourceFavorites();
+    };
+  }
   el.querySelectorAll(".mine-fav-chip").forEach((btn) => {
-    btn.onclick = () => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (typeof removeResourceFavorite !== "function") return;
       if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
       removeResourceFavorite(btn.getAttribute("data-fav-kind"), btn.getAttribute("data-fav-id"));

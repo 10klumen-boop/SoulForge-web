@@ -3980,28 +3980,30 @@
   }
   .mine-quest-hud[hidden] { display: none !important; }
   .mine-resource-fav {
+    position: relative;
+    z-index: 8;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    align-items: stretch;
+    gap: 0;
     margin: 0;
-    padding: 6px 12px 8px;
+    padding: 0;
     border-bottom: 1px solid var(--edge);
-    background: rgba(0,0,0,.14);
+    background: rgba(0,0,0,.12);
+  }
+  .mine-resource-fav.is-open {
+    z-index: 42;
   }
   .mine-resource-fav[hidden] { display: none !important; }
-  .mine-fav-head { display: flex; align-items: center; gap: 8px; }
-  .mine-fav-lbl {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--gold-soft, #c9a86a);
+  .mine-resource-fav.is-open .mine-loot-chevron {
+    transform: rotate(180deg);
   }
-  .mine-fav-row {
+  .mine-resource-fav.is-open .mine-loot-body {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: stretch;
+  }
+  .mine-resource-fav .mine-loot-count.is-done {
+    background: linear-gradient(180deg, #8fdf9a, #5fcf6b);
+    color: #0e1a10;
   }
   .mine-fav-chip {
     display: inline-flex;
