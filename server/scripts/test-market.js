@@ -199,6 +199,70 @@ const equippedBlock = (() => {
 })();
 ok("reject equipped armor", equippedBlock.ok === false);
 
+console.log("\n--- market accessory (jewelry) ---");
+
+store.persistPlayerSave(
+  seller,
+  (store.getSave(seller.id).seq || 1) + 1,
+  now + 30,
+  "0.42",
+  makeSave(100000, [{ uid: "jew1", id: "zaken_earring", kind: "accessory" }], { name: "SellerHero" })
+);
+const accList = store.marketCreateListing(
+  seller,
+  { characterId: "c1", kind: "accessory", uid: "jew1", priceAdena: 5000 },
+  now + 31
+);
+ok("list accessory", accList.ok === true, accList.error);
+ok("accessory left inv", accList.data?.characters[0].progress.inventory.length === 0);
+
+store.persistPlayerSave(buyer, (store.getSave(buyer.id).seq || 1) + 1, now + 32, "0.42", makeSave(500000, [], { name: "BuyerHero" }));
+const accBuy = store.marketBuyListing(buyer, accList.listing.id, { characterId: "c1" }, now + 33);
+ok("buy accessory", accBuy.ok === true, accBuy.error);
+ok(
+  "buyer got accessory",
+  !!(
+    accBuy.buyer &&
+    accBuy.buyer.data.characters[0].progress.inventory.some(
+      (x) => x.uid === "jew1" && x.kind === "accessory" && x.id === "zaken_earring"
+    )
+  )
+);
+
+const equippedAccBlock = (() => {
+  const payload = makeSave(
+    100000,
+    [{ uid: "jew2", id: "zaken_earring", kind: "accessory" }],
+    { name: "SellerHero" }
+  );
+  payload.characters[0].progress.avatar.gear = {
+    earring_l: { uid: "jew2", id: "zaken_earring", kind: "accessory" },
+  };
+  store.persistPlayerSave(seller, (store.getSave(seller.id).seq || 1) + 1, now + 34, "0.42", payload);
+  return store.marketCreateListing(
+    seller,
+    { characterId: "c1", kind: "accessory", uid: "jew2", priceAdena: 5000 },
+    now + 35
+  );
+})();
+ok("reject equipped accessory", equippedAccBlock.ok === false);
+
+const weaponAsAcc = (() => {
+  store.persistPlayerSave(
+    seller,
+    (store.getSave(seller.id).seq || 1) + 1,
+    now + 36,
+    "0.42",
+    makeSave(100000, [{ uid: "w9", id: "sword_d", plus: 0, spent: 0 }], { name: "SellerHero" })
+  );
+  return store.marketCreateListing(
+    seller,
+    { characterId: "c1", kind: "accessory", uid: "w9", priceAdena: 5000 },
+    now + 37
+  );
+})();
+ok("reject weapon as accessory", weaponAsAcc.ok === false);
+
 console.log(failed ? `\nFAILED: ${failed}` : "\nAll market tests passed.");
 try {
   fs.rmSync(dir, { recursive: true, force: true });

@@ -97,6 +97,10 @@ function dismissIntro(fromFirstRun) {
     if (typeof dismissInstanceFailModal === "function") dismissInstanceFailModal();
     return;
   }
+  if (mode === "world_boss_result") {
+    if (typeof dismissWorldBossResultModal === "function") dismissWorldBossResultModal();
+    return;
+  }
   if (mode === "prelude_finale") {
     if (typeof dismissPreludeFinale === "function") dismissPreludeFinale();
     return;

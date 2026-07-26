@@ -280,6 +280,16 @@ function renderInstanceReadyGate(st) {
 function renderInstanceHud(st) {
   const hud = ensureInstanceHud();
   if (!hud) return;
+  // Не рисуем инст-HUD поверх соло-фарма / Закена
+  if (
+    typeof mineSession !== "undefined" &&
+    mineSession &&
+    !mineSession.instance
+  ) {
+    hud.hidden = true;
+    hideInstanceReadyGate();
+    return;
+  }
   if (!st || (st.status !== "active" && st.status !== "ready" && st.status !== "cleared")) {
     hud.hidden = true;
     hideInstanceReadyGate();
@@ -960,6 +970,10 @@ function kickFromInstance(opts) {
 }
 
 function syncInstanceEncounter(st) {
+  // Соло-фарм: не поднимаем инст-HUD от запоздавшего poll
+  if (typeof mineSession !== "undefined" && mineSession && !mineSession.instance) {
+    return;
+  }
   instanceRunState = st;
   renderInstanceHud(st);
   if (st && st.lastEvent && st.lastEvent !== instanceLastEventSeen) {
@@ -1404,6 +1418,7 @@ async function enterInstanceMine(st) {
     if (typeof toast === "function") toast("Сначала создай персонажа", "warn");
     return;
   }
+  if (typeof clearExclusiveMineOverlays === "function") clearExclusiveMineOverlays("instance");
   instanceExitHandled = false;
   instanceLootApplied = false;
   instanceLastEventSeen = "";
@@ -1593,12 +1608,17 @@ async function instanceAfterStopMine() {
   stopInstancePoll();
   instanceClearDom();
   const hud = document.getElementById("instanceHud");
-  if (hud) hud.hidden = true;
+  if (hud) {
+    hud.hidden = true;
+    hud.innerHTML = "";
+  }
   hideInstanceReadyGate();
-  if (instanceRunState?.runId) {
+  const runId = instanceRunState?.runId;
+  // Сразу сбрасываем — иначе poll/HUD успевают «переехать» в соло-фарм
+  instanceRunState = null;
+  if (runId) {
     try {
-      await partyApi("/instance/" + instanceRunState.runId + "/leave", { method: "POST", body: {} });
+      await partyApi("/instance/" + runId + "/leave", { method: "POST", body: {} });
     } catch (_) {}
   }
-  instanceRunState = null;
 }

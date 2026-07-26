@@ -252,6 +252,7 @@ async function enterWorldBossArena() {
 }
 
 function openWorldBossMine(payload) {
+  if (typeof clearExclusiveMineOverlays === "function") clearExclusiveMineOverlays("worldBoss");
   const boss = payload?.boss || (typeof WORLD_BOSS !== "undefined" ? WORLD_BOSS : {});
   const mineCfg = boss.mine || (typeof WORLD_BOSS !== "undefined" ? WORLD_BOSS.mine : null) || {};
   const zoneId = "world_boss";
@@ -401,6 +402,14 @@ function ensureWorldBossHud() {
 function renderWorldBossHud(payload) {
   const hud = ensureWorldBossHud();
   if (!hud) return;
+  if (
+    typeof mineSession !== "undefined" &&
+    mineSession &&
+    !mineSession.worldBoss
+  ) {
+    hud.hidden = true;
+    return;
+  }
   const st = payload?.state || worldBossStateCache?.state;
   const boss = payload?.boss || worldBossStateCache?.boss || {};
   if (!worldBossSessionActive || !st) {
@@ -447,24 +456,140 @@ function stopWorldBossPoll() {
 function maybeShowWorldBossResult(r) {
   const st = r?.state;
   if (!st) return;
-  const places = st.places || [];
-  const ann =
-    places.length > 0
-      ? "Итоги Закена: " +
-        places.map((p) => "#" + p.place + " " + (p.charName || "?")).join(" · ")
-      : st.winner
-        ? "Победитель: " + st.winner.charName
-        : "Окно закрыто. Победителя нет.";
-  if (typeof toast === "function") toast(ann, "info");
-  if (st.my?.canClaim) {
-    if (typeof toast === "function") toast("Ты в топ-3 — забери награду на хабе «Мировой босс».", "success");
+
+  stopWorldBossPoll();
+  worldBossClearDomMob();
+  renderWorldBossHud(r);
+
+  const backdrop = document.getElementById("storyBackdrop");
+  if (!backdrop || typeof renderStoryPanel !== "function") {
+    // Fallback без story-панели: тост + сразу выход
+    const places = st.places || [];
+    const ann =
+      places.length > 0
+        ? "Итоги Закена: " +
+          places.map((p) => "#" + p.place + " " + (p.charName || "?")).join(" · ")
+        : st.winner
+          ? "Победитель: " + st.winner.charName
+          : "Окно Закена закрыто.";
+    if (typeof toast === "function") toast(ann, "info");
+    if (st.my?.canClaim && typeof toast === "function") {
+      toast("Ты в топ-3 — забери награду на хабе.", "success");
+    }
+    leaveWorldBossArena();
+    return;
   }
-  if (typeof renderWorldBossHub === "function") renderWorldBossHub();
+
+  const boss = r?.boss || (typeof WORLD_BOSS !== "undefined" ? WORLD_BOSS : {});
+  const cta = st.my?.canClaim ? "К награде" : "Выйти";
+  renderStoryPanel({
+    title: "Итоги Закена",
+    eyebrow: boss.name || "Мировой босс",
+    lead: "Окно боя закрыто",
+    chapter: "",
+    icon: "",
+    bodyHtml: worldBossResultBodyHtml(r),
+    cta: cta,
+  });
+  backdrop.dataset.storyMode = "world_boss_result";
+  backdrop.className =
+    "story-backdrop race-" +
+    ((state.avatar && state.avatar.raceId) || "human") +
+    " story-chapter-reward story-world-boss-end";
+  backdrop.hidden = false;
+  if (typeof setGamePaused === "function") setGamePaused(true);
+  if (typeof armStoryOkButton === "function") armStoryOkButton();
+  const btn = document.getElementById("storyOk");
+  if (btn) btn.focus();
+}
+
+function worldBossEsc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function worldBossResultBodyHtml(r) {
+  const st = r?.state || {};
+  const my = st.my || {};
+  const places = st.places || [];
+  const esc = worldBossEsc;
+  const parts = ['<div class="world-boss-end-panel">'];
+  parts.push(
+    '<p class="world-boss-end-clicks">Твои клики: <b>' +
+      (my.clicks || 0) +
+      "</b>" +
+      (my.place ? " · место <b>#" + my.place + "</b>" : " · вне топ-3") +
+      "</p>"
+  );
+  if (places.length) {
+    parts.push('<p class="world-boss-end-label"><b>Топ</b></p>');
+    parts.push('<ol class="world-boss-top">');
+    places.forEach((p) => {
+      parts.push(
+        "<li><b>#" +
+          p.place +
+          "</b> " +
+          esc(p.charName || "?") +
+          (my.place === p.place ? " · ты" : "") +
+          "</li>"
+      );
+    });
+    parts.push("</ol>");
+  } else if (st.winner) {
+    parts.push("<p>Победитель: <b>" + esc(st.winner.charName || "?") + "</b></p>");
+  } else {
+    parts.push("<p>Победителя нет.</p>");
+  }
+  if (my.canClaim) {
+    parts.push(
+      '<p class="world-boss-end-claim">Ты в топ-3 — забери награду на хабе «Мировой босс».</p>'
+    );
+  } else {
+    parts.push(
+      '<p class="world-boss-end-claim world-boss-end-claim--muted">Награда только у топ-3.</p>'
+    );
+  }
+  parts.push("</div>");
+  return parts.join("");
+}
+
+function dismissWorldBossResultModal() {
+  const backdrop = document.getElementById("storyBackdrop");
+  if (backdrop) {
+    delete backdrop.dataset.storyMode;
+    backdrop.hidden = true;
+  }
+  if (typeof Audio2 !== "undefined") Audio2.click();
+  leaveWorldBossArena();
+  if (typeof syncGamePauseState === "function") syncGamePauseState();
+  else if (typeof setGamePaused === "function") setGamePaused(false);
+}
+
+/** Выход с арены Закена → хаб «Мировой босс» в меню фарма. */
+function leaveWorldBossArena() {
+  if (typeof stopMine === "function") {
+    try {
+      stopMine();
+    } catch (_) {}
+  } else if (typeof worldBossAfterStopMine === "function") {
+    worldBossAfterStopMine();
+  }
+  if (typeof renderMenu === "function") renderMenu();
+  if (typeof show === "function") show("menu");
+  if (typeof setMenuFarmEntry === "function") {
+    setMenuFarmEntry("worldboss");
+  } else if (typeof renderWorldBossHub === "function") {
+    renderWorldBossHub();
+  }
 }
 
 async function worldBossHandleHit(g, opts) {
   opts = opts || {};
   if (!worldBossSessionActive || !g || !g._worldBossEncounter) return true;
+  if (worldBossEndPrompted) return true;
   if (opts.autoClicker || opts.bySkill || opts.skillMult) return true;
   if (worldBossClickBusy) return true;
   worldBossClickBusy = true;
@@ -502,12 +627,23 @@ async function worldBossHandleHit(g, opts) {
 }
 
 function worldBossAfterStopMine() {
-  if (!worldBossSessionActive && !worldBossPollTimer) return;
+  if (!worldBossSessionActive && !worldBossPollTimer) {
+    const hud = document.getElementById("worldBossHud");
+    if (hud) {
+      hud.hidden = true;
+      hud.innerHTML = "";
+    }
+    return;
+  }
   worldBossSessionActive = false;
+  worldBossEndPrompted = false;
   stopWorldBossPoll();
   worldBossClearDomMob();
   const hud = document.getElementById("worldBossHud");
-  if (hud) hud.hidden = true;
+  if (hud) {
+    hud.hidden = true;
+    hud.innerHTML = "";
+  }
   if (worldBossCloudReady()) {
     worldBossApi("/world-boss/leave", { method: "POST", body: {} }).catch(() => {});
   }

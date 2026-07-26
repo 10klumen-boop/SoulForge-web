@@ -22,6 +22,10 @@ function marketListingTitle(listing) {
     const a = typeof AMAP !== "undefined" ? AMAP[item.id] : null;
     return a?.name || item.id || "Броня";
   }
+  if (kind === "accessory") {
+    const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
+    return c?.name || item.id || "Бижутерия";
+  }
   if (kind === "armor_piece") {
     const fid = item.fragId || item.id;
     const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
@@ -53,6 +57,10 @@ function marketListingIcon(listing) {
     const a = typeof AMAP !== "undefined" ? AMAP[item.id] : null;
     return a?.icon || "icons/btn_armor.png";
   }
+  if (kind === "accessory") {
+    const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
+    return c?.icon || "icons/accessory_earring_of_zaken_i00.png";
+  }
   if (kind === "armor_piece") {
     const fid = item.fragId || item.id;
     const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
@@ -82,6 +90,10 @@ function marketListingGrade(listing) {
   if (kind === "armor") {
     const a = typeof AMAP !== "undefined" ? AMAP[item.id] : null;
     return a?.grade || "";
+  }
+  if (kind === "accessory") {
+    const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
+    return c?.grade || "";
   }
   if (kind === "armor_piece") {
     const fid = item.fragId || item.id;
@@ -218,6 +230,23 @@ function marketListableArmor() {
     if (!it || !it.uid || !it.id) return false;
     if (typeof isArmorItem !== "function" || !isArmorItem(it)) return false;
     if (typeof AMAP !== "undefined" && !AMAP[it.id]) return false;
+    if (equipped.has(String(it.uid))) return false;
+    return true;
+  });
+}
+
+function marketListableAccessories() {
+  const inv = state.inventory || [];
+  const gear = state.avatar?.gear || {};
+  const equipped = new Set();
+  Object.keys(gear).forEach((k) => {
+    const g = gear[k];
+    if (g?.uid) equipped.add(String(g.uid));
+  });
+  return inv.filter((it) => {
+    if (!it || !it.uid || !it.id) return false;
+    if (typeof isAccessoryItem !== "function" || !isAccessoryItem(it)) return false;
+    if (typeof COLLECTIBLES !== "undefined" && !COLLECTIBLES[it.id]) return false;
     if (equipped.has(String(it.uid))) return false;
     return true;
   });

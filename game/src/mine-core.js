@@ -147,9 +147,80 @@ function openMine() {
   openMineContinue(zoneId, zone);
 }
 
+/**
+ * Сброс HUD/поллов/модалки инста и Закена — иначе они «переезжают» в обычный фарм.
+ * mode: "solo" | "instance" | "worldBoss"
+ */
+function clearExclusiveMineOverlays(mode) {
+  mode = mode || "solo";
+  const wantInstance = mode === "instance";
+  const wantWb = mode === "worldBoss";
+
+  if (!wantInstance) {
+    if (typeof stopInstancePoll === "function") stopInstancePoll();
+    if (typeof instanceClearDom === "function") {
+      try {
+        instanceClearDom();
+      } catch (_) {}
+    }
+    if (typeof hideInstanceReadyGate === "function") hideInstanceReadyGate();
+    const ih = document.getElementById("instanceHud");
+    if (ih) {
+      ih.hidden = true;
+      ih.innerHTML = "";
+    }
+    try {
+      if (typeof instanceRunState !== "undefined") instanceRunState = null;
+    } catch (_) {}
+    try {
+      if (typeof instanceExitHandled !== "undefined") instanceExitHandled = false;
+    } catch (_) {}
+  }
+
+  if (!wantWb) {
+    if (typeof stopWorldBossPoll === "function") stopWorldBossPoll();
+    if (typeof worldBossClearDomMob === "function") {
+      try {
+        worldBossClearDomMob();
+      } catch (_) {}
+    }
+    const wh = document.getElementById("worldBossHud");
+    if (wh) {
+      wh.hidden = true;
+      wh.innerHTML = "";
+    }
+    try {
+      if (typeof worldBossSessionActive !== "undefined") worldBossSessionActive = false;
+    } catch (_) {}
+    try {
+      if (typeof worldBossEndPrompted !== "undefined") worldBossEndPrompted = false;
+    } catch (_) {}
+  }
+
+  // Модалки итогов инста/Закена не должны висеть поверх соло-фарма
+  const backdrop = document.getElementById("storyBackdrop");
+  if (backdrop && !backdrop.hidden) {
+    const sm = backdrop.dataset.storyMode || "";
+    if (
+      sm === "instance_clear" ||
+      sm === "instance_fail" ||
+      sm === "world_boss_result"
+    ) {
+      delete backdrop.dataset.storyMode;
+      backdrop.hidden = true;
+      if (typeof syncGamePauseState === "function") syncGamePauseState();
+      else if (typeof setGamePaused === "function") setGamePaused(false);
+    }
+  }
+}
+
 function openMineContinue(zoneId, zone) {
   zoneId = zoneId || state.farmZone || "banana_mine";
   zone = zone || (typeof farmZoneById === "function" ? farmZoneById(zoneId) : null);
+  // Обычный фарм / side — всегда чистим чужие оверлеи (инст/Закен).
+  if (typeof clearExclusiveMineOverlays === "function") {
+    clearExclusiveMineOverlays(zone && zone.party ? "instance" : "solo");
+  }
   if (typeof requestMineWithQuestBriefing === "function" && !zone?.party && requestMineWithQuestBriefing(zoneId)) return;
   const cfg = typeof zoneMineConfig === "function" ? zoneMineConfig(zoneId) : { bgs: MINE_BGS, spawnMs: 920, hint: "Цели вот-вот мелькнут…", title: "Задание" };
   const panelTitle = document.getElementById("minePanelTitle");

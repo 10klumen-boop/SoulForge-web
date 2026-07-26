@@ -5631,6 +5631,33 @@
     font-size: 12px;
     line-height: 1.45;
   }
+  .world-boss-end-panel {
+    margin-top: 6px;
+    text-align: left;
+  }
+  .world-boss-end-clicks {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #f3e6c4;
+  }
+  .world-boss-end-clicks b { color: #fff6dd; }
+  .world-boss-end-label {
+    margin: 0 0 2px;
+    font-size: 12px;
+    color: var(--gold-soft);
+  }
+  .world-boss-end-panel .world-boss-top {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .world-boss-end-claim {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #9dffb0;
+  }
+  .world-boss-end-claim--muted {
+    color: rgba(232, 217, 176, 0.72);
+  }
   .farm-field[hidden] { display: none !important; }
   .farm-field-head-row {
     display: flex; align-items: center; gap: 8px;

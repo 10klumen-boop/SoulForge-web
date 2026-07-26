@@ -1,7 +1,7 @@
 // ===== Рынок UI =====
 
 let _marketTab = "browse"; // browse | sell | mine
-let _marketFilterKind = ""; // "" | weapon | armor | armor_piece | crystal | material | shot
+let _marketFilterKind = ""; // "" | weapon | armor | accessory | armor_piece | crystal | material | shot
 let _marketFilterGrade = ""; // "" | D | C | B | A
 let _marketSort = "new"; // new | price_asc | price_desc
 let _marketBusy = false;
@@ -11,6 +11,7 @@ const MARKET_KIND_TABS = [
   { id: "", label: "Все", icon: "icons/warehouse_chest.png?v=1" },
   { id: "weapon", label: "Оружие", icon: "icons/weapon_elven_sword_i00.png" },
   { id: "armor", label: "Броня", icon: "icons/btn_armor.png" },
+  { id: "accessory", label: "Бижутерия", icon: "icons/accessory_earring_of_zaken_i00.png" },
   { id: "armor_piece", label: "Куски", icon: "icons/etc_crystal_white_i00.png" },
   { id: "crystal", label: "Кристаллы", icon: "icons/etc_crystal_blue_i00.png" },
   { id: "material", label: "Руда", icon: "icons/etc_crystal_white_i00.png" },
@@ -38,6 +39,9 @@ function marketKindTabIcon(tab) {
   if (tab.id === "shot" && typeof SHOT_ICON !== "undefined") return SHOT_ICON.soul?.D || tab.icon;
   if (tab.id === "armor" && typeof UI_MENU_ICONS !== "undefined" && UI_MENU_ICONS.armor) {
     return UI_MENU_ICONS.armor;
+  }
+  if (tab.id === "accessory" && typeof COLLECTIBLES !== "undefined" && COLLECTIBLES.zaken_earring?.icon) {
+    return COLLECTIBLES.zaken_earring.icon;
   }
   if (tab.id === "armor_piece" && typeof ARMOR_FRAGS !== "undefined") {
     const first = Object.keys(ARMOR_FRAGS)[0];
@@ -598,9 +602,30 @@ function suggestMarketArmorPrice(it) {
   return MARKET_MIN_PRICE;
 }
 
+function marketAccessorySlotLabel(slot) {
+  if (slot === "earring") return "Серьга";
+  if (slot === "ring") return "Кольцо";
+  if (slot === "necklace") return "Ожерелье";
+  return slot || "Бижутерия";
+}
+
+function suggestMarketAccessoryPrice(it) {
+  try {
+    const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[it.id] : null;
+    if (!c) return MARKET_MIN_PRICE;
+    if (c.epic) return Math.max(MARKET_MIN_PRICE, 5_000_000);
+    if (typeof GRADE_VALUE !== "undefined" && c.grade) {
+      const base = Math.floor((GRADE_VALUE[c.grade] || MARKET_MIN_PRICE) * 0.6);
+      return Math.max(MARKET_MIN_PRICE, base);
+    }
+  } catch (_) {}
+  return MARKET_MIN_PRICE;
+}
+
 function renderMarketSell(root) {
   const weapons = marketListableWeapons();
   const armors = typeof marketListableArmor === "function" ? marketListableArmor() : [];
+  const accessories = typeof marketListableAccessories === "function" ? marketListableAccessories() : [];
   const stacks = marketStackOptions();
   let sellKind = "weapon";
   let sellGrade = "";
@@ -683,6 +708,41 @@ function renderMarketSell(root) {
             suggestPrice: suggestMarketArmorPrice(it),
             onConfirm: async ({ priceAdena }) => {
               await submitMarketList({ kind: "armor", uid: it.uid, priceAdena });
+            },
+          });
+        };
+        box.appendChild(row);
+      });
+      return;
+    }
+
+    if (sellKind === "accessory") {
+      if (!accessories.length) {
+        box.innerHTML = '<p class="market-empty">Нет бижутерии для продажи (сними со слота).</p>';
+        return;
+      }
+      accessories.forEach((it) => {
+        const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[it.id] : null;
+        const slotLabel = marketAccessorySlotLabel(c?.slot);
+        const gradeBit = c?.grade ? " · грейд " + c.grade : c?.epic ? " · эпик" : "";
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "market-sell-pick";
+        row.innerHTML =
+          '<img src="' + (c?.icon || "") + '" alt="">' +
+          '<div class="market-sell-info"><b>' + (c?.name || it.id) + "</b>" +
+          '<span class="market-card-meta">' + slotLabel + gradeBit +
+          " · нажми, чтобы выставить</span></div>" +
+          '<span class="market-sell-go">→</span>';
+        row.onclick = () => {
+          Audio2.click();
+          openMarketListModal({
+            icon: c?.icon || "",
+            title: c?.name || it.id,
+            meta: "Бижутерия · " + slotLabel + gradeBit,
+            suggestPrice: suggestMarketAccessoryPrice(it),
+            onConfirm: async ({ priceAdena }) => {
+              await submitMarketList({ kind: "accessory", uid: it.uid, priceAdena });
             },
           });
         };

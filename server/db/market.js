@@ -7,7 +7,7 @@ const MARKET_MIN_PRICE = 1000;
 const MARKET_MAX_PRICE = 50_000_000_000;
 const MARKET_LISTING_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MARKET_MAX_LISTINGS = 10;
-const MARKET_KINDS = new Set(["weapon", "crystal", "material", "shot", "armor", "armor_piece"]);
+const MARKET_KINDS = new Set(["weapon", "crystal", "material", "shot", "armor", "armor_piece", "accessory"]);
 const GRADES = new Set(["D", "C", "B", "A"]);
 const ORES = new Set(["soul", "spirit"]);
 
@@ -135,7 +135,7 @@ function takeWeapon(progress, uid) {
   if (idx < 0) return { ok: false, error: "Оружие не найдено в инвентаре" };
   const it = inv[idx];
   if (it.starter) return { ok: false, error: "Стартовое оружие нельзя выставлять" };
-  if (it.kind === "accessory") return { ok: false, error: "Аксессуары пока нельзя выставлять" };
+  if (it.kind === "accessory") return { ok: false, error: "Бижутерия выставляется отдельно" };
   if (it.kind === "armor") return { ok: false, error: "Броня выставляется отдельно" };
   const gearUid = progress.avatar?.gear?.weapon?.uid;
   if (gearUid && String(gearUid) === want) {
@@ -201,6 +201,47 @@ function giveArmor(progress, item) {
     uid: snap.uid,
     id: snap.id,
     kind: "armor",
+  });
+  return { ok: true };
+}
+
+function sanitizeAccessoryItem(it) {
+  if (!it || typeof it !== "object") return null;
+  if (it.kind !== "accessory") return null;
+  const id = String(it.id || "").slice(0, 64);
+  const uid = String(it.uid || "").slice(0, 64);
+  if (!id || !uid) return null;
+  return { kind: "accessory", uid, id };
+}
+
+function takeAccessory(progress, uid) {
+  const want = String(uid || "");
+  const inv = progress.inventory || [];
+  const idx = inv.findIndex((it) => it && String(it.uid) === want);
+  if (idx < 0) return { ok: false, error: "Бижутерия не найдена в инвентаре" };
+  const it = inv[idx];
+  if (it.kind !== "accessory") return { ok: false, error: "Это не бижутерия" };
+  if (isUidEquippedAnywhere(progress, want)) {
+    return { ok: false, error: "Сначала сними бижутерию" };
+  }
+  const snap = sanitizeAccessoryItem(it);
+  if (!snap) return { ok: false, error: "Некорректная бижутерия" };
+  inv.splice(idx, 1);
+  progress.inventory = inv;
+  return { ok: true, item: snap, qty: 1 };
+}
+
+function giveAccessory(progress, item) {
+  const snap = sanitizeAccessoryItem(item);
+  if (!snap) return { ok: false, error: "Некорректная бижутерия" };
+  if (!Array.isArray(progress.inventory)) progress.inventory = [];
+  if (progress.inventory.length >= 120) {
+    return { ok: false, error: "Инвентарь покупателя полон" };
+  }
+  progress.inventory.push({
+    uid: snap.uid,
+    id: snap.id,
+    kind: "accessory",
   });
   return { ok: true };
 }
@@ -293,6 +334,7 @@ function takeFromProgress(progress, body) {
   if (!MARKET_KINDS.has(kind)) return { ok: false, error: "Неизвестный тип лота" };
   if (kind === "weapon") return takeWeapon(progress, body.uid);
   if (kind === "armor") return takeArmor(progress, body.uid);
+  if (kind === "accessory") return takeAccessory(progress, body.uid);
   if (kind === "crystal") return takeCrystal(progress, body.grade, body.qty);
   if (kind === "material") return takeMaterial(progress, body.ore, body.qty);
   if (kind === "shot") return takeShot(progress, body.shotKind || body.shot_kind, body.grade, body.qty);
@@ -307,6 +349,7 @@ function giveToProgress(progress, item, qty) {
   const n = Math.max(1, Math.floor(Number(qty) || 1));
   if (kind === "weapon") return giveWeapon(progress, item);
   if (kind === "armor") return giveArmor(progress, item);
+  if (kind === "accessory") return giveAccessory(progress, item);
   if (kind === "crystal") return giveCrystal(progress, item.grade, n);
   if (kind === "material") return giveMaterial(progress, item.ore, n);
   if (kind === "shot") return giveShot(progress, item.shotKind || item.shot_kind, item.grade, n);
@@ -785,6 +828,7 @@ module.exports = {
   giveToProgress,
   sanitizeWeaponItem,
   sanitizeArmorItem,
+  sanitizeAccessoryItem,
   validatePrice,
   sellerPayout,
   syncActiveRoot,
