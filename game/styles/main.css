@@ -6408,7 +6408,7 @@
     to { stroke-dashoffset: -32; }
   }
   .gnome.instance-anvil-mark {
-    z-index: 8 !important;
+    z-index: 24 !important;
     width: 78px !important;
     height: 78px !important;
     pointer-events: auto;
@@ -6511,7 +6511,7 @@
     border: 1px solid #ffe6a0;
     pointer-events: none;
   }
-  .gnome.instance-anvil-mark.is-mine { z-index: 9 !important; }
+  .gnome.instance-anvil-mark.is-mine { z-index: 25 !important; }
   .gnome.instance-anvil-mark:not(.is-mine) { opacity: 0.78; }
   .gnome.instance-anvil-mark.is-open .anvil-mark-disc {
     transform: scale(1.08);

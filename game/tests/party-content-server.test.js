@@ -411,23 +411,23 @@ for (let i = 0; i < 12000 && !bossDmgAfterAnvil; i++) {
     assert.ok(blocked.blocked, "boss hits blocked during anvil");
     let roundDone = false;
     for (let k = 0; k < 400 && !roundDone; k++) {
-      const mid = store.instanceState(user1, { runId: depthsStart.state.runId });
-      const e2 = mid.state?.encounter;
-      if (!e2 || !e2.anvilActive) {
+      const tK = tHit + 500 + k * 160;
+      const run = [...store._instanceRuns.values()].find((r) => r.id === depthsStart.state.runId);
+      if (!run || !run.encounter || !run.encounter.anvilActive) {
         roundDone = true;
         break;
       }
-      const tK = tHit + 500 + k * 160;
-      const run = [...store._instanceRuns.values()].find((r) => r.id === depthsStart.state.runId);
-      if (run && run.encounter && Array.isArray(run.encounter.anvilMarks)) {
+      if (Array.isArray(run.encounter.anvilMarks)) {
         for (const m of run.encounter.anvilMarks) {
           m.windowOpen = true;
           m.nextToggleAt = tK + 5000;
         }
       }
-      const myMarks = (e2.anvilMarks || []).filter((m) => String(m.ownerUserId) === String(user1.id));
-      const mark = myMarks[k % Math.max(1, myMarks.length)] || (e2.anvilMarks || [])[0];
-      if (!mark) break;
+      const myMarks = (run.encounter.anvilMarks || []).filter(
+        (m) => String(m.ownerUserId) === String(user1.id)
+      );
+      if (!myMarks.length) continue;
+      const mark = myMarks[0];
       const hk = store.instanceHit(user1, {
         runId: depthsStart.state.runId,
         dmg: 1,
@@ -531,14 +531,18 @@ for (let i = 0; i < 8000 && !wiped; i++) {
     const run = [...store._instanceRuns.values()].find((r) => r.id === wipeStart.state.runId);
     const failMax = Math.max(1, enc.anvilFailMax || 10);
     for (let f = 0; f < failMax + 2; f++) {
-      if (run && run.encounter && Array.isArray(run.encounter.anvilMarks)) {
+      if (!run || !run.encounter || !run.encounter.anvilActive) break;
+      if (Array.isArray(run.encounter.anvilMarks)) {
         for (const m of run.encounter.anvilMarks) {
           m.windowOpen = true;
           m.nextToggleAt = tHit + 5000 + f * 200;
         }
       }
-      const foreign = (enc.anvilMarks || []).find((m) => String(m.ownerUserId) !== String(user1.id));
-      const mark = foreign || (enc.anvilMarks || [])[0];
+      const foreign = (run.encounter.anvilMarks || []).find(
+        (m) => String(m.ownerUserId) !== String(user1.id)
+      );
+      const mark = foreign || (run.encounter.anvilMarks || [])[0];
+      if (!mark) break;
       const hw = store.instanceHit(user1, {
         runId: wipeStart.state.runId,
         dmg: 1,

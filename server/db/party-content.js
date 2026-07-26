@@ -654,6 +654,121 @@ function attachPartyContentMethods(db, store) {
     return (enc?.mobs || []).filter((m) => !m.dead);
   }
 
+  /** Добирает шары наковальни до anvilMarkCap (после клика шар исчезает). */
+  function refillAnvilMarks(enc, nowMs) {
+    if (!enc || !enc.anvilActive) return;
+    if ((enc.anvilProgress || 0) >= (enc.anvilGoal || 1)) return;
+    if (!Array.isArray(enc.anvilMarks)) enc.anvilMarks = [];
+    if (!Array.isArray(enc.anvilPlayers) || !enc.anvilPlayers.length) return;
+    const cap = Math.max(1, Math.min(8, Math.floor(Number(enc.anvilMarkCap) || 6)));
+    const windowMs = Math.max(600, Math.floor(Number(enc.anvilWindowMs) || 1400));
+    const cycleMs = Math.max(windowMs + 200, Math.floor(Number(enc.anvilCycleMs) || 2200));
+    const now = Number(nowMs) || Date.now();
+    const leftMin = 14;
+    const leftMax = 86;
+    const topMin = 38;
+    const topMax = 74;
+    const minDist = 16;
+    // Босс стоит примерно в центре поля — шары не кладём поверх него.
+    const bossL = 50;
+    const bossT = 42;
+    const bossClear = 24;
+    let guard = 0;
+    while (enc.anvilMarks.length < cap && guard++ < 32) {
+      let left = leftMin + 8;
+      let top = topMin + 8;
+      for (let tryN = 0; tryN < 64; tryN++) {
+        // Чаще по бокам / снизу, реже у центра
+        let candL;
+        let candT;
+        const lane = Math.random();
+        if (lane < 0.42) {
+          candL = leftMin + Math.random() * (36 - leftMin);
+          candT = topMin + Math.random() * (topMax - topMin);
+        } else if (lane < 0.84) {
+          candL = 64 + Math.random() * (leftMax - 64);
+          candT = topMin + Math.random() * (topMax - topMin);
+        } else {
+          candL = 22 + Math.random() * 56;
+          candT = 60 + Math.random() * (topMax - 60);
+        }
+        const dbx = candL - bossL;
+        const dby = candT - bossT;
+        if (dbx * dbx + dby * dby < bossClear * bossClear) continue;
+        let ok = true;
+        for (const s of enc.anvilMarks) {
+          if (!s) continue;
+          const dx = candL - Number(s.left);
+          const dy = candT - Number(s.top);
+          if (dx * dx + dy * dy < minDist * minDist) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          left = candL;
+          top = candT;
+          break;
+        }
+      }
+      // Финальный отжим от босса, если рандом не нашёл идеальную точку
+      {
+        const dbx = left - bossL;
+        const dby = top - bossT;
+        const d2 = dbx * dbx + dby * dby;
+        if (d2 < bossClear * bossClear) {
+          const d = Math.sqrt(Math.max(0.01, d2));
+          const push = bossClear / d;
+          left = bossL + dbx * push;
+          top = bossT + dby * push;
+          if (Math.abs(dbx) < 0.1 && Math.abs(dby) < 0.1) {
+            left = Math.random() < 0.5 ? leftMin + 6 : leftMax - 6;
+            top = 58 + Math.random() * 12;
+          }
+        }
+      }
+      left = Math.max(leftMin, Math.min(leftMax, left));
+      top = Math.max(topMin, Math.min(topMax, top));
+      // Владелец с наименьшим числом шаров на поле (чтобы после клика свой цвет не пропадал).
+      const counts = new Map();
+      for (const p of enc.anvilPlayers) counts.set(String(p.userId), 0);
+      for (const m of enc.anvilMarks) {
+        const key = String(m.ownerUserId);
+        if (counts.has(key)) counts.set(key, (counts.get(key) || 0) + 1);
+      }
+      let owner = enc.anvilPlayers[0];
+      let bestN = Infinity;
+      for (const p of enc.anvilPlayers) {
+        const n = counts.get(String(p.userId)) || 0;
+        if (n < bestN) {
+          bestN = n;
+          owner = p;
+        }
+      }
+      enc.anvilSpawnSeq = Math.max(0, Math.floor(Number(enc.anvilSpawnSeq) || 0)) + 1;
+      const seq = enc.anvilSpawnSeq;
+      const stagger = 200 + Math.floor(Math.random() * Math.max(400, Math.floor(cycleMs * 0.45)));
+      enc.anvilMarks.push({
+        id: (enc.id || "boss") + "_anvil_" + seq,
+        windowOpen: false,
+        openEndsAt: 0,
+        nextToggleAt: now + stagger,
+        ownerUserId: owner.userId,
+        color: owner.color,
+        left: Math.round(left * 10) / 10,
+        top: Math.round(top * 10) / 10,
+      });
+    }
+  }
+
+  function consumeAnvilMark(enc, mark) {
+    if (!enc || !mark || !Array.isArray(enc.anvilMarks)) return false;
+    const idx = enc.anvilMarks.findIndex((m) => m && m.id === mark.id);
+    if (idx < 0) return false;
+    enc.anvilMarks.splice(idx, 1);
+    return true;
+  }
+
   function applyBossPhase(enc, nowMs, run) {
     if (!enc || enc.kind !== "boss" || !Array.isArray(enc.phases) || !enc.phases.length) return;
     const boss = enc.mobs && enc.mobs[0];
@@ -711,6 +826,8 @@ function attachPartyContentMethods(db, store) {
           enc.anvilCycleMs = cycleMs;
           enc.anvilFails = 0;
           enc.anvilFailMax = failMax;
+          enc.anvilMarkCap = n;
+          enc.anvilSpawnSeq = 0;
           // Цвета и владельцы меток — рандом на каждую фазу наковальни
           const colorPool = partyShuffle(
             (typeof ANVIL_PLAYER_COLORS !== "undefined" ? ANVIL_PLAYER_COLORS : []).slice()
@@ -731,50 +848,7 @@ function attachPartyContentMethods(db, store) {
             ];
           }
           enc.anvilMarks = [];
-          const ownerOrder = partyShuffle(enc.anvilPlayers.slice());
-          const slots = [];
-          const minDist = 18;
-          // % центра метки; запас под 78px + translate(-50%) и HUD/скиллы
-          const leftMin = 18;
-          const leftMax = 82;
-          const topMin = 26;
-          const topMax = 68;
-          for (let mi = 0; mi < n; mi++) {
-            let left = (leftMin + leftMax) / 2;
-            let top = (topMin + topMax) / 2;
-            for (let tryN = 0; tryN < 48; tryN++) {
-              const candL = leftMin + Math.random() * (leftMax - leftMin);
-              const candT = topMin + Math.random() * (topMax - topMin);
-              let ok = true;
-              for (const s of slots) {
-                const dx = candL - s.left;
-                const dy = candT - s.top;
-                if (dx * dx + dy * dy < minDist * minDist) {
-                  ok = false;
-                  break;
-                }
-              }
-              if (ok) {
-                left = candL;
-                top = candT;
-                break;
-              }
-            }
-            left = Math.max(leftMin, Math.min(leftMax, left));
-            top = Math.max(topMin, Math.min(topMax, top));
-            slots.push({ left, top });
-            const owner = ownerOrder[mi % ownerOrder.length];
-            const stagger = Math.floor((cycleMs / n) * mi);
-            enc.anvilMarks.push({
-              id: (enc.id || "boss") + "_anvil_" + mi + "_" + phKey.replace(/\s+/g, ""),
-              windowOpen: false,
-              nextToggleAt: now + stagger,
-              ownerUserId: owner.userId,
-              color: owner.color,
-              left: Math.round(left * 10) / 10,
-              top: Math.round(top * 10) / 10,
-            });
-          }
+          refillAnvilMarks(enc, now);
           enc.phaseLabel = ph.label || enc.phaseLabel;
           boss.shieldHp = 0;
           boss.shieldMax = 0;
@@ -849,10 +923,12 @@ function attachPartyContentMethods(db, store) {
       while ((mark.nextToggleAt || 0) <= now) {
         if (mark.windowOpen) {
           mark.windowOpen = false;
+          mark.openEndsAt = 0;
           mark.nextToggleAt = (mark.nextToggleAt || now) + closedMs;
         } else {
           mark.windowOpen = true;
-          mark.nextToggleAt = (mark.nextToggleAt || now) + windowMs;
+          mark.openEndsAt = (mark.nextToggleAt || now) + windowMs;
+          mark.nextToggleAt = mark.openEndsAt;
         }
       }
     }
@@ -1280,6 +1356,8 @@ function attachPartyContentMethods(db, store) {
         const windowHit = !!mark.windowOpen;
         const ownColor = String(mark.ownerUserId) === String(user.id);
         const good = windowHit && ownColor;
+        // Один клик — шар пропадает.
+        consumeAnvilMark(enc, mark);
         if (good) {
           const add = bySkill ? 2 : 1;
           enc.anvilProgress = Math.min(
@@ -1289,11 +1367,13 @@ function attachPartyContentMethods(db, store) {
           enc.lastHitAt = now;
           if (bySkill) enc.lastSkillHitAt = now;
           applyBossPhase(enc, now, run);
+          if (enc.anvilActive) refillAnvilMarks(enc, now);
           return {
             ok: true,
             killed: false,
             anvilHit: true,
             markId: mark.id,
+            markConsumed: true,
             windowHit: true,
             colorOk: true,
             score: add,
@@ -1316,6 +1396,7 @@ function attachPartyContentMethods(db, store) {
             killed: false,
             anvilHit: true,
             markId: mark.id,
+            markConsumed: true,
             windowHit,
             colorOk: ownColor,
             score: 0,
@@ -1325,11 +1406,13 @@ function attachPartyContentMethods(db, store) {
           };
         }
         applyBossPhase(enc, now, run);
+        if (enc.anvilActive) refillAnvilMarks(enc, now);
         return {
           ok: true,
           killed: false,
           anvilHit: true,
           markId: mark.id,
+          markConsumed: true,
           windowHit,
           colorOk: ownColor,
           score: 0,

@@ -707,14 +707,14 @@ function syncInstanceAnvilMarks(st) {
   const field = typeof mineSpawnField === "function" ? mineSpawnField() : null;
   if (!field) return;
   const layout = [
-    { left: 22, top: 30 },
-    { left: 50, top: 28 },
-    { left: 78, top: 30 },
-    { left: 24, top: 48 },
-    { left: 76, top: 48 },
-    { left: 32, top: 64 },
-    { left: 68, top: 64 },
-    { left: 50, top: 58 },
+    { left: 18, top: 44 },
+    { left: 82, top: 44 },
+    { left: 20, top: 58 },
+    { left: 80, top: 58 },
+    { left: 28, top: 70 },
+    { left: 72, top: 70 },
+    { left: 14, top: 52 },
+    { left: 86, top: 52 },
   ];
   const windowMs = enc.anvilWindowMs || 1400;
   const me = instanceAnvilSelfPlayer(st);
@@ -724,8 +724,26 @@ function syncInstanceAnvilMarks(st) {
     const fallback = layout[idx] || layout[idx % layout.length] || layout[0];
     let left = Number.isFinite(Number(m.left)) ? Number(m.left) : fallback.left;
     let top = Number.isFinite(Number(m.top)) ? Number(m.top) : fallback.top;
-    left = Math.max(18, Math.min(82, left));
-    top = Math.max(26, Math.min(68, top));
+    // Не даём клиенту поставить шар поверх босса (центр ~50/42)
+    {
+      const bossL = 50;
+      const bossT = 42;
+      const clear = 24;
+      const dbx = left - bossL;
+      const dby = top - bossT;
+      const d2 = dbx * dbx + dby * dby;
+      if (d2 < clear * clear) {
+        const d = Math.sqrt(Math.max(0.01, d2));
+        left = bossL + (dbx / d) * clear;
+        top = bossT + (dby / d) * clear;
+        if (Math.abs(dbx) < 0.1 && Math.abs(dby) < 0.1) {
+          left = idx % 2 === 0 ? 18 : 82;
+          top = 56;
+        }
+      }
+    }
+    left = Math.max(14, Math.min(86, left));
+    top = Math.max(38, Math.min(74, top));
     const open = !!m.windowOpen;
     const color = m.color || "#ffb040";
     const mine = myId != null && String(m.ownerUserId) === String(myId);
@@ -1516,6 +1534,17 @@ async function instanceHandleHit(g, opts) {
     }
     if (r.anvilHit) {
       playInstanceAnvilHitFx(g, r);
+      if (r.markConsumed || r.markId) {
+        const mid = r.markId || g._instanceMobId;
+        const local = mid ? instanceDomAnvilMarks.get(mid) : g;
+        if (local) {
+          try {
+            if (typeof mineGnomes !== "undefined" && mineGnomes) mineGnomes.delete(local);
+            if (local.remove) local.remove();
+          } catch (_) {}
+          if (mid) instanceDomAnvilMarks.delete(mid);
+        }
+      }
       if (typeof Audio2 !== "undefined") {
         if (r.windowHit && r.colorOk) Audio2.mineHit();
         else if (Audio2.uiClick) Audio2.uiClick();
