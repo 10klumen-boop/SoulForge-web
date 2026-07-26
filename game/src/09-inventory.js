@@ -212,6 +212,115 @@ function isInventoryFull() {
   return inventoryCount() >= INV_CAP;
 }
 
+/** Кап отложенного лута (если сумка полна — предмет не пропадает). */
+const OVERFLOW_LOOT_CAP = 40;
+
+function ensureOverflowLoot() {
+  if (!Array.isArray(state.overflowLoot)) {
+    if (typeof ProgressStore !== "undefined") ProgressStore.set("overflowLoot", []);
+    else state.overflowLoot = [];
+  }
+}
+
+function overflowLootCount() {
+  ensureOverflowLoot();
+  return (state.overflowLoot || []).length;
+}
+
+/**
+ * Сумка полна → предмет в overflowLoot (не теряется).
+ * @returns {boolean}
+ */
+function enqueueOverflowLoot(item, meta) {
+  meta = meta || {};
+  if (!item || !item.id) return false;
+  ensureOverflowLoot();
+  if ((state.overflowLoot || []).length >= OVERFLOW_LOOT_CAP) {
+    if (!meta.silent && typeof toast === "function") {
+      toast("Сумка и отложенный лут переполнены — освободи место!", "warn");
+    }
+    return false;
+  }
+  let snap;
+  try {
+    snap = JSON.parse(JSON.stringify(item));
+  } catch (_) {
+    snap = Object.assign({}, item);
+  }
+  if (!snap.uid && typeof uid === "function") snap.uid = uid();
+  snap._overflowAt = Date.now();
+  snap._overflowSource = meta.source || "loot";
+  const next = (state.overflowLoot || []).concat([snap]);
+  if (typeof ProgressStore !== "undefined") ProgressStore.set("overflowLoot", next);
+  else state.overflowLoot = next;
+  if (!meta.silent && typeof toast === "function") {
+    const def = typeof invItemDef === "function" ? invItemDef(snap) : null;
+    const name = (def && def.name) || snap.id || "предмет";
+    toast("Сумка полна → «" + name + "» в отложенный лут", "warn");
+  }
+  if (typeof save === "function") save();
+  if (typeof renderMenu === "function") renderMenu();
+  return true;
+}
+
+/**
+ * Переносит отложенный лут в сумку, пока есть место.
+ * @returns {number} сколько предметов забрано
+ */
+function flushOverflowLoot(opts) {
+  opts = opts || {};
+  ensureOverflowLoot();
+  const queue = state.overflowLoot || [];
+  if (!queue.length) return 0;
+  let moved = 0;
+  const remain = [];
+  const inv = (state.inventory || []).slice();
+  for (let i = 0; i < queue.length; i++) {
+    const it = queue[i];
+    if (!it) continue;
+    if (it.kind === "shard") {
+      const idx = inv.findIndex((x) => x && x.kind === "shard" && x.id === it.id);
+      if (idx >= 0) {
+        const cur = inv[idx];
+        inv[idx] = Object.assign({}, cur, {
+          qty: Math.max(0, Math.floor(Number(cur.qty) || 0)) + Math.max(1, Math.floor(Number(it.qty) || 1)),
+        });
+        moved++;
+        continue;
+      }
+    }
+    if (inv.length >= INV_CAP) {
+      remain.push(it);
+      continue;
+    }
+    const clean = Object.assign({}, it);
+    delete clean._overflowAt;
+    delete clean._overflowSource;
+    inv.push(clean);
+    moved++;
+  }
+  if (moved > 0) {
+    if (typeof ProgressStore !== "undefined") {
+      ProgressStore.set("inventory", inv);
+      ProgressStore.set("overflowLoot", remain);
+    } else {
+      state.inventory = inv;
+      state.overflowLoot = remain;
+    }
+    if (!opts.silent && typeof toast === "function") {
+      toast("Отложенный лут: +" + moved, "success");
+    }
+    if (typeof save === "function") save();
+    if (typeof renderMenu === "function") renderMenu();
+  }
+  return moved;
+}
+
+/** После продажи/кристаллизации/снятия — попробовать забрать отложенное. */
+function afterInventorySpaceFreed() {
+  if (typeof flushOverflowLoot === "function") flushOverflowLoot({ silent: true });
+}
+
 function trimInventoryToCap() {
   if (!state.inventory || state.inventory.length <= INV_CAP) return false;
   ProgressStore.set("inventory", state.inventory.slice(0, INV_CAP));
@@ -220,12 +329,29 @@ function trimInventoryToCap() {
 }
 
 function addToInventory(weaponId, meta) {
+  meta = meta || {};
   if (!state.inventory) state.inventory = [];
+  const plus = meta.plus != null ? Math.max(0, Math.floor(Number(meta.plus) || 0)) : 0;
+  const it = { uid: uid(), id: weaponId, plus: plus, spent: 0 };
   if (isInventoryFull()) {
+    if (typeof enqueueOverflowLoot === "function" && enqueueOverflowLoot(it, { source: meta.source || "loot" })) {
+      if (typeof markWeaponCollected === "function") markWeaponCollected(weaponId);
+      if (typeof logCharacterEvent === "function") {
+        const w = WMAP[weaponId];
+        logCharacterEvent("loot_weapon_overflow", {
+          weaponId,
+          weaponName: w?.name || weaponId,
+          grade: w?.grade || null,
+          plus: plus,
+          source: meta.source || "unknown",
+          zoneId: meta.zoneId || state.farmZone || null,
+        });
+      }
+      return it;
+    }
     toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
     return null;
   }
-  const it = { uid: uid(), id: weaponId, plus: 0, spent: 0 };
   const inv = (state.inventory || []).slice();
   inv.push(it);
   ProgressStore.set("inventory", inv);
@@ -240,9 +366,9 @@ function addToInventory(weaponId, meta) {
       weaponId,
       weaponName: w?.name || weaponId,
       grade: w?.grade || null,
-      plus: meta?.plus != null ? Math.max(0, Math.floor(Number(meta.plus) || 0)) : 0,
-      source: meta?.source || "unknown",
-      zoneId: meta?.zoneId || state.farmZone || null,
+      plus: plus,
+      source: meta.source || "unknown",
+      zoneId: meta.zoneId || state.farmZone || null,
     });
   }
   return it;
@@ -294,6 +420,15 @@ function addShardToInventory(shardId, qty, meta) {
     inv[idx] = Object.assign({}, cur, { qty: Math.max(0, Math.floor(Number(cur.qty) || 0) + add) });
   } else {
     if (typeof isInventoryFull === "function" && isInventoryFull()) {
+      const overflowItem = {
+        uid: typeof uid === "function" ? uid() : "sh_" + Date.now(),
+        id: shardId,
+        kind: "shard",
+        qty: add,
+      };
+      if (typeof enqueueOverflowLoot === "function" && enqueueOverflowLoot(overflowItem, { source: meta.source || "shard" })) {
+        return overflowItem;
+      }
       if (typeof toast === "function") toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
       return null;
     }
@@ -366,11 +501,14 @@ function addCollectibleToInventory(collectibleId) {
   const def = COLLECTIBLES[collectibleId];
   if (!def) return null;
   if (!state.inventory) state.inventory = [];
+  const it = { uid: uid(), id: collectibleId, kind: "accessory" };
   if (isInventoryFull()) {
+    if (typeof enqueueOverflowLoot === "function" && enqueueOverflowLoot(it, { source: "accessory" })) {
+      return it;
+    }
     toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
     return null;
   }
-  const it = { uid: uid(), id: collectibleId, kind: "accessory" };
   const inv = (state.inventory || []).slice();
   inv.push(it);
   ProgressStore.set("inventory", inv);
@@ -446,9 +584,11 @@ function migrateAccessoryShardsToInventory() {
   Object.keys(ACCESSORY_FRAGS).forEach((id) => {
     const qty = Math.max(0, Math.floor(Number(state.materials[id]) || 0));
     if (qty <= 0) return;
+    let ok = false;
     if (typeof addShardToInventory === "function") {
-      addShardToInventory(id, qty, { silent: true });
+      ok = !!addShardToInventory(id, qty, { silent: true });
     }
+    if (!ok) return;
     ProgressStore.update("materials", (m) => {
       const next = { ...(m || {}) };
       delete next[id];
@@ -459,12 +599,14 @@ function migrateAccessoryShardsToInventory() {
 
 function openInventory() {
   migrateAccessoryShardsToInventory();
+  if (typeof flushOverflowLoot === "function") flushOverflowLoot({ silent: false });
   renderInventory();
   show("inv");
   Audio2.open();
 }
 function goInventory() {
   migrateAccessoryShardsToInventory();
+  if (typeof flushOverflowLoot === "function") flushOverflowLoot({ silent: false });
   renderInventory();
   renderMenu();
   show("inv");

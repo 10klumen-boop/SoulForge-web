@@ -341,6 +341,7 @@ function stopMine() {
     });
   }
   mineSession = null;
+  if (typeof afterInventorySpaceFreed === "function") afterInventorySpaceFreed();
   // Immediate local + cloud flush — debounce must not leave combat loot on an old cloud seq.
   if (typeof save === "function") save();
   if (typeof flushCloudSave === "function") flushCloudSave({ force: true });

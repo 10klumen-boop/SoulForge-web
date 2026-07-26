@@ -567,8 +567,10 @@ function attachPartyContentMethods(db, store) {
             idleInMs: (function () {
               if (run.encounter.kind !== "wave" || run.status !== "active") return null;
               const idleMs = dungeon?.waveIdleMs || 22000;
-              const last = run.encounter.lastHitAt || Date.now();
-              return Math.max(0, last + idleMs - Date.now());
+              const deadline =
+                Number(run.encounter.idleDeadlineAt) ||
+                (Number(run.encounter.lastHitAt) || Date.now()) + idleMs;
+              return Math.max(0, deadline - Date.now());
             })(),
             idleTotalMs:
               run.encounter.kind === "wave" ? dungeon?.waveIdleMs || 22000 : null,
@@ -630,6 +632,7 @@ function attachPartyContentMethods(db, store) {
       });
     }
     const now = Date.now();
+    const waveIdleMs = kind === "wave" ? dungeon?.waveIdleMs || 22000 : 0;
     return {
       id: packId,
       kind,
@@ -645,6 +648,8 @@ function attachPartyContentMethods(db, store) {
       regenPct: def.regenPct || 0,
       nextRegenAt: kind === "boss" && def.regenPulseMs ? now + def.regenPulseMs : 0,
       lastHitAt: now,
+      // Жёсткий дедлайн волны: не сбрасывается ударами (иначе UI 21↔20).
+      idleDeadlineAt: kind === "wave" ? now + waveIdleMs : 0,
       lastSkillHitAt: 0,
       mobs,
     };
@@ -1074,12 +1079,15 @@ function attachPartyContentMethods(db, store) {
     const dungeon = partyDungeonById(run.dungeonId);
     now = Number(now) || Date.now();
 
-    // Wave idle rampage — lose a life, respawn pack
+    // Wave timer — жёсткий дедлайн с спавна пака (не от lastHit).
     if (enc.kind === "wave") {
       const idleMs = dungeon?.waveIdleMs || 22000;
-      if (now - (enc.lastHitAt || now) > idleMs) {
+      const deadline =
+        Number(enc.idleDeadlineAt) ||
+        (Number(enc.lastHitAt) || now) + idleMs;
+      if (!enc.idleDeadlineAt) enc.idleDeadlineAt = deadline;
+      if (now >= deadline) {
         run.lives = Math.max(0, (run.lives || 0) - 1);
-        enc.lastHitAt = now;
         run.lastEvent = "idle_rampage";
         if (run.lives <= 0) {
           run.status = "failed";

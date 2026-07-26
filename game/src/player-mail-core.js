@@ -137,6 +137,11 @@ function playerMailParcelLabel(parcel) {
     const label = (typeof SHOT_TYPE !== "undefined" && SHOT_TYPE[sk]?.label) || sk || "Заряд";
     return label + " " + (it.grade || "") + " ×" + qty;
   }
+  if (kind === "armor_piece") {
+    const fid = it.fragId || it.id;
+    const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
+    return (frag?.name || fid || "Кусок брони") + " ×" + qty;
+  }
   if (typeof accountStorageItemLabel === "function") return accountStorageItemLabel(it);
   if (typeof marketListingTitle === "function") {
     return marketListingTitle({ kind, item: it, qty });
@@ -158,6 +163,11 @@ function playerMailParcelIcon(parcel) {
   if (kind === "shot") {
     const sk = it.shotKind || it.shot_kind;
     return (typeof SHOT_ICON !== "undefined" && SHOT_ICON[sk]?.[it.grade]) || "icons/etc_spirit_bullet_blue_i00.png";
+  }
+  if (kind === "armor_piece") {
+    const fid = it.fragId || it.id;
+    const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
+    return frag?.icon || "icons/etc_crystal_white_i00.png";
   }
   if (typeof accountStorageItemIcon === "function") return accountStorageItemIcon(it);
   return "icons/weapon_small_sword_i00.png";

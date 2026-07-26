@@ -7,10 +7,16 @@ const MAIL_MAX_PENDING_PER_CHAR = 30;
 const MAIL_INV_CAP = 120;
 const MAIL_MAX_ADENA = 50_000_000_000;
 const MAIL_GEAR_KINDS = new Set(["weapon", "armor", "accessory"]);
-const MAIL_STACK_KINDS = new Set(["adena", "crystal", "material", "shot"]);
+const MAIL_STACK_KINDS = new Set(["adena", "crystal", "material", "shot", "armor_piece"]);
 const MAIL_KINDS = new Set([...MAIL_GEAR_KINDS, ...MAIL_STACK_KINDS]);
 const GRADES = new Set(["D", "C", "B", "A"]);
 const ORES = new Set(["soul", "spirit"]);
+
+function isArmorPieceId(fragId) {
+  const id = String(fragId || "");
+  if (id.length < 8 || id.length > 80) return false;
+  return /^[a-z0-9_]+_piece$/i.test(id);
+}
 
 function ensureMailSchema(db) {
   db.exec(`
@@ -217,6 +223,30 @@ function giveMaterial(progress, ore, qty) {
   return { ok: true };
 }
 
+function takeArmorPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isArmorPieceId(fid)) return { ok: false, error: "Неверный кусок брони" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!progress.materials || typeof progress.materials !== "object") {
+    progress.materials = { soul: 0, spirit: 0 };
+  }
+  const have = Math.max(0, Math.floor(Number(progress.materials[fid]) || 0));
+  if (have < n) return { ok: false, error: "Не хватает кусков брони" };
+  progress.materials[fid] = have - n;
+  return { ok: true, item: { kind: "armor_piece", fragId: fid }, qty: n };
+}
+
+function giveArmorPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isArmorPieceId(fid)) return { ok: false, error: "Неверный кусок брони" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!progress.materials || typeof progress.materials !== "object") {
+    progress.materials = { soul: 0, spirit: 0 };
+  }
+  progress.materials[fid] = Math.max(0, Math.floor(Number(progress.materials[fid]) || 0)) + n;
+  return { ok: true };
+}
+
 function takeShot(progress, shotKind, grade, qty) {
   const sk = String(shotKind || "").toLowerCase();
   const g = String(grade || "").toUpperCase();
@@ -249,6 +279,9 @@ function takeMailFromProgress(progress, body) {
   if (kind === "adena") return takeAdena(progress, body.qty ?? body.adena);
   if (kind === "crystal") return takeCrystal(progress, body.grade, body.qty);
   if (kind === "material") return takeMaterial(progress, body.ore, body.qty);
+  if (kind === "armor_piece") {
+    return takeArmorPiece(progress, body.fragId || body.frag_id || body.id, body.qty);
+  }
   if (kind === "shot") {
     return takeShot(progress, body.shotKind || body.shot_kind, body.grade, body.qty);
   }
@@ -262,6 +295,9 @@ function giveMailToProgress(progress, item, qty) {
   if (kind === "adena") return giveAdena(progress, n);
   if (kind === "crystal") return giveCrystal(progress, item.grade, n);
   if (kind === "material") return giveMaterial(progress, item.ore, n);
+  if (kind === "armor_piece") {
+    return giveArmorPiece(progress, item.fragId || item.frag_id || item.id, n);
+  }
   if (kind === "shot") return giveShot(progress, item.shotKind || item.shot_kind, item.grade, n);
   return { ok: false, error: "Неизвестный тип предмета" };
 }

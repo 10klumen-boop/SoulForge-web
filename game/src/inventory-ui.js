@@ -262,6 +262,7 @@ async function crystallizeAt(idx) {
     next[grade] = (next[grade] || 0) + yld;
     return next;
   });
+  if (typeof afterInventorySpaceFreed === "function") afterInventorySpaceFreed();
   Audio2.coin();
   save();
   if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
@@ -611,6 +612,23 @@ function renderInventory() {
   const scroll = document.createElement("div");
   scroll.className = "inv-bag-scroll sf-scroll";
 
+  const overflowN = typeof overflowLootCount === "function" ? overflowLootCount() : 0;
+  if (overflowN > 0) {
+    const banner = document.createElement("button");
+    banner.type = "button";
+    banner.className = "inv-overflow-banner";
+    banner.innerHTML =
+      "<b>Отложенный лут</b> · " +
+      overflowN +
+      " шт. — нажми, чтобы забрать в сумку";
+    banner.onclick = () => {
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      if (typeof flushOverflowLoot === "function") flushOverflowLoot({ silent: false });
+      renderInventory();
+    };
+    scroll.appendChild(banner);
+  }
+
   const bar = document.createElement("div");
   bar.className = "inv-bar";
   const title = document.createElement("div");
@@ -690,6 +708,7 @@ async function sellNgWeaponFromInventory(it) {
   ProgressStore.set("inventory", (state.inventory || []).filter((x) => x.uid !== it.uid));
   ProgressStore.update("adena", (a) => (a || 0) + sv);
   ProgressStore.update("totals", (t) => ({ ...(t || { tries: 0, fails: 0, earned: 0 }), earned: (t?.earned || 0) + sv }));
+  if (typeof afterInventorySpaceFreed === "function") afterInventorySpaceFreed();
   // NG не считается «заточенным» — ачивка seller / weaponsSold только для грейдового.
   Audio2.success();
   save();

@@ -118,6 +118,7 @@ function removeInvByUid(uid) {
   const inv = (state.inventory || []).slice();
   const [it] = inv.splice(idx, 1);
   ProgressStore.set("inventory", inv);
+  if (typeof afterInventorySpaceFreed === "function") afterInventorySpaceFreed();
   return it;
 }
 

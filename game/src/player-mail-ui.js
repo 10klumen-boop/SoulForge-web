@@ -7,7 +7,7 @@ let _playerMailOutbox = [];
 let _playerMailUnread = 0;
 let _playerMailToName = "";
 let _playerMailSendTab = "gear"; // gear | stack
-let _playerMailStackKey = ""; // "adena" | "crystal:D" | "material:soul" | "shot:soul:D"
+let _playerMailStackKey = ""; // "adena" | "crystal:D" | "material:soul" | "shot:soul:D" | "armor_piece:bone_helmet_piece"
 let _playerMailStackQty = 1;
 
 function playerMailBadgeCount() {
@@ -69,6 +69,7 @@ function playerMailStackKeyOf(st) {
   if (st.kind === "crystal") return "crystal:" + st.grade;
   if (st.kind === "material") return "material:" + st.ore;
   if (st.kind === "shot") return "shot:" + st.shotKind + ":" + st.grade;
+  if (st.kind === "armor_piece") return "armor_piece:" + st.fragId;
   return "";
 }
 
@@ -79,6 +80,7 @@ function playerMailParseStackKey(key) {
   if (parts[0] === "crystal") return { kind: "crystal", grade: parts[1] };
   if (parts[0] === "material") return { kind: "material", ore: parts[1] };
   if (parts[0] === "shot") return { kind: "shot", shotKind: parts[1], grade: parts[2] };
+  if (parts[0] === "armor_piece") return { kind: "armor_piece", fragId: parts.slice(1).join(":") };
   return null;
 }
 
@@ -141,7 +143,7 @@ function renderPlayerMailHtml() {
   html +=
     '<section class="account-mail-section">' +
     "<h3>Отправить</h3>" +
-    '<p class="account-storage-hint">Экип, адена, кристаллы, руда или заряды → уникальное имя персонажа.</p>';
+    '<p class="account-storage-hint">Экип, адена, кристаллы, руда, куски брони или заряды → уникальное имя персонажа.</p>';
 
   html +=
     '<div class="account-mail-source-tabs">' +

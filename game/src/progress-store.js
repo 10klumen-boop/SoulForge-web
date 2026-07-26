@@ -9,7 +9,7 @@ const CHARACTER_PROGRESS_KEYS = [
   "records", "totals", "storySeen", "inventory", "crystals",
   "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
   "passiveIncome", "autoClicker", "resourceFavorites",
-  "partyFarm", "instanceLocks",
+  "partyFarm", "instanceLocks", "overflowLoot",
 ];
 
 const ProgressStore = (function () {

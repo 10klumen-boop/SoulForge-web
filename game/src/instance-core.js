@@ -993,6 +993,10 @@ function syncInstanceEncounter(st) {
       if (typeof toast === "function" && st.lives != null) {
         toast("Потеряна жизнь! Осталось: " + st.lives, "warn");
       }
+      if (st.lastEvent === "enrage") {
+        // Новый enrage-окна на том же боссе — перезапустить визуальный таймер
+        syncInstanceMobTimers(st, true);
+      }
     }
   }
   if (typeof renderMineSkillBar === "function") renderMineSkillBar();
@@ -1383,7 +1387,7 @@ function dismissInstanceClearModal() {
   if (typeof toast === "function") toast("Награда инстанса получена", "success");
 }
 
-/** Визуальный таймер пака: idle волны / enrage босса. Expire не пишет «Упущено». */
+/** Визуальный таймер пака: дедлайн волны / enrage босса. Expire не пишет «Упущено». */
 function syncInstanceMobTimers(st, force) {
   if (!st || !st.encounter || typeof attachMobTimer !== "function") return;
   const enc = st.encounter;
@@ -1408,7 +1412,11 @@ function syncInstanceMobTimers(st, force) {
   for (const g of instanceDomMobs.values()) {
     if (!g || (typeof mineGnomes !== "undefined" && mineGnomes && !mineGnomes.has(g))) continue;
     const curLeft = g._timerEnd ? Math.max(0, g._timerEnd - Date.now()) : 0;
-    if (!force && g._timerRaf && Math.abs(life - curLeft) < 1200) continue;
+    if (!force && g._timerRaf) {
+      // Не дёргать таймер вверх от полла (было 21↔20 при сбросе lastHit).
+      // Подтягиваем только если сервер заметно «впереди» (меньше времени).
+      if (life >= curLeft - 400) continue;
+    }
     attachMobTimer(g, Math.max(200, life || total), onExpire, total);
   }
 }

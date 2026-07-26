@@ -1,8 +1,17 @@
 function renderMenu() {
   const n = inventoryCount();
-  const capHint = n >= INV_CAP ? "!" : "";
+  const overflow =
+    typeof overflowLootCount === "function" ? overflowLootCount() : 0;
+  const capHint = n >= INV_CAP ? "!" : overflow > 0 ? "+" : "";
   const invEl = $("#invCount");
-  if (invEl) invEl.textContent = n + "/" + INV_CAP + capHint;
+  if (invEl) {
+    invEl.textContent =
+      n +
+      "/" +
+      INV_CAP +
+      capHint +
+      (overflow > 0 ? " · +" + overflow : "");
+  }
   const asMeta = document.getElementById("accountStorageMeta");
   if (asMeta && typeof accountWarehouseCount === "function") {
     const wh = accountWarehouseCount();

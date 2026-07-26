@@ -149,5 +149,45 @@ ok("name HeroBob taken", nameCheck.available === false);
 const nameFree = store.isCharacterNameAvailable("UniqueHeroZZ", { excludeUserId: alice.id });
 ok("name UniqueHeroZZ free", nameFree.available === true);
 
+// armor pieces (materials *_piece)
+const alicePiece = JSON.parse(store.getSave(alice.id).payload);
+alicePiece.characters[0].progress.materials = {
+  soul: 0,
+  spirit: 0,
+  bone_helmet_piece: 7,
+};
+alicePiece.characters[0].progress.inventory = [];
+store.persistPlayerSave(alice, (adenaClaim.seq || 20) + 1, now + 14, "0.46", alicePiece);
+
+const badOrePiece = store.mailSend(
+  alice,
+  { characterId: "c1", kind: "armor_piece", fragId: "soul", qty: 1, toName: "HeroBob" },
+  now + 15
+);
+ok("reject ore as armor_piece", badOrePiece.ok === false, badOrePiece.error);
+
+const pieceSent = store.mailSend(
+  alice,
+  { characterId: "c1", kind: "armor_piece", fragId: "bone_helmet_piece", qty: 3, toName: "HeroBob" },
+  now + 16
+);
+ok("send armor_piece", pieceSent.ok === true, pieceSent.error);
+ok(
+  "alice pieces reduced",
+  pieceSent.data?.characters[0].progress.materials.bone_helmet_piece === 4,
+  String(pieceSent.data?.characters[0].progress.materials.bone_helmet_piece)
+);
+ok("parcel kind armor_piece", pieceSent.parcel?.kind === "armor_piece");
+
+const bobMatsBefore = JSON.parse(store.getSave(bob.id).payload).characters[0].progress.materials || {};
+const bobPieceBefore = Math.max(0, Math.floor(Number(bobMatsBefore.bone_helmet_piece) || 0));
+const pieceClaim = store.mailClaim(bob, pieceSent.parcel.id, { characterId: "c1" }, now + 17);
+ok("claim armor_piece", pieceClaim.ok === true, pieceClaim.error);
+ok(
+  "bob got pieces",
+  pieceClaim.data?.characters[0].progress.materials.bone_helmet_piece === bobPieceBefore + 3,
+  String(pieceClaim.data?.characters[0].progress.materials.bone_helmet_piece)
+);
+
 console.log(failed ? "\nFAILED: " + failed : "\nAll mail tests passed.");
 process.exit(failed ? 1 : 0);

@@ -135,11 +135,14 @@ function addArmorToInventory(armorId, meta) {
   const def = typeof AMAP !== "undefined" ? AMAP[armorId] : null;
   if (!def) return null;
   if (!state.inventory) state.inventory = [];
+  const it = { uid: typeof uid === "function" ? uid() : String(Date.now()), id: armorId, kind: "armor" };
   if (typeof isInventoryFull === "function" && isInventoryFull()) {
+    if (typeof enqueueOverflowLoot === "function" && enqueueOverflowLoot(it, { source: meta?.source || "armor" })) {
+      return it;
+    }
     if (typeof toast === "function") toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
     return null;
   }
-  const it = { uid: typeof uid === "function" ? uid() : String(Date.now()), id: armorId, kind: "armor" };
   const inv = (state.inventory || []).slice();
   inv.push(it);
   ProgressStore.set("inventory", inv);
