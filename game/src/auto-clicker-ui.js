@@ -88,6 +88,10 @@ function renderAutoClickerHud() {
   if (!hud) return;
   if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
   if (typeof clampAutoClickerToMax === "function") clampAutoClickerToMax();
+  if (typeof autoClickerBlockedInCurrentMine === "function" && autoClickerBlockedInCurrentMine()) {
+    hud.hidden = true;
+    return;
+  }
   const rem = typeof autoClickerRemainingMs === "function" ? autoClickerRemainingMs() : 0;
   const active = typeof autoClickerIsActive === "function" ? autoClickerIsActive() : false;
   const enabled = state.autoClicker?.enabled !== false;

@@ -49,6 +49,8 @@ const UI_MENU_ICONS = {
   inventory: "assets/ui/menubutton2_crop.png?v=10",
   warehouse: "icons/account_warehouse.png?v=1",
   mail: "icons/etc_letter_envelope_i00.png?v=1",
+  party: "icons/party_menu.png?v=2",
+  arena: "icons/arena_menu.png?v=1",
   market: "icons/warehouse_chest.png?v=1",
   workshop: "assets/ui/inventory_book_crop.png?v=10",
   achievements: "assets/ui/bloodhood_icon02_crop.png",
@@ -216,12 +218,16 @@ function syncMenuTileIcons() {
   const questIco = document.querySelector("#questTile .tile-ico");
   const whIco = document.querySelector("#accountStorageTile .tile-ico");
   const mailIco = document.querySelector("#playerMailTile .tile-ico");
+  const partyIco = document.querySelector("#partyTile .tile-ico");
   const marketIco = document.querySelector("#marketTile .tile-ico");
+  const arenaIco = document.querySelector("#pvpArenaTile .tile-ico");
   if (charIco) charIco.src = UI_MENU_ICONS.character;
   if (questIco) questIco.src = UI_MENU_ICONS.quest;
   if (whIco && UI_MENU_ICONS.warehouse) whIco.src = UI_MENU_ICONS.warehouse;
   if (mailIco && UI_MENU_ICONS.mail) mailIco.src = UI_MENU_ICONS.mail;
+  if (partyIco && UI_MENU_ICONS.party) partyIco.src = UI_MENU_ICONS.party;
   if (marketIco && UI_MENU_ICONS.market) marketIco.src = UI_MENU_ICONS.market;
+  if (arenaIco && UI_MENU_ICONS.arena) arenaIco.src = UI_MENU_ICONS.arena;
 }
 
 function devWorldIconEntries() {

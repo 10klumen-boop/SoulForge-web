@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m121" />
+<link rel="stylesheet" href="styles/main.css?v=m148" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d14" />
 <script src="cloud-config.js"></script>
 
@@ -280,6 +280,14 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.55.0</p>
+        <ul>
+          <li><b>Группа</b> — создание/приглашение/кик (до 4), панель состава и Ready, поиск в инст.</li>
+          <li><b>Групповая охота</b> — «Тропа налётчиков» и «Глубинный штрек»: общая цель, бонус адена за состав.</li>
+          <li><b>Инстансы</b> — «Ущелье Багрового Воя» и «Чертог Расплавленных Сердец»: 5 волн → босс, механики саппортов, UI-фоны карточек.</li>
+          <li><b>Мировой босс Закен</b> — окно 5 мин раз в час, только реальные клики; топ-1 серьга D (+5% PvP), 2–3 осколки → крафт в мастерской.</li>
+          <li><b>Бижутерия</b> — слоты серьги/кольца/ожерелья в экипировке, бонусы в статах и на арене.</li>
+        </ul>
         <p class="patch-ver">v0.49.23</p>
         <ul>
           <li><b>Фарм</b> — HP мобов якорится на зону (targetPower), а не на силу персонажа: апгрейд и заточка реально ускоряют убийство.</li>
@@ -750,6 +758,13 @@
               <small>Кузница · фрагменты брони</small>
             </span>
           </button>
+          <button type="button" class="farm-hub-entry-btn farm-hub-entry-wb" id="farmEntryWorldBoss" data-farm-entry="worldboss">
+            <img class="farm-hub-entry-ico" src="assets/ui/world-boss-card-zaken.png?v=1" alt="" draggable="false">
+            <span class="farm-hub-entry-copy">
+              <strong>Мировой босс</strong>
+              <small>Закен · 5 мин · топ-3</small>
+            </span>
+          </button>
         </div>
 
         <section class="farm-field" id="storyField" aria-label="История" hidden>
@@ -801,6 +816,14 @@
             </button>
           </div>
         </section>
+
+        <section class="farm-field" id="worldBossField" aria-label="Мировой босс" hidden>
+          <div class="farm-field-head-row">
+            <button type="button" class="farm-field-back" id="worldBossFieldBack" title="Назад">←</button>
+            <div class="farm-field-head">Мировой босс</div>
+          </div>
+          <div class="world-boss-hub sf-scroll" id="worldBossHubBody"></div>
+        </section>
       </div>
       <div class="story-arc-bar" id="storyArcBar" hidden>
         <button type="button" class="story-arc-btn" id="storyArcBtn" title="Сюжет и главы">
@@ -832,6 +855,13 @@
           </span>
           <span class="tile-cap"><span class="tname">Почта</span><span class="tcount" id="playerMailMeta" hidden></span></span>
         </div>
+        <div class="tile" id="partyTile" role="button" tabindex="0">
+          <span class="tile-hit">
+            <img class="tile-ico" src="icons/party_menu.png?v=2" alt="" aria-hidden="true">
+            <span class="tile-badge" id="partyTileBadge" hidden>0</span>
+          </span>
+          <span class="tile-cap"><span class="tname">Группа</span><span class="tcount" id="partyTileMeta">Собрать</span></span>
+        </div>
         <div class="tile" id="shopTile" role="button" tabindex="0">
           <span class="tile-hit"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Мастерская</span></span>
@@ -842,7 +872,7 @@
         </div>
         <div class="tile" id="pvpArenaTile" role="button" tabindex="0">
           <span class="tile-hit">
-            <img class="tile-ico" src="icons/skill0029.png?v=2" alt="" aria-hidden="true">
+            <img class="tile-ico" src="icons/arena_menu.png?v=1" alt="" aria-hidden="true">
             <span class="tile-badge" id="pvpArenaBadge" hidden>0</span>
           </span>
           <span class="tile-cap"><span class="tname">Арена</span><span class="tcount">Дуэль</span></span>
@@ -950,6 +980,14 @@
         <h2>Почта <span class="account-mail-badge" id="playerMailHeadBadge" hidden>0</span></h2>
       </div>
       <div class="account-storage-body sf-scroll" id="playerMailBody"></div>
+    </section>
+
+    <section class="screen" id="screen-party">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img src="icons/party_menu.png?v=2" alt="" class="inv-head-ico"> Группа</h2>
+      </div>
+      <div class="party-screen-body sf-scroll" id="partyScreenBody"></div>
     </section>
 
     <section class="screen" id="screen-shop">
@@ -1249,31 +1287,31 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=452"></script>
+<script src="src/01-constants.js?v=454"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
-<script src="src/02-state.js?v=48"></script>
+<script src="src/02-state.js?v=49"></script>
 <script src="src/data/audio-data.js?v=2"></script>
 <script src="src/03-audio.js?v=3"></script>
 <script src="src/04-settings.js"></script>
-<script src="src/05-dom.js?v=48"></script>
-<script src="src/data/enchant-balance.js?v=3"></script>
+<script src="src/05-dom.js?v=50"></script>
+<script src="src/data/enchant-balance.js?v=5"></script>
 <script src="src/data/armor-sets-data.js?v=11"></script>
 <script src="src/06-rules.js?v=12"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
-<script src="src/workshop-core.js?v=6"></script>
-<script src="src/07-workshop.js?v=18"></script>
+<script src="src/workshop-core.js?v=8"></script>
+<script src="src/07-workshop.js?v=19"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
-<script src="src/08-menu.js?v=5"></script>
-<script src="src/09-inventory.js?v=62"></script>
+<script src="src/08-menu.js?v=6"></script>
+<script src="src/09-inventory.js?v=64"></script>
 <script src="src/enchant-ui.js?v=2"></script>
-<script src="src/inventory-ui.js?v=10"></script>
+<script src="src/inventory-ui.js?v=12"></script>
 <script src="src/account-storage-core.js?v=5"></script>
 <script src="src/account-storage-ui.js?v=5"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js"></script>
 <script src="src/11-enchant.js?v=13"></script>
-<script src="src/mine-ui.js?v=3"></script>
-<script src="src/mine-core.js?v=12"></script>
+<script src="src/mine-ui.js?v=4"></script>
+<script src="src/mine-core.js?v=18"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js?v=5"></script>
 <script src="src/cloud-ui.js?v=3"></script>
@@ -1281,10 +1319,15 @@
 <script src="src/market-ui.js?v=6"></script>
 <script src="src/player-mail-core.js?v=2"></script>
 <script src="src/player-mail-ui.js?v=2"></script>
-<script src="src/chat-core.js?v=5"></script>
-<script src="src/chat-ui.js?v=4"></script>
-<script src="src/progress-store.js?v=2"></script>
-<script src="src/15-game-log.js"></script>
+<script src="src/chat-core.js?v=12"></script>
+<script src="src/chat-ui.js?v=5"></script>
+<script src="src/data/party-content-data.js?v=20"></script>
+<script src="src/party-core.js?v=14"></script>
+<script src="src/party-farm-core.js?v=5"></script>
+<script src="src/instance-core.js?v=33"></script>
+<script src="src/world-boss-core.js?v=12"></script>
+<script src="src/progress-store.js?v=3"></script>
+<script src="src/15-game-log.js?v=2"></script>
 <script src="src/16-accessory.js?v=2"></script>
 <script src="src/data/achievement-data.js?v=4"></script>
 <script src="src/data/economy-balance.js?v=4"></script>
@@ -1295,54 +1338,54 @@
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js"></script>
 <script src="src/intro-core.js"></script>
-<script src="src/21-intro.js?v=6"></script>
-<script src="src/33-ui-icons.js?v=11"></script>
+<script src="src/21-intro.js?v=8"></script>
+<script src="src/33-ui-icons.js?v=14"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=4"></script>
-<script src="src/35-characters.js?v=45"></script>
+<script src="src/35-characters.js?v=46"></script>
 <script src="src/data/avatar-data.js"></script>
 <script src="src/data/professions-data.js?v=11"></script>
 <script src="src/data/passive-skills-data.js?v=2"></script>
 <script src="src/passive-skills-core.js?v=3"></script>
 <script src="src/professions-core.js?v=11"></script>
 <script src="src/avatar-core.js?v=6"></script>
-<script src="src/22-avatar.js?v=22"></script>
+<script src="src/22-avatar.js?v=23"></script>
 <script src="src/professions-ui.js?v=4"></script>
-<script src="src/avatar-gear-core.js?v=14"></script>
+<script src="src/avatar-gear-core.js?v=16"></script>
 <script src="src/armor-sets-core.js?v=12"></script>
 <script src="src/resource-favorites-core.js?v=1"></script>
 <script src="src/avatar-armor-display.js?v=2"></script>
-<script src="src/23-avatar-gear.js?v=16"></script>
-<script src="src/story-zones-core.js?v=4"></script>
-<script src="src/25-story-zones.js?v=10"></script>
-<script src="src/data/mine-visuals-data.js?v=14"></script>
-<script src="src/26-mine-visuals.js?v=40"></script>
+<script src="src/23-avatar-gear.js?v=17"></script>
+<script src="src/story-zones-core.js?v=5"></script>
+<script src="src/25-story-zones.js?v=11"></script>
+<script src="src/data/mine-visuals-data.js?v=17"></script>
+<script src="src/26-mine-visuals.js?v=41"></script>
 <script src="src/data/quest-data.js?v=2"></script>
-<script src="src/quest-core.js?v=4"></script>
-<script src="src/27-quests.js?v=47"></script>
+<script src="src/quest-core.js?v=5"></script>
+<script src="src/27-quests.js?v=48"></script>
 <script src="src/quest-journal-core.js?v=4"></script>
 <script src="src/29-quest-journal.js?v=8"></script>
 <script src="src/prelude-finale-core.js?v=2"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
 <script src="src/data/combat-skills-data.js?v=2"></script>
-<script src="src/combat-skills-core.js?v=2"></script>
-<script src="src/31-combat-skills.js?v=9"></script>
+<script src="src/combat-skills-core.js?v=7"></script>
+<script src="src/31-combat-skills.js?v=11"></script>
 <script src="src/data/pvp-balance.js?v=3"></script>
-<script src="src/pvp-combat-core.js?v=7"></script>
+<script src="src/pvp-combat-core.js?v=8"></script>
 <script src="src/pvp-social-core.js?v=3"></script>
 <script src="src/pvp-combat-ui.js?v=21"></script>
 <script src="src/32-debug-log.js"></script>
 <script src="src/avatar-math.js?v=14"></script>
-<script src="src/avatar-stats-core.js?v=5"></script>
-<script src="src/24-avatar-stats.js?v=21"></script>
+<script src="src/avatar-stats-core.js?v=8"></script>
+<script src="src/24-avatar-stats.js?v=26"></script>
 <script src="src/data/passive-income-balance.js?v=4"></script>
 <script src="src/passive-income-core.js?v=8"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
 <script src="src/data/auto-clicker-balance.js?v=8"></script>
-<script src="src/auto-clicker-core.js?v=7"></script>
-<script src="src/auto-clicker-ui.js?v=5"></script>
+<script src="src/auto-clicker-core.js?v=14"></script>
+<script src="src/auto-clicker-ui.js?v=7"></script>
 <script src="src/data-loader.js?v=18"></script>
-<script src="src/99-bootstrap.js?v=57"></script>
+<script src="src/99-bootstrap.js?v=61"></script>
 
 </body>
 </html>

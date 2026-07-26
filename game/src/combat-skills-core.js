@@ -83,15 +83,69 @@ function mineSkillTimerDrainAdjust() {
 }
 
 function activeCombatMob() {
+  let openMine = null;
+  let openAny = null;
+  let anyAnvil = null;
+  let stone = null;
+  let other = null;
+  const youId =
+    (typeof instanceRunState !== "undefined" && instanceRunState && instanceRunState.youUserId) ||
+    null;
   for (const g of mineGnomes) {
-    if (g._type !== "banan") return g;
+    if (!g) continue;
+    if (g._instanceAnvil) {
+      const open = g.classList && g.classList.contains("is-open");
+      const mine =
+        youId != null && g._anvilOwnerId != null && String(g._anvilOwnerId) === String(youId);
+      if (open && mine && !openMine) openMine = g;
+      else if (open && !openAny) openAny = g;
+      else if (!anyAnvil) anyAnvil = g;
+      continue;
+    }
+    if (g._instanceStone) {
+      if (!stone) stone = g;
+      continue;
+    }
+    if (g._partyEncounter || g._instanceEncounter) {
+      if (!other) other = g;
+      continue;
+    }
+    if (g._type !== "banan" && !other) other = g;
   }
-  return null;
+  // Только СВОЙ открытый цвет — чужой клик вайпит группу
+  if (openMine) return openMine;
+  if (openAny || anyAnvil) return null;
+  return stone || other;
 }
 
 function applyDirectMobHit(g, mult, opts) {
   opts = opts || {};
   if (!mineGnomes.has(g) || g._type === "banan") return false;
+  // Парти / инстанс — урон только через сервер (общий HP)
+  if (g._partyEncounter && typeof partyFarmHandleHit === "function") {
+    partyFarmHandleHit(g, { skillMult: mult || 1, bySkill: true });
+    return true;
+  }
+  // Мировой босс: умения визуально бьют HP, но не идут в рейтинг кликов
+  if (g._worldBossEncounter) {
+    const type = g._type || "boss";
+    const dropAt = typeof gnomeDropPoint === "function" ? gnomeDropPoint(g) : { x: 0, y: 0 };
+    const dmg = typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 8;
+    let applied = Math.max(1, Math.round(dmg * (mult || 1)));
+    g._hp = Math.max(1, (g._hp ?? g._maxHp) - applied);
+    if (typeof Audio2 !== "undefined" && Audio2.mineHit) Audio2.mineHit();
+    g.classList.add("mob-hit");
+    setTimeout(() => g.classList.remove("mob-hit"), 90);
+    if (typeof updateMobHpBar === "function") updateMobHpBar(g);
+    if (typeof floatText === "function") {
+      floatText(dropAt.x, dropAt.y - 12, "-" + fmtCombat(applied), opts.color || "#9ad4ff");
+    }
+    return true;
+  }
+  if (g._instanceEncounter && typeof instanceHandleHit === "function") {
+    instanceHandleHit(g, { skillMult: mult || 1, bySkill: true });
+    return true;
+  }
   const type = g._type || "normal";
   const dropAt = gnomeDropPoint(g);
   const dmg = typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 8;

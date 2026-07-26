@@ -23,7 +23,16 @@ function renderAvatarHub() {
     if (typeof bindAvatarPortraitFallback === "function") bindAvatarPortraitFallback(icon);
     icon.src = avatarPortraitForAvatar(state.avatar);
   } else if (icon) icon.src = info.icon;
-  if (nameEl) nameEl.textContent = state.avatar.name;
+  // Имя героя (не логин аккаунта)
+  let heroName = String(state.avatar?.name || "").trim();
+  if (!heroName && Array.isArray(state.characters) && state.activeCharacterId) {
+    const slot = state.characters.find((c) => c.id === state.activeCharacterId);
+    heroName = String(slot?.progress?.avatar?.name || "").trim();
+  }
+  if (nameEl) {
+    nameEl.textContent = heroName || "—";
+    nameEl.title = heroName ? "Персонаж: " + heroName : "";
+  }
   if (metaEl) {
     metaEl.textContent = info.className + " · ур. " + prog.level;
   }

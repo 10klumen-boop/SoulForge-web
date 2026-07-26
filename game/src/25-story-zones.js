@@ -154,7 +154,7 @@ function refreshZoneStoryUnlocks() {
   ensureStoryProgress();
   let queued = null;
   FARM_ZONES.forEach((zone) => {
-    if (!zone.active || zone.side) return;
+    if (!zone.active || zone.side || zone.party) return;
     if (!zoneRaceView(zone).story) return;
     if (state.storyProgress.unlocksShown[zone.id]) return;
     if (typeof canEnterFarmZone !== "function" || !canEnterFarmZone(zone)) return;
@@ -273,8 +273,15 @@ function renderMineStoryBar(zoneId) {
   const questEl = document.getElementById("mineStoryQuest");
   if (!bar) return;
   const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
-  // Свободный фарм — без сюжетной полосы
-  if (!state.avatar?.created || zone?.side) {
+  const inWorldBoss =
+    zoneId === "world_boss" ||
+    (typeof isWorldBossSessionActive === "function" && isWorldBossSessionActive()) ||
+    !!(typeof mineSession !== "undefined" && mineSession && mineSession.worldBoss);
+  const inInstance =
+    !!(typeof mineSession !== "undefined" && mineSession && mineSession.instance) ||
+    (typeof instanceRunState !== "undefined" && instanceRunState && instanceRunState.runId);
+  // Свободный фарм / инст / мировой босс — без сюжетной полосы
+  if (!state.avatar?.created || zone?.side || zone?.party || inWorldBoss || inInstance) {
     bar.hidden = true;
     return;
   }

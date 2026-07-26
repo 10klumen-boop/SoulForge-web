@@ -53,17 +53,18 @@ function applyMineStageVisual(cfg, zoneId) {
   const vis = mineStageVisual(zoneId);
   const inner = document.getElementById("mineStageInner");
   const bgImg = document.getElementById("mineBgImg");
+  const useCover = !!(cfg && cfg.bgCover != null ? cfg.bgCover : vis.bgCover);
   if (inner) {
     let cls = "mine-stage-inner";
     if (cfg?.overlay) cls += " " + cfg.overlay;
     if (vis.targetTheme) cls += " mine-theme-" + vis.targetTheme;
-    if (vis.bgCover) cls += " mine-stage-fill";
+    if (useCover) cls += " mine-stage-fill";
     inner.className = cls;
     if (vis.locationLabel) inner.dataset.l2Location = vis.locationLabel;
     else delete inner.dataset.l2Location;
   }
   if (bgImg) {
-    bgImg.classList.toggle("mine-bg-cover", !!vis.bgCover);
+    bgImg.classList.toggle("mine-bg-cover", useCover);
   }
 }
 

@@ -25,6 +25,13 @@ const NICK_RE = /^[a-zA-Z]{2,16}$/;
 const PASS_RE = /^[a-zA-Z0-9]{6,72}$/;
 /** writerId = deviceId.tabId (одна вкладка) */
 const WRITER_ID_RE = /^[A-Za-z0-9_.-]{8,96}$/;
+/** Dev force world-boss: on unless production, or SOULFORGE_WB_DEV=1/0 override. */
+function worldBossDevAllowed() {
+  const flag = String(process.env.SOULFORGE_WB_DEV || "").trim();
+  if (flag === "1") return true;
+  if (flag === "0") return false;
+  return process.env.NODE_ENV !== "production";
+}
 
 const store = createStore({ dataDir: DATA_DIR, dbPath: DB_PATH });
 const dbInfo = store.info();
@@ -658,11 +665,43 @@ app.post("/chat/party/invite", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
   try {
-    const result = store.chatInviteParty(user, { nick: req.body?.nick, now: Date.now() });
+    const result = store.chatInviteParty(user, {
+      charName: req.body?.charName || req.body?.name || req.body?.nick,
+      now: Date.now(),
+    });
     if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
     res.json(result);
   } catch (e) {
     console.error("POST /chat/party/invite", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.get("/chat/party/invites", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.chatListPartyInvites(user));
+  } catch (e) {
+    console.error("GET /chat/party/invites", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.post("/chat/party/invite/respond", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatRespondPartyInvite(user, {
+      inviteId: req.body?.inviteId || req.body?.id,
+      accept: req.body?.accept !== false && req.body?.accept !== 0,
+      charName: req.body?.charName,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/party/invite/respond", e);
     return jsonError(res, 500, "Ошибка группы");
   }
 });
@@ -677,6 +716,388 @@ app.post("/chat/party/leave", (req, res) => {
   } catch (e) {
     console.error("POST /chat/party/leave", e);
     return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.post("/chat/party/kick", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatKickParty(user, {
+      charName: req.body?.charName || req.body?.name || req.body?.nick,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/party/kick", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.get("/party/me", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.partyGetMe(user));
+  } catch (e) {
+    console.error("GET /party/me", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.get("/party/lfg", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.partyLfgList(user, { now: Date.now() }));
+  } catch (e) {
+    console.error("GET /party/lfg", e);
+    return jsonError(res, 500, "Ошибка поиска группы");
+  }
+});
+
+app.post("/party/lfg", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.partyLfgPost(user, {
+      dungeonId: req.body?.dungeonId,
+      note: req.body?.note,
+      now: Date.now(),
+    });
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (e) {
+    console.error("POST /party/lfg", e);
+    return jsonError(res, 500, "Ошибка поиска группы");
+  }
+});
+
+app.delete("/party/lfg", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.partyLfgDelete(user);
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (e) {
+    console.error("DELETE /party/lfg", e);
+    return jsonError(res, 500, "Ошибка поиска группы");
+  }
+});
+
+app.post("/party/lfg/join", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.partyLfgJoin(user, {
+      listingId: req.body?.listingId,
+      charName: req.body?.charName,
+      now: Date.now(),
+    });
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (e) {
+    console.error("POST /party/lfg/join", e);
+    return jsonError(res, 500, "Ошибка поиска группы");
+  }
+});
+
+app.post("/party/ready", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.partySetReady(user, { ready: req.body?.ready !== false });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /party/ready", e);
+    return jsonError(res, 500, "Ошибка группы");
+  }
+});
+
+app.get("/party/content", (req, res) => {
+  try {
+    res.json(store.partyContentMeta());
+  } catch (e) {
+    console.error("GET /party/content", e);
+    return jsonError(res, 500, "Ошибка");
+  }
+});
+
+app.post("/party/farm/join", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.partyFarmJoin(user, {
+      zoneId: req.body?.zoneId,
+      power: req.body?.power,
+      characterId: req.body?.characterId,
+      now: Date.now(),
+    });
+    if (!result.ok) {
+      return res.status(400).json({
+        ok: false,
+        error: result.error || result.message || "disabled",
+        message: result.message || "Групповой фарм отключён",
+        activeZoneId: result.activeZoneId || null,
+      });
+    }
+    res.json(result);
+  } catch (e) {
+    console.error("POST /party/farm/join", e);
+    return jsonError(res, 500, "Ошибка охоты");
+  }
+});
+
+app.post("/party/farm/leave", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.partyFarmLeave(user));
+  } catch (e) {
+    console.error("POST /party/farm/leave", e);
+    return jsonError(res, 500, "Ошибка охоты");
+  }
+});
+
+app.get("/party/farm/state", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.partyFarmState(user);
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /party/farm/state", e);
+    return jsonError(res, 500, "Ошибка охоты");
+  }
+});
+
+app.post("/party/farm/hit", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.partyFarmHit(user, {
+      dmg: req.body?.dmg,
+      skillId: req.body?.skillId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /party/farm/hit", e);
+    return jsonError(res, 500, "Ошибка охоты");
+  }
+});
+
+app.get("/world-boss/state", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.worldBossState(user, { now: Date.now() }));
+  } catch (e) {
+    console.error("GET /world-boss/state", e);
+    return jsonError(res, 500, "Ошибка мирового босса");
+  }
+});
+
+app.post("/world-boss/enter", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.worldBossEnter(user, {
+      characterId: req.body?.characterId,
+      charName: req.body?.charName,
+      level: req.body?.level,
+      now: Date.now(),
+    });
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (e) {
+    console.error("POST /world-boss/enter", e);
+    return jsonError(res, 500, "Ошибка мирового босса");
+  }
+});
+
+app.post("/world-boss/click", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.worldBossClick(user, {
+      characterId: req.body?.characterId,
+      charName: req.body?.charName,
+      autoClicker: req.body?.autoClicker,
+      bySkill: req.body?.bySkill,
+      skillMult: req.body?.skillMult,
+      now: Date.now(),
+    });
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (e) {
+    console.error("POST /world-boss/click", e);
+    return jsonError(res, 500, "Ошибка мирового босса");
+  }
+});
+
+app.post("/world-boss/leave", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.worldBossLeave(user));
+  } catch (e) {
+    console.error("POST /world-boss/leave", e);
+    return jsonError(res, 500, "Ошибка мирового босса");
+  }
+});
+
+app.post("/world-boss/claim", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.worldBossClaim(user, { now: Date.now() });
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (e) {
+    console.error("POST /world-boss/claim", e);
+    return jsonError(res, 500, "Ошибка мирового босса");
+  }
+});
+
+app.post("/world-boss/dev/force-start", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  if (!worldBossDevAllowed()) return jsonError(res, 403, "Dev WB отключён на этом сервере");
+  try {
+    const result = store.worldBossForceStart({ now: Date.now() });
+    res.json(Object.assign({}, result, { ok: true, forced: "start" }));
+  } catch (e) {
+    console.error("POST /world-boss/dev/force-start", e);
+    return jsonError(res, 500, "Ошибка force-start");
+  }
+});
+
+app.post("/world-boss/dev/force-end", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  if (!worldBossDevAllowed()) return jsonError(res, 403, "Dev WB отключён на этом сервере");
+  try {
+    const result = store.worldBossForceEnd({ now: Date.now() });
+    res.json(Object.assign({}, result, { ok: true, forced: "end" }));
+  } catch (e) {
+    console.error("POST /world-boss/dev/force-end", e);
+    return jsonError(res, 500, "Ошибка force-end");
+  }
+});
+
+app.post("/instance/start", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.instanceStart(user, {
+      dungeonId: req.body?.dungeonId,
+      power: req.body?.power,
+      characterId: req.body?.characterId,
+      powers: req.body?.powers,
+      characterIds: req.body?.characterIds,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /instance/start", e);
+    return jsonError(res, 500, "Ошибка инстанса");
+  }
+});
+
+app.get("/instance/active", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.instanceActive(user));
+  } catch (e) {
+    console.error("GET /instance/active", e);
+    return jsonError(res, 500, "Ошибка инстанса");
+  }
+});
+
+app.get("/instance/locks", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(
+      store.instanceLocksFor(user, {
+        characterId: req.query.characterId,
+        now: Date.now(),
+      })
+    );
+  } catch (e) {
+    console.error("GET /instance/locks", e);
+    return jsonError(res, 500, "Ошибка инстанса");
+  }
+});
+
+app.post("/instance/:id/ready", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.instanceReady(user, {
+      runId: req.params.id,
+      ready: req.body?.ready !== false,
+      power: req.body?.power,
+      characterId: req.body?.characterId,
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /instance/ready", e);
+    return jsonError(res, 500, "Ошибка инстанса");
+  }
+});
+
+app.get("/instance/:id/state", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.instanceState(user, { runId: req.params.id });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /instance/state", e);
+    return jsonError(res, 500, "Ошибка инстанса");
+  }
+});
+
+app.post("/instance/:id/hit", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.instanceHit(user, {
+      runId: req.params.id,
+      dmg: req.body?.dmg,
+      skillId: req.body?.skillId,
+      mobId: req.body?.mobId,
+      bySkill: req.body?.bySkill,
+      skillMult: req.body?.skillMult,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /instance/hit", e);
+    return jsonError(res, 500, "Ошибка инстанса");
+  }
+});
+
+app.post("/instance/:id/leave", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.instanceLeave(user, { runId: req.params.id }));
+  } catch (e) {
+    console.error("POST /instance/leave", e);
+    return jsonError(res, 500, "Ошибка инстанса");
   }
 });
 

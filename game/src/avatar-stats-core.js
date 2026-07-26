@@ -43,6 +43,11 @@ function selectFarmZone(zoneId) {
 
   }
 
+  if (zone.party) {
+    toast("Групповой фарм отключён. В группе — только инстансы.", "warn");
+    return false;
+  }
+
   if (!canEnterFarmZone(zone)) {
 
     const st = farmZoneStatus(zone);
@@ -161,6 +166,9 @@ function canEnterFarmZone(zone) {
   const lvl = state.avatar.level || 1;
 
   if (power < zone.reqPower || lvl < zone.reqLevel) return false;
+
+  // Party / side: без сюжетного гейта предыдущей главы
+  if (zone.party || zone.side) return true;
 
   if (typeof isPrevZoneChapterComplete === "function" && !isPrevZoneChapterComplete(zone)) return false;
 

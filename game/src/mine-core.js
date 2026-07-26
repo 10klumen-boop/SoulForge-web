@@ -121,12 +121,36 @@ function openMine() {
   }
   const zoneId = state.farmZone || "banana_mine";
   const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  // В группе — соло История/Фарм закрыты (инстансы и мировой босс — отдельно)
+  const inParty =
+    typeof partyMemberCount === "function"
+      ? partyMemberCount() > 0
+      : !!(typeof getChatParty === "function" && getChatParty());
+  if (inParty && zone && !zone.party) {
+    toast("В группе соло История/Фарм недоступны — открой меню «Группа» → Инстанс.", "warn");
+    if (typeof openPartyScreen === "function") openPartyScreen();
+    return;
+  }
   if (zone && typeof canEnterFarmZone === "function" && !canEnterFarmZone(zone)) {
     toast("Недостаточно силы фарма для зоны", "warn");
     if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
     return;
   }
-  if (typeof requestMineWithQuestBriefing === "function" && requestMineWithQuestBriefing(zoneId)) return;
+  if (zone && zone.party) {
+    if (typeof partyFarmBeforeOpenMine === "function") {
+      Promise.resolve(partyFarmBeforeOpenMine()).then((ok) => {
+        if (ok) openMineContinue(zoneId, zone);
+      });
+      return;
+    }
+  }
+  openMineContinue(zoneId, zone);
+}
+
+function openMineContinue(zoneId, zone) {
+  zoneId = zoneId || state.farmZone || "banana_mine";
+  zone = zone || (typeof farmZoneById === "function" ? farmZoneById(zoneId) : null);
+  if (typeof requestMineWithQuestBriefing === "function" && !zone?.party && requestMineWithQuestBriefing(zoneId)) return;
   const cfg = typeof zoneMineConfig === "function" ? zoneMineConfig(zoneId) : { bgs: MINE_BGS, spawnMs: 920, hint: "Цели вот-вот мелькнут…", title: "Задание" };
   const panelTitle = document.getElementById("minePanelTitle");
   if (panelTitle) {
@@ -153,7 +177,9 @@ function openMine() {
   if (hintEl) hintEl.textContent = cfg.hint || "Один враг на экране — уничтожь до конца таймера";
   mineActive = true;
   mineOverlayPaused = false;
-  if (typeof startAutoClickerLoop === "function") startAutoClickerLoop();
+  if (!(zone && zone.party) && typeof startAutoClickerLoop === "function") {
+    startAutoClickerLoop();
+  }
   mineSession = {
     startedAt: Date.now(),
     adena0: Math.max(0, Math.floor(Number(state.adena) || 0)),
@@ -174,6 +200,7 @@ function openMine() {
   if (typeof renderMineHudStats === "function") renderMineHudStats();
   if (typeof renderMineQuestHud === "function") renderMineQuestHud();
   if (typeof renderMineSkillBar === "function") renderMineSkillBar();
+  if (typeof renderAutoClickerHud === "function") renderAutoClickerHud();
   if (typeof renderMineStoryBar === "function") renderMineStoryBar(zoneId);
   show("mine");
   Audio2.open();
@@ -184,6 +211,13 @@ function openMine() {
   if (typeof debugLog === "function") debugLog("info", "mine", "openMine", { zone: zoneId });
   if (typeof achStat === "function") achStat("mineVisits", 1);
   if (typeof checkAchievements === "function") checkAchievements();
+  if (zone && zone.party) {
+    // Server drives spawns
+    if (typeof partyFarmSyncEncounter === "function" && typeof partyFarmState !== "undefined") {
+      partyFarmSyncEncounter(partyFarmState);
+    }
+    return;
+  }
   if (typeof isZoneBossPending === "function" && isZoneBossPending(zoneId)) {
     const boss = typeof zoneBossDef === "function" ? zoneBossDef(zoneId) : null;
     if (hintEl && boss) {
@@ -204,6 +238,9 @@ function openMine() {
 function stopMine() {
   mineActive = false;
   mineOverlayPaused = false;
+  if (typeof worldBossAfterStopMine === "function") worldBossAfterStopMine();
+  if (typeof partyFarmAfterStopMine === "function") partyFarmAfterStopMine();
+  if (typeof instanceAfterStopMine === "function") instanceAfterStopMine();
   if (typeof stopAutoClickerLoop === "function") stopAutoClickerLoop();
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
   clearInterval(mineTimer);
@@ -444,6 +481,9 @@ function resumeMineFromOverlay() {
 
 function spawnGnome(forcedType) {
   if (!mineActive) return;
+  if (typeof partyFarmShouldBlockLocalSpawn === "function" && partyFarmShouldBlockLocalSpawn()) return;
+  if (typeof worldBossShouldBlockLocalSpawn === "function" && worldBossShouldBlockLocalSpawn()) return;
+  if (typeof instanceShouldBlockLocalSpawn === "function" && instanceShouldBlockLocalSpawn()) return;
   if (mineOverlayPaused) {
     queueNextMob(280);
     return;
@@ -499,7 +539,11 @@ function mineMobLifetime(maxHp, damage, type) {
 function spawnSoloMob(field, type, opts) {
   opts = opts || {};
   const zoneId = currentMineZoneId();
-  const pos = mineSoloPosition(field, type);
+  const pos = opts.center
+    ? { x: Math.round(field.clientWidth / 2), y: Math.round(field.clientHeight * 0.52) }
+    : opts.x != null && opts.y != null
+      ? { x: opts.x, y: opts.y }
+      : mineSoloPosition(field, type);
   const g = document.createElement("div");
   g.className = "gnome mine-solo" + (type === "golden" ? " golden" : type === "boss" ? " boss" : "");
   g.style.left = pos.x + "px";
@@ -545,14 +589,16 @@ function spawnSoloMob(field, type, opts) {
     });
   }
   const life = mineMobLifetime(maxHp, dmg, type);
+  const skipTimer = !!(opts.noTimer || opts.worldBoss || type === "world_boss");
   const onExpire = () => {
     if (!mineGnomes.has(g)) return;
     if (type === "boss") missBoss(g);
     else missGnome(g);
   };
-  g._timerCap = Date.now() + life;
+  g._timerCap = skipTimer ? 0 : Date.now() + life;
   try {
-    attachMobTimer(g, life, onExpire, life);
+    if (!skipTimer) attachMobTimer(g, life, onExpire, life);
+    else if (typeof clearMobTimer === "function") clearMobTimer(g);
     updateMobHpBar(g);
     g.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) { e.preventDefault(); return; }
@@ -634,6 +680,11 @@ function spawnZoneBoss() {
 }
 
 function missBoss(g) {
+  // Инст-мобы не «убегают» локально — жизнь/idle считает сервер
+  if (g && g._instanceEncounter) {
+    if (typeof clearMobTimer === "function") clearMobTimer(g);
+    return;
+  }
   const zoneId = currentMineZoneId();
   removeGnome(g);
   const n = (parseInt($("#mineMissed").textContent) || 0) + 1;
@@ -738,6 +789,11 @@ function removeGnome(g, mode) {
 }
 
 function missGnome(g) {
+  // Инст-мобы не «убегают» локально — жизнь/idle считает сервер
+  if (g && g._instanceEncounter) {
+    if (typeof clearMobTimer === "function") clearMobTimer(g);
+    return;
+  }
   removeGnome(g);
   const n = (parseInt($("#mineMissed").textContent) || 0) + 1;
   $("#mineMissed").textContent = n;
@@ -754,6 +810,18 @@ function gnomeDropPoint(g) {
 function catchGnome(g, e, opts) {
   opts = opts || {};
   if (!mineGnomes.has(g) || (typeof isGamePaused === "function" && isGamePaused())) return;
+  if (g._partyEncounter && typeof partyFarmHandleHit === "function") {
+    partyFarmHandleHit(g, opts);
+    return;
+  }
+  if (g._worldBossEncounter && typeof worldBossHandleHit === "function") {
+    worldBossHandleHit(g, opts);
+    return;
+  }
+  if (g._instanceEncounter && typeof instanceHandleHit === "function") {
+    instanceHandleHit(g, opts);
+    return;
+  }
   let guard;
   if (opts.autoClicker) {
     guard = { ok: true, mult: 1, byAuto: true };

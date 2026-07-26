@@ -235,18 +235,53 @@ function toggleAutoClickerEnabled() {
   return state.autoClicker.enabled !== false;
 }
 
+function autoClickerBlockedInCurrentMine() {
+  // Инстансы: автоудар разрешён. Мировой босс — только ручные клики в рейтинг.
+  if (typeof mineSession !== "undefined" && mineSession && mineSession.worldBoss) return true;
+  if (typeof isPartyFarmSessionActive === "function" && isPartyFarmSessionActive()) return true;
+  if (typeof isWorldBossSessionActive === "function" && isWorldBossSessionActive()) return true;
+  return false;
+}
+
 function autoClickerPickTarget() {
   if (typeof mineGnomes === "undefined" || !mineGnomes) return null;
+  let openMine = null;
+  let openAny = null;
+  let anyAnvil = null;
+  let stone = null;
+  let fallback = null;
+  const youId =
+    (typeof instanceRunState !== "undefined" && instanceRunState && instanceRunState.youUserId) ||
+    null;
   for (const g of mineGnomes) {
     if (!g || !g._type) continue;
     if (g._type === "banan") return g;
-    if (g._type === "boss" || g._type === "golden" || g._type === "normal") return g;
+    if (g._instanceAnvil) {
+      const open = g.classList && g.classList.contains("is-open");
+      const mine =
+        youId != null && g._anvilOwnerId != null && String(g._anvilOwnerId) === String(youId);
+      if (open && mine && !openMine) openMine = g;
+      else if (open && !openAny) openAny = g;
+      else if (!anyAnvil) anyAnvil = g;
+      continue;
+    }
+    if (g._instanceStone) {
+      if (!stone) stone = g;
+      continue;
+    }
+    if (g._type === "boss" || g._type === "golden" || g._type === "normal" || g._type === "elite") {
+      if (!fallback) fallback = g;
+    }
   }
-  return null;
+  // Только СВОЙ открытый цвет — чужой клик вайпит группу
+  if (openMine) return openMine;
+  if (openAny || anyAnvil) return null;
+  return stone || fallback;
 }
 
 function autoClickerPerformHit() {
   if (typeof mineActive === "undefined" || !mineActive) return false;
+  if (autoClickerBlockedInCurrentMine()) return false;
   if (typeof isGamePaused === "function" && isGamePaused()) return false;
   if (typeof mineOverlayPaused !== "undefined" && mineOverlayPaused) return false;
   if (!autoClickerIsActive()) return false;
@@ -268,6 +303,8 @@ function autoClickerPerformHit() {
 
 function autoClickerTick() {
   if (!autoClickerIsActive()) return;
+  if (typeof mineActive === "undefined" || !mineActive) return;
+  if (autoClickerBlockedInCurrentMine()) return;
   const now = Date.now();
   const interval = typeof tuneInt === "function"
     ? tuneInt("autoClicker.intervalMs", AUTO_CLICKER.intervalMs)
@@ -276,7 +313,6 @@ function autoClickerTick() {
   if (autoClickerPerformHit()) {
     _autoClickerLastHitAt = now;
   } else if (typeof ensureMineSpawning === "function") {
-    // Пустое поле / сорвавшаяся очередь — подтолкнуть спавн
     ensureMineSpawning();
   }
 }

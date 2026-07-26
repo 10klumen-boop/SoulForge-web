@@ -36,6 +36,7 @@ function inventoryTabId() {
 
 function inventoryItemKind(it) {
   if (!it) return null;
+  if (isShardItem(it)) return "accessory";
   if (isAccessoryItem(it)) return "accessory";
   if (typeof isArmorItem === "function" && isArmorItem(it)) return "armor";
   return "weapon";
@@ -67,15 +68,18 @@ function setInvTab(id) {
 }
 
 function listArmorFragStacks() {
-  if (typeof ARMOR_FRAGS === "undefined" || !ARMOR_FRAGS) return [];
-  return Object.keys(ARMOR_FRAGS)
-    .map((id) => {
+  const out = [];
+  if (typeof ARMOR_FRAGS !== "undefined" && ARMOR_FRAGS) {
+    Object.keys(ARMOR_FRAGS).forEach((id) => {
       const def = ARMOR_FRAGS[id];
       const qty = (state.materials && state.materials[id]) || 0;
-      return { id, def, qty };
-    })
-    .filter((row) => row.qty > 0)
-    .sort((a, b) => String(a.def?.name || a.id).localeCompare(String(b.def?.name || b.id), "ru", { sensitivity: "base" }));
+      if (qty > 0) out.push({ id, def, qty });
+    });
+  }
+  // Осколки бижутерии теперь в сумке (kind: shard), не в materials.
+  return out.sort((a, b) =>
+    String(a.def?.name || a.id).localeCompare(String(b.def?.name || b.id), "ru", { sensitivity: "base" })
+  );
 }
 
 function listShotStacks() {
@@ -146,7 +150,7 @@ function inventorySortMode() {
 }
 
 function inventoryItemPower(it, def) {
-  if (!def || isAccessoryItem(it)) return 0;
+  if (!def || isAccessoryItem(it) || (typeof isShardItem === "function" && isShardItem(it))) return 0;
   if (typeof isArmorItem === "function" && isArmorItem(it)) {
     const lv = typeof state !== "undefined" ? state.avatar?.level || 1 : 1;
     const pen = typeof avatarGradePenaltyMult === "function" ? avatarGradePenaltyMult(def.grade, lv) : 1;
@@ -244,20 +248,118 @@ function addToInventory(weaponId, meta) {
   return it;
 }
 
+function isAccessoryItem(it) {
+  if (!it) return false;
+  if (it.kind === "armor") return false;
+  if (it.kind === "shard") return false;
+  if (typeof isArmorItem === "function" && isArmorItem(it)) return false;
+  return !!(it.kind === "accessory" || COLLECTIBLES[it.id]);
+}
+
+function isShardItem(it) {
+  return !!(it && it.kind === "shard" && it.id);
+}
+
+function shardItemDef(itOrId) {
+  const id = typeof itOrId === "string" ? itOrId : itOrId?.id;
+  if (!id || typeof ACCESSORY_FRAGS === "undefined") return null;
+  return ACCESSORY_FRAGS[id] || null;
+}
+
+function inventoryShardCount(shardId) {
+  if (!shardId) return 0;
+  let n = 0;
+  (state.inventory || []).forEach((it) => {
+    if (it && it.kind === "shard" && it.id === shardId) n += Math.max(0, Math.floor(Number(it.qty) || 0));
+  });
+  // legacy: materials → сумка
+  if (state.materials && state.materials[shardId]) {
+    n += Math.max(0, Math.floor(Number(state.materials[shardId]) || 0));
+  }
+  return n;
+}
+
+/** Осколок бижутерии в сумку (стак по id). */
+function addShardToInventory(shardId, qty, meta) {
+  meta = meta || {};
+  const def = shardItemDef(shardId);
+  if (!def) return null;
+  const add = Math.max(0, Math.floor(Number(qty) || 0));
+  if (add <= 0) return null;
+  if (!state.inventory) state.inventory = [];
+  const inv = (state.inventory || []).slice();
+  const idx = inv.findIndex((it) => it && it.kind === "shard" && it.id === shardId);
+  if (idx >= 0) {
+    const cur = inv[idx];
+    inv[idx] = Object.assign({}, cur, { qty: Math.max(0, Math.floor(Number(cur.qty) || 0) + add) });
+  } else {
+    if (typeof isInventoryFull === "function" && isInventoryFull()) {
+      if (typeof toast === "function") toast("Инвентарь полон (" + INV_CAP + " ячеек)", "warn");
+      return null;
+    }
+    inv.push({
+      uid: typeof uid === "function" ? uid() : "sh_" + Date.now(),
+      id: shardId,
+      kind: "shard",
+      qty: add,
+    });
+  }
+  ProgressStore.set("inventory", inv);
+  if (!meta.silent && typeof toast === "function") {
+    toast("✧ " + def.name + " ×" + add + " → сумка", "loot");
+  }
+  if (typeof renderMenu === "function") renderMenu();
+  if (typeof renderInventory === "function") renderInventory();
+  return inv.find((it) => it && it.kind === "shard" && it.id === shardId) || null;
+}
+
+function consumeShardsFromInventory(shardId, qty) {
+  const need = Math.max(0, Math.floor(Number(qty) || 0));
+  if (!need || !shardId) return false;
+  if (inventoryShardCount(shardId) < need) return false;
+  let left = need;
+  // сначала legacy materials
+  if (state.materials && state.materials[shardId]) {
+    const have = Math.max(0, Math.floor(Number(state.materials[shardId]) || 0));
+    const take = Math.min(have, left);
+    if (take > 0) {
+      ProgressStore.update("materials", (m) => {
+        const next = { ...(m || {}) };
+        next[shardId] = Math.max(0, (next[shardId] || 0) - take);
+        if (!next[shardId]) delete next[shardId];
+        return next;
+      });
+      left -= take;
+    }
+  }
+  if (left > 0) {
+    const inv = (state.inventory || []).slice();
+    for (let i = 0; i < inv.length && left > 0; i++) {
+      const it = inv[i];
+      if (!it || it.kind !== "shard" || it.id !== shardId) continue;
+      const have = Math.max(0, Math.floor(Number(it.qty) || 0));
+      const take = Math.min(have, left);
+      const rest = have - take;
+      left -= take;
+      if (rest > 0) inv[i] = Object.assign({}, it, { qty: rest });
+      else {
+        inv.splice(i, 1);
+        i--;
+      }
+    }
+    ProgressStore.set("inventory", inv);
+  }
+  return left <= 0;
+}
+
 function invItemDef(it) {
   if (!it) return null;
+  if (it.kind === "shard" || isShardItem(it)) return shardItemDef(it);
   if (it.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(it))) {
     return typeof armorItemDef === "function" ? armorItemDef(it) : (typeof AMAP !== "undefined" ? AMAP[it.id] : null);
   }
   if (it.kind === "accessory" || COLLECTIBLES[it.id]) return COLLECTIBLES[it.id];
   return WMAP[it.id] || null;
-}
-
-function isAccessoryItem(it) {
-  if (!it) return false;
-  if (it.kind === "armor") return false;
-  if (typeof isArmorItem === "function" && isArmorItem(it)) return false;
-  return !!(it.kind === "accessory" || COLLECTIBLES[it.id]);
 }
 
 function addCollectibleToInventory(collectibleId) {
@@ -318,6 +420,11 @@ function migrateCollectiblesToInventory() {
 
 function normalizeInvItem(it) {
   if (!it) return it;
+  if (it.kind === "shard" || (typeof isShardItem === "function" && isShardItem(it))) {
+    it.kind = "shard";
+    it.qty = Math.max(1, Math.floor(Number(it.qty) || 1));
+    return it;
+  }
   if (typeof isArmorItem === "function" && isArmorItem(it)) {
     it.kind = "armor";
     return it;
@@ -333,8 +440,35 @@ function normalizeInvItem(it) {
   return it;
 }
 
-function openInventory() { renderInventory(); show("inv"); Audio2.open(); }
-function goInventory() { renderInventory(); renderMenu(); show("inv"); }
+/** Переносит осколки из materials в сумку (один раз при открытии инвентаря). */
+function migrateAccessoryShardsToInventory() {
+  if (typeof ACCESSORY_FRAGS === "undefined" || !ACCESSORY_FRAGS || !state.materials) return;
+  Object.keys(ACCESSORY_FRAGS).forEach((id) => {
+    const qty = Math.max(0, Math.floor(Number(state.materials[id]) || 0));
+    if (qty <= 0) return;
+    if (typeof addShardToInventory === "function") {
+      addShardToInventory(id, qty, { silent: true });
+    }
+    ProgressStore.update("materials", (m) => {
+      const next = { ...(m || {}) };
+      delete next[id];
+      return next;
+    });
+  });
+}
+
+function openInventory() {
+  migrateAccessoryShardsToInventory();
+  renderInventory();
+  show("inv");
+  Audio2.open();
+}
+function goInventory() {
+  migrateAccessoryShardsToInventory();
+  renderInventory();
+  renderMenu();
+  show("inv");
+}
 
 // ===== Инвентарь: логика и мутации state =====
 // UI (renderInventory, drag-and-drop, crystallize UI) вынесено в inventory-ui.js.

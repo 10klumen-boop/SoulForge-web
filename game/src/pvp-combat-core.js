@@ -191,6 +191,7 @@ function buildCombatSheet(input) {
   // Сет-бонусы арены — только при сродстве брони и live-экипе.
   // (avatarSetBonuses уже фильтрует чужой kind; affinityOn режет микс/неполный.)
   let setHpAdd = 0;
+  let gearPvpAtk = 0;
   const liveAvatar =
     typeof state !== "undefined" && state.avatar && (input.avatar === state.avatar || !input.avatar);
   if (liveAvatar && affinityOn && typeof avatarSetBonuses === "function") {
@@ -205,6 +206,14 @@ function buildCombatSheet(input) {
     if (defB > 0) {
       pdef = Math.round(pdef * (1 + defB));
       mdef = Math.round(mdef * (1 + defB));
+    }
+  }
+  // Бижутерия (напр. Серьга Закена) — без требования сродства брони.
+  if (liveAvatar && typeof avatarAccessoryPvpAtk === "function") {
+    gearPvpAtk = Math.min(0.12, Math.max(0, avatarAccessoryPvpAtk()));
+    if (gearPvpAtk > 0) {
+      patk = Math.round(patk * (1 + gearPvpAtk));
+      matk = Math.round(matk * (1 + gearPvpAtk));
     }
   }
 

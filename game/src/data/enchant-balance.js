@@ -29,6 +29,16 @@ const FUNPAY_WIPE_CHANCE = 0.5;
 const FUNPAY_REWARD = 2_500_000;
 
 const COLLECTIBLES = {
+  zaken_earring: {
+    id: "zaken_earring",
+    name: "Серьга Закена",
+    icon: "icons/accessory_earring_of_zaken_i00.png",
+    grade: "D",
+    epic: false,
+    slot: "earring",
+    desc: "Серьга D-грейда. На персонаже: +5% урона в PvP (арена).",
+    bonuses: { pvpAtk: 0.05, mdef: 2 },
+  },
   zaken_blessed_earring: {
     id: "zaken_blessed_earring",
     name: "Благословенная серьга ЗакАна",
@@ -66,3 +76,23 @@ const COLLECTIBLES = {
     bonuses: { enchant: 0.002, avatarXp: 0.12, pdef: 5, mdef: 5 },
   },
 };
+
+/** Осколки бижутерии (материалы) → крафт в мастерской. */
+const ACCESSORY_FRAGS = {
+  zaken_earring_shard: {
+    id: "zaken_earring_shard",
+    name: "Осколок серьги Закена",
+    icon: "icons/etc_broken_crystal_silver_i00.png",
+    desc: "10 осколков + 10ккк adena → Серьга Закена (D) в мастерской.",
+  },
+};
+
+/** Крафт бижутерии из осколков. */
+const ACCESSORY_CRAFT = [
+  {
+    accessoryId: "zaken_earring",
+    shardId: "zaken_earring_shard",
+    shardQty: 10,
+    adena: 10_000_000_000,
+  },
+];

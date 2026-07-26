@@ -22,6 +22,7 @@ const L2_MOB_NAMES = {
   lirein: "Лирейн",
   "dre-vanul": "Дре Ванул",
   "relic-werewolf": "Реликтовый оборотень",
+  zaken: "Закен",
   werewolf: "Оборотень",
   "monster-eye": "Глаз Монстра",
   "vampire-bat": "Вампирская летучая мышь",
@@ -36,6 +37,19 @@ const L2_MOB_NAMES = {
   imp: "Бес",
   grizzly: "Гризли",
   specter: "Призрак",
+  // —— Инстансы (уникальные) ——
+  "ash-hound": "Пепельный пёс",
+  "bone-raider": "Костяной стрелок",
+  "crimson-stalker": "Багровый ловчий",
+  "dusk-fang": "Сумеречный клык",
+  "iron-maw": "Железная пасть",
+  "bloodhowl-alpha": "Кровавый Вой",
+  "slag-wraith": "Шлаковый призрак",
+  "magma-sentinel": "Магмовый страж",
+  "void-crawler": "Ползун бездны",
+  "ember-horror": "Ужас углей",
+  "gate-colossus": "Колосс врат",
+  "forge-tyrant": "Тиран Кузни",
 };
 
 const L2_LOC_NAMES = {
@@ -55,10 +69,12 @@ const L2_LOC_NAMES = {
   "town-of-aden": "Город Аден",
   "scrap-field": "Свалка доспехов",
   "mithril-forge": "Кузница сплавов",
+  "crimson-howl-gorge": "Ущелье Багрового Воя",
+  "molten-heart-hall": "Чертог Расплавленных Сердец",
 };
 
 /** Cache-bust — менять после замены assets/locations|mobs */
-const MINE_ASSET_VER = 14;
+const MINE_ASSET_VER = 17;
 const _mineSpritePick = {};
 
 function resetMineSpritePick(zoneId) {
@@ -85,8 +101,8 @@ function l2Bg(...slugs) {
 
 function mobAnimForSlug(slug, cls) {
   if (/target-spirit|target-shadow/.test(cls || "")) return "float";
-  if (/specter|imp/.test(slug)) return "float";
-  if (/spider|wolf|keltir|werewolf|bat|wererat|salamander|eye|grizzly|gremlin/.test(slug)) return "prowl";
+  if (/specter|imp|wraith|horror/.test(slug)) return "float";
+  if (/spider|wolf|keltir|werewolf|bat|wererat|salamander|eye|grizzly|gremlin|hound|fang|crawler|maw/.test(slug)) return "prowl";
   return "idle";
 }
 

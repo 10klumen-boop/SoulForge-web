@@ -221,6 +221,7 @@ function initGameLog() {
     document.addEventListener("keydown", (e) => {
       if (e.key !== "l" && e.key !== "L") return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (typeof isInCharacterSession === "function" && !isInCharacterSession()) return;
       const tag = (e.target && e.target.tagName) || "";
       if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
       e.preventDefault();

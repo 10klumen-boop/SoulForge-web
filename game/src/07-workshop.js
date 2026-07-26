@@ -28,8 +28,8 @@ function bindCraftFavButtons(root) {
 }
 
 function openWorkshop(tab) {
-  // onclick передаёт Event — не путать с "shots"/"armor"
-  wsMainTab = tab === "armor" || tab === "shots" ? tab : null;
+  // onclick передаёт Event — не путать с "shots"/"armor"/"jewelry"
+  wsMainTab = tab === "armor" || tab === "shots" || tab === "jewelry" ? tab : null;
   wsArmorKind = null;
   wsArmorSetId = null;
   try {
@@ -52,7 +52,7 @@ function syncWorkshopChrome() {
   const title = document.getElementById("shopTitle");
   const inArmorSet = wsMainTab === "armor" && !!wsArmorSetId;
   const inArmorKind = wsMainTab === "armor" && !!wsArmorKind && !wsArmorSetId;
-  const inSection = wsMainTab === "shots" || wsMainTab === "armor";
+  const inSection = wsMainTab === "shots" || wsMainTab === "armor" || wsMainTab === "jewelry";
   if (back) {
     back.removeAttribute("data-to");
     if (inArmorSet) back.textContent = "← " + armorKindLabel(wsArmorKind);
@@ -83,6 +83,7 @@ function syncWorkshopChrome() {
   if (title) {
     let label = "Мастерская";
     if (wsMainTab === "shots") label = "Заряды";
+    else if (wsMainTab === "jewelry") label = "Бижутерия";
     else if (wsMainTab === "armor" && wsArmorSetId && typeof ARMOR_SETS !== "undefined" && ARMOR_SETS[wsArmorSetId]) {
       label = ARMOR_SETS[wsArmorSetId].name || wsArmorSetId;
     } else if (inArmorKind) label = armorKindLabel(wsArmorKind);
@@ -96,6 +97,7 @@ function renderWorkshopHub(body) {
   hub.className = "ws-hub";
   const shotIco = (typeof UI_HUB_BTN_ICONS !== "undefined" && UI_HUB_BTN_ICONS.shots) || "icons/btn_shots.png?v=2";
   const armorIco = (typeof UI_HUB_BTN_ICONS !== "undefined" && UI_HUB_BTN_ICONS.armor) || "icons/btn_armor.png?v=2";
+  const jewelIco = "icons/accessory_earring_of_zaken_i00.png";
   hub.innerHTML =
     '<p class="ws-hub-lead">Выбери раздел</p>' +
     '<div class="ws-hub-grid">' +
@@ -108,6 +110,11 @@ function renderWorkshopHub(body) {
     '<img class="ws-hub-ico-img" src="' + armorIco + '" alt="" draggable="false">' +
     "<strong>Броня</strong>" +
     "<small>Сеты D / C · крафт из Material</small>" +
+    "</button>" +
+    '<button type="button" class="ws-hub-card" data-main="jewelry">' +
+    '<img class="ws-hub-ico-img" src="' + jewelIco + '" alt="" draggable="false">' +
+    "<strong>Бижутерия</strong>" +
+    "<small>Серьга Закена · осколки с мирового босса</small>" +
     "</button>" +
     "</div>";
   body.appendChild(hub);
@@ -273,7 +280,7 @@ function renderWorkshopArmorHub(body) {
 function renderWorkshop() {
   ensureWorkshopState();
   if (!state.crystals) state.crystals = { D: 0, C: 0, B: 0, A: 0 };
-  if (wsMainTab !== "shots" && wsMainTab !== "armor" && wsMainTab !== null) {
+  if (wsMainTab !== "shots" && wsMainTab !== "armor" && wsMainTab !== "jewelry" && wsMainTab !== null) {
     wsMainTab = null;
     wsArmorKind = null;
     wsArmorSetId = null;
@@ -301,6 +308,11 @@ function renderWorkshop() {
 
   if (!wsMainTab) {
     renderWorkshopHub(body);
+    return;
+  }
+
+  if (wsMainTab === "jewelry") {
+    renderWorkshopJewelry(body);
     return;
   }
 
@@ -403,6 +415,60 @@ function renderWorkshop() {
   sellAll.textContent = "💰 Продать все заряды · " + fmtAdena(tv);
   sellAll.onclick = sellAllShots;
   craft.appendChild(sellAll);
+}
+
+function renderWorkshopJewelry(body) {
+  const sec = document.createElement("div");
+  sec.className = "ws-sec";
+  sec.innerHTML =
+    "<h3>💍 Бижутерия</h3>" +
+    '<p class="ws-armor-hint">Осколки падают с мирового босса Закена (2–3 место). 1 место — готовая серьга.</p>' +
+    '<div class="craft-grid" id="jewelCraftGrid"></div>';
+  body.appendChild(sec);
+  const grid = sec.querySelector("#jewelCraftGrid");
+  const recipes = typeof ACCESSORY_CRAFT !== "undefined" ? ACCESSORY_CRAFT : [];
+  if (!recipes.length) {
+    const empty = document.createElement("p");
+    empty.className = "ws-armor-hint";
+    empty.textContent = "Рецептов пока нет.";
+    sec.appendChild(empty);
+    return;
+  }
+  recipes.forEach((r) => {
+    const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[r.accessoryId] : null;
+    const frag = typeof ACCESSORY_FRAGS !== "undefined" ? ACCESSORY_FRAGS[r.shardId] : null;
+    if (!def) return;
+    const have = typeof accessoryFragCount === "function" ? accessoryFragCount(r.shardId) : 0;
+    const can = typeof canCraftAccessory === "function" && canCraftAccessory(r.accessoryId).ok;
+    const card = document.createElement("div");
+    card.className = "craft-card";
+    card.innerHTML =
+      '<div class="ch"><img src="' +
+      (def.icon || "") +
+      '" alt=""><div class="cn">' +
+      def.name +
+      '</div><div class="cg" style="background:#5fb8ff;color:#10131a">' +
+      (def.grade || "?") +
+      "</div></div>" +
+      '<div class="cinfo">Рецепт: <b>' +
+      (frag?.name || r.shardId) +
+      " ×" +
+      r.shardQty +
+      "</b> (есть " +
+      have +
+      ")" +
+      (r.adena ? " + <b>" + r.adena.toLocaleString("ru-RU") + " adena</b>" : "") +
+      "<br>" +
+      (def.desc || "") +
+      "</div>" +
+      '<div class="cbtns"><button type="button" class="craftb"' +
+      (can ? "" : " disabled") +
+      ">Скрафтить</button></div>";
+    card.querySelector(".craftb").onclick = () => {
+      if (typeof craftAccessory === "function") craftAccessory(r.accessoryId);
+    };
+    grid.appendChild(card);
+  });
 }
 
 function renderWorkshopArmor(body) {

@@ -177,3 +177,70 @@ function sellAllShots() {
   if (typeof checkAchievements === "function") checkAchievements();
 }
 
+function accessoryCraftRecipe(accessoryId) {
+  if (typeof ACCESSORY_CRAFT === "undefined" || !ACCESSORY_CRAFT) return null;
+  return ACCESSORY_CRAFT.find((r) => r.accessoryId === accessoryId) || null;
+}
+
+function accessoryFragCount(fragId) {
+  if (!fragId) return 0;
+  if (typeof inventoryShardCount === "function") return inventoryShardCount(fragId);
+  return (state.materials && state.materials[fragId]) || 0;
+}
+
+function canCraftAccessory(accessoryId) {
+  const r = accessoryCraftRecipe(accessoryId);
+  const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[accessoryId] : null;
+  if (!r || !def) return { ok: false, reason: "unknown" };
+  const shards = accessoryFragCount(r.shardId);
+  const adena = state.adena || 0;
+  if (shards < r.shardQty) return { ok: false, reason: "shard", need: r.shardQty, have: shards };
+  if (adena < (r.adena || 0)) return { ok: false, reason: "adena", need: r.adena || 0, have: adena };
+  return { ok: true, recipe: r, def };
+}
+
+function craftAccessory(accessoryId) {
+  const check = canCraftAccessory(accessoryId);
+  if (!check.ok) {
+    if (typeof toast === "function") {
+      if (check.reason === "shard") toast("Не хватает осколков (нужно " + check.need + ")", "warn");
+      else if (check.reason === "adena") toast("Недостаточно adena", "warn");
+      else toast("Рецепт недоступен", "warn");
+    }
+    return null;
+  }
+  const r = check.recipe;
+  const shardStack = (state.inventory || []).find((it) => it && it.kind === "shard" && it.id === r.shardId);
+  const willFreeSlot =
+    shardStack && Math.max(0, Math.floor(Number(shardStack.qty) || 0)) <= r.shardQty;
+  if (typeof isInventoryFull === "function" && isInventoryFull() && !willFreeSlot) {
+    if (typeof toast === "function") toast("Инвентарь полон", "warn");
+    return null;
+  }
+  if (typeof consumeShardsFromInventory === "function") {
+    if (!consumeShardsFromInventory(r.shardId, r.shardQty)) {
+      if (typeof toast === "function") toast("Не хватает осколков", "warn");
+      return null;
+    }
+  } else {
+    ProgressStore.update("materials", (m) => {
+      const next = { ...(m || { soul: 0, spirit: 0 }) };
+      next[r.shardId] = Math.max(0, (next[r.shardId] || 0) - r.shardQty);
+      return next;
+    });
+  }
+  if (r.adena > 0) {
+    ProgressStore.update("adena", (a) => Math.max(0, (a || 0) - r.adena));
+  }
+  const granted = typeof grantCollectible === "function" ? grantCollectible(accessoryId) : null;
+  if (!granted) return null;
+  if (typeof Audio2 !== "undefined" && Audio2.success) Audio2.success();
+  if (typeof save === "function") save();
+  if (typeof toast === "function") {
+    toast("🔨 Скрафчено: " + check.def.name + (check.def.grade ? " [" + check.def.grade + "]" : ""), "craft");
+  }
+  if (typeof renderWorkshop === "function") renderWorkshop();
+  if (typeof renderInventory === "function") renderInventory();
+  return granted;
+}
+

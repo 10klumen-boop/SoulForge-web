@@ -134,6 +134,13 @@ function requestMineWithQuestBriefing(zoneId) {
 function renderMineQuestHud() {
   const el = document.getElementById("mineQuestHud");
   if (!el) return;
+  if (
+    (typeof isWorldBossSessionActive === "function" && isWorldBossSessionActive()) ||
+    (typeof mineSession !== "undefined" && mineSession && (mineSession.worldBoss || mineSession.instance))
+  ) {
+    el.hidden = true;
+    return;
+  }
   const zoneId = state.farmZone || "banana_mine";
   const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
   if (zone?.side) {

@@ -45,8 +45,27 @@ assert(!noParty.ok && noParty.error === "no_party", "party requires membership")
 
 const party = store.chatCreateParty(user1, { now: 5100 });
 assert(party.ok && party.party, "create party");
-const invite = store.chatInviteParty(user1, { nick: "ChatTwo", now: 5200 });
-assert(invite.ok && invite.invited === "ChatTwo", "invite party");
+
+// Имена персонажей для invite (не логин)
+store.persistPlayerSave(user1, 1, Date.now(), "test", {
+  activeCharacterId: "c1",
+  characters: [{ id: "c1", progress: { avatar: { created: true, name: "HeroA", level: 10, raceId: "human", classId: "fighter", genderId: "male" }, adena: 0 } }],
+  avatar: { created: true, name: "HeroA", level: 10, raceId: "human", classId: "fighter", genderId: "male" },
+  adena: 0,
+});
+store.persistPlayerSave(user2, 1, Date.now(), "test", {
+  activeCharacterId: "c2",
+  characters: [{ id: "c2", progress: { avatar: { created: true, name: "HeroB", level: 10, raceId: "human", classId: "fighter", genderId: "male" }, adena: 0 } }],
+  avatar: { created: true, name: "HeroB", level: 10, raceId: "human", classId: "fighter", genderId: "male" },
+  adena: 0,
+});
+
+const invite = store.chatInviteParty(user1, { charName: "HeroB", now: 5200 });
+assert(invite.ok && invite.pending && invite.invited === "HeroB", "invite party pending");
+const invList = store.chatListPartyInvites(user2);
+assert(invList.invites.length === 1, "pending invite listed");
+const accept = store.chatRespondPartyInvite(user2, { inviteId: invList.invites[0].id, accept: true, now: 5250 });
+assert(accept.ok && accept.accepted && accept.party.members.length === 2, "accept invite");
 
 const pMsg = store.chatPostMessage(user1, { channel: "party", body: "в группу", now: 8000 });
 assert(pMsg.ok && pMsg.message.scopeId, "party message");

@@ -351,20 +351,16 @@ function renderChatSocialBar() {
   if (ch === "party") {
     if (!chatSocial.party) {
       social.innerHTML =
-        '<button type="button" class="game-chat-social-btn is-muted" data-act="party-create" disabled aria-disabled="true" title="Временно недоступно">Создать группу</button>' +
-        '<span class="game-chat-social-hint">создание временно недоступно</span>';
+        '<span class="game-chat-social-hint">Группа — плитка «Группа» в меню</span>';
     } else {
-      const names = (chatSocial.party.members || []).map((m) => m.nick).join(", ");
-      const leader = (chatSocial.party.members || []).find((m) => m.userId === chatSocial.party.leaderUserId);
-      const amLeader = !!(leader && leader.nick === myNick);
+      const names = (chatSocial.party.members || [])
+        .map((m) => m.name || m.charName || m.nick)
+        .join(", ");
       social.innerHTML =
         '<span class="game-chat-social-meta">Группа · ' +
         names +
         "</span>" +
-        (amLeader
-          ? '<button type="button" class="game-chat-social-btn" data-act="party-invite">+ Ник</button>'
-          : "") +
-        '<button type="button" class="game-chat-social-btn ghost" data-act="party-leave">Выйти</button>';
+        '<span class="game-chat-social-hint">управление — меню «Группа»</span>';
     }
   } else if (ch === "clan") {
     if (!chatSocial.clan) {
@@ -401,16 +397,26 @@ async function chatApi(path, opts) {
     body: opts?.body ? JSON.stringify(opts.body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) return { ok: false, status: res.status, error: data.error || "Ошибка" };
+  if (!res.ok) {
+    return {
+      ok: false,
+      status: res.status,
+      error: data.error || data.message || "Ошибка",
+      ...data,
+    };
+  }
   return { ok: true, ...data };
 }
 
 async function handleChatSocialAction(act) {
   if (typeof Audio2 !== "undefined") Audio2.click();
-  if (act === "party-create" || act === "clan-create") {
-    return setChatStatus("Создание группы и клана временно недоступно", "warn");
+  if (act === "party-create") {
+    if (typeof openPartyScreen === "function") return openPartyScreen();
+    if (typeof partyCreate === "function") return partyCreate();
+    return setChatStatus("Открой меню «Группа»", "warn");
   }
   if (act === "party-leave") {
+    if (typeof partyLeave === "function") return partyLeave();
     const r = await chatApi("/chat/party/leave", { method: "POST", body: {} });
     if (!r.ok) return setChatStatus(r.error, "warn");
     chatSocial = { party: null, clan: r.clan || chatSocial.clan };
@@ -420,21 +426,16 @@ async function handleChatSocialAction(act) {
     chatKnownIdsByChannel.party = new Set();
     chatBootstrapped.party = false;
     syncChatComposeUi();
+    if (typeof renderPartyPanel === "function") renderPartyPanel();
     setChatStatus("Вы покинули группу");
     return;
   }
-  if (act === "party-invite") {
-    const nick = window.prompt("Ник аккаунта для приглашения в группу:");
-    if (!nick) return;
-    const r = await chatApi("/chat/party/invite", { method: "POST", body: { nick: nick.trim() } });
-    if (!r.ok) return setChatStatus(r.error, "warn");
-    chatSocial = { party: r.party || chatSocial.party, clan: r.clan || chatSocial.clan };
-    syncChatComposeUi();
-    setChatStatus("Приглашён: " + (r.invited || nick));
-    return;
+  if (act === "party-invite" || act === "party-kick") {
+    if (typeof openPartyScreen === "function") return openPartyScreen();
+    return setChatStatus("Приглашение — в меню «Группа»", "warn");
   }
   if (act === "clan-create") {
-    return setChatStatus("Создание группы и клана временно недоступно", "warn");
+    return setChatStatus("Создание клана временно недоступно", "warn");
   }
   if (act === "clan-leave") {
     const r = await chatApi("/chat/clan/leave", { method: "POST", body: {} });
@@ -541,16 +542,33 @@ async function chatPollNow() {
     if (!active.ok) {
       if (active.status === 401) setChatStatus("Нужен вход в аккаунт", "warn");
     } else {
-      chatSocial = { party: active.party || null, clan: active.clan || null };
+      // Не затираем ready: чат-полл раньше отдавал party без флагов → Ready мигал
+      const prevParty = chatSocial && chatSocial.party;
+      let nextParty = active.party || null;
+      if (nextParty && prevParty && prevParty.id === nextParty.id) {
+        const prevReady = new Map(
+          (prevParty.members || []).map((m) => [m.userId, !!m.ready])
+        );
+        nextParty = {
+          ...nextParty,
+          members: (nextParty.members || []).map((m) => ({
+            ...m,
+            ready:
+              typeof m.ready === "boolean" ? m.ready : !!prevReady.get(m.userId),
+          })),
+        };
+      }
+      chatSocial = { party: nextParty, clan: active.clan || null };
       chatCanSend = active.canSend !== false;
       if (active.reason === "no_party") {
-        setChatStatus("Нет группы — создайте или попросите приглашение", "warn");
+        setChatStatus("Нет группы — меню «Группа»", "warn");
       } else if (active.reason === "no_clan") {
         setChatStatus("Нет клана — создайте или попросите приглашение", "warn");
       } else {
         setChatStatus("");
       }
       syncChatComposeUi();
+      // Полный re-render панели группы только с party-полла — иначе Ready/вкладки мигают
     }
 
     // Фоновые каналы — только для бейджей

@@ -36,6 +36,7 @@ function renderMenu() {
   }
   if (typeof renderAvatarHub === "function") renderAvatarHub();
   if (typeof syncMenuTileIcons === "function") syncMenuTileIcons();
+  if (typeof syncPartyTileMeta === "function") syncPartyTileMeta();
   if (typeof syncCloudUI === "function") syncCloudUI();
   const tileMeta = document.getElementById("avatarTileMeta");
   if (tileMeta) {

@@ -166,5 +166,77 @@
     "w": 278,
     "h": 480,
     "sheetW": 512
+  },
+  "ash-hound": {
+    "slug": "ash-hound",
+    "w": 345,
+    "h": 480,
+    "sheetW": 512
+  },
+  "bone-raider": {
+    "slug": "bone-raider",
+    "w": 375,
+    "h": 480,
+    "sheetW": 512
+  },
+  "crimson-stalker": {
+    "slug": "crimson-stalker",
+    "w": 366,
+    "h": 480,
+    "sheetW": 512
+  },
+  "dusk-fang": {
+    "slug": "dusk-fang",
+    "w": 521,
+    "h": 480,
+    "sheetW": 512
+  },
+  "iron-maw": {
+    "slug": "iron-maw",
+    "w": 470,
+    "h": 480,
+    "sheetW": 512
+  },
+  "bloodhowl-alpha": {
+    "slug": "bloodhowl-alpha",
+    "w": 487,
+    "h": 480,
+    "sheetW": 512
+  },
+  "slag-wraith": {
+    "slug": "slag-wraith",
+    "w": 334,
+    "h": 480,
+    "sheetW": 512
+  },
+  "magma-sentinel": {
+    "slug": "magma-sentinel",
+    "w": 423,
+    "h": 480,
+    "sheetW": 512
+  },
+  "void-crawler": {
+    "slug": "void-crawler",
+    "w": 506,
+    "h": 480,
+    "sheetW": 512
+  },
+  "ember-horror": {
+    "slug": "ember-horror",
+    "w": 320,
+    "h": 480,
+    "sheetW": 512
+  },
+  "gate-colossus": {
+    "slug": "gate-colossus",
+    "w": 420,
+    "h": 480,
+    "sheetW": 512
+  },
+  "forge-tyrant": {
+    "slug": "forge-tyrant",
+    "w": 466,
+    "h": 480,
+    "sheetW": 512
   }
 }

@@ -1,7 +1,7 @@
 // ===== Экипировка персонажа: UI (paperdoll в инвентаре) =====
 // Core logic (ensureAvatarGear, equipAvatarSlot, iterEquippedGear и т.д.) вынесено в avatar-gear-core.js.
 
-/** Раскладка: доспехи/оружие сверху; бижутерия снизу (stubs). Без рубахи/плаща. */
+/** Раскладка: доспехи/оружие сверху; бижутерия снизу. Щит — stub. */
 const INV_PAPERDOLL_LAYOUT = [
   [{ id: "helmet" }],
   [{ id: "chest" }],
@@ -15,13 +15,13 @@ const INV_PAPERDOLL_LAYOUT = [
     { stub: true, id: "stub_shield", label: "Щит", placeholder: "icons/weapon_iron_glove_i00.png" },
   ],
   [
-    { stub: true, id: "stub_earring_l", label: "Серьга", placeholder: "icons/accessory_blessed_earring_of_zaken_i00.png" },
-    { stub: true, id: "stub_necklace", label: "Ожерелье", placeholder: "icons/accessory_necklace_of_valakas_i00.png" },
-    { stub: true, id: "stub_earring_r", label: "Серьга", placeholder: "icons/accessory_earring_of_antaras_i00.png" },
+    { id: "earring_l" },
+    { id: "necklace" },
+    { id: "earring_r" },
   ],
   [
-    { stub: true, id: "stub_ring_l", label: "Кольцо", placeholder: "icons/accessory_ring_of_baium_i00.png" },
-    { stub: true, id: "stub_ring_r", label: "Кольцо", placeholder: "icons/accessory_ring_of_baium_i00.png" },
+    { id: "ring_l" },
+    { id: "ring_r" },
   ],
 ];
 
@@ -35,6 +35,27 @@ function renderAvatarGearSlots() {
   refreshInvPaperdoll();
 }
 
+function invPaperdollLayout() {
+  const jewelryOn = typeof FEATURE_EPIC_JEWELRY_UI === "undefined" ? true : !!FEATURE_EPIC_JEWELRY_UI;
+  return INV_PAPERDOLL_LAYOUT.map((row) =>
+    row.map((cell) => {
+      if (cell.stub || !cell.id) return cell;
+      const meta = typeof AVATAR_GEAR_SLOTS !== "undefined"
+        ? AVATAR_GEAR_SLOTS.find((s) => s.id === cell.id)
+        : null;
+      if (meta?.jewelry && !jewelryOn) {
+        return {
+          stub: true,
+          id: "stub_" + cell.id,
+          label: meta.label,
+          placeholder: meta.placeholder,
+        };
+      }
+      return cell;
+    })
+  );
+}
+
 function renderGearPaperdoll(rootEl) {
   const root = rootEl || document.getElementById("invPaperdoll");
   if (!root) return;
@@ -45,7 +66,7 @@ function renderGearPaperdoll(rootEl) {
   title.textContent = "Экипировка";
   root.appendChild(title);
 
-  INV_PAPERDOLL_LAYOUT.forEach((row) => {
+  invPaperdollLayout().forEach((row) => {
     const rowEl = document.createElement("div");
     const n = row.length;
     rowEl.className =
@@ -92,17 +113,50 @@ function formatArmorSetBonusLine(th, b) {
   return th + " шт.: " + (parts.join(" · ") || "—");
 }
 
+function formatEquippedJewelryBonusHtml() {
+  const jewelryLines = [];
+  if (typeof iterEquippedGear === "function" && typeof COLLECTIBLES !== "undefined") {
+    iterEquippedGear().forEach(({ item, def }) => {
+      if (!item || item.kind === "weapon" || item.kind === "armor") return;
+      if (typeof isArmorItem === "function" && isArmorItem(item)) return;
+      const c = def || COLLECTIBLES[item.id];
+      if (!c || !c.slot) return;
+      const parts = [];
+      const b = c.bonuses || {};
+      if (b.pvpAtk) parts.push("+" + Math.round(b.pvpAtk * 1000) / 10 + "% ATK арены");
+      if (b.enchant) {
+        parts.push(
+          typeof formatArmorEnchantBonus === "function"
+            ? formatArmorEnchantBonus(b.enchant)
+            : "+" + (b.enchant * 100).toFixed(2) + "% заточка"
+        );
+      }
+      if (b.mineAdena) parts.push("+" + Math.round(b.mineAdena * 100) + "% adena");
+      if (b.avatarXp) parts.push("+" + Math.round(b.avatarXp * 100) + "% XP души");
+      if (b.mdef) parts.push("+" + b.mdef + " M.Def");
+      if (b.pdef) parts.push("+" + b.pdef + " P.Def");
+      jewelryLines.push(
+        '<li class="on">✓ ' + (c.name || item.id) + (parts.length ? ": " + parts.join(" · ") : "") + "</li>"
+      );
+    });
+  }
+  if (!jewelryLines.length) return "";
+  return '<div class="inv-set-bonus-head">Бижутерия</div><ul>' + jewelryLines.join("") + "</ul>";
+}
+
 function buildInvSetBonusPanel() {
   const wrap = document.createElement("div");
   wrap.className = "inv-set-bonus";
   const set = typeof avatarSetBonuses === "function" ? avatarSetBonuses() : null;
+  const jewelryHtml = formatEquippedJewelryBonusHtml();
   if (!set || !(set.sets || []).length) {
     wrap.innerHTML =
       '<div class="inv-set-bonus-head">Сет</div>' +
       '<p class="inv-set-bonus-empty">Надень 2+ куска одного сета — появятся бонусы.</p>' +
       '<ul class="inv-set-bonus-hint">' +
       "<li>2 / 4 / 5: бонусы сета (farm + ATK/DEF/HP арены)</li>" +
-      "<li>P.Def/M.Def кусков отдельно режут HP golden/boss (кап от DEF ~10%)</li></ul>";
+      "<li>P.Def/M.Def кусков отдельно режут HP golden/boss (кап от DEF ~10%)</li></ul>" +
+      jewelryHtml;
     return wrap;
   }
   let html = "";
@@ -137,6 +191,7 @@ function buildInvSetBonusPanel() {
       (sus > 0 ? " · <b>итого −" + Math.round(sus * 100) + "%</b> golden/boss" : "") +
       "</p>";
   }
+  html += jewelryHtml;
   wrap.innerHTML = html;
   return wrap;
 }

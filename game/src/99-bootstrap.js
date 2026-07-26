@@ -1,6 +1,7 @@
 (async function boot() {
   try {
     if (typeof loadGameJsonData === "function") await loadGameJsonData();
+    if (typeof mergePartyFarmZonesIntoFarmZones === "function") mergePartyFarmZonesIntoFarmZones();
     if (typeof rebuildAchievementsFromMeta === "function") rebuildAchievementsFromMeta();
   } catch (e) {
     console.error("loadGameJsonData failed:", e);
@@ -36,6 +37,8 @@ if (farmPlayBanner) {
     openMine();
   };
 }
+if (typeof initPartyPanel === "function") initPartyPanel();
+if (typeof syncCharacterSessionOverlays === "function") syncCharacterSessionOverlays();
 if (typeof wireDebugLog === "function") wireDebugLog();
 $("#mineBack").onclick = () => { Audio2.click(); stopMine(); renderMenu(); show("menu"); };
 const mineShotBtn = document.getElementById("mineShotToggle");
@@ -48,6 +51,7 @@ if (mineShotBtn) {
 $("#invTile").onclick = openInventory;
 if (typeof wireAccountStorage === "function") wireAccountStorage();
 if (typeof wirePlayerMail === "function") wirePlayerMail();
+if (typeof wirePartyUi === "function") wirePartyUi();
 $("#shopTile").onclick = () => openWorkshop();
 if (typeof bindMarketUi === "function") bindMarketUi();
 if (typeof bindPvpArenaUi === "function") bindPvpArenaUi();
@@ -113,7 +117,7 @@ document.addEventListener("keydown", (e) => {
     show(to);
   }
   else if (e.key === "Escape" && ($("#screen-characters").classList.contains("active") || $("#screen-leaderboard")?.classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
-  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active"))) { show("menu"); }
+  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
 

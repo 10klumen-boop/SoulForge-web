@@ -40,6 +40,8 @@ function defaultState() {
     passiveIncome: { lastCollectAt: 0, warehouseLv: 0 },
     autoClicker: { until: 0, enabled: true, pauseStartedAt: 0, frozenRemainingMs: 0 },
     resourceFavorites: [],
+    partyFarm: { dailyUsedMs: 0, dayKey: "", lastZoneId: "" },
+    instanceLocks: {},
     accountWarehouse: { items: [] },
     accountMail: { messages: [] },
     devTune: {},
@@ -79,6 +81,7 @@ function freshCharacterProgressSnapshot() {
     "records", "totals", "storySeen", "inventory", "crystals",
     "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
     "passiveIncome", "autoClicker", "resourceFavorites",
+    "partyFarm", "instanceLocks",
   ];
   const p = {};
   keys.forEach((k) => { p[k] = JSON.parse(JSON.stringify(d[k])); });

@@ -133,6 +133,7 @@ function initGameChat() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key.toLowerCase() !== "c" || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (typeof isInCharacterSession === "function" && !isInCharacterSession()) return;
     const tag = (e.target && e.target.tagName) || "";
     if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
     const modalOpen = document.getElementById("modalBackdrop") && !document.getElementById("modalBackdrop").hidden;

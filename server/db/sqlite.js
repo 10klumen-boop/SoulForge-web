@@ -17,6 +17,9 @@ const { attachMarketMethods } = require("./market");
 const { attachMailMethods } = require("./mail");
 const { attachChatMethods } = require("./chat");
 const { attachPvpMethods } = require("./pvp");
+const { attachPartyContentMethods } = require("./party-content");
+const { attachWorldBossMethods } = require("./world-boss");
+const { attachPartyLfgMethods } = require("./party-lfg");
 
 function ensureScoreColumn(db, name, ddl) {
   const cols = db.prepare("PRAGMA table_info(scores)").all();
@@ -270,6 +273,7 @@ const CHARACTER_EVENT_TYPES = new Set([
   "chat_party_create",
   "chat_party_invite",
   "chat_party_leave",
+  "chat_party_kick",
   "chat_clan_create",
   "chat_clan_invite",
   "chat_clan_leave",
@@ -1831,6 +1835,9 @@ function createSqliteStore(opts) {
   attachMailMethods(db, store, persistDeps);
   attachChatMethods(db, store);
   attachPvpMethods(db, store);
+  attachPartyContentMethods(db, store);
+  attachWorldBossMethods(db, store);
+  attachPartyLfgMethods(db, store);
 
   return store;
 }

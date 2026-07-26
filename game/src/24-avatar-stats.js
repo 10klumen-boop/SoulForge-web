@@ -3,33 +3,53 @@
 // вынесена в avatar-stats-core.js.
 // Чистые расчёты (avatarStats, avatarFarmPower, mineMobMaxHp) — в avatar-math.js.
 
-/** null = две кнопки входа; "story" | "farm" = список зон */
+/** null = entry; "story" | "farm" | "worldboss" = список зон / хаб босса */
 let menuFarmEntry = null;
 
 function syncMenuHubMode() {
   const screen = document.getElementById("screen-menu");
   if (!screen) return;
-  const mode = menuFarmEntry === "story" || menuFarmEntry === "farm" ? menuFarmEntry : "entry";
+  const mode =
+    menuFarmEntry === "story" || menuFarmEntry === "farm" || menuFarmEntry === "worldboss"
+      ? menuFarmEntry
+      : "entry";
   screen.dataset.hubMode = mode;
   const grid = document.getElementById("homeGrid");
   if (grid) grid.dataset.hubMode = mode;
 }
 
 function setMenuFarmEntry(mode) {
-  menuFarmEntry = mode === "story" || mode === "farm" ? mode : null;
+  const inParty =
+    typeof partyMemberCount === "function"
+      ? partyMemberCount() > 0
+      : !!(typeof getChatParty === "function" && getChatParty());
+  if (inParty && (mode === "story" || mode === "farm")) {
+    if (typeof toast === "function") {
+      toast("В группе — только инстансы (меню «Группа»). Соло История/Фарм недоступны.", "warn");
+    }
+    if (typeof openPartyScreen === "function") openPartyScreen();
+    return;
+  }
+  if (mode === "party") {
+    if (typeof openPartyScreen === "function") openPartyScreen();
+    return;
+  }
+  menuFarmEntry =
+    mode === "story" || mode === "farm" || mode === "worldboss" ? mode : null;
   if (menuFarmEntry === "story" || menuFarmEntry === "farm") {
     const zones =
       menuFarmEntry === "farm"
         ? typeof freeFarmZones === "function"
           ? freeFarmZones()
-          : FARM_ZONES.filter((z) => z.side)
+          : FARM_ZONES.filter((z) => z.side && !z.party)
         : typeof storyFarmZones === "function"
           ? storyFarmZones()
-          : FARM_ZONES.filter((z) => !z.side);
+          : FARM_ZONES.filter((z) => !z.side && !z.party);
     const cur = typeof farmZoneById === "function" ? farmZoneById(state.farmZone) : null;
     const ok =
       cur &&
-      ((menuFarmEntry === "farm" && cur.side) || (menuFarmEntry === "story" && !cur.side));
+      ((menuFarmEntry === "farm" && cur.side && !cur.party) ||
+        (menuFarmEntry === "story" && !cur.side && !cur.party));
     if (!ok) {
       const pick =
         zones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) ||
@@ -50,6 +70,9 @@ function setMenuFarmEntry(mode) {
     } else if (typeof maybeShowQuestBriefing === "function") {
       maybeShowQuestBriefing(state.farmZone || "banana_mine", { delay: 280 });
     }
+  }
+  if (menuFarmEntry === "worldboss" && typeof renderWorldBossHub === "function") {
+    renderWorldBossHub();
   }
 }
 
@@ -93,6 +116,14 @@ function wireFarmHubEntry() {
       setMenuFarmEntry(null);
     };
   }
+  const wbBack = document.getElementById("worldBossFieldBack");
+  if (wbBack && !wbBack.dataset.wired) {
+    wbBack.dataset.wired = "1";
+    wbBack.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      setMenuFarmEntry(null);
+    };
+  }
 }
 
 function fillFarmZoneList(listEl, zones, opts) {
@@ -104,9 +135,7 @@ function fillFarmZoneList(listEl, zones, opts) {
     const empty = document.createElement("p");
     empty.className = "farm-hub-empty";
     empty.textContent =
-      mode === "farm"
-        ? "Свободный фарм пока пуст."
-        : "Сюжетные зоны пока недоступны.";
+      mode === "farm" ? "Свободный фарм пока пуст." : "Сюжетные зоны пока недоступны.";
     listEl.appendChild(empty);
     return;
   }
@@ -132,14 +161,12 @@ function fillFarmZoneList(listEl, zones, opts) {
       typeof uiZoneChipIcon === "function"
         ? uiZoneChipIcon(zone.id, state.avatar?.raceId)
         : view.icon || zone.icon;
-    const sub =
-      mode === "farm"
-        ? farmFreeZoneChipText(zone, st)
-        : farmZoneChipText(zone, st);
+    const sub = mode === "farm" ? farmFreeZoneChipText(zone, st) : farmZoneChipText(zone, st);
     row.innerHTML =
       '<img src="' + chipIco + '" alt="">' +
       "<span><strong>" + view.name + "</strong><small>" + sub + "</small></span>";
     row.onclick = () => {
+      if (row.disabled) return;
       Audio2.click();
       selectFarmZone(zone.id);
     };
@@ -255,21 +282,23 @@ function renderMenuFarmHub() {
   const entryEl = document.getElementById("farmHubEntry");
   const storyField = document.getElementById("storyField");
   const farmField = document.getElementById("farmField");
+  const worldBossField = document.getElementById("worldBossField");
   const showEntry = !menuFarmEntry;
   if (entryEl) entryEl.hidden = !showEntry;
   if (storyField) storyField.hidden = menuFarmEntry !== "story";
   if (farmField) farmField.hidden = menuFarmEntry !== "farm";
+  if (worldBossField) worldBossField.hidden = menuFarmEntry !== "worldboss";
   if (typeof syncMenuHubMode === "function") syncMenuHubMode();
 
-  const storyZones = typeof storyFarmZones === "function" ? storyFarmZones() : FARM_ZONES.filter((z) => !z.side);
-  const farmZones = typeof freeFarmZones === "function" ? freeFarmZones() : FARM_ZONES.filter((z) => z.side);
+  const storyZones = typeof storyFarmZones === "function" ? storyFarmZones() : FARM_ZONES.filter((z) => !z.side && !z.party);
+  const farmZones = typeof freeFarmZones === "function" ? freeFarmZones() : FARM_ZONES.filter((z) => z.side && !z.party);
 
   if (menuFarmEntry === "story") {
     fillFarmZoneList(document.getElementById("storyZoneList"), storyZones, { mode: "story" });
     const storyActions = document.getElementById("farmHubStoryActions");
     if (storyActions) storyActions.hidden = !state.avatar?.created;
     const storyZone =
-      selected && !selected.side
+      selected && !selected.side && !selected.party
         ? selected
         : storyZones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) ||
           storyZones[0] ||
@@ -284,7 +313,7 @@ function renderMenuFarmHub() {
   } else if (menuFarmEntry === "farm") {
     fillFarmZoneList(document.getElementById("freeFarmZoneList"), farmZones, { mode: "farm" });
     const farmZone =
-      selected && selected.side
+      selected && selected.side && !selected.party
         ? selected
         : farmZones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) ||
           farmZones[0] ||
@@ -298,6 +327,8 @@ function renderMenuFarmHub() {
         farm: true,
       });
     }
+  } else if (menuFarmEntry === "worldboss" && typeof renderWorldBossHub === "function") {
+    renderWorldBossHub();
   }
 
   if (typeof renderMineStoryBar === "function") renderMineStoryBar();

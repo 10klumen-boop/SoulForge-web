@@ -398,7 +398,17 @@ function updateMobHpBar(g) {
   if (!g._maxHp) return;
   const hp = Math.max(0, g._hp ?? g._maxHp);
   if (fill) fill.style.width = Math.max(0, (hp / g._maxHp) * 100) + "%";
-  if (label) label.textContent = fmtCombat(hp) + " / " + fmtCombat(g._maxHp);
+  let text = fmtCombat(hp) + " / " + fmtCombat(g._maxHp);
+  const sh = Math.max(0, Number(g._shieldHp) || 0);
+  if (sh > 0) {
+    text += " · щит " + fmtCombat(sh);
+    g.classList.add("mob-shielded");
+  } else if (!g._instanceEncounter) {
+    /* farm shield flag handled elsewhere */
+  } else {
+    g.classList.remove("mob-shielded");
+  }
+  if (label) label.textContent = text;
 }
 
 function floatText(x, y, text, color, opts) {

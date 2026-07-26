@@ -54,6 +54,7 @@ function syncUiAfterCharacterSwap() {
   }
   if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
   if (typeof renderMineHudStats === "function") renderMineHudStats();
+  if (typeof syncCharacterSessionOverlays === "function") syncCharacterSessionOverlays();
 }
 
 function migrateCharactersStructure() {

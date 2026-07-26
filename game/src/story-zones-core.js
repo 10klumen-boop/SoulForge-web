@@ -60,7 +60,7 @@ function ensureStoryProgress() {
     // Вычистить side-зоны, попавшие в chaptersSeen/unlocksShown по ошибке.
     const zones = typeof FARM_ZONES !== "undefined" ? FARM_ZONES : [];
     zones.forEach((z) => {
-      if (!z?.side) return;
+      if (!z?.side && !z?.party) return;
       if (next.chaptersSeen[z.id]) delete next.chaptersSeen[z.id];
       if (next.unlocksShown[z.id]) delete next.unlocksShown[z.id];
     });
@@ -72,24 +72,44 @@ function farmZoneById(id) {
   return FARM_ZONES.find((z) => z.id === id) || FARM_ZONES[0];
 }
 
-/** Сюжетные зоны Prelude (без side-фарма вроде кузницы). */
+/** Сюжетные зоны Prelude (без side-фарма и party). */
 function isStoryFarmZone(zoneOrId) {
   const z = typeof zoneOrId === "string" ? farmZoneById(zoneOrId) : zoneOrId;
-  return !!(z && !z.side);
+  return !!(z && !z.side && !z.party);
 }
 
 /** Свободный фарм вне цепочки глав. */
 function isFreeFarmZone(zoneOrId) {
   const z = typeof zoneOrId === "string" ? farmZoneById(zoneOrId) : zoneOrId;
-  return !!(z && z.side);
+  return !!(z && z.side && !z.party);
+}
+
+/** Групповая охота. */
+function isPartyFarmZoneId(zoneOrId) {
+  const z = typeof zoneOrId === "string" ? farmZoneById(zoneOrId) : zoneOrId;
+  return !!(z && z.party);
 }
 
 function storyFarmZones() {
-  return (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => !z.side);
+  return (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => !z.side && !z.party);
 }
 
 function freeFarmZones() {
-  return (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => z.side);
+  return (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => z.side && !z.party);
+}
+
+function partyFarmZones() {
+  const fromFarm = (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => z.party);
+  if (fromFarm.length) return fromFarm;
+  return typeof PARTY_FARM_ZONES !== "undefined" ? PARTY_FARM_ZONES.slice() : [];
+}
+
+function mergePartyFarmZonesIntoFarmZones() {
+  if (typeof FARM_ZONES === "undefined" || !Array.isArray(FARM_ZONES)) return;
+  if (typeof PARTY_FARM_ZONES === "undefined" || !Array.isArray(PARTY_FARM_ZONES)) return;
+  PARTY_FARM_ZONES.forEach((pz) => {
+    if (!FARM_ZONES.some((z) => z.id === pz.id)) FARM_ZONES.push(pz);
+  });
 }
 
 function zoneMineConfig(zoneId) {

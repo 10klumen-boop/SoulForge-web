@@ -98,6 +98,37 @@ function show(screen) {
     if (typeof syncSettingsUI === "function") syncSettingsUI();
   }
   if (screen === "login" && typeof syncCloudUI === "function") syncCloudUI();
+  if (typeof syncCharacterSessionOverlays === "function") syncCharacterSessionOverlays();
+}
+
+/** В игре с созданным персонажем (не логин / title / выбор слота). */
+function isInCharacterSession() {
+  try {
+    if (!state?.avatar?.created) return false;
+  } catch (_) {
+    return false;
+  }
+  const active = gameDoc().querySelector(".screen.active");
+  if (!active || !active.id) return false;
+  const id = String(active.id).replace(/^screen-/, "");
+  const titleOrAuth = {
+    login: 1,
+    home: 1,
+    characters: 1,
+    settings: 1,
+    patch: 1,
+    author: 1,
+  };
+  return !titleOrAuth[id];
+}
+
+/** Чат и журнал — только после входа на персонажа. */
+function syncCharacterSessionOverlays() {
+  const on = isInCharacterSession();
+  try {
+    document.body.classList.toggle("sf-char-session", on);
+  } catch (_) {}
+  if (typeof renderPartyPanel === "function") renderPartyPanel();
 }
 
 let _confirmResolve = null;

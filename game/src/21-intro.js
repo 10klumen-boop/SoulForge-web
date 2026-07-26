@@ -89,6 +89,14 @@ function dismissIntro(fromFirstRun) {
     if (typeof dismissChapterReward === "function") dismissChapterReward();
     return;
   }
+  if (mode === "instance_clear") {
+    if (typeof dismissInstanceClearModal === "function") dismissInstanceClearModal();
+    return;
+  }
+  if (mode === "instance_fail") {
+    if (typeof dismissInstanceFailModal === "function") dismissInstanceFailModal();
+    return;
+  }
   if (mode === "prelude_finale") {
     if (typeof dismissPreludeFinale === "function") dismissPreludeFinale();
     return;

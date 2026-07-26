@@ -12,6 +12,8 @@ const CHAT_CHANNELS = new Set(["world", "trade", "party", "clan", "whisper"]);
 const CHAT_PUBLIC = new Set(["world", "trade"]);
 const CLAN_NAME_RE = /^[a-zA-Zа-яА-ЯёЁ0-9][a-zA-Zа-яА-ЯёЁ0-9 _-]{1,22}[a-zA-Zа-яА-ЯёЁ0-9]$/;
 const NICK_RE = /^[a-zA-Z]{2,16}$/;
+/** Парти-контент: группа 2–4 (раньше было 8 для чата). */
+const PARTY_MAX_MEMBERS = 4;
 
 function ensureChatSchema(db) {
   db.exec(`
@@ -249,12 +251,82 @@ function attachChatMethods(db, store) {
     stmtPrune.run(CHAT_KEEP_ROWS);
   }
 
+  const PARTY_INVITE_TTL_MS = 5 * 60 * 1000;
+  /** @type {Map<string, object>} inviteId → pending invite */
+  const partyPendingInvites = new Map();
+
+  function prunePartyInvites(now) {
+    const t = Number(now) || Date.now();
+    for (const [id, inv] of partyPendingInvites) {
+      if (!inv || inv.expiresAt < t) partyPendingInvites.delete(id);
+    }
+  }
+
+  function clearPartyInvitesForParty(partyId) {
+    for (const [id, inv] of partyPendingInvites) {
+      if (inv && inv.partyId === partyId) partyPendingInvites.delete(id);
+    }
+  }
+
+  function clearPartyInvitesForUser(userId) {
+    for (const [id, inv] of partyPendingInvites) {
+      if (inv && (inv.toUserId === userId || inv.fromUserId === userId)) {
+        partyPendingInvites.delete(id);
+      }
+    }
+  }
+
+  function listPartyInvitesFor(userId) {
+    prunePartyInvites(Date.now());
+    return [...partyPendingInvites.values()]
+      .filter((inv) => inv.toUserId === userId)
+      .map((inv) => ({
+        id: inv.id,
+        partyId: inv.partyId,
+        fromUserId: inv.fromUserId,
+        fromNick: inv.fromNick,
+        fromName: inv.fromName,
+        toName: inv.toName,
+        createdAt: inv.createdAt,
+        expiresAt: inv.expiresAt,
+      }));
+  }
+
+  function listOutgoingPartyInvites(partyId) {
+    prunePartyInvites(Date.now());
+    return [...partyPendingInvites.values()]
+      .filter((inv) => inv.partyId === partyId)
+      .map((inv) => ({
+        id: inv.id,
+        toUserId: inv.toUserId,
+        toName: inv.toName,
+        createdAt: inv.createdAt,
+        expiresAt: inv.expiresAt,
+      }));
+  }
+
   function getPartyId(userId) {
     return stmtPartyOf.get(userId)?.party_id || null;
   }
 
   function getClanId(userId) {
     return stmtClanOf.get(userId)?.clan_id || null;
+  }
+
+  function memberDisplayName(userId, nick) {
+    try {
+      const save = db.prepare(`SELECT active_name FROM player_saves WHERE user_id = ?`).get(userId);
+      if (save?.active_name) return String(save.active_name);
+      const row = db
+        .prepare(
+          `SELECT name FROM player_characters
+           WHERE user_id = ? AND created = 1 AND name IS NOT NULL AND name != ''
+           ORDER BY level DESC, slot_id ASC LIMIT 1`
+        )
+        .get(userId);
+      if (row?.name) return String(row.name);
+    } catch (_) {}
+    return nick;
   }
 
   function socialSnapshot(userId) {
@@ -268,8 +340,15 @@ function attachChatMethods(db, store) {
       party = {
         id: partyId,
         leaderUserId: p?.leader_user_id || null,
-        members: members.map((m) => ({ userId: m.user_id, nick: m.nick })),
+        members: members.map((m) => ({
+          userId: m.user_id,
+          nick: m.nick,
+          name: memberDisplayName(m.user_id, m.nick),
+        })),
       };
+      if (typeof store.partyAnnotateReady === "function") {
+        party = store.partyAnnotateReady(party);
+      }
     }
     if (clanId) {
       const c = stmtClanGet.get(clanId);
@@ -278,7 +357,11 @@ function attachChatMethods(db, store) {
         id: clanId,
         name: c?.name || null,
         leaderUserId: c?.leader_user_id || null,
-        members: members.map((m) => ({ userId: m.user_id, nick: m.nick })),
+        members: members.map((m) => ({
+          userId: m.user_id,
+          nick: m.nick,
+          name: memberDisplayName(m.user_id, m.nick),
+        })),
       };
     }
     return { party, clan };
@@ -331,20 +414,38 @@ function attachChatMethods(db, store) {
       const left = Number(stmtPartyCount.get(partyId)?.n || 0);
       if (left === 0) {
         stmtPartyDeleteIfEmpty.run(partyId, partyId);
+        clearPartyInvitesForParty(partyId);
       } else if (party && party.leader_user_id === user.id) {
         const next = stmtPartyMembers.all(partyId)[0];
         if (next) stmtPartySetLeader.run(next.user_id, partyId);
       }
     });
     tx();
+    clearPartyInvitesForUser(user.id);
+    // Выход из группы = выход из инстанса/фарма группы
+    if (typeof store.instanceLeave === "function") {
+      try {
+        store.instanceLeave(user, { now });
+      } catch (_) {}
+    }
+    if (typeof store.partyFarmLeave === "function") {
+      try {
+        store.partyFarmLeave(user, { now });
+      } catch (_) {}
+    }
+    if (typeof store.partyLfgOnPartyChange === "function") {
+      store.partyLfgOnPartyChange(partyId);
+    }
     logChatAudit(user, "chat_party_leave", { partyId }, opts.charName);
     return { ok: true, leftAt: now, ...socialSnapshot(user.id) };
   };
 
+  /** Приглашение — pending, пока цель не примет / отклонит. */
   store.chatInviteParty = function chatInviteParty(user, opts = {}) {
-    const nick = String(opts.nick || "").trim();
-    if (!NICK_RE.test(nick)) {
-      return { ok: false, error: "nick", message: "Ник: 2–16 латинских букв" };
+    const raw =
+      String(opts.charName || opts.name || opts.nick || "").trim().slice(0, 48);
+    if (raw.length < 2) {
+      return { ok: false, error: "name", message: "Укажи имя персонажа (2–16)" };
     }
     let partyId = getPartyId(user.id);
     if (!partyId) {
@@ -356,25 +457,217 @@ function attachChatMethods(db, store) {
     if (!party || party.leader_user_id !== user.id) {
       return { ok: false, error: "leader", message: "Приглашать может только лидер" };
     }
-    const target = store.getUserByNick(nick);
-    if (!target) return { ok: false, error: "not_found", message: "Игрок не найден" };
-    if (target.id === user.id) {
+
+    let targetUser = null;
+    let invitedLabel = raw;
+    if (typeof store.mailResolveName === "function") {
+      const dest = store.mailResolveName(raw);
+      if (dest.ok) {
+        targetUser = store.getUserById(dest.userId);
+        invitedLabel = dest.name || raw;
+      }
+    }
+    if (!targetUser) {
+      return { ok: false, error: "not_found", message: "Персонаж «" + raw + "» не найден" };
+    }
+    if (targetUser.id === user.id) {
       return { ok: false, error: "self", message: "Нельзя пригласить себя" };
     }
-    if (getPartyId(target.id)) {
+    if (getPartyId(targetUser.id)) {
       return { ok: false, error: "busy", message: "Игрок уже в группе" };
     }
     const count = Number(stmtPartyCount.get(partyId)?.n || 0);
-    if (count >= 8) return { ok: false, error: "full", message: "Группа полна (8)" };
+    const pendingToParty = listOutgoingPartyInvites(partyId).length;
+    if (count + pendingToParty >= PARTY_MAX_MEMBERS) {
+      return { ok: false, error: "full", message: "Группа полна (" + PARTY_MAX_MEMBERS + ")" };
+    }
+    prunePartyInvites(opts.now || Date.now());
+    for (const [id, inv] of partyPendingInvites) {
+      if (inv && inv.partyId === partyId && inv.toUserId === targetUser.id) {
+        partyPendingInvites.delete(id);
+      }
+    }
     const now = Number(opts.now) || Date.now();
-    stmtPartyMemberInsert.run(partyId, target.id, now);
+    const wall = Date.now();
+    const inviteId = newSocialId("pi");
+    const fromName = memberDisplayName(user.id, user.nick);
+    partyPendingInvites.set(inviteId, {
+      id: inviteId,
+      partyId,
+      fromUserId: user.id,
+      fromNick: user.nick,
+      fromName,
+      toUserId: targetUser.id,
+      toName: invitedLabel,
+      createdAt: now,
+      expiresAt: wall + PARTY_INVITE_TTL_MS,
+    });
     logChatAudit(
       user,
       "chat_party_invite",
-      { partyId, invited: target.nick, invitedUserId: target.id },
+      {
+        partyId,
+        invited: invitedLabel,
+        invitedUserId: targetUser.id,
+        invitedNick: targetUser.nick,
+        inviteId,
+        pending: true,
+      },
       opts.charName
     );
-    return { ok: true, invited: target.nick, ...socialSnapshot(user.id) };
+    return {
+      ok: true,
+      pending: true,
+      invited: invitedLabel,
+      inviteId,
+      invitesOutgoing: listOutgoingPartyInvites(partyId),
+      ...socialSnapshot(user.id),
+    };
+  };
+
+  store.chatListPartyInvites = function chatListPartyInvites(user) {
+    return { ok: true, invites: listPartyInvitesFor(user.id) };
+  };
+
+  store.chatListOutgoingPartyInvites = function chatListOutgoingPartyInvites(user) {
+    const partyId = getPartyId(user.id);
+    if (!partyId) return { ok: true, invites: [] };
+    const party = stmtPartyGet.get(partyId);
+    if (!party || party.leader_user_id !== user.id) return { ok: true, invites: [] };
+    return { ok: true, invites: listOutgoingPartyInvites(partyId) };
+  };
+
+  store.chatRespondPartyInvite = function chatRespondPartyInvite(user, opts = {}) {
+    const inviteId = String(opts.inviteId || opts.id || "").trim();
+    const accept = opts.accept !== false && opts.accept !== 0 && opts.accept !== "0";
+    prunePartyInvites(opts.now || Date.now());
+    const inv = inviteId ? partyPendingInvites.get(inviteId) : null;
+    if (!inv || inv.toUserId !== user.id) {
+      return { ok: false, error: "invite", message: "Приглашение не найдено или истекло" };
+    }
+    partyPendingInvites.delete(inviteId);
+    if (!accept) {
+      logChatAudit(user, "chat_party_invite_decline", { inviteId, partyId: inv.partyId }, opts.charName);
+      return { ok: true, accepted: false, ...socialSnapshot(user.id) };
+    }
+    if (getPartyId(user.id)) {
+      return { ok: false, error: "busy", message: "Вы уже в группе" };
+    }
+    const party = stmtPartyGet.get(inv.partyId);
+    if (!party) {
+      return { ok: false, error: "party", message: "Группа больше не существует" };
+    }
+    const count = Number(stmtPartyCount.get(inv.partyId)?.n || 0);
+    if (count >= PARTY_MAX_MEMBERS) {
+      return { ok: false, error: "full", message: "Группа уже полна" };
+    }
+    const now = Number(opts.now) || Date.now();
+    stmtPartyMemberInsert.run(inv.partyId, user.id, now);
+    clearPartyInvitesForUser(user.id);
+    logChatAudit(
+      user,
+      "chat_party_invite_accept",
+      { inviteId, partyId: inv.partyId, fromUserId: inv.fromUserId },
+      opts.charName
+    );
+    return { ok: true, accepted: true, ...socialSnapshot(user.id) };
+  };
+
+  /** Прямой вход в party (LFG-доска) — без pending invite. */
+  store.chatJoinPartyDirect = function chatJoinPartyDirect(user, opts = {}) {
+    const partyId = String(opts.partyId || "").trim();
+    if (!partyId) return { ok: false, error: "party", message: "Группа не указана" };
+    if (getPartyId(user.id)) {
+      return { ok: false, error: "busy", message: "Вы уже в группе" };
+    }
+    const party = stmtPartyGet.get(partyId);
+    if (!party) {
+      return { ok: false, error: "party", message: "Группа больше не существует" };
+    }
+    const count = Number(stmtPartyCount.get(partyId)?.n || 0);
+    if (count >= PARTY_MAX_MEMBERS) {
+      return { ok: false, error: "full", message: "Группа уже полна" };
+    }
+    const now = Number(opts.now) || Date.now();
+    stmtPartyMemberInsert.run(partyId, user.id, now);
+    clearPartyInvitesForUser(user.id);
+    logChatAudit(user, "chat_party_lfg_join", { partyId }, opts.charName);
+    return { ok: true, ...socialSnapshot(user.id) };
+  };
+
+  store.chatKickParty = function chatKickParty(user, opts = {}) {
+    const raw =
+      String(opts.charName || opts.name || opts.nick || "").trim().slice(0, 48);
+    if (raw.length < 2) {
+      return { ok: false, error: "name", message: "Укажи имя персонажа" };
+    }
+    const partyId = getPartyId(user.id);
+    if (!partyId) return { ok: false, error: "none", message: "Вы не в группе" };
+    const party = stmtPartyGet.get(partyId);
+    if (!party || party.leader_user_id !== user.id) {
+      return { ok: false, error: "leader", message: "Исключать может только лидер" };
+    }
+
+    let targetUser = null;
+    let kickedLabel = raw;
+    if (typeof store.mailResolveName === "function") {
+      const dest = store.mailResolveName(raw);
+      if (dest.ok) {
+        targetUser = store.getUserById(dest.userId);
+        kickedLabel = dest.name || raw;
+      }
+    }
+    // Fallback: match by character name among party members (or nick as last resort)
+    if (!targetUser) {
+      const members = stmtPartyMembers.all(partyId);
+      const hit = members.find((m) => {
+        const cn = String(memberDisplayName(m.user_id, m.nick) || "").toLowerCase();
+        const nk = String(m.nick || "").toLowerCase();
+        const needle = raw.toLowerCase();
+        return cn === needle || nk === needle;
+      });
+      if (hit) {
+        targetUser = store.getUserById(hit.user_id);
+        kickedLabel = memberDisplayName(hit.user_id, hit.nick);
+      }
+    }
+    if (!targetUser) {
+      // Try resolving as char among current party via mailResolve only failed above
+      return { ok: false, error: "not_found", message: "Персонаж не найден в группе" };
+    }
+    if (targetUser.id === user.id) {
+      return { ok: false, error: "self", message: "Нельзя исключить себя — выйдите из группы" };
+    }
+    const targetParty = getPartyId(targetUser.id);
+    if (targetParty !== partyId) {
+      return { ok: false, error: "member", message: "Игрок не в вашей группе" };
+    }
+    stmtPartyMemberDelete.run(targetUser.id);
+    if (typeof store.instanceLeave === "function") {
+      try {
+        store.instanceLeave({ id: targetUser.id, nick: targetUser.nick }, { now: Date.now() });
+      } catch (_) {}
+    }
+    if (typeof store.partyFarmLeave === "function") {
+      try {
+        store.partyFarmLeave({ id: targetUser.id, nick: targetUser.nick }, {});
+      } catch (_) {}
+    }
+    if (typeof store.partyLfgOnPartyChange === "function") {
+      store.partyLfgOnPartyChange(partyId);
+    }
+    logChatAudit(
+      user,
+      "chat_party_kick",
+      {
+        partyId,
+        kicked: kickedLabel,
+        kickedUserId: targetUser.id,
+        kickedNick: targetUser.nick,
+      },
+      opts.charName
+    );
+    return { ok: true, kicked: kickedLabel, ...socialSnapshot(user.id) };
   };
 
   store.chatCreateClan = function chatCreateClan(user, opts = {}) {

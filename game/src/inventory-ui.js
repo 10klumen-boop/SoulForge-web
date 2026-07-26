@@ -514,11 +514,26 @@ function appendInvItemSlot(grid, it, idx) {
     return;
   }
   const slot = document.createElement("div");
-  if (isAccessoryItem(it)) {
+  if (typeof isShardItem === "function" && isShardItem(it)) {
+    const qty = Math.max(1, Math.floor(Number(it.qty) || 1));
+    slot.className = "inv-slot filled g-D";
+    slot.title = def.name + "\n×" + qty + " · осколок · крафт в Мастерской → Бижутерия";
+    slot.innerHTML =
+      '<img src="' +
+      def.icon +
+      '" alt="" loading="lazy" draggable="false" onerror="this.style.visibility=\'hidden\'">' +
+      (qty > 1 ? '<span class="ip">×' + qty + "</span>" : "");
+    slot.onclick = () => {
+      if (invClickBlocked()) return;
+      Audio2.click();
+      if (typeof toast === "function") toast(def.name + " ×" + qty + " · крафт в Мастерской", "info");
+    };
+  } else if (isAccessoryItem(it)) {
     slot.className = "inv-slot filled g-epic";
-    slot.title = def.name + "\nЭпическая бижутерия · клик — детали · надень в инвентаре";
+    slot.title = def.name + "\nБижутерия · клик — детали · тяни на слот серьги/кольца/ожерелья";
     slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
     slot.onclick = () => { if (invClickBlocked()) return; Audio2.click(); openAccessory(it); };
+    attachInvItemDrag(slot, idx);
   } else if (typeof isArmorItem === "function" && isArmorItem(it)) {
     const slotRu = def.slot === "helmet" ? "шлем" : def.slot === "chest" ? "доспех" : def.slot === "legs" ? "поножи" : def.slot === "gloves" ? "перчатки" : def.slot === "boots" ? "сапоги" : def.slot;
     slot.className = "inv-slot filled g-" + (def.grade || "C");

@@ -3,8 +3,8 @@
 
 // ===== Экипировка персонажа: слоты L2, бонусы от оружия и эпической бижутерии =====
 
-/** UI эпик-бижутерии выключен, пока дроп/прогрессия не введены. Слоты и бонусы в данных остаются. */
-const FEATURE_EPIC_JEWELRY_UI = false;
+/** UI бижутерии: слоты + экип (Серьга Закена и эпик). */
+const FEATURE_EPIC_JEWELRY_UI = true;
 
 const AVATAR_GEAR_SLOTS = [
   { id: "helmet", label: "Шлем", side: "left", row: 0, armor: true, placeholder: "icons/armor_helmet_i00.png" },
@@ -243,6 +243,18 @@ function avatarGearXpMult() {
   return m;
 }
 
+/** Суммарный pvpAtk от надетой бижутерии (доля, напр. 0.05 = +5%). */
+function avatarAccessoryPvpAtk() {
+  let b = 0;
+  iterEquippedGear().forEach(({ item }) => {
+    if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) return;
+    if (item.kind === "weapon") return;
+    const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
+    if (def?.bonuses?.pvpAtk) b += def.bonuses.pvpAtk;
+  });
+  return Math.max(0, b);
+}
+
 function avatarGearBonusSummary() {
   const lines = [];
   const ench = avatarGearEnchantBonus(safeLevel(), "regular");
@@ -270,6 +282,14 @@ function avatarGearBonusSummary() {
     if (set.pvpDef > 0) lines.push("+" + Math.round(set.pvpDef * 1000) / 10 + "% DEF арены (сет)");
     if (set.pvpHp > 0) lines.push("+" + Math.round(set.pvpHp) + " HP арены (сет)");
   }
+  const accPvp = avatarAccessoryPvpAtk();
+  if (accPvp > 0) lines.push("+" + Math.round(accPvp * 1000) / 10 + "% ATK арены (бижутерия)");
+  iterEquippedGear().forEach(({ item }) => {
+    if (!item || item.kind === "weapon" || item.kind === "armor") return;
+    if (typeof isArmorItem === "function" && isArmorItem(item)) return;
+    const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
+    if (def?.name) lines.push("Надето: " + def.name);
+  });
   if (typeof avatarArmorSustainPct === "function") {
     const sus = avatarArmorSustainPct();
     if (sus > 0) lines.push("−" + Math.round(sus * 100) + "% HP golden/boss (броня)");
@@ -472,7 +492,11 @@ function avatarEquipItemPower(it) {
 
 function avatarEquipItemGrade(it) {
   if (!it) return "";
-  if (isAccessoryItem(it)) return "epic";
+  if (isAccessoryItem(it)) {
+    const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[it.id] : null;
+    if (def?.grade) return def.grade;
+    return def?.epic ? "epic" : "";
+  }
   if (typeof isArmorItem === "function" && isArmorItem(it)) {
     const def = typeof armorItemDef === "function" ? armorItemDef(it) : null;
     return def?.grade || "";
