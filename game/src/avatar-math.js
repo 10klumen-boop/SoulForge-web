@@ -263,7 +263,7 @@ function avatarMineClickRaw(weaponPlus) {
   return effPatk * 1.0 + s.matk * 0.24 + lvl * 1.6;
 }
 
-/** Урон без учёта заточки — для расчёта HP (заточка тогда реально ускоряет убийство). */
+/** Урон без учёта заточки — для HUD бонуса заточки (HP моба якорится на зону). */
 function avatarMineBaseClickDamage() {
   const zone = farmZoneById(state.farmZone || "banana_mine");
   const ch = zone?.chapter || 1;
@@ -290,7 +290,23 @@ function avatarMineEnchantDamageBonus() {
   return Math.max(0, avatarMineClickDamage() - avatarMineBaseClickDamage());
 }
 
-/** Сколько ударов нужно, чтобы убить моба (не зависит от «силы фарма»). */
+/**
+ * Эталонный урон клика зоны (от targetPower/главы).
+ * HP моба якорится сюда — сила игрока ускоряет фарм, а не «толстит» моба.
+ */
+function mineZoneRefClickDamage(zoneId) {
+  zoneId = zoneId || state.farmZone || "banana_mine";
+  const zone = farmZoneById(zoneId);
+  const ch = zone?.chapter || 1;
+  const tgt = typeof farmZoneTargetPower === "function" ? farmZoneTargetPower(zone) : zone?.targetPower || 62;
+  const k = typeof MINE_REF_POWER_TO_RAW === "number" ? MINE_REF_POWER_TO_RAW : 0.48;
+  const step = typeof MINE_REF_CHAPTER_STEP === "number" ? MINE_REF_CHAPTER_STEP : 0.09;
+  const chapterScale = 1 + (ch - 1) * step;
+  const raw = tgt * k;
+  return Math.max(4, Math.round((raw * chapterScale) / 4.2));
+}
+
+/** Бюджет ударов на целевой силе зоны (under/overpower меняет фактический TTK через урон игрока). */
 function mineHitsToKill(type, zoneId) {
   zoneId = zoneId || state.farmZone || "banana_mine";
   const zone = farmZoneById(zoneId);
@@ -302,16 +318,13 @@ function mineHitsToKill(type, zoneId) {
     // Гл.1 мягче: проходим около targetPower; дальше эскалация
     boss: [44, 68, 80, 90, 104],
   };
-  let hits = (base[type] || base.normal)[ci];
-  const power = avatarFarmPower();
-  const tgt = farmZoneTargetPower(zone);
-  if (power < tgt) hits = Math.round(hits * (1 + ((tgt - power) / Math.max(1, tgt)) * 0.45));
+  const hits = (base[type] || base.normal)[ci];
   return Math.max(type === "boss" ? (ci === 0 ? 28 : 40) : type === "golden" ? 8 : 4, hits);
 }
 
-/** HP моба = базовый урон × число ударов (заточка снижает фактическое число кликов). */
+/** HP моба = эталонный урон зоны × бюджет ударов (сила/заточка сокращают фактические клики). */
 function mineMobMaxHp(type, zoneId) {
-  const dmg = avatarMineBaseClickDamage();
+  const dmg = mineZoneRefClickDamage(zoneId);
   const hits = mineHitsToKill(type, zoneId);
   let hp = Math.round(dmg * hits);
   if (type === "golden") hp = Math.round(hp * 1.08);

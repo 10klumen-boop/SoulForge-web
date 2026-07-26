@@ -8,7 +8,7 @@ function questBodyHtml(def) {
   if (def.questRef) parts.push('<p class="quest-ref-line">Квест Prelude: <b>' + def.questRef + "</b></p>");
   let obj = "Уничтожить <b>" + def.kills + "</b> " + def.targets;
   if (def.goldenKills) obj += " и <b>" + def.goldenKills + "</b> элитных целей (золотых)";
-  obj += ". У врагов есть <b>HP</b> — урон зависит от силы.";
+  obj += ". У врагов есть <b>HP</b> зоны — сильнее удар быстрее убивает.";
   parts.push("<p>Цель: " + obj + "</p>");
   if (typeof formatQuestStepLootLines === "function") {
     const lootLines = formatQuestStepLootLines(def.zoneId, def.step);

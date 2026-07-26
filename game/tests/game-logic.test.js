@@ -13,6 +13,7 @@ loadGameJsonDataSync();
 loadScripts([
   "src/01-constants.js",
   "src/data/enchant-balance.js",
+  "src/data/farm-balance.js",
   "src/data/professions-data.js",
   "src/professions-core.js",
   "src/06-rules.js",
@@ -261,6 +262,9 @@ function runTests() {
     assert.ok(h2 >= h1, "chapter 2 hits >= chapter 1 hits");
     const g1 = mineHitsToKill("golden", "banana_mine");
     assert.ok(g1 >= 8, "golden hits >= 8");
+    // underpower больше не раздувает бюджет hits — TTK идёт через урон игрока
+    state.avatar.level = 1;
+    assert.strictEqual(mineHitsToKill("normal", "banana_mine"), h1);
   });
 
   test("mineMobMaxHp is positive and scales with chapter", () => {
@@ -271,6 +275,39 @@ function runTests() {
     const hp2 = mineMobMaxHp("normal", "elven_ruins");
     assert.ok(hp1 > 0, "chapter 1 hp positive");
     assert.ok(hp2 > hp1, "chapter 2 hp > chapter 1 hp");
+  });
+
+  test("mineMobMaxHp anchors to zone targetPower, not player gear", () => {
+    state.farmZone = "banana_mine";
+    state.avatar = { raceId: "human", classId: "fighter", level: 1, gear: { weapon: null } };
+    global.iterEquippedGear = () => [];
+    const hpBare = mineMobMaxHp("normal", "banana_mine");
+    const dmgBare = avatarMineClickDamage();
+    WMAP.cal_sword = {
+      id: "cal_sword",
+      grade: "D",
+      patk: 80,
+      matk: 20,
+      ps: 4,
+      ms: 3,
+      cat: "Sword",
+      weaponKind: "physical",
+    };
+    state.avatar.gear.weapon = { id: "cal_sword", plus: 6, kind: "weapon" };
+    global.iterEquippedGear = () => [{ slot: "weapon", item: state.avatar.gear.weapon }];
+    const hpGeared = mineMobMaxHp("normal", "banana_mine");
+    const dmgGeared = avatarMineClickDamage();
+    assert.strictEqual(hpGeared, hpBare, "mob HP independent of player weapon");
+    assert.ok(dmgGeared > dmgBare, "player damage still grows with gear");
+    delete WMAP.cal_sword;
+    global.iterEquippedGear = () => [];
+  });
+
+  test("mineZoneRefClickDamage grows with targetPower", () => {
+    const r1 = mineZoneRefClickDamage("banana_mine");
+    const r2 = mineZoneRefClickDamage("elven_ruins");
+    assert.ok(r1 >= 4, "ref dmg >= 4");
+    assert.ok(r2 > r1, "higher targetPower → higher ref dmg");
   });
 
   test("expectedFarmPowerAtLevel grows with level", () => {

@@ -11,6 +11,14 @@ const ZAKEN_EARRING_ID = "zaken_blessed_earring";
 const MINE_ADENA_REWARD = { min: 3_000, max: 7_200 };
 const MINE_ADENA_GOLDEN = { min: 18_000, max: 43_200 };
 
+/**
+ * Якорь HP моба: эталонный клик-урон зоны от targetPower (не от текущего экипа игрока).
+ * raw ≈ targetPower * POWER_TO_RAW * (1 + (chapter-1)*CHAPTER_STEP), затем / 4.2 как у игрока.
+ * Калибровка: при power≈targetPower фактические hits ≈ таблице mineHitsToKill.
+ */
+const MINE_REF_POWER_TO_RAW = 0.48;
+const MINE_REF_CHAPTER_STEP = 0.09;
+
 /** Шанс золотого моба (единый по всем главам). */
 const MINE_GOLDEN_CHANCE = 0.05; // 5%
 

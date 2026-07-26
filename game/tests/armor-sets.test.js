@@ -54,13 +54,15 @@ global.passiveEffectSum = () => 0;
 global.racialEffectSum = () => 0;
 global.farmZoneById = (id) => {
   const side = {
-    scrap_field: { id: "scrap_field", chapter: 1, side: true },
-    mithril_forge: { id: "mithril_forge", chapter: 2, side: true },
+    scrap_field: { id: "scrap_field", chapter: 1, side: true, targetPower: 50 },
+    mithril_forge: { id: "mithril_forge", chapter: 2, side: true, targetPower: 106 },
   };
   if (side[id]) return side[id];
-  if (id === "dark_cavern") return { id: "dark_cavern", chapter: 4 };
-  return { id: "elven_ruins", chapter: 2 };
+  if (id === "dark_cavern") return { id: "dark_cavern", chapter: 4, targetPower: 140 };
+  return { id: "elven_ruins", chapter: 2, targetPower: 102 };
 };
+global.MINE_REF_POWER_TO_RAW = 0.48;
+global.MINE_REF_CHAPTER_STEP = 0.09;
 global.FARM_ZONES = [
   { id: "banana_mine", chapter: 1 },
   { id: "elven_ruins", chapter: 2 },
