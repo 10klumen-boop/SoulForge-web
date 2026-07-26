@@ -1,9 +1,9 @@
-﻿// ===== РљРІРµСЃС‚С‹: core logic (РїСЂРѕРіСЂРµСЃСЃ, Р±РѕСЃСЃС‹, СѓР±РёР№СЃС‚РІР°) =====
-// Р’С‹РЅРµСЃРµРЅРѕ РёР· 27-quests.js; UI РѕСЃС‚Р°Р»РѕСЃСЊ РІ 27-quests.js.
-// Р”Р°РЅРЅС‹Рµ РєРІРµСЃС‚РѕРІ РІ data/quest-data.js.
+// ===== Квесты: core logic (прогресс, боссы, убийства) =====
+// Вынесено из 27-quests.js; UI осталось в 27-quests.js.
+// Данные квестов в data/quest-data.js.
 
-// ===== Prelude: С†РµРїРѕС‡РєРё РєРІРµСЃС‚РѕРІ, Р±РѕСЃСЃС‹ Р»РѕРєР°С†РёР№, РїСЂРѕРіСЂРµСЃСЃ =====
-// Р”Р°РЅРЅС‹Рµ РєРІРµСЃС‚РѕРІ РІС‹РЅРµСЃРµРЅС‹ РІ data/quest-data.js (QUEST_NPC_BY_RACE_ZONE, ZONE_BOSSES,
+// ===== Prelude: цепочки квестов, боссы локаций, прогресс =====
+// Данные квестов вынесены в data/quest-data.js (QUEST_NPC_BY_RACE_ZONE, ZONE_BOSSES,
 // QUEST_STEP_FLAVOR, QUESTS_PER_ZONE, ZONE_BOSS_GRIND_KILLS, zoneQuestKillTargets, zoneQuestGoldenTarget).
 
 
@@ -31,7 +31,7 @@ function prevFarmZone(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
   const i = FARM_ZONES.findIndex((z) => z.id === zone.id);
   if (i <= 0) return null;
-  // Side-Р·РѕРЅС‹ (mithril_forge Рё С‚.Рї.) РЅРµ РІС…РѕРґСЏС‚ РІ РѕСЃРЅРѕРІРЅСѓСЋ С†РµРїРѕС‡РєСѓ РіР»Р°РІ.
+  // Side-зоны (mithril_forge и т.п.) не входят в основную цепочку глав.
   for (let j = i - 1; j >= 0; j--) {
     const z = FARM_ZONES[j];
     if (z && (z.side || z.party)) continue;
@@ -43,14 +43,14 @@ function prevFarmZone(zone) {
 function questNpc(zoneId, race) {
   race = race || (typeof currentAvatarRace === "function" ? currentAvatarRace() : state.avatar?.raceId) || "human";
   const base = QUEST_NPC_BY_RACE_ZONE[race]?.[zoneId] || QUEST_NPC_BY_RACE_ZONE.human?.[zoneId] || {
-    name: "РЎС‚СЂР°РЅРЅРёРє", role: "Prelude", icon: UI_QUEST_ICON, greet: "Р’С‹РїРѕР»РЅРё РїРѕСЂСѓС‡РµРЅРёРµ РЅР° РїРѕР»Рµ.",
+    name: "Странник", role: "Prelude", icon: UI_QUEST_ICON, greet: "Выполни поручение на поле.",
   };
   const icon = typeof uiQuestNpcIcon === "function" ? uiQuestNpcIcon(race, zoneId) : base.icon;
   return icon === base.icon ? base : Object.assign({}, base, { icon });
 }
 
 function zoneBossDef(zoneId) {
-  return ZONE_BOSSES[zoneId] || { name: "РҐРѕР·СЏРёРЅ Р·РµРјР»Рё", mob: "relic-werewolf", hpMult: 14, rewardMult: 2.5 };
+  return ZONE_BOSSES[zoneId] || { name: "Хозяин земли", mob: "relic-werewolf", hpMult: 14, rewardMult: 2.5 };
 }
 
 function questStepDef(questId) {
@@ -66,14 +66,14 @@ function questStepDef(questId) {
 function zoneQuestSteps(zoneId, race) {
   const zone = farmZoneById(zoneId);
   if (!zone) return [];
-  // Side-С„Р°СЂРј (РєСѓР·РЅРёС†Р° РјРёС„СЂРёР»Р° Рё С‚.Рї.) вЂ” С‚РѕР»СЊРєРѕ РґСЂРѕРї, Р±РµР· РїРѕСЂСѓС‡РµРЅРёР№ Prelude.
+  // Side-фарм (кузница мифрила и т.п.) — только дроп, без поручений Prelude.
   if ((zone.side || zone.party)) return [];
   const npc = questNpc(zoneId, race);
   const beat = typeof zoneStoryBeat === "function" ? zoneStoryBeat(zoneId, race) : {};
   const view = typeof zoneRaceView === "function" ? zoneRaceView(zoneId, race) : zone;
   const kills = zoneQuestKillTargets(zone.chapter);
   const goldenNeed = zoneQuestGoldenTarget(zone.chapter);
-  const stepTitles = ["Р—Р°С‡РёСЃС‚РєР° РїРѕР»СЏ", "РћС…РѕС‚Р° РЅР° СЌР»РёС‚Сѓ", "Р¤РёРЅР°Р»СЊРЅРѕРµ РїРѕСЂСѓС‡РµРЅРёРµ"];
+  const stepTitles = ["Зачистка поля", "Охота на элиту", "Финальное поручение"];
   const steps = [];
   for (let i = 0; i < QUESTS_PER_ZONE; i++) {
     const step = i + 1;
@@ -83,13 +83,13 @@ function zoneQuestSteps(zoneId, race) {
       step,
       stepsTotal: QUESTS_PER_ZONE,
       chapter: zone.chapter,
-      title: (view.story?.title || view.name) + " В· " + stepTitles[i],
+      title: (view.story?.title || view.name) + " · " + stepTitles[i],
       npc,
       questRef: beat.questRef || "",
-      targets: beat.targets || "РІСЂР°РіРё РЅР° РїРѕР»Рµ",
+      targets: beat.targets || "враги на поле",
       kills: kills[i],
       goldenKills: step === 2 ? goldenNeed : 0,
-      eyebrow: npc.role + " В· " + step + "/" + QUESTS_PER_ZONE,
+      eyebrow: npc.role + " · " + step + "/" + QUESTS_PER_ZONE,
       greet: npc.greet + " " + QUEST_STEP_FLAVOR[i],
     });
   }
@@ -178,7 +178,7 @@ function setZoneBossQueued(zoneId, queued) {
   });
 }
 
-/** Р‘РѕСЃСЃ СЏРІРёС‚СЃСЏ РЅР° РїРѕР»Рµ (РїРµСЂРІС‹Р№ СЂР°Р· РїРѕСЃР»Рµ РєРІРµСЃС‚РѕРІ РёР»Рё РїРѕСЃР»Рµ N Р·Р°С‡РёСЃС‚РѕРє). */
+/** Босс явится на поле (первый раз после квестов или после N зачисток). */
 function shouldOfferZoneBoss(zoneId) {
   const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
   if ((zone?.side || zone?.party)) return false;
@@ -199,14 +199,14 @@ function queueZoneBossSpawn(zoneId) {
 
 function isZoneChapterComplete(zoneId) {
   const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
-  // Side-С„Р°СЂРј РЅРµ РёРјРµРµС‚ РіР»Р°РІС‹/Р±РѕСЃСЃР° вЂ” В«Р·Р°РІРµСЂС€С‘РЅВ» СЃ С‚РѕС‡РєРё Р·СЂРµРЅРёСЏ С†РµРїРѕС‡РєРё.
+  // Side-фарм не имеет главы/босса — «завершён» с точки зрения цепочки.
   if ((zone?.side || zone?.party)) return true;
   return allZoneQuestsComplete(zoneId) && isZoneBossDefeated(zoneId);
 }
 
 function isPrevZoneChapterComplete(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
-  // Side-С„Р°СЂРј РІРЅРµ СЃСЋР¶РµС‚РЅРѕР№ С†РµРїРѕС‡РєРё вЂ” С‚РѕР»СЊРєРѕ СЃРёР»Р°/СѓСЂРѕРІРµРЅСЊ.
+  // Side-фарм вне сюжетной цепочки — только сила/уровень.
   if ((zone?.side || zone?.party)) return true;
   const prev = prevFarmZone(zone);
   if (!prev) return true;
@@ -296,23 +296,23 @@ function onQuestMobKill(zoneId, mobType) {
       typeof grantQuestStepReward === "function"
         ? grantQuestStepReward(zoneId, def.step, def.id)
         : null;
-    const lootBit = loot?.summary ? " В· " + loot.summary : "";
+    const lootBit = loot?.summary ? " · " + loot.summary : "";
     const next = activeZoneQuest(zoneId);
     if (next) {
       if (typeof gameLog === "function") {
-        gameLog(def.title + " вЂ” РІС‹РїРѕР»РЅРµРЅРѕ" + (loot?.summary ? " (" + loot.summary + ")" : "") + ". РЎР»РµРґСѓСЋС‰РµРµ: " + next.step + "/" + QUESTS_PER_ZONE, "success");
+        gameLog(def.title + " — выполнено" + (loot?.summary ? " (" + loot.summary + ")" : "") + ". Следующее: " + next.step + "/" + QUESTS_PER_ZONE, "success");
       }
       if (typeof toast === "function") {
-        toast("вњ“ РџРѕСЂСѓС‡РµРЅРёРµ " + def.step + "/" + QUESTS_PER_ZONE + lootBit, "success");
+        toast("✓ Поручение " + def.step + "/" + QUESTS_PER_ZONE + lootBit, "success");
       }
     } else {
       const boss = zoneBossDef(zoneId);
       queueZoneBossSpawn(zoneId);
       if (typeof gameLog === "function") {
-        gameLog("Р’СЃРµ РїРѕСЂСѓС‡РµРЅРёСЏ РІС‹РїРѕР»РЅРµРЅС‹" + (loot?.summary ? " (" + loot.summary + ")" : "") + " вЂ” РЅР° РїРѕР»Рµ СЏРІРёС‚СЃСЏ " + boss.name + ". РќРµ РіРѕС‚РѕРІ вЂ” РІС‹С…РѕРґРё РєР°С‡Р°С‚СЊ СЃРёР»Сѓ", "success");
+        gameLog("Все поручения выполнены" + (loot?.summary ? " (" + loot.summary + ")" : "") + " — на поле явится " + boss.name + ". Не готов — выходи качать силу", "success");
       }
       if (typeof toast === "function") {
-        toast("в  Р‘РѕСЃСЃ: " + boss.name + lootBit, "warn");
+        toast("☠ Босс: " + boss.name + lootBit, "warn");
       }
     }
     if (typeof noteLeaderboardEvent === "function") noteLeaderboardEvent("snapshot");
@@ -342,8 +342,8 @@ function onZoneBossDefeated(zoneId) {
   markZoneBossDefeated(zoneId);
   const boss = zoneBossDef(zoneId);
   const view = typeof zoneRaceView === "function" ? zoneRaceView(zoneId) : { name: zoneId };
-  if (typeof gameLog === "function") gameLog(view.name + ": " + boss.name + " РїРѕРІРµСЂР¶РµРЅ вЂ” РїСѓС‚СЊ РґР°Р»СЊС€Рµ РѕС‚РєСЂС‹С‚", "success");
-  if (typeof toast === "function") toast("в  " + boss.name + " РїРѕРІРµСЂР¶РµРЅ! Р“Р»Р°РІР° Р·Р°РІРµСЂС€РµРЅР°.", "success");
+  if (typeof gameLog === "function") gameLog(view.name + ": " + boss.name + " повержен — путь дальше открыт", "success");
+  if (typeof toast === "function") toast("☠ " + boss.name + " повержен! Глава завершена.", "success");
   if (typeof grantChapterReward === "function") grantChapterReward(zoneId);
   if (typeof notifyFarmZoneUnlocks === "function") notifyFarmZoneUnlocks();
   if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
@@ -364,21 +364,21 @@ function onZoneBossDefeated(zoneId) {
 function questStatusText(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
   if (!zone) return "";
-  if (isZoneChapterComplete(zone.id)) return "РіР»Р°РІР° вњ“";
+  if (isZoneChapterComplete(zone.id)) return "глава ✓";
   const prev = prevFarmZone(zone);
   if (prev && !isZoneChapterComplete(prev.id)) {
     const pv = typeof zoneRaceView === "function" ? zoneRaceView(prev) : prev;
-    return "РіР»Р°РІР°: " + (pv.name || "вЂ¦") + " вњ—";
+    return "глава: " + (pv.name || "…") + " ✗";
   }
-  if (isZoneBossPending(zone.id)) return "в  Р±РѕСЃСЃ";
+  if (isZoneBossPending(zone.id)) return "☠ босс";
   const def = activeZoneQuest(zone.id);
   if (!def) return "";
   const done = questKillsDone(def.id);
   if (def.goldenKills) {
     const g = questGoldenKillsDone(def.id);
-    return def.step + "/" + QUESTS_PER_ZONE + " В· " + done + "/" + def.kills + " В· в…" + g + "/" + def.goldenKills;
+    return def.step + "/" + QUESTS_PER_ZONE + " · " + done + "/" + def.kills + " · ★" + g + "/" + def.goldenKills;
   }
-  return def.step + "/" + QUESTS_PER_ZONE + " В· " + done + "/" + def.kills;
+  return def.step + "/" + QUESTS_PER_ZONE + " · " + done + "/" + def.kills;
 }
 
 function migrateQuestProgress() {
@@ -422,7 +422,7 @@ function migrateQuestProgress() {
   state.questProgress._migratedV1 = true;
 }
 
-/** РЎР±СЂРѕСЃ В«С„Р°РЅС‚РѕРјРЅС‹С…В» Р·Р°РІРµСЂС€РµРЅРёР№ (РјРёРіСЂР°С†РёСЏ / СЂР°СЃСЃРёРЅС…СЂРѕРЅ СЃР»РѕС‚РѕРІ) вЂ” РёРЅР°С‡Рµ РІ С€Р°С…С‚Рµ С‚РѕР»СЊРєРѕ Р±РѕСЃСЃ. */
+/** Сброс «фантомных» завершений (миграция / рассинхрон слотов) — иначе в шахте только босс. */
 function repairQuestProgressIntegrity() {
   if (!state.avatar?.created) return false;
   ensureQuestProgress();
