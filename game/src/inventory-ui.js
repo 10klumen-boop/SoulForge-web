@@ -150,10 +150,8 @@ function finishInvPointerDrag(e) {
     } else {
       const cz = invCrystallizeZone();
       if (cz && e && pointInElement(e, cz)) {
-        if (it && !isAccessoryItem(it) && !(typeof isArmorItem === "function" && isArmorItem(it))) {
+        if (it && !isAccessoryItem(it)) {
           crystallizeAt(pd.idx);
-        } else if (it && typeof isArmorItem === "function" && isArmorItem(it)) {
-          toast("Броню нельзя кристаллизовать", "warn");
         }
       }
     }
@@ -228,26 +226,39 @@ async function crystallizeAt(idx) {
   const inv = state.inventory || [];
   const it = inv[idx];
   if (!it || isAccessoryItem(it)) return;
-  if (typeof isArmorItem === "function" && isArmorItem(it)) {
-    toast("Броню нельзя кристаллизовать", "warn");
+  if (typeof isItemEquipped === "function" && isItemEquipped(it.uid)) {
+    toast("Сначала сними предмет", "warn");
     return;
   }
-  const w = WMAP[it.id];
-  if (!w) return;
-  if (typeof weaponCanEnchant === "function" && !weaponCanEnchant(w)) {
-    toast("«" + w.name + "» без грейда — не кристаллизуется", "warn");
+
+  const isArmor = typeof isArmorItem === "function" && isArmorItem(it);
+  const def = isArmor
+    ? typeof armorItemDef === "function"
+      ? armorItemDef(it)
+      : typeof AMAP !== "undefined"
+        ? AMAP[it.id]
+        : null
+    : WMAP[it.id];
+  if (!def) return;
+  if (!isArmor && typeof weaponCanEnchant === "function" && !weaponCanEnchant(def)) {
+    toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
     return;
   }
-  const yld = crystalYield(w, it.plus);
-  const grade = w.grade;
-  const plusStr = it.plus ? " +" + it.plus : "";
+  if (!def.grade || def.grade === "NG") {
+    toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
+    return;
+  }
+  const plus = isArmor ? 0 : it.plus || 0;
+  const yld = crystalYield(def, plus);
+  const grade = def.grade;
+  const plusStr = plus ? " +" + plus : "";
   const ok = await showConfirm({
     title: "Кристаллизация",
     html: `<div class="modal-cryst">
-      <img class="modal-cryst-wpn" src="${w.icon}" alt="">
+      <img class="modal-cryst-wpn" src="${def.icon}" alt="">
       <div class="modal-cryst-info">
-        <div class="modal-cryst-name g-${grade}">${w.name}${plusStr}</div>
-        <div class="modal-cryst-warn">Оружие будет уничтожено без заточки.</div>
+        <div class="modal-cryst-name g-${grade}">${def.name}${plusStr}</div>
+        <div class="modal-cryst-warn">Предмет будет уничтожен без возврата.</div>
         <div class="modal-cryst-reward"><img src="${CRYSTAL_ICON[grade]}" alt=""> +${yld} кристаллов <span class="g-${grade}">${grade}</span></div>
       </div>
     </div>`,
@@ -266,13 +277,16 @@ async function crystallizeAt(idx) {
   Audio2.coin();
   save();
   if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
-  toast("Кристаллизация: " + w.name + plusStr + " → +" + yld + " крист. (" + grade + ")", "loot");
+  toast("Кристаллизация: " + def.name + plusStr + " → +" + yld + " крист. (" + grade + ")", "loot");
   if (typeof logCharacterEvent === "function") {
     logCharacterEvent("crystallize", {
-      weaponId: w.id,
-      weaponName: w.name,
+      itemId: def.id,
+      itemName: def.name,
+      kind: isArmor ? "armor" : "weapon",
+      weaponId: isArmor ? undefined : def.id,
+      weaponName: isArmor ? undefined : def.name,
       grade,
-      plus: it.plus || 0,
+      plus,
       crystals: yld,
     });
   }
@@ -314,7 +328,7 @@ function attachInvItemDrag(slot, idx, opts) {
     slot.addEventListener("contextmenu", (e) => {
       const inv = state.inventory || [];
       const it = inv[idx];
-      if (!it || isAccessoryItem(it) || (typeof isArmorItem === "function" && isArmorItem(it))) return;
+      if (!it || isAccessoryItem(it)) return;
       e.preventDefault();
       crystallizeAt(idx);
     });
@@ -433,7 +447,7 @@ function fillInvResourceGrid(grid, tabId) {
     }
   } else if (tabId === "crystal") {
     const stacks = listCrystalStacks();
-    if (!stacks.length) note("Нет кристаллов. Кристаллизуй оружие в сумке.");
+    if (!stacks.length) note("Нет кристаллов. Кристаллизуй оружие или броню в сумке.");
     else {
       hasStacks = true;
       stacks.forEach((row) => {
@@ -539,7 +553,8 @@ function appendInvItemSlot(grid, it, idx) {
     const slotRu = def.slot === "helmet" ? "шлем" : def.slot === "chest" ? "доспех" : def.slot === "legs" ? "поножи" : def.slot === "gloves" ? "перчатки" : def.slot === "boots" ? "сапоги" : def.slot;
     slot.className = "inv-slot filled g-" + (def.grade || "C");
     slot.title = def.name + " [" + (def.grade || "?") + "]\nP.Def " + (def.pdef || 0) + " · M.Def " + (def.mdef || 0) +
-      "\nСлот: " + slotRu + " · клик — надеть · тяни на слот экипа";
+      "\nСлот: " + slotRu + " · клик — надеть · тяни на экип / кристаллизацию · ПКМ" +
+      (def.cc ? "\nКристаллизация: " + def.cc + " × " + (def.grade || "?") : "");
     slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
     slot.onclick = () => {
       if (invClickBlocked()) return;
@@ -551,7 +566,7 @@ function appendInvItemSlot(grid, it, idx) {
       }
       if (typeof renderInventory === "function") renderInventory();
     };
-    attachInvItemDrag(slot, idx);
+    attachInvItemDrag(slot, idx, { crystallize: true });
   } else {
     const w = def;
     const p = statAt(w.patk, w.ps, it.plus), m = statAt(w.matk, w.ms, it.plus);
@@ -584,7 +599,7 @@ function appendInvCrystallizeFooter(list) {
     '<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="' +
     CRYSTALLIZE_ICON.normal +
     '" alt="" draggable="false"></div>' +
-    '<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Тяни оружие сюда или на слот экипа слева · ПКМ по оружию</span></div>';
+    '<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Тяни оружие или броню сюда · ПКМ по предмету</span></div>';
   attachCrystallizeZone(cz);
   list.appendChild(cz);
 }

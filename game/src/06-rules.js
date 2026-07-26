@@ -126,13 +126,14 @@ function sellValue(w, plus) {
 // Кристаллы, выпадающие при разрушении оружия (иконки и цвета — с masterwork.wiki)
 // CRYSTAL_*, CRYSTALLIZE_ICON в data/enchant-balance.js.
 
-function crystalBase(weapon) {
-  if (weapon && weapon.cc) return weapon.cc;
-  return { D: 50, C: 150, B: 400, A: 900 }[weapon && weapon.grade] || 50;
+function crystalBase(item) {
+  if (item && item.cc) return item.cc;
+  return { D: 50, C: 150, B: 400, A: 900 }[item && item.grade] || 50;
 }
 
-function crystalYield(weapon, plus) {
-  const base = crystalBase(weapon);
+/** Кристаллы при кристаллизации оружия/брони (wiki cc; plus только у оружия). */
+function crystalYield(item, plus) {
+  const base = crystalBase(item);
   const p = Math.max(0, plus | 0);
   const mult = tune("ench.crystalPlusMult", CRYSTAL_PLUS_MULT);
   if (p <= 0) return base;

@@ -1,6 +1,7 @@
 // ===== Броня и сеты (P3): все D/C HF-сеты (без Clan Oath) + крафт =====
 // Иконки: masterwork.wiki texture-set (armor_tXX_*) → descriptive names via tools/fetch_armor_set_icons.py.
 // Wiki-паттерн: Material (piece) + crystals + ore → кусок. Def даёт sustain (HP golden/boss).
+// cc — crystal count при кристаллизации (Interlude / l2api; см. game/tools/armor_crystal_counts.json).
 // Шлемы: варианты helmet / leather_helmet / circlet / cloth_helmet (i00/i02) по сетам.
 
 const FEATURE_ARMOR_UI = true;
@@ -34,123 +35,123 @@ const ARMOR_FRAG_ZONE_ID = "mithril_forge";
 
 const ARMOR = [
   // —— Bone (D, heavy) ——
-  { id: "bone_helmet", name: "Bone Helmet", slot: "helmet", grade: "D", setId: "bone", pdef: 5, mdef: 2, icon: "icons/armor_leather_helmet_i00.png", glow: "#c8b896" },
-  { id: "bone_breastplate", name: "Bone Breastplate", slot: "chest", grade: "D", setId: "bone", pdef: 12, mdef: 4, icon: "icons/armor_bone_breastplate_i00.png", glow: "#c8b896" },
-  { id: "bone_gaiters", name: "Bone Gaiters", slot: "legs", grade: "D", setId: "bone", pdef: 8, mdef: 3, icon: "icons/armor_bone_gaiters_i00.png", glow: "#c8b896" },
-  { id: "bone_gloves", name: "Bone Gloves", slot: "gloves", grade: "D", setId: "bone", pdef: 4, mdef: 2, icon: "icons/armor_gauntlet_i00.png", glow: "#c8b896" },
-  { id: "bone_boots", name: "Bone Boots", slot: "boots", grade: "D", setId: "bone", pdef: 4, mdef: 2, icon: "icons/armor_boots_i00.png", glow: "#c8b896" },
+  { id: "bone_helmet", name: "Bone Helmet", slot: "helmet", grade: "D", setId: "bone", pdef: 5, mdef: 2, cc: 56, icon: "icons/armor_leather_helmet_i00.png", glow: "#c8b896" },
+  { id: "bone_breastplate", name: "Bone Breastplate", slot: "chest", grade: "D", setId: "bone", pdef: 12, mdef: 4, cc: 151, icon: "icons/armor_bone_breastplate_i00.png", glow: "#c8b896" },
+  { id: "bone_gaiters", name: "Bone Gaiters", slot: "legs", grade: "D", setId: "bone", pdef: 8, mdef: 3, cc: 94, icon: "icons/armor_bone_gaiters_i00.png", glow: "#c8b896" },
+  { id: "bone_gloves", name: "Bone Gloves", slot: "gloves", grade: "D", setId: "bone", pdef: 4, mdef: 2, cc: 60, icon: "icons/armor_gauntlet_i00.png", glow: "#c8b896" },
+  { id: "bone_boots", name: "Bone Boots", slot: "boots", grade: "D", setId: "bone", pdef: 4, mdef: 2, cc: 38, icon: "icons/armor_boots_i00.png", glow: "#c8b896" },
 
   // —— Brigandine (D, heavy) ——
-  { id: "brigandine_helmet", name: "Brigandine Helmet", slot: "helmet", grade: "D", setId: "brigandine", pdef: 6, mdef: 2, icon: "icons/armor_leather_helmet_i02.png", glow: "#9ab0c8" },
-  { id: "brigandine_breastplate", name: "Brigandine", slot: "chest", grade: "D", setId: "brigandine", pdef: 14, mdef: 5, icon: "icons/armor_brigandine_i00.png", glow: "#9ab0c8" },
-  { id: "brigandine_gaiters", name: "Brigandine Gaiters", slot: "legs", grade: "D", setId: "brigandine", pdef: 9, mdef: 3, icon: "icons/armor_brigandine_gaiters_i00.png", glow: "#9ab0c8" },
-  { id: "brigandine_gloves", name: "Brigandine Gauntlets", slot: "gloves", grade: "D", setId: "brigandine", pdef: 4, mdef: 2, icon: "icons/armor_brigandine_gauntlet_i00.png", glow: "#9ab0c8" },
-  { id: "brigandine_boots", name: "Brigandine Boots", slot: "boots", grade: "D", setId: "brigandine", pdef: 4, mdef: 2, icon: "icons/armor_brigandine_boots_i00.png", glow: "#9ab0c8" },
+  { id: "brigandine_helmet", name: "Brigandine Helmet", slot: "helmet", grade: "D", setId: "brigandine", pdef: 6, mdef: 2, cc: 203, icon: "icons/armor_leather_helmet_i02.png", glow: "#9ab0c8" },
+  { id: "brigandine_breastplate", name: "Brigandine", slot: "chest", grade: "D", setId: "brigandine", pdef: 14, mdef: 5, cc: 543, icon: "icons/armor_brigandine_i00.png", glow: "#9ab0c8" },
+  { id: "brigandine_gaiters", name: "Brigandine Gaiters", slot: "legs", grade: "D", setId: "brigandine", pdef: 9, mdef: 3, cc: 340, icon: "icons/armor_brigandine_gaiters_i00.png", glow: "#9ab0c8" },
+  { id: "brigandine_gloves", name: "Brigandine Gauntlets", slot: "gloves", grade: "D", setId: "brigandine", pdef: 4, mdef: 2, cc: 135, icon: "icons/armor_brigandine_gauntlet_i00.png", glow: "#9ab0c8" },
+  { id: "brigandine_boots", name: "Brigandine Boots", slot: "boots", grade: "D", setId: "brigandine", pdef: 4, mdef: 2, cc: 135, icon: "icons/armor_brigandine_boots_i00.png", glow: "#9ab0c8" },
 
   // —— Manticore (D, light) — wiki t42 ——
-  { id: "manticore_helmet", name: "Manticore Skin Helmet", slot: "helmet", grade: "D", setId: "manticore", pdef: 4, mdef: 3, icon: "icons/armor_leather_helmet_i02.png", glow: "#d4a06a" },
-  { id: "manticore_mail", name: "Manticore Skin Mail", slot: "chest", grade: "D", setId: "manticore", pdef: 10, mdef: 6, icon: "icons/armor_manticore_skin_shirt_i00.png", glow: "#d4a06a" },
-  { id: "manticore_gaiters", name: "Manticore Skin Gaiters", slot: "legs", grade: "D", setId: "manticore", pdef: 7, mdef: 4, icon: "icons/armor_manticore_skin_gaiters_i00.png", glow: "#d4a06a" },
-  { id: "manticore_gloves", name: "Manticore Skin Gloves", slot: "gloves", grade: "D", setId: "manticore", pdef: 3, mdef: 2, icon: "icons/armor_manticore_skin_gloves_i00.png", glow: "#d4a06a" },
-  { id: "manticore_boots", name: "Manticore Skin Boots", slot: "boots", grade: "D", setId: "manticore", pdef: 3, mdef: 2, icon: "icons/armor_manticore_skin_boots_i00.png", glow: "#d4a06a" },
+  { id: "manticore_helmet", name: "Manticore Skin Helmet", slot: "helmet", grade: "D", setId: "manticore", pdef: 4, mdef: 3, cc: 203, icon: "icons/armor_leather_helmet_i02.png", glow: "#d4a06a" },
+  { id: "manticore_mail", name: "Manticore Skin Mail", slot: "chest", grade: "D", setId: "manticore", pdef: 10, mdef: 6, cc: 407, icon: "icons/armor_manticore_skin_shirt_i00.png", glow: "#d4a06a" },
+  { id: "manticore_gaiters", name: "Manticore Skin Gaiters", slot: "legs", grade: "D", setId: "manticore", pdef: 7, mdef: 4, cc: 254, icon: "icons/armor_manticore_skin_gaiters_i00.png", glow: "#d4a06a" },
+  { id: "manticore_gloves", name: "Manticore Skin Gloves", slot: "gloves", grade: "D", setId: "manticore", pdef: 3, mdef: 2, cc: 135, icon: "icons/armor_manticore_skin_gloves_i00.png", glow: "#d4a06a" },
+  { id: "manticore_boots", name: "Manticore Skin Boots", slot: "boots", grade: "D", setId: "manticore", pdef: 3, mdef: 2, cc: 135, icon: "icons/armor_manticore_skin_boots_i00.png", glow: "#d4a06a" },
 
   // —— Reinforced Leather (D, light) — wiki t13 ——
-  { id: "reinforced_helmet", name: "Reinforced Leather Helmet", slot: "helmet", grade: "D", setId: "reinforced", pdef: 4, mdef: 3, icon: "icons/armor_leather_helmet_i00.png", glow: "#c4a882" },
-  { id: "reinforced_shirt", name: "Reinforced Leather Shirt", slot: "chest", grade: "D", setId: "reinforced", pdef: 11, mdef: 5, icon: "icons/armor_reinforced_leather_shirt_i00.png", glow: "#c4a882" },
-  { id: "reinforced_gaiters", name: "Reinforced Leather Gaiters", slot: "legs", grade: "D", setId: "reinforced", pdef: 7, mdef: 4, icon: "icons/armor_reinforced_leather_gaiters_i00.png", glow: "#c4a882" },
-  { id: "reinforced_gloves", name: "Reinforced Leather Gloves", slot: "gloves", grade: "D", setId: "reinforced", pdef: 3, mdef: 2, icon: "icons/armor_reinforced_leather_gloves_i00.png", glow: "#c4a882" },
-  { id: "reinforced_boots", name: "Reinforced Leather Boots", slot: "boots", grade: "D", setId: "reinforced", pdef: 3, mdef: 2, icon: "icons/armor_reinforced_leather_boots_i00.png", glow: "#c4a882" },
+  { id: "reinforced_helmet", name: "Reinforced Leather Helmet", slot: "helmet", grade: "D", setId: "reinforced", pdef: 4, mdef: 3, cc: 138, icon: "icons/armor_leather_helmet_i00.png", glow: "#c4a882" },
+  { id: "reinforced_shirt", name: "Reinforced Leather Shirt", slot: "chest", grade: "D", setId: "reinforced", pdef: 11, mdef: 5, cc: 276, icon: "icons/armor_reinforced_leather_shirt_i00.png", glow: "#c4a882" },
+  { id: "reinforced_gaiters", name: "Reinforced Leather Gaiters", slot: "legs", grade: "D", setId: "reinforced", pdef: 7, mdef: 4, cc: 173, icon: "icons/armor_reinforced_leather_gaiters_i00.png", glow: "#c4a882" },
+  { id: "reinforced_gloves", name: "Reinforced Leather Gloves", slot: "gloves", grade: "D", setId: "reinforced", pdef: 3, mdef: 2, cc: 92, icon: "icons/armor_reinforced_leather_gloves_i00.png", glow: "#c4a882" },
+  { id: "reinforced_boots", name: "Reinforced Leather Boots", slot: "boots", grade: "D", setId: "reinforced", pdef: 3, mdef: 2, cc: 92, icon: "icons/armor_reinforced_leather_boots_i00.png", glow: "#c4a882" },
 
   // —— Elven Mithril (D, robe) ——
-  { id: "elven_mithril_circlet", name: "Elven Mithril Circlet", slot: "helmet", grade: "D", setId: "elven_mithril", pdef: 3, mdef: 5, icon: "icons/armor_circlet_i02.png", glow: "#8fd4a8" },
-  { id: "elven_mithril_tunic", name: "Elven Mithril Tunic", slot: "chest", grade: "D", setId: "elven_mithril", pdef: 8, mdef: 10, icon: "icons/armor_mithril_tunic_i00.png", glow: "#8fd4a8" },
-  { id: "elven_mithril_hose", name: "Elven Mithril Stockings", slot: "legs", grade: "D", setId: "elven_mithril", pdef: 5, mdef: 7, icon: "icons/armor_mithril_hose_i00.png", glow: "#8fd4a8" },
-  { id: "elven_mithril_gloves", name: "Elven Mithril Gloves", slot: "gloves", grade: "D", setId: "elven_mithril", pdef: 2, mdef: 4, icon: "icons/armor_elven_mithril_gloves_i00.png", glow: "#8fd4a8" },
-  { id: "elven_mithril_boots", name: "Elven Mithril Boots", slot: "boots", grade: "D", setId: "elven_mithril", pdef: 2, mdef: 4, icon: "icons/armor_elven_mithril_boots_i00.png", glow: "#8fd4a8" },
+  { id: "elven_mithril_circlet", name: "Elven Mithril Circlet", slot: "helmet", grade: "D", setId: "elven_mithril", pdef: 3, mdef: 5, cc: 138, icon: "icons/armor_circlet_i02.png", glow: "#8fd4a8" },
+  { id: "elven_mithril_tunic", name: "Elven Mithril Tunic", slot: "chest", grade: "D", setId: "elven_mithril", pdef: 8, mdef: 10, cc: 407, icon: "icons/armor_mithril_tunic_i00.png", glow: "#8fd4a8" },
+  { id: "elven_mithril_hose", name: "Elven Mithril Stockings", slot: "legs", grade: "D", setId: "elven_mithril", pdef: 5, mdef: 7, cc: 254, icon: "icons/armor_mithril_hose_i00.png", glow: "#8fd4a8" },
+  { id: "elven_mithril_gloves", name: "Elven Mithril Gloves", slot: "gloves", grade: "D", setId: "elven_mithril", pdef: 2, mdef: 4, cc: 135, icon: "icons/armor_elven_mithril_gloves_i00.png", glow: "#8fd4a8" },
+  { id: "elven_mithril_boots", name: "Elven Mithril Boots", slot: "boots", grade: "D", setId: "elven_mithril", pdef: 2, mdef: 4, cc: 135, icon: "icons/armor_elven_mithril_boots_i00.png", glow: "#8fd4a8" },
 
   // —— Knowledge (D, robe) ——
-  { id: "knowledge_circlet", name: "Circlet of Knowledge", slot: "helmet", grade: "D", setId: "knowledge", pdef: 3, mdef: 5, icon: "icons/armor_circlet_i00.png", glow: "#9b8fd4" },
-  { id: "knowledge_tunic", name: "Tunic of Knowledge", slot: "chest", grade: "D", setId: "knowledge", pdef: 8, mdef: 11, icon: "icons/armor_tunic_of_knowledge_i00.png", glow: "#9b8fd4" },
-  { id: "knowledge_hose", name: "Stockings of Knowledge", slot: "legs", grade: "D", setId: "knowledge", pdef: 5, mdef: 8, icon: "icons/armor_hose_of_knowledge_i00.png", glow: "#9b8fd4" },
-  { id: "knowledge_gloves", name: "Gloves of Knowledge", slot: "gloves", grade: "D", setId: "knowledge", pdef: 2, mdef: 4, icon: "icons/armor_gloves_of_knowledge_i00.png", glow: "#9b8fd4" },
-  { id: "knowledge_boots", name: "Boots of Knowledge", slot: "boots", grade: "D", setId: "knowledge", pdef: 2, mdef: 4, icon: "icons/armor_boots_of_knowledge_i00.png", glow: "#9b8fd4" },
+  { id: "knowledge_circlet", name: "Circlet of Knowledge", slot: "helmet", grade: "D", setId: "knowledge", pdef: 3, mdef: 5, cc: 138, icon: "icons/armor_circlet_i00.png", glow: "#9b8fd4" },
+  { id: "knowledge_tunic", name: "Tunic of Knowledge", slot: "chest", grade: "D", setId: "knowledge", pdef: 8, mdef: 11, cc: 276, icon: "icons/armor_tunic_of_knowledge_i00.png", glow: "#9b8fd4" },
+  { id: "knowledge_hose", name: "Stockings of Knowledge", slot: "legs", grade: "D", setId: "knowledge", pdef: 5, mdef: 8, cc: 173, icon: "icons/armor_hose_of_knowledge_i00.png", glow: "#9b8fd4" },
+  { id: "knowledge_gloves", name: "Gloves of Knowledge", slot: "gloves", grade: "D", setId: "knowledge", pdef: 2, mdef: 4, cc: 92, icon: "icons/armor_gloves_of_knowledge_i00.png", glow: "#9b8fd4" },
+  { id: "knowledge_boots", name: "Boots of Knowledge", slot: "boots", grade: "D", setId: "knowledge", pdef: 2, mdef: 4, cc: 92, icon: "icons/armor_boots_of_knowledge_i00.png", glow: "#9b8fd4" },
 
   // —— Mithril (C, heavy) — в SoulForge C-пул (фарм кузницы) ——
-  { id: "mithril_helmet", name: "Mithril Helmet", slot: "helmet", grade: "C", setId: "mithril", pdef: 8, mdef: 4, icon: "icons/armor_helmet_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_breastplate", name: "Mithril Breastplate", slot: "chest", grade: "C", setId: "mithril", pdef: 18, mdef: 8, icon: "icons/armor_mithril_breastplate_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_gaiters", name: "Mithril Gaiters", slot: "legs", grade: "C", setId: "mithril", pdef: 12, mdef: 6, icon: "icons/armor_mithril_gaiters_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_gloves", name: "Mithril Gloves", slot: "gloves", grade: "C", setId: "mithril", pdef: 6, mdef: 3, icon: "icons/armor_mithril_gloves_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_boots", name: "Mithril Boots", slot: "boots", grade: "C", setId: "mithril", pdef: 6, mdef: 3, icon: "icons/armor_mithril_boots_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_helmet", name: "Mithril Helmet", slot: "helmet", grade: "C", setId: "mithril", pdef: 8, mdef: 4, cc: 214, icon: "icons/armor_helmet_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_breastplate", name: "Mithril Breastplate", slot: "chest", grade: "C", setId: "mithril", pdef: 18, mdef: 8, cc: 332, icon: "icons/armor_mithril_breastplate_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_gaiters", name: "Mithril Gaiters", slot: "legs", grade: "C", setId: "mithril", pdef: 12, mdef: 6, cc: 230, icon: "icons/armor_mithril_gaiters_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_gloves", name: "Mithril Gloves", slot: "gloves", grade: "C", setId: "mithril", pdef: 6, mdef: 3, cc: 98, icon: "icons/armor_mithril_gloves_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_boots", name: "Mithril Boots", slot: "boots", grade: "C", setId: "mithril", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_mithril_boots_i00.png", glow: "#7fd1ff" },
 
   // —— Chain (C, heavy) ——
-  { id: "chain_helmet", name: "Chain Helmet", slot: "helmet", grade: "C", setId: "chain", pdef: 8, mdef: 4, icon: "icons/armor_helmet_i02.png", glow: "#a8b8c8" },
-  { id: "chain_mail", name: "Chain Mail Shirt", slot: "chest", grade: "C", setId: "chain", pdef: 17, mdef: 7, icon: "icons/armor_chain_mail_shirt_i00.png", glow: "#a8b8c8" },
-  { id: "chain_gaiters", name: "Chain Gaiters", slot: "legs", grade: "C", setId: "chain", pdef: 12, mdef: 5, icon: "icons/armor_chain_gaiters_i00.png", glow: "#a8b8c8" },
-  { id: "chain_gloves", name: "Chain Gloves", slot: "gloves", grade: "C", setId: "chain", pdef: 6, mdef: 3, icon: "icons/armor_chain_gloves_i00.png", glow: "#a8b8c8" },
-  { id: "chain_boots", name: "Chain Boots", slot: "boots", grade: "C", setId: "chain", pdef: 6, mdef: 3, icon: "icons/armor_chain_boots_i00.png", glow: "#a8b8c8" },
+  { id: "chain_helmet", name: "Chain Helmet", slot: "helmet", grade: "C", setId: "chain", pdef: 8, mdef: 4, cc: 59, icon: "icons/armor_helmet_i02.png", glow: "#a8b8c8" },
+  { id: "chain_mail", name: "Chain Mail Shirt", slot: "chest", grade: "C", setId: "chain", pdef: 17, mdef: 7, cc: 202, icon: "icons/armor_chain_mail_shirt_i00.png", glow: "#a8b8c8" },
+  { id: "chain_gaiters", name: "Chain Gaiters", slot: "legs", grade: "C", setId: "chain", pdef: 12, mdef: 5, cc: 126, icon: "icons/armor_chain_gaiters_i00.png", glow: "#a8b8c8" },
+  { id: "chain_gloves", name: "Chain Gloves", slot: "gloves", grade: "C", setId: "chain", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_chain_gloves_i00.png", glow: "#a8b8c8" },
+  { id: "chain_boots", name: "Chain Boots", slot: "boots", grade: "C", setId: "chain", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_chain_boots_i00.png", glow: "#a8b8c8" },
 
   // —— Tempered Mithril (C, light) — wiki t45 ——
-  { id: "tempered_helmet", name: "Tempered Mithril Helmet", slot: "helmet", grade: "C", setId: "tempered", pdef: 6, mdef: 5, icon: "icons/armor_leather_helmet_i02.png", glow: "#6ec8c0" },
-  { id: "tempered_shirt", name: "Tempered Mithril Shirt", slot: "chest", grade: "C", setId: "tempered", pdef: 15, mdef: 9, icon: "icons/armor_tempered_mithril_shirt_i00.png", glow: "#6ec8c0" },
-  { id: "tempered_gaiters", name: "Tempered Mithril Gaiters", slot: "legs", grade: "C", setId: "tempered", pdef: 10, mdef: 6, icon: "icons/armor_tempered_mithril_gaiters_i00.png", glow: "#6ec8c0" },
-  { id: "tempered_gloves", name: "Tempered Mithril Gloves", slot: "gloves", grade: "C", setId: "tempered", pdef: 5, mdef: 3, icon: "icons/armor_tempered_mithril_gloves_i00.png", glow: "#6ec8c0" },
-  { id: "tempered_boots", name: "Tempered Mithril Boots", slot: "boots", grade: "C", setId: "tempered", pdef: 5, mdef: 3, icon: "icons/armor_tempered_mithril_boots_i00.png", glow: "#6ec8c0" },
+  { id: "tempered_helmet", name: "Tempered Mithril Helmet", slot: "helmet", grade: "C", setId: "tempered", pdef: 6, mdef: 5, cc: 82, icon: "icons/armor_leather_helmet_i02.png", glow: "#6ec8c0" },
+  { id: "tempered_shirt", name: "Tempered Mithril Shirt", slot: "chest", grade: "C", setId: "tempered", pdef: 15, mdef: 9, cc: 151, icon: "icons/armor_tempered_mithril_shirt_i00.png", glow: "#6ec8c0" },
+  { id: "tempered_gaiters", name: "Tempered Mithril Gaiters", slot: "legs", grade: "C", setId: "tempered", pdef: 10, mdef: 6, cc: 94, icon: "icons/armor_tempered_mithril_gaiters_i00.png", glow: "#6ec8c0" },
+  { id: "tempered_gloves", name: "Tempered Mithril Gloves", slot: "gloves", grade: "C", setId: "tempered", pdef: 5, mdef: 3, cc: 50, icon: "icons/armor_tempered_mithril_gloves_i00.png", glow: "#6ec8c0" },
+  { id: "tempered_boots", name: "Tempered Mithril Boots", slot: "boots", grade: "C", setId: "tempered", pdef: 5, mdef: 3, cc: 50, icon: "icons/armor_tempered_mithril_boots_i00.png", glow: "#6ec8c0" },
 
   // —— Theca Leather (C, light) — wiki t63 ——
-  { id: "theca_helmet", name: "Theca Leather Helmet", slot: "helmet", grade: "C", setId: "theca", pdef: 6, mdef: 5, icon: "icons/armor_cloth_helmet_i00.png", glow: "#d8b878" },
-  { id: "theca_mail", name: "Theca Leather Mail", slot: "chest", grade: "C", setId: "theca", pdef: 15, mdef: 8, icon: "icons/armor_theca_leather_mail_i00.png", glow: "#d8b878" },
-  { id: "theca_gaiters", name: "Theca Leather Gaiters", slot: "legs", grade: "C", setId: "theca", pdef: 10, mdef: 6, icon: "icons/armor_theca_leather_gaiters_i00.png", glow: "#d8b878" },
-  { id: "theca_gloves", name: "Theca Leather Gloves", slot: "gloves", grade: "C", setId: "theca", pdef: 5, mdef: 3, icon: "icons/armor_theca_leather_gloves_i00.png", glow: "#d8b878" },
-  { id: "theca_boots", name: "Theca Leather Boots", slot: "boots", grade: "C", setId: "theca", pdef: 5, mdef: 3, icon: "icons/armor_theca_leather_boots_i00.png", glow: "#d8b878" },
+  { id: "theca_helmet", name: "Theca Leather Helmet", slot: "helmet", grade: "C", setId: "theca", pdef: 6, mdef: 5, cc: 110, icon: "icons/armor_cloth_helmet_i00.png", glow: "#d8b878" },
+  { id: "theca_mail", name: "Theca Leather Mail", slot: "chest", grade: "C", setId: "theca", pdef: 15, mdef: 8, cc: 330, icon: "icons/armor_theca_leather_mail_i00.png", glow: "#d8b878" },
+  { id: "theca_gaiters", name: "Theca Leather Gaiters", slot: "legs", grade: "C", setId: "theca", pdef: 10, mdef: 6, cc: 206, icon: "icons/armor_theca_leather_gaiters_i00.png", glow: "#d8b878" },
+  { id: "theca_gloves", name: "Theca Leather Gloves", slot: "gloves", grade: "C", setId: "theca", pdef: 5, mdef: 3, cc: 110, icon: "icons/armor_theca_leather_gloves_i00.png", glow: "#d8b878" },
+  { id: "theca_boots", name: "Theca Leather Boots", slot: "boots", grade: "C", setId: "theca", pdef: 5, mdef: 3, cc: 110, icon: "icons/armor_theca_leather_boots_i00.png", glow: "#d8b878" },
 
   // —— Plated Leather (C, light) — wiki t47 ——
-  { id: "plated_helmet", name: "Plated Leather Helmet", slot: "helmet", grade: "C", setId: "plated", pdef: 7, mdef: 4, icon: "icons/armor_leather_helmet_i00.png", glow: "#c8a060" },
-  { id: "plated_mail", name: "Plated Leather", slot: "chest", grade: "C", setId: "plated", pdef: 16, mdef: 7, icon: "icons/armor_plated_leather_i00.png", glow: "#c8a060" },
-  { id: "plated_gaiters", name: "Plated Leather Gaiters", slot: "legs", grade: "C", setId: "plated", pdef: 11, mdef: 5, icon: "icons/armor_plated_leather_gaiters_i00.png", glow: "#c8a060" },
-  { id: "plated_gloves", name: "Plated Leather Gloves", slot: "gloves", grade: "C", setId: "plated", pdef: 5, mdef: 3, icon: "icons/armor_plated_leather_gloves_i00.png", glow: "#c8a060" },
-  { id: "plated_boots", name: "Plated Leather Boots", slot: "boots", grade: "C", setId: "plated", pdef: 5, mdef: 3, icon: "icons/armor_plated_leather_boots_i00.png", glow: "#c8a060" },
+  { id: "plated_helmet", name: "Plated Leather Helmet", slot: "helmet", grade: "C", setId: "plated", pdef: 7, mdef: 4, cc: 59, icon: "icons/armor_leather_helmet_i00.png", glow: "#c8a060" },
+  { id: "plated_mail", name: "Plated Leather", slot: "chest", grade: "C", setId: "plated", pdef: 16, mdef: 7, cc: 178, icon: "icons/armor_plated_leather_i00.png", glow: "#c8a060" },
+  { id: "plated_gaiters", name: "Plated Leather Gaiters", slot: "legs", grade: "C", setId: "plated", pdef: 11, mdef: 5, cc: 111, icon: "icons/armor_plated_leather_gaiters_i00.png", glow: "#c8a060" },
+  { id: "plated_gloves", name: "Plated Leather Gloves", slot: "gloves", grade: "C", setId: "plated", pdef: 5, mdef: 3, cc: 59, icon: "icons/armor_plated_leather_gloves_i00.png", glow: "#c8a060" },
+  { id: "plated_boots", name: "Plated Leather Boots", slot: "boots", grade: "C", setId: "plated", pdef: 5, mdef: 3, cc: 50, icon: "icons/armor_plated_leather_boots_i00.png", glow: "#c8a060" },
 
   // —— Drake Leather (C, light) — wiki t21 ——
-  { id: "drake_helmet", name: "Drake Leather Helmet", slot: "helmet", grade: "C", setId: "drake", pdef: 7, mdef: 5, icon: "icons/armor_cloth_helmet_i02.png", glow: "#8b6a4a" },
-  { id: "drake_mail", name: "Drake Leather Mail", slot: "chest", grade: "C", setId: "drake", pdef: 16, mdef: 9, icon: "icons/armor_drake_leather_mail_i00.png", glow: "#8b6a4a" },
-  { id: "drake_gaiters", name: "Drake Leather Gaiters", slot: "legs", grade: "C", setId: "drake", pdef: 11, mdef: 6, icon: "icons/armor_drake_leather_gaiters_i00.png", glow: "#8b6a4a" },
-  { id: "drake_gloves", name: "Drake Leather Gloves", slot: "gloves", grade: "C", setId: "drake", pdef: 5, mdef: 4, icon: "icons/armor_drake_leather_gloves_i00.png", glow: "#8b6a4a" },
-  { id: "drake_boots", name: "Drake Leather Boots", slot: "boots", grade: "C", setId: "drake", pdef: 5, mdef: 4, icon: "icons/armor_drake_leather_boots_i00.png", glow: "#8b6a4a" },
+  { id: "drake_helmet", name: "Drake Leather Helmet", slot: "helmet", grade: "C", setId: "drake", pdef: 7, mdef: 5, cc: 143, icon: "icons/armor_cloth_helmet_i02.png", glow: "#8b6a4a" },
+  { id: "drake_mail", name: "Drake Leather Mail", slot: "chest", grade: "C", setId: "drake", pdef: 16, mdef: 9, cc: 628, icon: "icons/armor_drake_leather_mail_i00.png", glow: "#8b6a4a" },
+  { id: "drake_gaiters", name: "Drake Leather Gaiters", slot: "legs", grade: "C", setId: "drake", pdef: 11, mdef: 6, cc: 392, icon: "icons/armor_drake_leather_gaiters_i00.png", glow: "#8b6a4a" },
+  { id: "drake_gloves", name: "Drake Leather Gloves", slot: "gloves", grade: "C", setId: "drake", pdef: 5, mdef: 4, cc: 143, icon: "icons/armor_drake_leather_gloves_i00.png", glow: "#8b6a4a" },
+  { id: "drake_boots", name: "Drake Leather Boots", slot: "boots", grade: "C", setId: "drake", pdef: 5, mdef: 4, cc: 143, icon: "icons/armor_drake_leather_boots_i00.png", glow: "#8b6a4a" },
 
   // —— Composite (C, heavy) — wiki t61 ——
-  { id: "composite_helmet", name: "Composite Helmet", slot: "helmet", grade: "C", setId: "composite", pdef: 9, mdef: 4, icon: "icons/armor_helmet_i02.png", glow: "#b0a890" },
-  { id: "composite_armor", name: "Composite Armor", slot: "chest", grade: "C", setId: "composite", pdef: 20, mdef: 8, icon: "icons/armor_composite_armor_i00.png", glow: "#b0a890" },
-  { id: "composite_gaiters", name: "Composite Gaiters", slot: "legs", grade: "C", setId: "composite", pdef: 13, mdef: 6, icon: "icons/armor_composite_gaiters_i00.png", glow: "#b0a890" },
-  { id: "composite_gloves", name: "Composite Gauntlets", slot: "gloves", grade: "C", setId: "composite", pdef: 6, mdef: 3, icon: "icons/armor_composite_gauntlet_i00.png", glow: "#b0a890" },
-  { id: "composite_boots", name: "Composite Boots", slot: "boots", grade: "C", setId: "composite", pdef: 6, mdef: 3, icon: "icons/armor_composite_boots_i00.png", glow: "#b0a890" },
+  { id: "composite_helmet", name: "Composite Helmet", slot: "helmet", grade: "C", setId: "composite", pdef: 9, mdef: 4, cc: 147, icon: "icons/armor_helmet_i02.png", glow: "#b0a890" },
+  { id: "composite_armor", name: "Composite Armor", slot: "chest", grade: "C", setId: "composite", pdef: 20, mdef: 8, cc: 576, icon: "icons/armor_composite_armor_i00.png", glow: "#b0a890" },
+  { id: "composite_gaiters", name: "Composite Gaiters", slot: "legs", grade: "C", setId: "composite", pdef: 13, mdef: 6, cc: 399, icon: "icons/armor_composite_gaiters_i00.png", glow: "#b0a890" },
+  { id: "composite_gloves", name: "Composite Gauntlets", slot: "gloves", grade: "C", setId: "composite", pdef: 6, mdef: 3, cc: 98, icon: "icons/armor_composite_gauntlet_i00.png", glow: "#b0a890" },
+  { id: "composite_boots", name: "Composite Boots", slot: "boots", grade: "C", setId: "composite", pdef: 6, mdef: 3, cc: 98, icon: "icons/armor_composite_boots_i00.png", glow: "#b0a890" },
 
   // —— Full Plate (C, heavy) — wiki t62 ——
-  { id: "full_plate_helmet", name: "Full Plate Helmet", slot: "helmet", grade: "C", setId: "full_plate", pdef: 10, mdef: 4, icon: "icons/armor_helmet_i00.png", glow: "#d0d0e0" },
-  { id: "full_plate_armor", name: "Full Plate Armor", slot: "chest", grade: "C", setId: "full_plate", pdef: 22, mdef: 8, icon: "icons/armor_full_plate_armor_i00.png", glow: "#d0d0e0" },
-  { id: "full_plate_gaiters", name: "Full Plate Gaiters", slot: "legs", grade: "C", setId: "full_plate", pdef: 14, mdef: 6, icon: "icons/armor_full_plate_gaiters_i00.png", glow: "#d0d0e0" },
-  { id: "full_plate_gloves", name: "Full Plate Gauntlets", slot: "gloves", grade: "C", setId: "full_plate", pdef: 7, mdef: 3, icon: "icons/armor_full_plate_gauntlet_i00.png", glow: "#d0d0e0" },
-  { id: "full_plate_boots", name: "Full Plate Boots", slot: "boots", grade: "C", setId: "full_plate", pdef: 7, mdef: 3, icon: "icons/armor_full_plate_boots_i00.png", glow: "#d0d0e0" },
+  { id: "full_plate_helmet", name: "Full Plate Helmet", slot: "helmet", grade: "C", setId: "full_plate", pdef: 10, mdef: 4, cc: 214, icon: "icons/armor_helmet_i00.png", glow: "#d0d0e0" },
+  { id: "full_plate_armor", name: "Full Plate Armor", slot: "chest", grade: "C", setId: "full_plate", pdef: 22, mdef: 8, cc: 836, icon: "icons/armor_full_plate_armor_i00.png", glow: "#d0d0e0" },
+  { id: "full_plate_gaiters", name: "Full Plate Gaiters", slot: "legs", grade: "C", setId: "full_plate", pdef: 14, mdef: 6, cc: 579, icon: "icons/armor_full_plate_gaiters_i00.png", glow: "#d0d0e0" },
+  { id: "full_plate_gloves", name: "Full Plate Gauntlets", slot: "gloves", grade: "C", setId: "full_plate", pdef: 7, mdef: 3, cc: 143, icon: "icons/armor_full_plate_gauntlet_i00.png", glow: "#d0d0e0" },
+  { id: "full_plate_boots", name: "Full Plate Boots", slot: "boots", grade: "C", setId: "full_plate", pdef: 7, mdef: 3, cc: 143, icon: "icons/armor_full_plate_boots_i00.png", glow: "#d0d0e0" },
 
   // —— Karmian (C, robe) ——
-  { id: "karmian_circlet", name: "Karmian Circlet", slot: "helmet", grade: "C", setId: "karmian", pdef: 5, mdef: 8, icon: "icons/armor_circlet_i02.png", glow: "#c9a0e8" },
-  { id: "karmian_tunic", name: "Karmian Tunic", slot: "chest", grade: "C", setId: "karmian", pdef: 12, mdef: 14, icon: "icons/armor_karmian_tunic_i00.png", glow: "#c9a0e8" },
-  { id: "karmian_hose", name: "Karmian Hose", slot: "legs", grade: "C", setId: "karmian", pdef: 8, mdef: 10, icon: "icons/armor_karmian_hose_i00.png", glow: "#c9a0e8" },
-  { id: "karmian_gloves", name: "Karmian Gloves", slot: "gloves", grade: "C", setId: "karmian", pdef: 4, mdef: 5, icon: "icons/armor_karmian_gloves_i00.png", glow: "#c9a0e8" },
-  { id: "karmian_boots", name: "Karmian Boots", slot: "boots", grade: "C", setId: "karmian", pdef: 4, mdef: 5, icon: "icons/armor_karmian_boots_i00.png", glow: "#c9a0e8" },
+  { id: "karmian_circlet", name: "Karmian Circlet", slot: "helmet", grade: "C", setId: "karmian", pdef: 5, mdef: 8, cc: 50, icon: "icons/armor_circlet_i02.png", glow: "#c9a0e8" },
+  { id: "karmian_tunic", name: "Karmian Tunic", slot: "chest", grade: "C", setId: "karmian", pdef: 12, mdef: 14, cc: 151, icon: "icons/armor_karmian_tunic_i00.png", glow: "#c9a0e8" },
+  { id: "karmian_hose", name: "Karmian Hose", slot: "legs", grade: "C", setId: "karmian", pdef: 8, mdef: 10, cc: 94, icon: "icons/armor_karmian_hose_i00.png", glow: "#c9a0e8" },
+  { id: "karmian_gloves", name: "Karmian Gloves", slot: "gloves", grade: "C", setId: "karmian", pdef: 4, mdef: 5, cc: 50, icon: "icons/armor_karmian_gloves_i00.png", glow: "#c9a0e8" },
+  { id: "karmian_boots", name: "Karmian Boots", slot: "boots", grade: "C", setId: "karmian", pdef: 4, mdef: 5, cc: 50, icon: "icons/armor_karmian_boots_i00.png", glow: "#c9a0e8" },
 
   // —— Divine (C, robe) ——
-  { id: "divine_circlet", name: "Divine Circlet", slot: "helmet", grade: "C", setId: "divine", pdef: 5, mdef: 9, icon: "icons/armor_circlet_i00.png", glow: "#e8e0a0" },
-  { id: "divine_tunic", name: "Divine Tunic", slot: "chest", grade: "C", setId: "divine", pdef: 12, mdef: 15, icon: "icons/armor_divine_tunic_i00.png", glow: "#e8e0a0" },
-  { id: "divine_hose", name: "Divine Hose", slot: "legs", grade: "C", setId: "divine", pdef: 8, mdef: 11, icon: "icons/armor_divine_hose_i00.png", glow: "#e8e0a0" },
-  { id: "divine_gloves", name: "Divine Gloves", slot: "gloves", grade: "C", setId: "divine", pdef: 4, mdef: 6, icon: "icons/armor_divine_gloves_i00.png", glow: "#e8e0a0" },
-  { id: "divine_boots", name: "Divine Boots", slot: "boots", grade: "C", setId: "divine", pdef: 4, mdef: 6, icon: "icons/armor_divine_boots_i00.png", glow: "#e8e0a0" },
+  { id: "divine_circlet", name: "Divine Circlet", slot: "helmet", grade: "C", setId: "divine", pdef: 5, mdef: 9, cc: 143, icon: "icons/armor_circlet_i00.png", glow: "#e8e0a0" },
+  { id: "divine_tunic", name: "Divine Tunic", slot: "chest", grade: "C", setId: "divine", pdef: 12, mdef: 15, cc: 428, icon: "icons/armor_divine_tunic_i00.png", glow: "#e8e0a0" },
+  { id: "divine_hose", name: "Divine Hose", slot: "legs", grade: "C", setId: "divine", pdef: 8, mdef: 11, cc: 268, icon: "icons/armor_divine_hose_i00.png", glow: "#e8e0a0" },
+  { id: "divine_gloves", name: "Divine Gloves", slot: "gloves", grade: "C", setId: "divine", pdef: 4, mdef: 6, cc: 143, icon: "icons/armor_divine_gloves_i00.png", glow: "#e8e0a0" },
+  { id: "divine_boots", name: "Divine Boots", slot: "boots", grade: "C", setId: "divine", pdef: 4, mdef: 6, cc: 143, icon: "icons/armor_divine_boots_i00.png", glow: "#e8e0a0" },
 
   // —— Demon (C, robe) — wiki t54 ——
-  { id: "demon_circlet", name: "Demon Circlet", slot: "helmet", grade: "C", setId: "demon", pdef: 5, mdef: 9, icon: "icons/armor_cloth_helmet_i00.png", glow: "#a05070" },
-  { id: "demon_tunic", name: "Demon Tunic", slot: "chest", grade: "C", setId: "demon", pdef: 11, mdef: 16, icon: "icons/armor_demon_tunic_i00.png", glow: "#a05070" },
-  { id: "demon_hose", name: "Demon Hose", slot: "legs", grade: "C", setId: "demon", pdef: 7, mdef: 12, icon: "icons/armor_demon_hose_i00.png", glow: "#a05070" },
-  { id: "demon_gloves", name: "Demon Gloves", slot: "gloves", grade: "C", setId: "demon", pdef: 4, mdef: 6, icon: "icons/armor_demon_gloves_i00.png", glow: "#a05070" },
-  { id: "demon_boots", name: "Demon Boots", slot: "boots", grade: "C", setId: "demon", pdef: 4, mdef: 6, icon: "icons/armor_demon_boots_i00.png", glow: "#a05070" },
+  { id: "demon_circlet", name: "Demon Circlet", slot: "helmet", grade: "C", setId: "demon", pdef: 5, mdef: 9, cc: 98, icon: "icons/armor_cloth_helmet_i00.png", glow: "#a05070" },
+  { id: "demon_tunic", name: "Demon Tunic", slot: "chest", grade: "C", setId: "demon", pdef: 11, mdef: 16, cc: 294, icon: "icons/armor_demon_tunic_i00.png", glow: "#a05070" },
+  { id: "demon_hose", name: "Demon Hose", slot: "legs", grade: "C", setId: "demon", pdef: 7, mdef: 12, cc: 184, icon: "icons/armor_demon_hose_i00.png", glow: "#a05070" },
+  { id: "demon_gloves", name: "Demon Gloves", slot: "gloves", grade: "C", setId: "demon", pdef: 4, mdef: 6, cc: 98, icon: "icons/armor_demon_gloves_i00.png", glow: "#a05070" },
+  { id: "demon_boots", name: "Demon Boots", slot: "boots", grade: "C", setId: "demon", pdef: 4, mdef: 6, cc: 98, icon: "icons/armor_demon_boots_i00.png", glow: "#a05070" },
 ];
 
 const AMAP = {};
