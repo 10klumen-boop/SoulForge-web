@@ -1430,7 +1430,8 @@ async function enterInstanceMine(st) {
     loot: {},
     instance: true,
   };
-  if (typeof startAutoClickerLoop === "function") startAutoClickerLoop();
+  // Автофарм в инсте запрещён — только ручные клики (как у мирового босса).
+  if (typeof stopAutoClickerLoop === "function") stopAutoClickerLoop();
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
   const panelTitle = document.getElementById("minePanelTitle");
   if (panelTitle) panelTitle.textContent = "Инстанс";

@@ -236,8 +236,10 @@ function toggleAutoClickerEnabled() {
 }
 
 function autoClickerBlockedInCurrentMine() {
-  // Инстансы: автоудар разрешён. Мировой босс — только ручные клики в рейтинг.
+  // Инстансы и мировой босс — только ручные клики (автофарм выключен).
+  if (typeof mineSession !== "undefined" && mineSession && mineSession.instance) return true;
   if (typeof mineSession !== "undefined" && mineSession && mineSession.worldBoss) return true;
+  if (typeof isInstanceSessionActive === "function" && isInstanceSessionActive()) return true;
   if (typeof isPartyFarmSessionActive === "function" && isPartyFarmSessionActive()) return true;
   if (typeof isWorldBossSessionActive === "function" && isWorldBossSessionActive()) return true;
   return false;
