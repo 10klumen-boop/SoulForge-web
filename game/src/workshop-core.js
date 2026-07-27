@@ -64,20 +64,27 @@ function applyMineShotDamageMult(baseDmg) {
   const auto = state.autoShots !== false;
   let mult = 0.5;
   if (hasWeapon && auto && stock.qty > 0) {
-    ProgressStore.update("shots", (s) => {
-      const next = { soul: { ...s?.soul }, spirit: { ...s?.spirit } };
-      next[stock.kind][stock.grade] = stock.qty - 1;
-      return next;
-    });
-    mult = 1;
-    if (stock.qty - 1 <= 0 && !applyMineShotDamageMult._emptyToast) {
-      applyMineShotDamageMult._emptyToast = true;
-      if (typeof toast === "function") {
-        const label = stock.kind === "spirit" ? "Spiritshot" : "Soulshot";
-        toast(label + " " + stock.grade + " закончились — урон ×0.5", "warn");
-      }
-      setTimeout(() => { applyMineShotDamageMult._emptyToast = false; }, 4000);
+    let consume = true;
+    if (typeof passiveEffectMult === "function") {
+      const costMult = passiveEffectMult("arrowCostMult", typeof state !== "undefined" ? state.avatar : null);
+      if (costMult < 1 && Math.random() >= costMult) consume = false;
     }
+    if (consume) {
+      ProgressStore.update("shots", (s) => {
+        const next = { soul: { ...s?.soul }, spirit: { ...s?.spirit } };
+        next[stock.kind][stock.grade] = stock.qty - 1;
+        return next;
+      });
+      if (stock.qty - 1 <= 0 && !applyMineShotDamageMult._emptyToast) {
+        applyMineShotDamageMult._emptyToast = true;
+        if (typeof toast === "function") {
+          const label = stock.kind === "spirit" ? "Spiritshot" : "Soulshot";
+          toast(label + " " + stock.grade + " закончились — урон ×0.5", "warn");
+        }
+        setTimeout(() => { applyMineShotDamageMult._emptyToast = false; }, 4000);
+      }
+    }
+    mult = 1;
   }
   if (typeof syncMineShotHud === "function") syncMineShotHud();
   return Math.max(1, Math.round(baseDmg * mult));

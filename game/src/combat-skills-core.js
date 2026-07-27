@@ -7,10 +7,28 @@
 
 let mineSkillRuntime = { cds: {}, buffs: {} };
 
+function skillBuffDuration(baseMs) {
+  const add = typeof passiveEffectSum === "function"
+    ? passiveEffectSum("buffDurationAdd", typeof state !== "undefined" ? state.avatar : null) : 0;
+  return Math.max(500, baseMs + add);
+}
+
 function resetMineSkillRuntime() {
   mineSkillRuntime = {
     cds: {},
-    buffs: { nextHitMult: 1, damageMult: 1, damageUntil: 0, timerSlowUntil: 0, timerFreezeUntil: 0 },
+    buffs: {
+      nextHitMult: 1,
+      damageMult: 1,
+      damageUntil: 0,
+      timerSlowUntil: 0,
+      timerFreezeUntil: 0,
+      farmAdenaMult: 1,
+      farmAdenaUntil: 0,
+      adenaHitBonus: 0,
+      pendingAdenaHitBonus: 0,
+      partyDamageMult: 1,
+      partyDamageUntil: 0,
+    },
   };
 }
 
@@ -18,6 +36,39 @@ function combatSkillsForClass(classId) {
   if (COMBAT_SKILLS[classId]) return COMBAT_SKILLS[classId];
   const arch = typeof isMysticArchetype === "function" && isMysticArchetype(classId) ? "mystic" : "fighter";
   return COMBAT_SKILLS[arch] || COMBAT_SKILLS.fighter;
+}
+
+function professionCombatSkills(avatar) {
+  const a = avatar || (typeof state !== "undefined" ? state.avatar : null) || {};
+  const profId = a.professionId;
+  if (!profId || typeof COMBAT_SKILL_KITS === "undefined" || !COMBAT_SKILL_KITS[profId]) return null;
+  return COMBAT_SKILL_KITS[profId].map((s) => Object.assign({}, s));
+}
+
+/** T0-кит по расе + стартовому классу (до 1-й профессии). */
+function starterCombatKitId(avatar) {
+  const a = avatar || {};
+  const race = a.raceId || "human";
+  const cid = typeof starterClassId === "function" ? starterClassId(a) : a.classId || "fighter";
+  if (cid === "shaman") return "orc_shaman_start";
+  if (cid === "mystic") {
+    if (race === "elf") return "elf_mystic";
+    if (race === "dark_elf") return "de_mystic";
+    return "human_mystic";
+  }
+  // fighter / default
+  if (race === "elf") return "elf_fighter";
+  if (race === "dark_elf") return "de_fighter";
+  if (race === "orc") return "orc_fighter";
+  if (race === "dwarf") return "dwarf_fighter";
+  return "human_fighter";
+}
+
+function starterCombatSkills(avatar) {
+  if (typeof COMBAT_SKILL_KITS === "undefined") return null;
+  const kitId = starterCombatKitId(avatar);
+  if (!kitId || !COMBAT_SKILL_KITS[kitId]) return null;
+  return COMBAT_SKILL_KITS[kitId].map((s) => Object.assign({}, s));
 }
 
 function applyProfessionSkillOverlay(skills, avatar) {
@@ -45,8 +96,47 @@ function applyProfessionSkillOverlay(skills, avatar) {
 
 function combatSkillsForAvatar() {
   if (!state.avatar?.created) return [];
+  // T1 / T2 по professionId
+  const profKit = professionCombatSkills(state.avatar);
+  if (profKit) return profKit;
+  // T0 по расе + классу
+  const t0 = starterCombatSkills(state.avatar);
+  if (t0) return t0;
   const base = combatSkillsForClass(state.avatar.classId || "fighter");
   return applyProfessionSkillOverlay(base, state.avatar);
+}
+
+function mineSkillAdenaMult() {
+  const b = mineSkillRuntime.buffs || {};
+  if (b.farmAdenaUntil > Date.now() && b.farmAdenaMult > 1) return b.farmAdenaMult;
+  return 1;
+}
+
+function mineApplySkillAdenaBonus(baseReward) {
+  let reward = Math.max(0, Math.round(baseReward || 0));
+  const adenaMult = mineSkillAdenaMult();
+  if (adenaMult > 1) reward = Math.round(reward * adenaMult);
+  if (mineSkillRuntime.buffs.pendingAdenaHitBonus > 0) {
+    reward = Math.round(reward * (1 + mineSkillRuntime.buffs.pendingAdenaHitBonus));
+    mineSkillRuntime.buffs.pendingAdenaHitBonus = 0;
+  }
+  return reward;
+}
+
+/** Бафф группы из F-скиллов «в инстансе» — только пока активен таймер. */
+function minePartyDamageMult() {
+  const b = mineSkillRuntime.buffs || {};
+  if (b.partyDamageUntil > Date.now() && b.partyDamageMult > 1) return b.partyDamageMult;
+  return 1;
+}
+
+function combatSkillPartyContextActive() {
+  if (typeof isInstanceSessionActive === "function" && isInstanceSessionActive()) return true;
+  if (typeof isMineInstanceMode === "function" && isMineInstanceMode()) return true;
+  try {
+    if (typeof partyFarmInfo !== "undefined" && partyFarmInfo && partyFarmInfo.zoneId) return true;
+  } catch (_) {}
+  return false;
 }
 
 function isCombatSkillUnlocked(skill) {
@@ -63,6 +153,10 @@ function mineSkillClickMult() {
   let m = 1;
   if (mineSkillRuntime.buffs.nextHitMult > 1) {
     m *= mineSkillRuntime.buffs.nextHitMult;
+    if (mineSkillRuntime.buffs.adenaHitBonus > 0) {
+      mineSkillRuntime.buffs.pendingAdenaHitBonus = mineSkillRuntime.buffs.adenaHitBonus;
+      mineSkillRuntime.buffs.adenaHitBonus = 0;
+    }
     mineSkillRuntime.buffs.nextHitMult = 1;
   }
   if (mineSkillRuntime.buffs.damageUntil > Date.now()) {
@@ -178,7 +272,12 @@ function useCombatSkill(skillId) {
   if (typeof isGamePaused === "function" && isGamePaused()) return false;
   if (combatSkillCooldownLeft(skillId) > 0) return false;
   const mob = activeCombatMob();
-  const noTargetOk = skill.effect === "timerSlow" || skill.effect === "damageBuff" || skill.effect === "timerFreeze" || skill.effect === "freezeMulti";
+  const noTargetOk =
+    skill.effect === "timerSlow" ||
+    skill.effect === "damageBuff" ||
+    skill.effect === "partyDamageBuff" ||
+    skill.effect === "timerFreeze" ||
+    skill.effect === "freezeMulti";
   if (!mob && !noTargetOk && skill.effect !== "drainHit") {
     if (typeof toast === "function") toast("Нет цели на поле", "warn");
     return false;
@@ -187,16 +286,19 @@ function useCombatSkill(skillId) {
     if (typeof toast === "function") toast("Нет цели на поле", "warn");
     return false;
   }
-  mineSkillRuntime.cds[skillId] = Date.now() + skill.cdMs;
+  let cdMs = skill.cdMs;
+  if (typeof passiveEffectMult === "function") cdMs = Math.max(500, Math.round(cdMs * passiveEffectMult("skillCdMult", state.avatar)));
+  mineSkillRuntime.cds[skillId] = Date.now() + cdMs;
   if (typeof Audio2 !== "undefined") Audio2.click();
   if (skill.effect === "nextHit") {
     mineSkillRuntime.buffs.nextHitMult = skill.mult || 2;
+    mineSkillRuntime.buffs.adenaHitBonus = skill.adenaHitBonus || 0;
     if (typeof toast === "function") toast(skill.name + ": следующий удар усилен", "info");
   } else if (skill.effect === "timerSlow") {
-    mineSkillRuntime.buffs.timerSlowUntil = Date.now() + (skill.duration || 4000);
+    mineSkillRuntime.buffs.timerSlowUntil = Date.now() + skillBuffDuration(skill.duration || 4000);
     if (typeof toast === "function") toast(skill.name + ": таймер замедлен", "info");
   } else if (skill.effect === "timerFreeze" || skill.effect === "freezeMulti") {
-    mineSkillRuntime.buffs.timerFreezeUntil = Date.now() + (skill.duration || 2500);
+    mineSkillRuntime.buffs.timerFreezeUntil = Date.now() + skillBuffDuration(skill.duration || 2500);
     if (skill.effect === "freezeMulti" && mob) {
       const hits = skill.hits || 4;
       const mult = skill.mult || 0.45;
@@ -210,8 +312,47 @@ function useCombatSkill(skillId) {
     if (typeof toast === "function") toast(skill.name + ": время остановилось", "info");
   } else if (skill.effect === "damageBuff") {
     mineSkillRuntime.buffs.damageMult = skill.mult || 1.5;
-    mineSkillRuntime.buffs.damageUntil = Date.now() + (skill.duration || 6000);
+    mineSkillRuntime.buffs.damageUntil = Date.now() + skillBuffDuration(skill.duration || 6000);
+    if (skill.farmAdenaMult > 1) {
+      mineSkillRuntime.buffs.farmAdenaMult = skill.farmAdenaMult;
+      mineSkillRuntime.buffs.farmAdenaUntil = mineSkillRuntime.buffs.damageUntil;
+    }
     if (typeof toast === "function") toast(skill.name + ": урон усилен", "info");
+  } else if (skill.effect === "partyDamageBuff") {
+    if (combatSkillPartyContextActive()) {
+      mineSkillRuntime.buffs.partyDamageMult = skill.mult || 1.15;
+      mineSkillRuntime.buffs.partyDamageUntil = Date.now() + skillBuffDuration(skill.duration || 6000);
+      if (
+        typeof isInstanceSessionActive === "function" &&
+        isInstanceSessionActive() &&
+        typeof instanceRunState !== "undefined" &&
+        instanceRunState?.runId &&
+        typeof partyApi === "function"
+      ) {
+        Promise.resolve(
+          partyApi("/instance/" + instanceRunState.runId + "/party-buff", {
+            method: "POST",
+            body: {
+              mult: skill.mult || 1.15,
+              durationMs: skillBuffDuration(skill.duration || 6000),
+              skillId: skill.id,
+              name: skill.name,
+            },
+          })
+        )
+          .then((r) => {
+            if (r && r.ok && r.state && typeof syncInstanceEncounter === "function") {
+              syncInstanceEncounter(r.state);
+            }
+          })
+          .catch(() => {});
+      }
+      if (typeof toast === "function") {
+        toast(skill.name + ": группа +" + Math.round(((skill.mult || 1.15) - 1) * 100) + "% урона", "info");
+      }
+    } else if (typeof toast === "function") {
+      toast(skill.name + ": только в инстансе / группе", "warn");
+    }
   } else if (skill.effect === "multiHit" && mob) {
     const hits = skill.hits || 3;
     const mult = skill.mult || 0.65;

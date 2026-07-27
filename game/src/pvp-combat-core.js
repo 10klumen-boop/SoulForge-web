@@ -76,6 +76,9 @@ function pvpSkillCdRounds(skill) {
   if (typeof PVP_SKILL_CD_ROUNDS !== "undefined" && PVP_SKILL_CD_ROUNDS[skill.id] != null) {
     return PVP_SKILL_CD_ROUNDS[skill.id];
   }
+  if (skill.cdMs > 0) {
+    return Math.min(5, Math.max(2, Math.round(skill.cdMs / 3500)));
+  }
   const remap =
     typeof PVP_EFFECT_REMAP !== "undefined" ? PVP_EFFECT_REMAP[skill.effect] : null;
   return (remap && remap.cdRounds) || 3;
@@ -111,12 +114,20 @@ function pvpRemapSkill(farmSkill) {
 function pvpSkillsForAvatar(avatar, level) {
   const lvl = level != null ? level : avatar?.level || 1;
   let farmList = [];
-  if (typeof combatSkillsForClass === "function") {
+  if (typeof professionCombatSkills === "function") {
+    const kit = professionCombatSkills(avatar);
+    if (kit) farmList = kit;
+  }
+  if (!farmList.length && typeof starterCombatSkills === "function") {
+    const kit = starterCombatSkills(avatar);
+    if (kit) farmList = kit;
+  }
+  if (!farmList.length && typeof combatSkillsForClass === "function") {
     farmList = combatSkillsForClass(avatar?.classId || "fighter") || [];
     if (typeof applyProfessionSkillOverlay === "function") {
       farmList = applyProfessionSkillOverlay(farmList, avatar);
     }
-  } else if (typeof COMBAT_SKILLS !== "undefined") {
+  } else if (!farmList.length && typeof COMBAT_SKILLS !== "undefined") {
     const cid = avatar?.classId || "fighter";
     farmList = COMBAT_SKILLS[cid] || COMBAT_SKILLS.fighter || [];
   }

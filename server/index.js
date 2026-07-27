@@ -1090,6 +1090,26 @@ app.post("/instance/:id/hit", (req, res) => {
   }
 });
 
+app.post("/instance/:id/party-buff", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.instancePartyBuff(user, {
+      runId: req.params.id,
+      mult: req.body?.mult,
+      durationMs: req.body?.durationMs,
+      skillId: req.body?.skillId,
+      name: req.body?.name,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /instance/party-buff", e);
+    return jsonError(res, 500, "Ошибка инстанса");
+  }
+});
+
 app.post("/instance/:id/leave", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");

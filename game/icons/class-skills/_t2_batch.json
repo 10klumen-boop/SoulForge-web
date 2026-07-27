@@ -1,0 +1,92 @@
+[
+  {
+    "file": "bounty_hunter_q.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "Q",
+    "name": "Удар по контракту",
+    "briefly": "×2,8 +метка +8% адены 6 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, contract stamp and pickaxe"
+  },
+  {
+    "file": "bounty_hunter_e.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "E",
+    "name": "Железная хватка",
+    "briefly": "Удержание 4,6 с, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, iron grip gauntlet"
+  },
+  {
+    "file": "bounty_hunter_r.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "R",
+    "name": "Цепной сбор",
+    "briefly": "5×0,44 ≈×2,2 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, chain sweep gathering"
+  },
+  {
+    "file": "bounty_hunter_f.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "F",
+    "name": "Большой контракт",
+    "briefly": "×3,2 +15% адены 8 с, 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, big bounty contract scroll gold"
+  },
+  {
+    "file": "bounty_hunter_passive.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "passive",
+    "name": "Контракт охотника",
+    "briefly": "+6% адены, +6% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, bounty hunter crest pouch"
+  },
+  {
+    "file": "warsmith_q.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "Q",
+    "name": "Паровой удар",
+    "briefly": "×2,7 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, steam hammer strike"
+  },
+  {
+    "file": "warsmith_e.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "E",
+    "name": "Осадный голем",
+    "briefly": "Удержание 5,0 с, 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, siege golem head gear"
+  },
+  {
+    "file": "warsmith_r.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "R",
+    "name": "Шрапнель",
+    "briefly": "6×0,40 ≈×2,4 за 10,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, metal shrapnel burst"
+  },
+  {
+    "file": "warsmith_f.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "F",
+    "name": "Перегрев голема",
+    "briefly": "3×0,85 +2,0 с удерж., 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, overheating golem core"
+  },
+  {
+    "file": "warsmith_passive.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "passive",
+    "name": "Молот войны",
+    "briefly": "+8% материалов во время охоты на монстров · +5% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, warsmith hammer and anvil crest"
+  }
+]

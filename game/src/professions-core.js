@@ -47,6 +47,7 @@ function professionArmorPref(avatar) {
 
 function professionWeaponCats(avatar) {
   const p = currentProfession(avatar);
+  if (p?.weaponCats && Array.isArray(p.weaponCats)) return p.weaponCats.slice();
   const role = p?.role || combatRole(avatar);
   if (typeof ROLE_WEAPON_CATS !== "undefined" && ROLE_WEAPON_CATS[role]) {
     return ROLE_WEAPON_CATS[role].slice();
@@ -62,12 +63,25 @@ function avatarWeaponMasteryActive(w, avatar) {
   if (!w) return false;
   const cats = professionWeaponCats(avatar);
   if (!cats.length) return false;
-  if (cats.indexOf(w.cat) < 0) return false;
-  // Мистик / маг / саппорт: мечи только с маг. или унив. сродством
+  const hasTwoHand = cats.indexOf("TwoHandSword") >= 0;
+  // MagicalSword в планировщике = меч с маг. сродством (в данных оружия cat всё ещё Sword)
+  const hasSword = cats.indexOf("Sword") >= 0 || cats.indexOf("MagicalSword") >= 0;
   if (w.cat === "Sword") {
+    if (hasTwoHand && !hasSword) {
+      if (!w.twoHand) return false;
+    } else if (hasSword && !hasTwoHand) {
+      if (w.twoHand) return false;
+    } else if (!hasTwoHand && !hasSword) {
+      return false;
+    }
+    // Мистик / маг / саппорт: мечи только с маг. или унив. сродством
     const role = typeof combatRole === "function" ? combatRole(avatar) : null;
     const cid = typeof starterClassId === "function" ? starterClassId(avatar) : avatar?.classId;
-    const mageLike = cid === "mystic" || role === "mage" || role === "support";
+    const mageLike =
+      cid === "mystic" ||
+      role === "mage" ||
+      role === "support" ||
+      cats.indexOf("MagicalSword") >= 0;
     if (mageLike) {
       const aff =
         typeof weaponAffinity === "function"
@@ -75,7 +89,9 @@ function avatarWeaponMasteryActive(w, avatar) {
           : w.weaponKind || w.affinity || "physical";
       if (aff === "physical") return false;
     }
+    return true;
   }
+  if (cats.indexOf(w.cat) < 0) return false;
   return true;
 }
 

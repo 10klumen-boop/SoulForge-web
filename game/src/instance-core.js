@@ -333,6 +333,25 @@ function renderInstanceHud(st) {
         "с</span></div>"
       : '<div class="instance-hud-chip instance-hud-chip-ghost" aria-hidden="true"></div>';
 
+  const buff = st.partyDamageBuff;
+  const buffLeft =
+    buff && buff.until > Date.now() && buff.mult > 1
+      ? Math.max(0, Math.ceil((buff.until - Date.now()) / 1000))
+      : null;
+  const buffPct = buffLeft != null ? Math.round((buff.mult - 1) * 100) : 0;
+  const buffChip =
+    buffLeft != null
+      ? '<div class="instance-hud-chip instance-hud-chip-buff" title="' +
+        (buff.name || "Бафф группы") +
+        '">' +
+        '<span class="instance-hud-chip-k">Группа</span>' +
+        '<span class="instance-hud-chip-v">+' +
+        buffPct +
+        "% · " +
+        buffLeft +
+        "с</span></div>"
+      : "";
+
   let phaseBlock = "";
   if (st.phase === "boss" && enc) {
     const label = enc.phaseLabel || "Босс";
@@ -458,7 +477,10 @@ function renderInstanceHud(st) {
     '<div class="instance-hud-wave">' +
     waveLabel +
     "</div>" +
+    '<div class="instance-hud-chips">' +
     enrageChip +
+    buffChip +
+    "</div>" +
     "</div>" +
     phaseBlock;
 }
@@ -976,8 +998,18 @@ function syncInstanceEncounter(st) {
   }
   instanceRunState = st;
   renderInstanceHud(st);
+  if (st && st.partyDamageBuff && st.partyDamageBuff.until > Date.now() && typeof mineSkillRuntime !== "undefined") {
+    mineSkillRuntime.buffs = mineSkillRuntime.buffs || {};
+    mineSkillRuntime.buffs.partyDamageMult = st.partyDamageBuff.mult || 1;
+    mineSkillRuntime.buffs.partyDamageUntil = st.partyDamageBuff.until;
+  }
   if (st && st.lastEvent && st.lastEvent !== instanceLastEventSeen) {
     instanceLastEventSeen = st.lastEvent;
+    if (st.lastEvent === "party_damage_buff" && st.partyDamageBuff) {
+      const pct = Math.round(((st.partyDamageBuff.mult || 1) - 1) * 100);
+      const label = st.partyDamageBuff.name || "Клич группы";
+      if (typeof toast === "function" && pct > 0) toast(label + ": группа +" + pct + "% урона", "info");
+    }
     if (st.lastEvent === "boss_regen") {
       const heal = Math.max(0, Number(st.lastRegenHeal) || 0);
       if (typeof toast === "function") {
@@ -1529,6 +1561,7 @@ async function instanceHandleHit(g, opts) {
     if (!opts.bySkill && typeof mineSkillClickMult === "function") {
       dmg = Math.max(1, Math.round(dmg * mineSkillClickMult()));
     }
+    // partyDamageBuff применяется на сервере (instancePartyBuff), не умножаем здесь повторно
     if (opts.skillMult) dmg = Math.max(1, Math.round(dmg * opts.skillMult));
     const r = await partyApi("/instance/" + instanceRunState.runId + "/hit", {
       method: "POST",

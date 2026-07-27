@@ -1,0 +1,1572 @@
+[
+  {
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Крест клинков",
+    "glyph": "flurry",
+    "briefly": "Два удара за 8,5 с перезарядки, каждый ×1,35.",
+    "file": "gladiator_q.png"
+  },
+  {
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "kind": "active",
+    "slot": "E",
+    "name": "Парирование арены",
+    "glyph": "guard",
+    "briefly": "Удержание 3,2 с, перезарядка 12 с.",
+    "file": "gladiator_e.png"
+  },
+  {
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "kind": "active",
+    "slot": "R",
+    "name": "Вихрь",
+    "glyph": "flurry",
+    "briefly": "5 ударов за 11 с, суммарно ≈×2,2.",
+    "file": "gladiator_r.png"
+  },
+  {
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "kind": "active",
+    "slot": "F",
+    "name": "Ярость гладиатора",
+    "glyph": "rage",
+    "briefly": "7 с усиления ×1,9, перезарядка 17 с.",
+    "file": "gladiator_f.png"
+  },
+  {
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Ярость арены",
+    "glyph": "coin",
+    "briefly": "+5% адены с заданий.",
+    "file": "gladiator_passive.png"
+  },
+  {
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Укол строя",
+    "glyph": "strike",
+    "briefly": "Следующий удар ×2,8 за 8 с.",
+    "file": "warlord_q.png"
+  },
+  {
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "kind": "active",
+    "slot": "E",
+    "name": "Стена копий",
+    "glyph": "guard",
+    "briefly": "Удержание 5,0 с, перезарядка 12,5 с.",
+    "file": "warlord_e.png"
+  },
+  {
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "kind": "active",
+    "slot": "R",
+    "name": "Размах древка",
+    "glyph": "flurry",
+    "briefly": "6 ударов ≈×2,4 за 10,5 с.",
+    "file": "warlord_r.png"
+  },
+  {
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "kind": "active",
+    "slot": "F",
+    "name": "Клич полководца",
+    "glyph": "rage",
+    "briefly": "8 с усиления ×1,85, перезарядка 16,5 с.",
+    "file": "warlord_f.png"
+  },
+  {
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Клич полка",
+    "glyph": "xp",
+    "briefly": "+4% урона во время охоты на монстров, +3% опыта.",
+    "file": "warlord_passive.png"
+  },
+  {
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Святой удар",
+    "glyph": "holy",
+    "briefly": "×2,6 за 8,5 с.",
+    "file": "paladin_q.png"
+  },
+  {
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "kind": "active",
+    "slot": "E",
+    "name": "Святая броня",
+    "glyph": "guard",
+    "briefly": "Удержание 4,8 с, перезарядка 12 с.",
+    "file": "paladin_e.png"
+  },
+  {
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "kind": "active",
+    "slot": "R",
+    "name": "Очищение",
+    "glyph": "flurry",
+    "briefly": "4 удара ≈×2,0 +0,8 с к полю.",
+    "file": "paladin_r.png"
+  },
+  {
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "kind": "active",
+    "slot": "F",
+    "name": "Благословение поля",
+    "glyph": "drain",
+    "briefly": "Удар ×2,2 и +4,2 с к таймеру.",
+    "file": "paladin_f.png"
+  },
+  {
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Свет паладина",
+    "glyph": "holy",
+    "briefly": "+4% опыта, +5% скорости накопления в склад.",
+    "file": "paladin_passive.png"
+  },
+  {
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар возмездия",
+    "glyph": "shadow",
+    "briefly": "×3,0 за 8 с.",
+    "file": "dark_avenger_q.png"
+  },
+  {
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "kind": "active",
+    "slot": "E",
+    "name": "Тёмный панцирь",
+    "glyph": "guard",
+    "briefly": "Удержание 3,0 с, перезарядка 12 с.",
+    "file": "dark_avenger_e.png"
+  },
+  {
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "kind": "active",
+    "slot": "R",
+    "name": "Жертва тени",
+    "glyph": "flurry",
+    "briefly": "4 удара ≈×2,3 за 11 с.",
+    "file": "dark_avenger_r.png"
+  },
+  {
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "kind": "active",
+    "slot": "F",
+    "name": "Клятва мести",
+    "glyph": "rage",
+    "briefly": "6 с ×1,95, перезарядка 17 с.",
+    "file": "dark_avenger_f.png"
+  },
+  {
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Тень мстителя",
+    "glyph": "coin",
+    "briefly": "+7% адены с золотых мобов.",
+    "file": "dark_avenger_passive.png"
+  },
+  {
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар в спину",
+    "glyph": "dagger",
+    "briefly": "Прямой ×3,0 за 8,5 с.",
+    "file": "treasure_hunter_q.png"
+  },
+  {
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "kind": "active",
+    "slot": "E",
+    "name": "Дымовая завеса",
+    "glyph": "guard",
+    "briefly": "Удержание 2,5 с, перезарядка 12 с.",
+    "file": "treasure_hunter_e.png"
+  },
+  {
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "kind": "active",
+    "slot": "R",
+    "name": "Серия кинжалов",
+    "glyph": "flurry",
+    "briefly": "5 ударов ≈×2,1 за 10 с.",
+    "file": "treasure_hunter_r.png"
+  },
+  {
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "kind": "active",
+    "slot": "F",
+    "name": "Большой куш",
+    "glyph": "dagger",
+    "briefly": "×3,6 за 18 с — главный пик.",
+    "file": "treasure_hunter_f.png"
+  },
+  {
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Нюх искателя",
+    "glyph": "coin",
+    "briefly": "+6% адены с обычных мобов.",
+    "file": "treasure_hunter_passive.png"
+  },
+  {
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Двойной выстрел",
+    "glyph": "bow",
+    "briefly": "2×1,45 за 8,5 с (≈×2,9).",
+    "file": "hawkeye_q.png"
+  },
+  {
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "kind": "active",
+    "slot": "E",
+    "name": "Прицел",
+    "glyph": "focus",
+    "briefly": "6 с ×1,65, перезарядка 12 с.",
+    "file": "hawkeye_e.png"
+  },
+  {
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "kind": "active",
+    "slot": "R",
+    "name": "Град стрел",
+    "glyph": "flurry",
+    "briefly": "7 ударов ≈×2,5 за 11 с.",
+    "file": "hawkeye_r.png"
+  },
+  {
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "kind": "active",
+    "slot": "F",
+    "name": "Снайперский залп",
+    "glyph": "bow",
+    "briefly": "×3,5 за 17 с.",
+    "file": "hawkeye_f.png"
+  },
+  {
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Глаз стрелка",
+    "glyph": "bow",
+    "briefly": "+4% адены, −8% расхода стрел.",
+    "file": "hawkeye_passive.png"
+  },
+  {
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Протуберанец",
+    "glyph": "bolt",
+    "briefly": "×2,9 за 8,5 с.",
+    "file": "sorcerer_q.png"
+  },
+  {
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "kind": "active",
+    "slot": "E",
+    "name": "Жар фокуса",
+    "glyph": "focus",
+    "briefly": "7 с ×1,75, перезарядка 12,5 с.",
+    "file": "sorcerer_e.png"
+  },
+  {
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "kind": "active",
+    "slot": "R",
+    "name": "Огненный шквал",
+    "glyph": "flurry",
+    "briefly": "6 залпов ≈×2,4 за 11 с.",
+    "file": "sorcerer_r.png"
+  },
+  {
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "kind": "active",
+    "slot": "F",
+    "name": "Метеор",
+    "glyph": "bolt",
+    "briefly": "×3,7 за 17 с.",
+    "file": "sorcerer_f.png"
+  },
+  {
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Пламя чародея",
+    "glyph": "coin",
+    "briefly": "+5% адены с заданий.",
+    "file": "sorcerer_passive.png"
+  },
+  {
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Костяной шип",
+    "glyph": "bolt",
+    "briefly": "×2,8 за 8,5 с.",
+    "file": "necromancer_q.png"
+  },
+  {
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "kind": "active",
+    "slot": "E",
+    "name": "Пелена мёртвых",
+    "glyph": "shadow",
+    "briefly": "Удержание 3,8 с, перезарядка 12 с.",
+    "file": "necromancer_e.png"
+  },
+  {
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "kind": "active",
+    "slot": "R",
+    "name": "Рой душ",
+    "glyph": "flurry",
+    "briefly": "5 ударов ≈×2,0 за 11 с.",
+    "file": "necromancer_r.png"
+  },
+  {
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "kind": "active",
+    "slot": "F",
+    "name": "Смертельный шип",
+    "glyph": "drain",
+    "briefly": "×2,4 урона и поглощает +4,0 HP · КД 17 с",
+    "file": "necromancer_f.png"
+  },
+  {
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Шёпот некроманта",
+    "glyph": "shadow",
+    "briefly": "+7% адены с золотых.",
+    "file": "necromancer_passive.png"
+  },
+  {
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар связи",
+    "glyph": "strike",
+    "briefly": "×2,7 за 8,5 с.",
+    "file": "warlock_q.png"
+  },
+  {
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "kind": "active",
+    "slot": "E",
+    "name": "Узы слуги",
+    "glyph": "focus",
+    "briefly": "8 с ×1,7, перезарядка 13 с.",
+    "file": "warlock_e.png"
+  },
+  {
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "kind": "active",
+    "slot": "R",
+    "name": "Приказ атаковать",
+    "glyph": "flurry",
+    "briefly": "5 ударов ≈×2,2 за 11 с.",
+    "file": "warlock_r.png"
+  },
+  {
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "kind": "active",
+    "slot": "F",
+    "name": "Ритуал связи",
+    "glyph": "rage",
+    "briefly": "9 с ×1,85, перезарядка 18 с.",
+    "file": "warlock_f.png"
+  },
+  {
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Узы колдуна",
+    "glyph": "xp",
+    "briefly": "+4% опыта, +3% урона во время охоты на монстров.",
+    "file": "warlock_passive.png"
+  },
+  {
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Святой залп",
+    "glyph": "holy",
+    "briefly": "×2,4 за 9 с.",
+    "file": "bishop_q.png"
+  },
+  {
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "kind": "active",
+    "slot": "E",
+    "name": "Барьер собора",
+    "glyph": "guard",
+    "briefly": "Удержание 5,2 с, перезарядка 13 с.",
+    "file": "bishop_e.png"
+  },
+  {
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "kind": "active",
+    "slot": "R",
+    "name": "Хор света",
+    "glyph": "flurry",
+    "briefly": "4 удара ≈×1,9 за 12 с.",
+    "file": "bishop_r.png"
+  },
+  {
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "kind": "active",
+    "slot": "F",
+    "name": "Великое исцеление поля",
+    "glyph": "drain",
+    "briefly": "×2,0 и +4,8 с, 18 с.",
+    "file": "bishop_f.png"
+  },
+  {
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Благословение епископа",
+    "glyph": "holy",
+    "briefly": "+5% опыта, +6% адены в склад.",
+    "file": "bishop_passive.png"
+  },
+  {
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Слово силы",
+    "glyph": "bolt",
+    "briefly": "×2,8 за 8,5 с.",
+    "file": "prophet_q.png"
+  },
+  {
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "kind": "active",
+    "slot": "E",
+    "name": "Песнь битвы",
+    "glyph": "song",
+    "briefly": "7 с ×1,75, перезарядка 12,5 с.",
+    "file": "prophet_e.png"
+  },
+  {
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "kind": "active",
+    "slot": "R",
+    "name": "Ритм пророчества",
+    "glyph": "flurry",
+    "briefly": "5 ударов ≈×2,1 за 11 с.",
+    "file": "prophet_r.png"
+  },
+  {
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "kind": "active",
+    "slot": "F",
+    "name": "Откровение",
+    "glyph": "rage",
+    "briefly": "5 с ×2,0, перезарядка 16 с.",
+    "file": "prophet_f.png"
+  },
+  {
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Песнь пророка",
+    "glyph": "song",
+    "briefly": "+4% адены, +5% адены в склад.",
+    "file": "prophet_passive.png"
+  },
+  {
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Клинок Эйнхасад",
+    "glyph": "holy",
+    "briefly": "×2,6 за 8,5 с.",
+    "file": "temple_knight_q.png"
+  },
+  {
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "kind": "active",
+    "slot": "E",
+    "name": "Храмовая стража",
+    "glyph": "guard",
+    "briefly": "Удержание 5,0 с, 12,5 с.",
+    "file": "temple_knight_e.png"
+  },
+  {
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "kind": "active",
+    "slot": "R",
+    "name": "Круг защиты",
+    "glyph": "flurry",
+    "briefly": "4 удара ≈×2,0 за 12 с.",
+    "file": "temple_knight_r.png"
+  },
+  {
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "kind": "active",
+    "slot": "F",
+    "name": "Несокрушимый обет",
+    "glyph": "drain",
+    "briefly": "×2,1 +3,5 с, 17 с.",
+    "file": "temple_knight_f.png"
+  },
+  {
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Обет храма",
+    "glyph": "leaf",
+    "briefly": "+4% опыта, +5% адены в склад.",
+    "file": "temple_knight_passive.png"
+  },
+  {
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Нота клинка",
+    "glyph": "strike",
+    "briefly": "×2,7 за 8,5 с.",
+    "file": "swordsinger_q.png"
+  },
+  {
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "kind": "active",
+    "slot": "E",
+    "name": "Муза меча",
+    "glyph": "song",
+    "briefly": "8 с ×1,8, 12,5 с.",
+    "file": "swordsinger_e.png"
+  },
+  {
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "kind": "active",
+    "slot": "R",
+    "name": "Каденция",
+    "glyph": "flurry",
+    "briefly": "5 ударов ≈×2,3 за 11 с.",
+    "file": "swordsinger_r.png"
+  },
+  {
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "kind": "active",
+    "slot": "F",
+    "name": "Финал песни",
+    "glyph": "rage",
+    "briefly": "5 с ×2,0, 16 с.",
+    "file": "swordsinger_f.png"
+  },
+  {
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Муза клинка",
+    "glyph": "song",
+    "briefly": "+5% адены, +0,5 с к усилениям.",
+    "file": "swordsinger_passive.png"
+  },
+  {
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар чащи",
+    "glyph": "dagger",
+    "briefly": "×2,9 за 8,5 с.",
+    "file": "plainswalker_q.png"
+  },
+  {
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "kind": "active",
+    "slot": "E",
+    "name": "Маскировка листвы",
+    "glyph": "leaf",
+    "briefly": "Удержание 2,6 с, 12 с.",
+    "file": "plainswalker_e.png"
+  },
+  {
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "kind": "active",
+    "slot": "R",
+    "name": "Шипы лозы",
+    "glyph": "flurry",
+    "briefly": "5 ударов ≈×2,1 за 10 с.",
+    "file": "plainswalker_r.png"
+  },
+  {
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "kind": "active",
+    "slot": "F",
+    "name": "Сердце рощи",
+    "glyph": "dagger",
+    "briefly": "×3,5 за 17 с.",
+    "file": "plainswalker_f.png"
+  },
+  {
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Тропа опушки",
+    "glyph": "coin",
+    "briefly": "+6% адены с обычных.",
+    "file": "plainswalker_passive.png"
+  },
+  {
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Серебряная стрела",
+    "glyph": "bow",
+    "briefly": "2×1,4 за 8,5 с.",
+    "file": "silver_ranger_q.png"
+  },
+  {
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "kind": "active",
+    "slot": "E",
+    "name": "Глаз совы",
+    "glyph": "focus",
+    "briefly": "6 с ×1,6, 12 с.",
+    "file": "silver_ranger_e.png"
+  },
+  {
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "kind": "active",
+    "slot": "R",
+    "name": "Дождь Эльмора",
+    "glyph": "flurry",
+    "briefly": "7 ударов ≈×2,4 за 11 с.",
+    "file": "silver_ranger_r.png"
+  },
+  {
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "kind": "active",
+    "slot": "F",
+    "name": "Лунный залп",
+    "glyph": "bow",
+    "briefly": "×3,4 за 17 с.",
+    "file": "silver_ranger_f.png"
+  },
+  {
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Серебряная тетива",
+    "glyph": "bow",
+    "briefly": "−10% расхода стрел, +3% опыта.",
+    "file": "silver_ranger_passive.png"
+  },
+  {
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Гидроудар",
+    "glyph": "bolt",
+    "briefly": "×2,8 за 8,5 с.",
+    "file": "spellsinger_q.png"
+  },
+  {
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "kind": "active",
+    "slot": "E",
+    "name": "Мелодия потока",
+    "glyph": "song",
+    "briefly": "7 с ×1,7, 12,5 с.",
+    "file": "spellsinger_e.png"
+  },
+  {
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "kind": "active",
+    "slot": "R",
+    "name": "Ледяная октава",
+    "glyph": "ice",
+    "briefly": "Заморозка 2,4 с +4×0,45.",
+    "file": "spellsinger_r.png"
+  },
+  {
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "kind": "active",
+    "slot": "F",
+    "name": "Прилив",
+    "glyph": "bolt",
+    "briefly": "×3,6 за 17 с.",
+    "file": "spellsinger_f.png"
+  },
+  {
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Песнь воды",
+    "glyph": "ice",
+    "briefly": "+5% адены, +0,3 с к заморозке.",
+    "file": "spellsinger_passive.png"
+  },
+  {
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар духа",
+    "glyph": "strike",
+    "briefly": "×2,6 за 8,5 с.",
+    "file": "elemental_summoner_q.png"
+  },
+  {
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "kind": "active",
+    "slot": "E",
+    "name": "Узы стихии",
+    "glyph": "focus",
+    "briefly": "8 с ×1,75, 13 с.",
+    "file": "elemental_summoner_e.png"
+  },
+  {
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "kind": "active",
+    "slot": "R",
+    "name": "Танец духов",
+    "glyph": "flurry",
+    "briefly": "5 ударов ≈×2,2 за 11 с.",
+    "file": "elemental_summoner_r.png"
+  },
+  {
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "kind": "active",
+    "slot": "F",
+    "name": "Пробуждение стихии",
+    "glyph": "rage",
+    "briefly": "9 с ×1,8, 18 с.",
+    "file": "elemental_summoner_f.png"
+  },
+  {
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Узы единорога",
+    "glyph": "leaf",
+    "briefly": "+4% опыта, +3% урона.",
+    "file": "elemental_summoner_passive.png"
+  },
+  {
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Жезл старейшины",
+    "glyph": "leaf",
+    "briefly": "×2,3 за 9 с.",
+    "file": "elder_q.png"
+  },
+  {
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "kind": "active",
+    "slot": "E",
+    "name": "Щит Древа",
+    "glyph": "guard",
+    "briefly": "Удержание 4,5 с, 12,5 с.",
+    "file": "elder_e.png"
+  },
+  {
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "kind": "active",
+    "slot": "R",
+    "name": "Круг предков",
+    "glyph": "flurry",
+    "briefly": "4 удара ≈×1,9 за 12 с.",
+    "file": "elder_r.png"
+  },
+  {
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "kind": "active",
+    "slot": "F",
+    "name": "Благословение старейшины",
+    "glyph": "drain",
+    "briefly": "×2,0 +4,0 с, 18 с.",
+    "file": "elder_f.png"
+  },
+  {
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Дар Древа",
+    "glyph": "leaf",
+    "briefly": "+5% опыта, +6% адены в склад.",
+    "file": "elder_passive.png"
+  },
+  {
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар Шилен",
+    "glyph": "shadow",
+    "briefly": "×2,7 за 8,5 с.",
+    "file": "shillien_knight_q.png"
+  },
+  {
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "kind": "active",
+    "slot": "E",
+    "name": "Стража Шилен",
+    "glyph": "guard",
+    "briefly": "Удержание 4,8 с, 12,5 с.",
+    "file": "shillien_knight_e.png"
+  },
+  {
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "kind": "active",
+    "slot": "R",
+    "name": "Теневой круг",
+    "glyph": "flurry",
+    "briefly": "4 удара ≈×2,1 за 11 с.",
+    "file": "shillien_knight_r.png"
+  },
+  {
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "kind": "active",
+    "slot": "F",
+    "name": "Покров богини",
+    "glyph": "drain",
+    "briefly": "×2,2 +3,8 с, 17 с.",
+    "file": "shillien_knight_f.png"
+  },
+  {
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Клятва Шилен",
+    "glyph": "shadow",
+    "briefly": "+4% опыта, +4% адены с золотых.",
+    "file": "shillien_knight_passive.png"
+  },
+  {
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Шаг клинка",
+    "glyph": "flurry",
+    "briefly": "2×1,4 за 8 с.",
+    "file": "bladedancer_q.png"
+  },
+  {
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "kind": "active",
+    "slot": "E",
+    "name": "Танец войны",
+    "glyph": "song",
+    "briefly": "7 с ×1,85, 12 с.",
+    "file": "bladedancer_e.png"
+  },
+  {
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "kind": "active",
+    "slot": "R",
+    "name": "Вихрь танца",
+    "glyph": "flurry",
+    "briefly": "6 ударов ≈×2,5 за 10,5 с.",
+    "file": "bladedancer_r.png"
+  },
+  {
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "kind": "active",
+    "slot": "F",
+    "name": "Финал Бездны",
+    "glyph": "rage",
+    "briefly": "5 с ×2,0, 16 с.",
+    "file": "bladedancer_f.png"
+  },
+  {
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Ритм Бездны",
+    "glyph": "song",
+    "briefly": "+5% адены, −8% перезарядки E.",
+    "file": "bladedancer_passive.png"
+  },
+  {
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар бездны",
+    "glyph": "dagger",
+    "briefly": "×3,1 за 8 с.",
+    "file": "abyss_walker_q.png"
+  },
+  {
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "kind": "active",
+    "slot": "E",
+    "name": "Завеса ночи",
+    "glyph": "shadow",
+    "briefly": "Удержание 2,4 с, 12 с.",
+    "file": "abyss_walker_e.png"
+  },
+  {
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "kind": "active",
+    "slot": "R",
+    "name": "Критическая серия",
+    "glyph": "flurry",
+    "briefly": "4×0,58 ≈×2,3 за 10 с.",
+    "file": "abyss_walker_r.png"
+  },
+  {
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "kind": "active",
+    "slot": "F",
+    "name": "Казнь Шилен",
+    "glyph": "dagger",
+    "briefly": "×3,8 за 18 с.",
+    "file": "abyss_walker_f.png"
+  },
+  {
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Жало бездны",
+    "glyph": "shadow",
+    "briefly": "+5% адены с золотых.",
+    "file": "abyss_walker_passive.png"
+  },
+  {
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Призрачный выстрел",
+    "glyph": "bow",
+    "briefly": "2×1,48 за 8,5 с.",
+    "file": "phantom_ranger_q.png"
+  },
+  {
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "kind": "active",
+    "slot": "E",
+    "name": "Око охотника",
+    "glyph": "focus",
+    "briefly": "6 с ×1,7, 12 с.",
+    "file": "phantom_ranger_e.png"
+  },
+  {
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "kind": "active",
+    "slot": "R",
+    "name": "Теневой град",
+    "glyph": "flurry",
+    "briefly": "7 ударов ≈×2,5 за 11 с.",
+    "file": "phantom_ranger_r.png"
+  },
+  {
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "kind": "active",
+    "slot": "F",
+    "name": "Стрела казни",
+    "glyph": "bow",
+    "briefly": "×3,6 за 17 с.",
+    "file": "phantom_ranger_f.png"
+  },
+  {
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Тетива призрака",
+    "glyph": "bow",
+    "briefly": "+4% адены, +3% опыта.",
+    "file": "phantom_ranger_passive.png"
+  },
+  {
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Буря",
+    "glyph": "bolt",
+    "briefly": "×3,0 за 8 с.",
+    "file": "spellhowler_q.png"
+  },
+  {
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "kind": "active",
+    "slot": "E",
+    "name": "Вой ветра",
+    "glyph": "focus",
+    "briefly": "6 с ×1,8, 12 с.",
+    "file": "spellhowler_e.png"
+  },
+  {
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "kind": "active",
+    "slot": "R",
+    "name": "Шквал игл",
+    "glyph": "flurry",
+    "briefly": "6×0,42 ≈×2,5 за 10,5 с.",
+    "file": "spellhowler_r.png"
+  },
+  {
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "kind": "active",
+    "slot": "F",
+    "name": "Ураган Шилен",
+    "glyph": "bolt",
+    "briefly": "×3,8 за 17 с.",
+    "file": "spellhowler_f.png"
+  },
+  {
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Вой бури",
+    "glyph": "rage",
+    "briefly": "+5% адены, Q −6% перезарядки.",
+    "file": "spellhowler_passive.png"
+  },
+  {
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар фантома",
+    "glyph": "strike",
+    "briefly": "×2,8 за 8,5 с.",
+    "file": "phantom_summoner_q.png"
+  },
+  {
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "kind": "active",
+    "slot": "E",
+    "name": "Призрачные узы",
+    "glyph": "focus",
+    "briefly": "8 с ×1,8, 13 с.",
+    "file": "phantom_summoner_e.png"
+  },
+  {
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "kind": "active",
+    "slot": "R",
+    "name": "Рой теней",
+    "glyph": "flurry",
+    "briefly": "5×0,46 ≈×2,3 за 11 с.",
+    "file": "phantom_summoner_r.png"
+  },
+  {
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "kind": "active",
+    "slot": "F",
+    "name": "Жатва слуги",
+    "glyph": "drain",
+    "briefly": "×2,3 +3,6 с, 17 с.",
+    "file": "phantom_summoner_f.png"
+  },
+  {
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Узы фантома",
+    "glyph": "shadow",
+    "briefly": "+4% опыта, +4% золото.",
+    "file": "phantom_summoner_passive.png"
+  },
+  {
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Жезл Бездны",
+    "glyph": "shadow",
+    "briefly": "×2,4 за 9 с.",
+    "file": "shillien_elder_q.png"
+  },
+  {
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "kind": "active",
+    "slot": "E",
+    "name": "Алтарь Шилен",
+    "glyph": "guard",
+    "briefly": "Удержание 5,0 с, 13 с.",
+    "file": "shillien_elder_e.png"
+  },
+  {
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "kind": "active",
+    "slot": "R",
+    "name": "Литания теней",
+    "glyph": "flurry",
+    "briefly": "4×0,52 ≈×2,1 за 12 с.",
+    "file": "shillien_elder_r.png"
+  },
+  {
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "kind": "active",
+    "slot": "F",
+    "name": "Благословение Шилен",
+    "glyph": "drain",
+    "briefly": "×2,1 +4,5 с, 18 с.",
+    "file": "shillien_elder_f.png"
+  },
+  {
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Кровь алтаря",
+    "glyph": "shadow",
+    "briefly": "+5% опыта, +5% золото.",
+    "file": "shillien_elder_passive.png"
+  },
+  {
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Череполом",
+    "glyph": "strike",
+    "briefly": "×3,1 за 8 с.",
+    "file": "destroyer_q.png"
+  },
+  {
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "kind": "active",
+    "slot": "E",
+    "name": "Кровяной рёв",
+    "glyph": "rage",
+    "briefly": "Удержание 2,8 с, 12 с.",
+    "file": "destroyer_e.png"
+  },
+  {
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "kind": "active",
+    "slot": "R",
+    "name": "Резня",
+    "glyph": "flurry",
+    "briefly": "6×0,44 ≈×2,6 за 10,5 с.",
+    "file": "destroyer_r.png"
+  },
+  {
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "kind": "active",
+    "slot": "F",
+    "name": "Безумие",
+    "glyph": "rage",
+    "briefly": "9 с ×1,95, 17 с.",
+    "file": "destroyer_f.png"
+  },
+  {
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Безумие секиры",
+    "glyph": "rage",
+    "briefly": "+5% адены, +4% урона.",
+    "file": "destroyer_passive.png"
+  },
+  {
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Кулак ярости",
+    "glyph": "strike",
+    "briefly": "×2,9 за 8 с.",
+    "file": "tyrant_q.png"
+  },
+  {
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "kind": "active",
+    "slot": "E",
+    "name": "Железная кожа",
+    "glyph": "guard",
+    "briefly": "Удержание 2,5 с, 12 с.",
+    "file": "tyrant_e.png"
+  },
+  {
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "kind": "active",
+    "slot": "R",
+    "name": "Шквал ударов",
+    "glyph": "flurry",
+    "briefly": "8×0,34 ≈×2,7 за 10 с.",
+    "file": "tyrant_r.png"
+  },
+  {
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "kind": "active",
+    "slot": "F",
+    "name": "Тирания",
+    "glyph": "rage",
+    "briefly": "6 с ×1,9, 16 с.",
+    "file": "tyrant_f.png"
+  },
+  {
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Кулак зверя",
+    "glyph": "xp",
+    "briefly": "+5% опыта, +3% урона кастетами.",
+    "file": "tyrant_passive.png"
+  },
+  {
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Печать удара",
+    "glyph": "totem",
+    "briefly": "×2,8 за 8,5 с.",
+    "file": "overlord_q.png"
+  },
+  {
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "kind": "active",
+    "slot": "E",
+    "name": "Печать сковывания",
+    "glyph": "guard",
+    "briefly": "Удержание 5,2 с, 13 с.",
+    "file": "overlord_e.png"
+  },
+  {
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "kind": "active",
+    "slot": "R",
+    "name": "Клич властителя",
+    "glyph": "flurry",
+    "briefly": "4×0,52 ≈×2,1 за 12 с.",
+    "file": "overlord_r.png"
+  },
+  {
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "kind": "active",
+    "slot": "F",
+    "name": "Воля Паагрио",
+    "glyph": "drain",
+    "briefly": "×2,2 +4,2 с, 18 с.",
+    "file": "overlord_f.png"
+  },
+  {
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Воля властителя",
+    "glyph": "totem",
+    "briefly": "+4% опыта, +3% урона.",
+    "file": "overlord_passive.png"
+  },
+  {
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар барабана",
+    "glyph": "strike",
+    "briefly": "×2,6 за 8,5 с.",
+    "file": "warcryer_q.png"
+  },
+  {
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "kind": "active",
+    "slot": "E",
+    "name": "Клич войны",
+    "glyph": "song",
+    "briefly": "8 с ×1,9, 12,5 с.",
+    "file": "warcryer_e.png"
+  },
+  {
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "kind": "active",
+    "slot": "R",
+    "name": "Ритм крови",
+    "glyph": "flurry",
+    "briefly": "5×0,44 ≈×2,2 за 11 с.",
+    "file": "warcryer_r.png"
+  },
+  {
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "kind": "active",
+    "slot": "F",
+    "name": "Великий клич",
+    "glyph": "rage",
+    "briefly": "6 с ×2,0, 16 с.",
+    "file": "warcryer_f.png"
+  },
+  {
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Горло войны",
+    "glyph": "song",
+    "briefly": "+4% адены, +3% опыта.",
+    "file": "warcryer_passive.png"
+  },
+  {
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Удар по контракту",
+    "glyph": "hammer",
+    "briefly": "×2,8 +метка +8% адены 6 с.",
+    "file": "bounty_hunter_q.png"
+  },
+  {
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "kind": "active",
+    "slot": "E",
+    "name": "Железная хватка",
+    "glyph": "guard",
+    "briefly": "Удержание 4,6 с, 12,5 с.",
+    "file": "bounty_hunter_e.png"
+  },
+  {
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "kind": "active",
+    "slot": "R",
+    "name": "Цепной сбор",
+    "glyph": "flurry",
+    "briefly": "5×0,44 ≈×2,2 за 11 с.",
+    "file": "bounty_hunter_r.png"
+  },
+  {
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "kind": "active",
+    "slot": "F",
+    "name": "Большой контракт",
+    "glyph": "coin",
+    "briefly": "×3,2 +15% адены 8 с, 17 с.",
+    "file": "bounty_hunter_f.png"
+  },
+  {
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Контракт охотника",
+    "glyph": "coin",
+    "briefly": "+6% адены, +6% адены в склад.",
+    "file": "bounty_hunter_passive.png"
+  },
+  {
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "kind": "active",
+    "slot": "Q",
+    "name": "Паровой удар",
+    "glyph": "hammer",
+    "briefly": "×2,7 за 8,5 с.",
+    "file": "warsmith_q.png"
+  },
+  {
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "kind": "active",
+    "slot": "E",
+    "name": "Осадный голем",
+    "glyph": "guard",
+    "briefly": "Удержание 5,0 с, 13 с.",
+    "file": "warsmith_e.png"
+  },
+  {
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "kind": "active",
+    "slot": "R",
+    "name": "Шрапнель",
+    "glyph": "flurry",
+    "briefly": "6×0,40 ≈×2,4 за 10,5 с.",
+    "file": "warsmith_r.png"
+  },
+  {
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "kind": "active",
+    "slot": "F",
+    "name": "Перегрев голема",
+    "glyph": "rage",
+    "briefly": "3×0,85 +2,0 с удерж., 17 с.",
+    "file": "warsmith_f.png"
+  },
+  {
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Молот войны",
+    "glyph": "hammer",
+    "briefly": "+8% материалов во время охоты на монстров · +5% адены в склад.",
+    "file": "warsmith_passive.png"
+  },
+  {
+    "kit": "race_elf",
+    "kitName": "Эльфы",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Лезвие рощи",
+    "glyph": "leaf",
+    "briefly": "Физическая сила удара для воина эльфа",
+    "file": "race_elf_passive.png"
+  },
+  {
+    "kit": "race_elf",
+    "kitName": "Эльфы",
+    "kind": "passive",
+    "slot": "P",
+    "name": "Песнь леса",
+    "glyph": "song",
+    "briefly": "Магическая сила для мистика эльфа",
+    "file": "race_elf_passive_1.png"
+  }
+]

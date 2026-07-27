@@ -138,6 +138,33 @@ assert.ok(st.ok);
 assert.strictEqual(st.state.status, "active", "all ready starts fight");
 assert.ok(st.state.encounter && st.state.encounter.mobs && st.state.encounter.mobs.length >= 2);
 
+{
+  const runId = start.state.runId;
+  const mobId = (st.state.encounter.mobs || []).find((m) => !m.dead)?.id;
+  assert.ok(mobId);
+  const tBuff = now0 + 400;
+  const baseHit = store.instanceHit(user1, { runId, dmg: 12, mobId, now: tBuff });
+  assert.ok(baseHit.ok);
+  const buff = store.instancePartyBuff(user1, {
+    runId,
+    mult: 1.18,
+    durationMs: 8000,
+    skillId: "warcryer_f",
+    name: "Великий клич",
+    now: tBuff + 50,
+  });
+  assert.ok(buff.ok, buff.message);
+  assert.ok(buff.state.partyDamageBuff);
+  assert.strictEqual(buff.state.partyDamageBuff.mult, 1.18);
+  assert.strictEqual(buff.state.lastEvent, "party_damage_buff");
+  const allyHit = store.instanceHit(user2, { runId, dmg: 12, mobId, now: tBuff + 250 });
+  assert.ok(allyHit.ok);
+  assert.ok(
+    allyHit.dmg > baseHit.dmg,
+    "ally must receive party buff: " + allyHit.dmg + " vs " + baseHit.dmg
+  );
+}
+
 let cleared = false;
 let sawRegen = false;
 for (let i = 0; i < 12000 && !cleared; i++) {
@@ -170,7 +197,6 @@ for (let i = 0; i < 12000 && !cleared; i++) {
     runId: start.state.runId,
     dmg: 400,
     mobId: targetId,
-    bySkill: true,
     now: tHit,
   });
   assert.ok(h.ok, h.message);

@@ -6,6 +6,9 @@ global.isMysticArchetype = (classId) => classId === "mystic" || classId === "sha
 
 loadScripts([
   "src/data/combat-skills-data.js",
+  "src/data/combat-skills-kits-data.js",
+  "src/data/professions-data.js",
+  "src/combat-skills-core.js",
   "src/data/pvp-balance.js",
   "src/pvp-combat-core.js",
 ]);
@@ -58,12 +61,12 @@ test("buildCombatSheet sets atkType and hpMax", () => {
   assert.ok(f.hpMax > 200);
   assert.ok(m.hpMax > 200);
   assert.ok(f.skills.length >= 2);
-  assert.ok(m.skills.some((s) => s.id === "soul_burst"));
+  assert.ok(m.skills.some((s) => s.id === "elf_mystic_q" || s.id === "human_mystic_q" || s.id === "soul_burst"));
 });
 
 test("pvp remap: timerSlow → atkDebuff", () => {
   const f = sheetFighter();
-  const iron = f.skills.find((s) => s.id === "iron_shell");
+  const iron = f.skills.find((s) => s.id === "human_fighter_e" || s.id === "iron_shell");
   assert.ok(iron);
   assert.strictEqual(iron.pvpEffect, "atkDebuff");
   assert.ok(iron.cdRounds >= 2);
@@ -179,11 +182,12 @@ test("directHit soul_burst deals damage in one resolve", () => {
   const mage = pvpCreateFighter(sheetMystic());
   const foe = pvpCreateFighter(sheetFighter({ name: "Foe" }));
   const hp0 = foe.hp;
+  const skillId = mage.sheet.skills.find((s) => s.pvpEffect === "directHit")?.id || "soul_burst";
   const rng = pvpRng(7);
-  const ev = pvpResolveAction(mage, foe, { type: "skill", skillId: "soul_burst" }, rng);
+  const ev = pvpResolveAction(mage, foe, { type: "skill", skillId }, rng);
   assert.ok(foe.hp < hp0);
-  assert.ok(ev.some((e) => e.kind === "hit" && e.skillId === "soul_burst"));
-  assert.ok(mage.cds.soul_burst > 0);
+  assert.ok(ev.some((e) => e.kind === "hit" && e.skillId === skillId));
+  assert.ok(mage.cds[skillId] > 0);
 });
 
 test("practice shadow sheet builds", () => {
@@ -310,6 +314,30 @@ test("mystic in heavy loses set PvP and takes off-armor DEF mult", () => {
   delete global.avatarSetBonuses;
   delete global.passiveSkillsForAvatar;
   delete global.state;
+});
+
+test("pvp profession kit remaps without farm adena fields", () => {
+  const avatar = { classId: "fighter", level: 40, professionId: "bounty_hunter" };
+  const skills = pvpSkillsForAvatar(avatar, 40);
+  const q = skills.find((s) => s.id === "bounty_hunter_q");
+  const f = skills.find((s) => s.id === "bounty_hunter_f");
+  assert.ok(q);
+  assert.ok(f);
+  assert.strictEqual(q.pvpEffect, "nextHit");
+  assert.strictEqual(f.pvpEffect, "damageBuff");
+  assert.strictEqual(q.farmAdenaMult, undefined);
+  assert.strictEqual(q.adenaHitBonus, undefined);
+  assert.ok(f.cdRounds >= 4);
+});
+
+test("pvp partyDamageBuff remaps to mild damageBuff", () => {
+  const avatar = { classId: "shaman", level: 40, professionId: "warcryer" };
+  const skills = pvpSkillsForAvatar(avatar, 40);
+  const f = skills.find((s) => s.id === "warcryer_f");
+  assert.ok(f);
+  assert.strictEqual(f.farmEffect, "partyDamageBuff");
+  assert.strictEqual(f.pvpEffect, "damageBuff");
+  assert.strictEqual(f.mult, 1.18);
 });
 
 console.log("pvp-combat: all tests passed");

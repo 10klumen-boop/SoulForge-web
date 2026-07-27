@@ -32,6 +32,7 @@ global.state = { avatar: { created: true, classId: "fighter", level: 10 } };
 
 loadScripts([
   "src/data/combat-skills-data.js",
+  "src/data/combat-skills-kits-data.js",
   "src/combat-skills-core.js",
 ]);
 
@@ -81,6 +82,36 @@ function runTests() {
     state.avatar.level = 1;
     assert.strictEqual(isCombatSkillUnlocked(skill), false);
     state.avatar.level = 10;
+  });
+
+  test("T0 unlocks 2/4/6/8; profession kit unlocks all at once", () => {
+    state.avatar = { created: true, raceId: "human", classId: "fighter", level: 1, professionId: null };
+    const t0 = combatSkillsForAvatar();
+    assert.deepStrictEqual(
+      t0.map((s) => s.unlockLevel),
+      [2, 4, 6, 8]
+    );
+    state.avatar.level = 1;
+    assert.strictEqual(isCombatSkillUnlocked(t0[0]), false);
+    state.avatar.level = 2;
+    assert.strictEqual(isCombatSkillUnlocked(t0[0]), true);
+
+    state.avatar.professionId = "warrior";
+    state.avatar.level = 10;
+    const t1 = combatSkillsForAvatar();
+    assert.deepStrictEqual(
+      t1.map((s) => s.unlockLevel),
+      [1, 1, 1, 1]
+    );
+    assert.ok(t1.every((s) => isCombatSkillUnlocked(s)));
+
+    state.avatar.professionId = "gladiator";
+    state.avatar.level = 40;
+    const t2 = combatSkillsForAvatar();
+    assert.deepStrictEqual(
+      t2.map((s) => s.unlockLevel),
+      [1, 1, 1, 1]
+    );
   });
 
   test("combatSkillCooldownLeft returns 0 when no cooldown", () => {
@@ -133,42 +164,105 @@ function runTests() {
 
   test("useCombatSkill returns false when skill locked", () => {
     resetMineSkillRuntime();
-    state.avatar.level = 1;
-    assert.strictEqual(useCombatSkill("power_strike"), false);
+    state.avatar = { created: true, classId: "fighter", raceId: "human", level: 1 };
+    assert.strictEqual(useCombatSkill("human_fighter_q"), false);
     state.avatar.level = 10;
   });
 
   test("useCombatSkill returns false when mine inactive", () => {
     resetMineSkillRuntime();
+    state.avatar = { created: true, classId: "fighter", raceId: "human", level: 10 };
     mineActive = false;
-    assert.strictEqual(useCombatSkill("power_strike"), false);
+    assert.strictEqual(useCombatSkill("human_fighter_q"), false);
     mineActive = true;
   });
 
   test("useCombatSkill returns false when game paused", () => {
     resetMineSkillRuntime();
+    state.avatar = { created: true, classId: "fighter", raceId: "human", level: 10 };
     global.isGamePaused = () => true;
-    assert.strictEqual(useCombatSkill("power_strike"), false);
+    assert.strictEqual(useCombatSkill("human_fighter_q"), false);
     global.isGamePaused = () => false;
   });
 
   test("useCombatSkill applies cooldown for valid target", () => {
     resetMineSkillRuntime();
+    state.avatar = { created: true, classId: "fighter", raceId: "human", level: 10 };
     const mob = { _type: "normal", _hp: 100, _maxHp: 100, classList: { add: () => {}, remove: () => {} } };
     global._mockMobs = [mob];
-    const result = useCombatSkill("power_strike");
+    const result = useCombatSkill("human_fighter_q");
     assert.strictEqual(result, true);
-    assert.ok(combatSkillCooldownLeft("power_strike") > 0);
-    assert.strictEqual(mineSkillRuntime.buffs.nextHitMult, 2.5);
+    assert.ok(combatSkillCooldownLeft("human_fighter_q") > 0);
+    assert.strictEqual(mineSkillRuntime.buffs.nextHitMult, 2.2);
     global._mockMobs = [];
   });
 
   test("useCombatSkill applies timerSlow without target", () => {
     resetMineSkillRuntime();
+    state.avatar = { created: true, classId: "fighter", raceId: "human", level: 10 };
     global._mockMobs = [];
-    const result = useCombatSkill("iron_shell");
+    const result = useCombatSkill("human_fighter_e");
     assert.strictEqual(result, true);
     assert.ok(mineSkillRuntime.buffs.timerSlowUntil > Date.now());
+  });
+
+  test("combatSkillsForAvatar uses profession kit when set", () => {
+    state.avatar = { created: true, classId: "fighter", level: 40, professionId: "gladiator" };
+    const skills = combatSkillsForAvatar();
+    assert.ok(skills.some((s) => s.id === "gladiator_q"));
+    assert.ok(!skills.some((s) => s.id === "power_strike"));
+    state.avatar = { created: true, classId: "fighter", level: 10 };
+  });
+
+  test("T0 kit by race for starter without profession", () => {
+    state.avatar = { created: true, classId: "fighter", raceId: "dark_elf", level: 10, professionId: null };
+    const skills = combatSkillsForAvatar();
+    assert.ok(skills.some((s) => s.id === "de_fighter_q"));
+    assert.ok(skills[0].icon.indexOf("class-skills/") >= 0);
+    assert.ok(!skills.some((s) => s.id === "power_strike"));
+  });
+
+  test("T1 kit by professionId warrior", () => {
+    state.avatar = {
+      created: true,
+      classId: "fighter",
+      raceId: "human",
+      level: 20,
+      professionId: "warrior",
+      professionTier: 1,
+    };
+    const skills = combatSkillsForAvatar();
+    assert.ok(skills.some((s) => s.id === "warrior_q"));
+    assert.strictEqual(skills.find((s) => s.hotkey === "Q").name, "Прямой удар");
+  });
+
+  test("mineApplySkillAdenaBonus applies farm and hit bonuses", () => {
+    resetMineSkillRuntime();
+    mineSkillRuntime.buffs.farmAdenaMult = 1.15;
+    mineSkillRuntime.buffs.farmAdenaUntil = Date.now() + 5000;
+    mineSkillRuntime.buffs.pendingAdenaHitBonus = 0.08;
+    assert.strictEqual(mineApplySkillAdenaBonus(1000), 1242);
+    assert.strictEqual(mineSkillRuntime.buffs.pendingAdenaHitBonus, 0);
+  });
+
+  test("partyDamageBuff applies only in party/instance context", () => {
+    resetMineSkillRuntime();
+    state.avatar = { created: true, classId: "shaman", level: 40, professionId: "warcryer" };
+    global.mineActive = true;
+    global.isGamePaused = () => false;
+    global.isInstanceSessionActive = () => false;
+    global.isMineInstanceMode = () => false;
+    const okSolo = useCombatSkill("warcryer_f");
+    assert.strictEqual(okSolo, true);
+    assert.strictEqual(minePartyDamageMult(), 1);
+    global.isInstanceSessionActive = () => true;
+    resetMineSkillRuntime();
+    const okInst = useCombatSkill("warcryer_f");
+    assert.strictEqual(okInst, true);
+    assert.strictEqual(minePartyDamageMult(), 1.18);
+    state.avatar = { created: true, classId: "fighter", level: 10 };
+    delete global.isInstanceSessionActive;
+    delete global.isMineInstanceMode;
   });
 
   console.log("\n--- summary ---");

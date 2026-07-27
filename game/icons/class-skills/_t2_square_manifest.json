@@ -1,0 +1,1397 @@
+[
+  {
+    "file": "gladiator_q.png",
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "slot": "Q",
+    "name": "Крест клинков",
+    "briefly": "Два удара за 8,5 с перезарядки, каждый ×1,35.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, two crossed dual swords forming an X slash"
+  },
+  {
+    "file": "gladiator_e.png",
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "slot": "E",
+    "name": "Парирование арены",
+    "briefly": "Удержание 3,2 с, перезарядка 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, arena gladiator shield with crossed blades behind"
+  },
+  {
+    "file": "gladiator_r.png",
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "slot": "R",
+    "name": "Вихрь",
+    "briefly": "5 ударов за 11 с, суммарно ≈×2,2.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, spinning whirlwind of dual blades"
+  },
+  {
+    "file": "gladiator_f.png",
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "slot": "F",
+    "name": "Ярость гладиатора",
+    "briefly": "7 с усиления ×1,9, перезарядка 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, red fury aura around dual swords"
+  },
+  {
+    "file": "gladiator_passive.png",
+    "kit": "gladiator",
+    "kitName": "Гладиатор",
+    "slot": "passive",
+    "name": "Ярость арены",
+    "briefly": "+5% адены с заданий.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, laurel and dual swords victory emblem"
+  },
+  {
+    "file": "warlord_q.png",
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "slot": "Q",
+    "name": "Укол строя",
+    "briefly": "Следующий удар ×2,8 за 8 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, long spear tip thrust forward"
+  },
+  {
+    "file": "warlord_e.png",
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "slot": "E",
+    "name": "Стена копий",
+    "briefly": "Удержание 5,0 с, перезарядка 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, wall of spears and tower shield"
+  },
+  {
+    "file": "warlord_r.png",
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "slot": "R",
+    "name": "Размах древка",
+    "briefly": "6 ударов ≈×2,4 за 10,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, wide polearm sweep arc"
+  },
+  {
+    "file": "warlord_f.png",
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "slot": "F",
+    "name": "Клич полководца",
+    "briefly": "8 с усиления ×1,85, перезарядка 16,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, war banner and spear command emblem"
+  },
+  {
+    "file": "warlord_passive.png",
+    "kit": "warlord",
+    "kitName": "Полководец",
+    "slot": "passive",
+    "name": "Клич полка",
+    "briefly": "+4% урона во время охоты на монстров, +3% опыта.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, military banner crest"
+  },
+  {
+    "file": "paladin_q.png",
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "slot": "Q",
+    "name": "Святой удар",
+    "briefly": "×2,6 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, holy sword with radiant cross light"
+  },
+  {
+    "file": "paladin_e.png",
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "slot": "E",
+    "name": "Святая броня",
+    "briefly": "Удержание 4,8 с, перезарядка 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, holy tower shield glowing gold-white"
+  },
+  {
+    "file": "paladin_r.png",
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "slot": "R",
+    "name": "Очищение",
+    "briefly": "4 удара ≈×2,0 +0,8 с к полю.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, purifying light blade streaks"
+  },
+  {
+    "file": "paladin_f.png",
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "slot": "F",
+    "name": "Благословение поля",
+    "briefly": "Удар ×2,2 и +4,2 с к таймеру.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, healing sunburst over shield"
+  },
+  {
+    "file": "paladin_passive.png",
+    "kit": "paladin",
+    "kitName": "Паладин",
+    "slot": "passive",
+    "name": "Свет паладина",
+    "briefly": "+4% опыта, +5% скорости накопления в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, golden holy cross on shield"
+  },
+  {
+    "file": "dark_avenger_q.png",
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "slot": "Q",
+    "name": "Удар возмездия",
+    "briefly": "×3,0 за 8 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dark revenge sword slash purple"
+  },
+  {
+    "file": "dark_avenger_e.png",
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "slot": "E",
+    "name": "Тёмный панцирь",
+    "briefly": "Удержание 3,0 с, перезарядка 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, cursed black armor plate shield"
+  },
+  {
+    "file": "dark_avenger_r.png",
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "slot": "R",
+    "name": "Жертва тени",
+    "briefly": "4 удара ≈×2,3 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shadow claws slash marks"
+  },
+  {
+    "file": "dark_avenger_f.png",
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "slot": "F",
+    "name": "Клятва мести",
+    "briefly": "6 с ×1,95, перезарядка 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dark oath rune and sword"
+  },
+  {
+    "file": "dark_avenger_passive.png",
+    "kit": "dark_avenger",
+    "kitName": "Мститель",
+    "slot": "passive",
+    "name": "Тень мстителя",
+    "briefly": "+7% адены с золотых мобов.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shadow panther silhouette crest"
+  },
+  {
+    "file": "treasure_hunter_q.png",
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "slot": "Q",
+    "name": "Удар в спину",
+    "briefly": "Прямой ×3,0 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, backstab dagger from darkness"
+  },
+  {
+    "file": "treasure_hunter_e.png",
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "slot": "E",
+    "name": "Дымовая завеса",
+    "briefly": "Удержание 2,5 с, перезарядка 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, smoke bomb cloud with dagger"
+  },
+  {
+    "file": "treasure_hunter_r.png",
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "slot": "R",
+    "name": "Серия кинжалов",
+    "briefly": "5 ударов ≈×2,1 за 10 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, three flying daggers"
+  },
+  {
+    "file": "treasure_hunter_f.png",
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "slot": "F",
+    "name": "Большой куш",
+    "briefly": "×3,6 за 18 с — главный пик.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dagger piercing a gold pouch"
+  },
+  {
+    "file": "treasure_hunter_passive.png",
+    "kit": "treasure_hunter",
+    "kitName": "Искатель сокровищ",
+    "slot": "passive",
+    "name": "Нюх искателя",
+    "briefly": "+6% адены с обычных мобов.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dagger and gold coin emblem"
+  },
+  {
+    "file": "hawkeye_q.png",
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "slot": "Q",
+    "name": "Двойной выстрел",
+    "briefly": "2×1,45 за 8,5 с (≈×2,9).",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, bow releasing two arrows"
+  },
+  {
+    "file": "hawkeye_e.png",
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "slot": "E",
+    "name": "Прицел",
+    "briefly": "6 с ×1,65, перезарядка 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, hawk eye and bowstring aim"
+  },
+  {
+    "file": "hawkeye_r.png",
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "slot": "R",
+    "name": "Град стрел",
+    "briefly": "7 ударов ≈×2,5 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, rain of arrows from sky"
+  },
+  {
+    "file": "hawkeye_f.png",
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "slot": "F",
+    "name": "Снайперский залп",
+    "briefly": "×3,5 за 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, single glowing sniper arrow"
+  },
+  {
+    "file": "hawkeye_passive.png",
+    "kit": "hawkeye",
+    "kitName": "Стрелок",
+    "slot": "passive",
+    "name": "Глаз стрелка",
+    "briefly": "+4% адены, −8% расхода стрел.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, sharp hawk eye with bow"
+  },
+  {
+    "file": "sorcerer_q.png",
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "slot": "Q",
+    "name": "Протуберанец",
+    "briefly": "×2,9 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, solar fire prominence orb"
+  },
+  {
+    "file": "sorcerer_e.png",
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "slot": "E",
+    "name": "Жар фокуса",
+    "briefly": "7 с ×1,75, перезарядка 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, burning magical focus crystal"
+  },
+  {
+    "file": "sorcerer_r.png",
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "slot": "R",
+    "name": "Огненный шквал",
+    "briefly": "6 залпов ≈×2,4 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, flurry of fire sparks"
+  },
+  {
+    "file": "sorcerer_f.png",
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "slot": "F",
+    "name": "Метеор",
+    "briefly": "×3,7 за 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, falling fiery meteor"
+  },
+  {
+    "file": "sorcerer_passive.png",
+    "kit": "sorcerer",
+    "kitName": "Чародей",
+    "slot": "passive",
+    "name": "Пламя чародея",
+    "briefly": "+5% адены с заданий.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, sorcerer fire orb emblem"
+  },
+  {
+    "file": "necromancer_q.png",
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "slot": "Q",
+    "name": "Костяной шип",
+    "briefly": "×2,8 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, bone spike projectile"
+  },
+  {
+    "file": "necromancer_e.png",
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "slot": "E",
+    "name": "Пелена мёртвых",
+    "briefly": "Удержание 3,8 с, перезарядка 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, ghostly death veil shroud"
+  },
+  {
+    "file": "necromancer_r.png",
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "slot": "R",
+    "name": "Рой душ",
+    "briefly": "5 ударов ≈×2,0 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, swarm of tiny spirit skulls"
+  },
+  {
+    "file": "necromancer_f.png",
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "slot": "F",
+    "name": "Смертельный шип",
+    "briefly": "×2,4 урона и поглощает +4,0 HP · КД 17 с",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dark soul-draining spike"
+  },
+  {
+    "file": "necromancer_passive.png",
+    "kit": "necromancer",
+    "kitName": "Некромант",
+    "slot": "passive",
+    "name": "Шёпот некроманта",
+    "briefly": "+7% адены с золотых.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, whispering skull with purple mist"
+  },
+  {
+    "file": "warlock_q.png",
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "slot": "Q",
+    "name": "Удар связи",
+    "briefly": "×2,7 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, summoner bond chain strike"
+  },
+  {
+    "file": "warlock_e.png",
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "slot": "E",
+    "name": "Узы слуги",
+    "briefly": "8 с ×1,7, перезарядка 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, magical collar bond rings"
+  },
+  {
+    "file": "warlock_r.png",
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "slot": "R",
+    "name": "Приказ атаковать",
+    "briefly": "5 ударов ≈×2,2 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, command rune with claw marks"
+  },
+  {
+    "file": "warlock_f.png",
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "slot": "F",
+    "name": "Ритуал связи",
+    "briefly": "9 с ×1,85, перезарядка 18 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, ritual circle with cat silhouette"
+  },
+  {
+    "file": "warlock_passive.png",
+    "kit": "warlock",
+    "kitName": "Колдун",
+    "slot": "passive",
+    "name": "Узы колдуна",
+    "briefly": "+4% опыта, +3% урона во время охоты на монстров.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, warlock chain and familiar crest"
+  },
+  {
+    "file": "bishop_q.png",
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "slot": "Q",
+    "name": "Святой залп",
+    "briefly": "×2,4 за 9 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, holy light bolt from book"
+  },
+  {
+    "file": "bishop_e.png",
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "slot": "E",
+    "name": "Барьер собора",
+    "briefly": "Удержание 5,2 с, перезарядка 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, cathedral barrier shield light"
+  },
+  {
+    "file": "bishop_r.png",
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "slot": "R",
+    "name": "Хор света",
+    "briefly": "4 удара ≈×1,9 за 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, choir of light rays"
+  },
+  {
+    "file": "bishop_f.png",
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "slot": "F",
+    "name": "Великое исцеление поля",
+    "briefly": "×2,0 и +4,8 с, 18 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, great heal sunburst chalice"
+  },
+  {
+    "file": "bishop_passive.png",
+    "kit": "bishop",
+    "kitName": "Епископ",
+    "slot": "passive",
+    "name": "Благословение епископа",
+    "briefly": "+5% опыта, +6% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, bishop holy book and sun"
+  },
+  {
+    "file": "prophet_q.png",
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "slot": "Q",
+    "name": "Слово силы",
+    "briefly": "×2,8 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, glowing prophetic word rune"
+  },
+  {
+    "file": "prophet_e.png",
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "slot": "E",
+    "name": "Песнь битвы",
+    "briefly": "7 с ×1,75, перезарядка 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, battle chant music rune"
+  },
+  {
+    "file": "prophet_r.png",
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "slot": "R",
+    "name": "Ритм пророчества",
+    "briefly": "5 ударов ≈×2,1 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, rhythmic prophecy scroll waves"
+  },
+  {
+    "file": "prophet_f.png",
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "slot": "F",
+    "name": "Откровение",
+    "briefly": "5 с ×2,0, перезарядка 16 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, divine revelation burst"
+  },
+  {
+    "file": "prophet_passive.png",
+    "kit": "prophet",
+    "kitName": "Пророк",
+    "slot": "passive",
+    "name": "Песнь пророка",
+    "briefly": "+4% адены, +5% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, prophet scroll and song notes"
+  },
+  {
+    "file": "temple_knight_q.png",
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "slot": "Q",
+    "name": "Клинок Эйнхасад",
+    "briefly": "×2,6 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, elven holy temple blade"
+  },
+  {
+    "file": "temple_knight_e.png",
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "slot": "E",
+    "name": "Храмовая стража",
+    "briefly": "Удержание 5,0 с, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, temple shield with mother tree leaf"
+  },
+  {
+    "file": "temple_knight_r.png",
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "slot": "R",
+    "name": "Круг защиты",
+    "briefly": "4 удара ≈×2,0 за 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, protective circle of light blades"
+  },
+  {
+    "file": "temple_knight_f.png",
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "slot": "F",
+    "name": "Несокрушимый обет",
+    "briefly": "×2,1 +3,5 с, 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, unbreakable vow shield seal"
+  },
+  {
+    "file": "temple_knight_passive.png",
+    "kit": "temple_knight",
+    "kitName": "Храмовый рыцарь",
+    "slot": "passive",
+    "name": "Обет храма",
+    "briefly": "+4% опыта, +5% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, temple vow leaf crest"
+  },
+  {
+    "file": "swordsinger_q.png",
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "slot": "Q",
+    "name": "Нота клинка",
+    "briefly": "×2,7 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, singing sword with music note"
+  },
+  {
+    "file": "swordsinger_e.png",
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "slot": "E",
+    "name": "Муза меча",
+    "briefly": "8 с ×1,8, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, muse harp and sword"
+  },
+  {
+    "file": "swordsinger_r.png",
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "slot": "R",
+    "name": "Каденция",
+    "briefly": "5 ударов ≈×2,3 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, cadence blade rhythm streaks"
+  },
+  {
+    "file": "swordsinger_f.png",
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "slot": "F",
+    "name": "Финал песни",
+    "briefly": "5 с ×2,0, 16 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, finale crescendo sword burst"
+  },
+  {
+    "file": "swordsinger_passive.png",
+    "kit": "swordsinger",
+    "kitName": "Певец меча",
+    "slot": "passive",
+    "name": "Муза клинка",
+    "briefly": "+5% адены, +0,5 с к усилениям.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, blade muse emblem"
+  },
+  {
+    "file": "plainswalker_q.png",
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "slot": "Q",
+    "name": "Удар чащи",
+    "briefly": "×2,9 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, forest dagger from leaves"
+  },
+  {
+    "file": "plainswalker_e.png",
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "slot": "E",
+    "name": "Маскировка листвы",
+    "briefly": "Удержание 2,6 с, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, camouflage leaves veil"
+  },
+  {
+    "file": "plainswalker_r.png",
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "slot": "R",
+    "name": "Шипы лозы",
+    "briefly": "5 ударов ≈×2,1 за 10 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, thorny vine spikes"
+  },
+  {
+    "file": "plainswalker_f.png",
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "slot": "F",
+    "name": "Сердце рощи",
+    "briefly": "×3,5 за 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, grove heart glowing dagger"
+  },
+  {
+    "file": "plainswalker_passive.png",
+    "kit": "plainswalker",
+    "kitName": "Следопыт",
+    "slot": "passive",
+    "name": "Тропа опушки",
+    "briefly": "+6% адены с обычных.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, forest path and dagger crest"
+  },
+  {
+    "file": "silver_ranger_q.png",
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "slot": "Q",
+    "name": "Серебряная стрела",
+    "briefly": "2×1,4 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, silver glowing arrow"
+  },
+  {
+    "file": "silver_ranger_e.png",
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "slot": "E",
+    "name": "Глаз совы",
+    "briefly": "6 с ×1,6, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, owl eye and moon bow"
+  },
+  {
+    "file": "silver_ranger_r.png",
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "slot": "R",
+    "name": "Дождь Эльмора",
+    "briefly": "7 ударов ≈×2,4 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, silver rain of arrows"
+  },
+  {
+    "file": "silver_ranger_f.png",
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "slot": "F",
+    "name": "Лунный залп",
+    "briefly": "×3,4 за 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, moonlit arrow shot"
+  },
+  {
+    "file": "silver_ranger_passive.png",
+    "kit": "silver_ranger",
+    "kitName": "Серебряный рейнджер",
+    "slot": "passive",
+    "name": "Серебряная тетива",
+    "briefly": "−10% расхода стрел, +3% опыта.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, silver bowstring crescent"
+  },
+  {
+    "file": "spellsinger_q.png",
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "slot": "Q",
+    "name": "Гидроудар",
+    "briefly": "×2,8 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, hydro water blast orb"
+  },
+  {
+    "file": "spellsinger_e.png",
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "slot": "E",
+    "name": "Мелодия потока",
+    "briefly": "7 с ×1,7, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, flowing water music rune"
+  },
+  {
+    "file": "spellsinger_r.png",
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "slot": "R",
+    "name": "Ледяная октава",
+    "briefly": "Заморозка 2,4 с +4×0,45.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, ice crystal music octave"
+  },
+  {
+    "file": "spellsinger_f.png",
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "slot": "F",
+    "name": "Прилив",
+    "briefly": "×3,6 за 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, tidal wave crest"
+  },
+  {
+    "file": "spellsinger_passive.png",
+    "kit": "spellsinger",
+    "kitName": "Певец заклинаний",
+    "slot": "passive",
+    "name": "Песнь воды",
+    "briefly": "+5% адены, +0,3 с к заморозке.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, water song droplet emblem"
+  },
+  {
+    "file": "elemental_summoner_q.png",
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "slot": "Q",
+    "name": "Удар духа",
+    "briefly": "×2,6 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, elemental spirit strike"
+  },
+  {
+    "file": "elemental_summoner_e.png",
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "slot": "E",
+    "name": "Узы стихии",
+    "briefly": "8 с ×1,75, 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, elemental bond rings green"
+  },
+  {
+    "file": "elemental_summoner_r.png",
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "slot": "R",
+    "name": "Танец духов",
+    "briefly": "5 ударов ≈×2,2 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dancing spirit wisps"
+  },
+  {
+    "file": "elemental_summoner_f.png",
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "slot": "F",
+    "name": "Пробуждение стихии",
+    "briefly": "9 с ×1,8, 18 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, awakened elemental unicorn glow"
+  },
+  {
+    "file": "elemental_summoner_passive.png",
+    "kit": "elemental_summoner",
+    "kitName": "Призыватель стихий",
+    "slot": "passive",
+    "name": "Узы единорога",
+    "briefly": "+4% опыта, +3% урона.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, unicorn horn bond crest"
+  },
+  {
+    "file": "elder_q.png",
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "slot": "Q",
+    "name": "Жезл старейшины",
+    "briefly": "×2,3 за 9 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, elder wooden staff leaf tip"
+  },
+  {
+    "file": "elder_e.png",
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "slot": "E",
+    "name": "Щит Древа",
+    "briefly": "Удержание 4,5 с, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, mother tree root shield"
+  },
+  {
+    "file": "elder_r.png",
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "slot": "R",
+    "name": "Круг предков",
+    "briefly": "4 удара ≈×1,9 за 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, ancestor spirit circle"
+  },
+  {
+    "file": "elder_f.png",
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "slot": "F",
+    "name": "Благословение старейшины",
+    "briefly": "×2,0 +4,0 с, 18 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, elder blessing branch light"
+  },
+  {
+    "file": "elder_passive.png",
+    "kit": "elder",
+    "kitName": "Старейшина",
+    "slot": "passive",
+    "name": "Дар Древа",
+    "briefly": "+5% опыта, +6% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, mother tree gift leaf crest"
+  },
+  {
+    "file": "shillien_knight_q.png",
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "slot": "Q",
+    "name": "Удар Шилен",
+    "briefly": "×2,7 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shillien dark blade crescent"
+  },
+  {
+    "file": "shillien_knight_e.png",
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "slot": "E",
+    "name": "Стража Шилен",
+    "briefly": "Удержание 4,8 с, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dark goddess guard shield"
+  },
+  {
+    "file": "shillien_knight_r.png",
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "slot": "R",
+    "name": "Теневой круг",
+    "briefly": "4 удара ≈×2,1 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shadow circle slash"
+  },
+  {
+    "file": "shillien_knight_f.png",
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "slot": "F",
+    "name": "Покров богини",
+    "briefly": "×2,2 +3,8 с, 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, goddess dark veil cover"
+  },
+  {
+    "file": "shillien_knight_passive.png",
+    "kit": "shillien_knight",
+    "kitName": "Рыцарь Шилен",
+    "slot": "passive",
+    "name": "Клятва Шилен",
+    "briefly": "+4% опыта, +4% адены с золотых.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shillien oath crescent crest"
+  },
+  {
+    "file": "bladedancer_q.png",
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "slot": "Q",
+    "name": "Шаг клинка",
+    "briefly": "2×1,4 за 8 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, blade dancer dual step slash"
+  },
+  {
+    "file": "bladedancer_e.png",
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "slot": "E",
+    "name": "Танец войны",
+    "briefly": "7 с ×1,85, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, war dance dual blades swirl"
+  },
+  {
+    "file": "bladedancer_r.png",
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "slot": "R",
+    "name": "Вихрь танца",
+    "briefly": "6 ударов ≈×2,5 за 10,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dance whirlwind blades"
+  },
+  {
+    "file": "bladedancer_f.png",
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "slot": "F",
+    "name": "Финал Бездны",
+    "briefly": "5 с ×2,0, 16 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, abyss finale purple burst"
+  },
+  {
+    "file": "bladedancer_passive.png",
+    "kit": "bladedancer",
+    "kitName": "Танцор клинка",
+    "slot": "passive",
+    "name": "Ритм Бездны",
+    "briefly": "+5% адены, −8% перезарядки E.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, abyss rhythm drums blades"
+  },
+  {
+    "file": "abyss_walker_q.png",
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "slot": "Q",
+    "name": "Удар бездны",
+    "briefly": "×3,1 за 8 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, abyss dagger void stab"
+  },
+  {
+    "file": "abyss_walker_e.png",
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "slot": "E",
+    "name": "Завеса ночи",
+    "briefly": "Удержание 2,4 с, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, night veil cloak"
+  },
+  {
+    "file": "abyss_walker_r.png",
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "slot": "R",
+    "name": "Критическая серия",
+    "briefly": "4×0,58 ≈×2,3 за 10 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, critical dagger flurry"
+  },
+  {
+    "file": "abyss_walker_f.png",
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "slot": "F",
+    "name": "Казнь Шилен",
+    "briefly": "×3,8 за 18 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, execution dagger of shillien"
+  },
+  {
+    "file": "abyss_walker_passive.png",
+    "kit": "abyss_walker",
+    "kitName": "Странник бездны",
+    "slot": "passive",
+    "name": "Жало бездны",
+    "briefly": "+5% адены с золотых.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, abyss stinger crest"
+  },
+  {
+    "file": "phantom_ranger_q.png",
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "slot": "Q",
+    "name": "Призрачный выстрел",
+    "briefly": "2×1,48 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, phantom spectral arrow"
+  },
+  {
+    "file": "phantom_ranger_e.png",
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "slot": "E",
+    "name": "Око охотника",
+    "briefly": "6 с ×1,7, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, hunter phantom eye"
+  },
+  {
+    "file": "phantom_ranger_r.png",
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "slot": "R",
+    "name": "Теневой град",
+    "briefly": "7 ударов ≈×2,5 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shadow arrow rain"
+  },
+  {
+    "file": "phantom_ranger_f.png",
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "slot": "F",
+    "name": "Стрела казни",
+    "briefly": "×3,6 за 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, execution spectral arrow"
+  },
+  {
+    "file": "phantom_ranger_passive.png",
+    "kit": "phantom_ranger",
+    "kitName": "Призрачный рейнджер",
+    "slot": "passive",
+    "name": "Тетива призрака",
+    "briefly": "+4% адены, +3% опыта.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, phantom bowstring crest"
+  },
+  {
+    "file": "spellhowler_q.png",
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "slot": "Q",
+    "name": "Буря",
+    "briefly": "×3,0 за 8 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dark wind tempest spiral"
+  },
+  {
+    "file": "spellhowler_e.png",
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "slot": "E",
+    "name": "Вой ветра",
+    "briefly": "6 с ×1,8, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, howling wind rune"
+  },
+  {
+    "file": "spellhowler_r.png",
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "slot": "R",
+    "name": "Шквал игл",
+    "briefly": "6×0,42 ≈×2,5 за 10,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, needle wind flurry"
+  },
+  {
+    "file": "spellhowler_f.png",
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "slot": "F",
+    "name": "Ураган Шилен",
+    "briefly": "×3,8 за 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shillien hurricane vortex"
+  },
+  {
+    "file": "spellhowler_passive.png",
+    "kit": "spellhowler",
+    "kitName": "Заклинатель бури",
+    "slot": "passive",
+    "name": "Вой бури",
+    "briefly": "+5% адены, Q −6% перезарядки.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, storm howl crest"
+  },
+  {
+    "file": "phantom_summoner_q.png",
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "slot": "Q",
+    "name": "Удар фантома",
+    "briefly": "×2,8 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, phantom claw strike"
+  },
+  {
+    "file": "phantom_summoner_e.png",
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "slot": "E",
+    "name": "Призрачные узы",
+    "briefly": "8 с ×1,8, 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, phantom chain bonds"
+  },
+  {
+    "file": "phantom_summoner_r.png",
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "slot": "R",
+    "name": "Рой теней",
+    "briefly": "5×0,46 ≈×2,3 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, swarm of shadow wisps"
+  },
+  {
+    "file": "phantom_summoner_f.png",
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "slot": "F",
+    "name": "Жатва слуги",
+    "briefly": "×2,3 +3,6 с, 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, servant harvest scythe soul"
+  },
+  {
+    "file": "phantom_summoner_passive.png",
+    "kit": "phantom_summoner",
+    "kitName": "Призрачный призыватель",
+    "slot": "passive",
+    "name": "Узы фантома",
+    "briefly": "+4% опыта, +4% золото.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, phantom summoner crest"
+  },
+  {
+    "file": "shillien_elder_q.png",
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "slot": "Q",
+    "name": "Жезл Бездны",
+    "briefly": "×2,4 за 9 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, abyss elder staff"
+  },
+  {
+    "file": "shillien_elder_e.png",
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "slot": "E",
+    "name": "Алтарь Шилен",
+    "briefly": "Удержание 5,0 с, 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shillien dark altar"
+  },
+  {
+    "file": "shillien_elder_r.png",
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "slot": "R",
+    "name": "Литания теней",
+    "briefly": "4×0,52 ≈×2,1 за 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, shadow litany waves"
+  },
+  {
+    "file": "shillien_elder_f.png",
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "slot": "F",
+    "name": "Благословение Шилен",
+    "briefly": "×2,1 +4,5 с, 18 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, dark blessing crescent"
+  },
+  {
+    "file": "shillien_elder_passive.png",
+    "kit": "shillien_elder",
+    "kitName": "Старейшина Шилен",
+    "slot": "passive",
+    "name": "Кровь алтаря",
+    "briefly": "+5% опыта, +5% золото.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, altar blood crescent crest"
+  },
+  {
+    "file": "destroyer_q.png",
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "slot": "Q",
+    "name": "Череполом",
+    "briefly": "×3,1 за 8 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, skull-crushing two-hand axe"
+  },
+  {
+    "file": "destroyer_e.png",
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "slot": "E",
+    "name": "Кровяной рёв",
+    "briefly": "Удержание 2,8 с, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, blood roar tribal mouth fire"
+  },
+  {
+    "file": "destroyer_r.png",
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "slot": "R",
+    "name": "Резня",
+    "briefly": "6×0,44 ≈×2,6 за 10,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, brutal cleave massacre arcs"
+  },
+  {
+    "file": "destroyer_f.png",
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "slot": "F",
+    "name": "Безумие",
+    "briefly": "9 с ×1,95, 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, berserk frenzy red aura"
+  },
+  {
+    "file": "destroyer_passive.png",
+    "kit": "destroyer",
+    "kitName": "Разрушитель",
+    "slot": "passive",
+    "name": "Безумие секиры",
+    "briefly": "+5% адены, +4% урона.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, frenzied axe crest"
+  },
+  {
+    "file": "tyrant_q.png",
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "slot": "Q",
+    "name": "Кулак ярости",
+    "briefly": "×2,9 за 8 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, iron fist knuckle fury"
+  },
+  {
+    "file": "tyrant_e.png",
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "slot": "E",
+    "name": "Железная кожа",
+    "briefly": "Удержание 2,5 с, 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, iron skin plate glow"
+  },
+  {
+    "file": "tyrant_r.png",
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "slot": "R",
+    "name": "Шквал ударов",
+    "briefly": "8×0,34 ≈×2,7 за 10 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, fist flurry punches"
+  },
+  {
+    "file": "tyrant_f.png",
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "slot": "F",
+    "name": "Тирания",
+    "briefly": "6 с ×1,9, 16 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, tyrant domination aura"
+  },
+  {
+    "file": "tyrant_passive.png",
+    "kit": "tyrant",
+    "kitName": "Тиран",
+    "slot": "passive",
+    "name": "Кулак зверя",
+    "briefly": "+5% опыта, +3% урона кастетами.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, beast fist claw crest"
+  },
+  {
+    "file": "overlord_q.png",
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "slot": "Q",
+    "name": "Печать удара",
+    "briefly": "×2,8 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, seal stamp strike rune"
+  },
+  {
+    "file": "overlord_e.png",
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "slot": "E",
+    "name": "Печать сковывания",
+    "briefly": "Удержание 5,2 с, 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, binding seal chains"
+  },
+  {
+    "file": "overlord_r.png",
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "slot": "R",
+    "name": "Клич властителя",
+    "briefly": "4×0,52 ≈×2,1 за 12 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, overlord war cry totem"
+  },
+  {
+    "file": "overlord_f.png",
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "slot": "F",
+    "name": "Воля Паагрио",
+    "briefly": "×2,2 +4,2 с, 18 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, paagrio fire will flame"
+  },
+  {
+    "file": "overlord_passive.png",
+    "kit": "overlord",
+    "kitName": "Властитель",
+    "slot": "passive",
+    "name": "Воля властителя",
+    "briefly": "+4% опыта, +3% урона.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, overlord seal crest"
+  },
+  {
+    "file": "warcryer_q.png",
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "slot": "Q",
+    "name": "Удар барабана",
+    "briefly": "×2,6 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, war drum strike"
+  },
+  {
+    "file": "warcryer_e.png",
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "slot": "E",
+    "name": "Клич войны",
+    "briefly": "8 с ×1,9, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, war cry shout waves"
+  },
+  {
+    "file": "warcryer_r.png",
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "slot": "R",
+    "name": "Ритм крови",
+    "briefly": "5×0,44 ≈×2,2 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, blood rhythm drums"
+  },
+  {
+    "file": "warcryer_f.png",
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "slot": "F",
+    "name": "Великий клич",
+    "briefly": "6 с ×2,0, 16 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, great warcry burst"
+  },
+  {
+    "file": "warcryer_passive.png",
+    "kit": "warcryer",
+    "kitName": "Варкрайер",
+    "slot": "passive",
+    "name": "Горло войны",
+    "briefly": "+4% адены, +3% опыта.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, warcry throat crest"
+  },
+  {
+    "file": "bounty_hunter_q.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "Q",
+    "name": "Удар по контракту",
+    "briefly": "×2,8 +метка +8% адены 6 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, contract stamp and pickaxe"
+  },
+  {
+    "file": "bounty_hunter_e.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "E",
+    "name": "Железная хватка",
+    "briefly": "Удержание 4,6 с, 12,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, iron grip gauntlet"
+  },
+  {
+    "file": "bounty_hunter_r.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "R",
+    "name": "Цепной сбор",
+    "briefly": "5×0,44 ≈×2,2 за 11 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, chain sweep gathering"
+  },
+  {
+    "file": "bounty_hunter_f.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "F",
+    "name": "Большой контракт",
+    "briefly": "×3,2 +15% адены 8 с, 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, big bounty contract scroll gold"
+  },
+  {
+    "file": "bounty_hunter_passive.png",
+    "kit": "bounty_hunter",
+    "kitName": "Охотник за головами",
+    "slot": "passive",
+    "name": "Контракт охотника",
+    "briefly": "+6% адены, +6% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, bounty hunter crest pouch"
+  },
+  {
+    "file": "warsmith_q.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "Q",
+    "name": "Паровой удар",
+    "briefly": "×2,7 за 8,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, steam hammer strike"
+  },
+  {
+    "file": "warsmith_e.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "E",
+    "name": "Осадный голем",
+    "briefly": "Удержание 5,0 с, 13 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, siege golem head gear"
+  },
+  {
+    "file": "warsmith_r.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "R",
+    "name": "Шрапнель",
+    "briefly": "6×0,40 ≈×2,4 за 10,5 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, metal shrapnel burst"
+  },
+  {
+    "file": "warsmith_f.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "F",
+    "name": "Перегрев голема",
+    "briefly": "3×0,85 +2,0 с удерж., 17 с.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, overheating golem core"
+  },
+  {
+    "file": "warsmith_passive.png",
+    "kit": "warsmith",
+    "kitName": "Кузнец войны",
+    "slot": "passive",
+    "name": "Молот войны",
+    "briefly": "+8% материалов во время охоты на монстров · +5% адены в склад.",
+    "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible on all four sides with small inner margin, centered symbol filling most of the frame, clean readable silhouette, no text, no letters, no numbers, no watermark, not photorealistic, single icon only, no collage, no grid, no portrait card, square frame not tall rectangle, warsmith hammer and anvil crest"
+  }
+]

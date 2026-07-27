@@ -516,6 +516,18 @@ function attachPartyContentMethods(db, store) {
       memberCount: members.length,
       lastEvent: run.lastEvent || null,
       lastRegenHeal: run.lastRegenHeal || 0,
+      partyDamageBuff: (() => {
+        const b = run.partyDamageBuff;
+        const now = Date.now();
+        if (!b || !(b.until > now) || !(b.mult > 1)) return null;
+        return {
+          mult: b.mult,
+          until: b.until,
+          byUserId: b.byUserId || null,
+          skillId: b.skillId || null,
+          name: b.name || null,
+        };
+      })(),
       encounter: run.encounter
         ? {
             id: run.encounter.id,
@@ -1356,6 +1368,15 @@ function attachPartyContentMethods(db, store) {
     const mobId = String(opts.mobId || "");
     const bySkill = !!(opts.bySkill || opts.skillMult);
 
+    // Минимальный интервал между скилл-ударами с множителем (мс)
+    if (opts.skillMult && member.lastSkillHitAt) {
+      const MIN_SKILL_INTERVAL = 800;
+      if (now - member.lastSkillHitAt < MIN_SKILL_INTERVAL) {
+        return { ok: true, state: publicInstanceState(run, user.id), skillThrottled: true };
+      }
+    }
+    if (opts.skillMult) member.lastSkillHitAt = now;
+
     // Наковальня: бей СВОЙ цвет в окне. Чужой цвет / мимо окна — штраф → вайп.
     if (enc.kind === "boss" && enc.anvilActive && Array.isArray(enc.anvilMarks)) {
       tickAnvilMarks(enc, now);
@@ -1486,7 +1507,14 @@ function attachPartyContentMethods(db, store) {
     let dmg = Math.max(1, Math.min(click * 3, Math.floor(Number(opts.dmg) || click)));
     if (bySkill) {
       enc.lastSkillHitAt = now;
-      dmg = Math.max(1, Math.round(dmg * Math.max(1, Number(opts.skillMult) || 1.15)));
+      const MAX_SKILL_MULT = 4.0;
+      const sm = Math.min(MAX_SKILL_MULT, Math.max(1, Number(opts.skillMult) || 1.15));
+      dmg = Math.max(1, Math.round(dmg * sm));
+    }
+    const partyBuff = run.partyDamageBuff;
+    if (partyBuff && partyBuff.until > now && partyBuff.mult > 1) {
+      const pm = Math.min(1.5, Math.max(1, Number(partyBuff.mult) || 1));
+      dmg = Math.max(1, Math.round(dmg * pm));
     }
     const tough = Math.max(1, Number(enc.toughness) || 1);
     dmg = Math.max(1, Math.round(dmg / tough));
@@ -1518,6 +1546,53 @@ function attachPartyContentMethods(db, store) {
       loot: run.status === "cleared" ? run.lootByUser[user.id] || null : null,
       state: publicInstanceState(run, user.id),
     };
+  };
+
+  store.instancePartyBuff = function instancePartyBuff(user, opts = {}) {
+    const now = Number(opts.now) || Date.now();
+    const runId = String(opts.runId || "");
+    let run = runId ? instanceRuns.get(runId) : null;
+    if (!run) {
+      const partyId = getPartyId(user.id);
+      for (const r of instanceRuns.values()) {
+        if (r.partyId === partyId && r.status === "active" && r.members.has(user.id)) {
+          run = r;
+          break;
+        }
+      }
+    }
+    if (!run || !run.members.has(user.id)) {
+      return { ok: false, error: "run", message: "Нет активного инстанса" };
+    }
+    if (run.status !== "active") {
+      return { ok: false, error: "status", message: "Инстанс не активен" };
+    }
+    const mult = Math.min(1.5, Math.max(1, Number(opts.mult) || 1));
+    const durationMs = Math.min(15000, Math.max(1000, Number(opts.durationMs) || 6000));
+    if (!(mult > 1)) {
+      return { ok: false, error: "mult", message: "Слабый бафф" };
+    }
+    const prev = run.partyDamageBuff;
+    const until = now + durationMs;
+    if (prev && prev.until > now) {
+      run.partyDamageBuff = {
+        mult: Math.max(Number(prev.mult) || 1, mult),
+        until: Math.max(Number(prev.until) || 0, until),
+        byUserId: user.id,
+        skillId: opts.skillId || prev.skillId || null,
+        name: opts.name || prev.name || null,
+      };
+    } else {
+      run.partyDamageBuff = {
+        mult,
+        until,
+        byUserId: user.id,
+        skillId: opts.skillId || null,
+        name: opts.name || null,
+      };
+    }
+    run.lastEvent = "party_damage_buff";
+    return { ok: true, state: publicInstanceState(run, user.id) };
   };
 
   store.instanceLeave = function instanceLeave(user, opts = {}) {

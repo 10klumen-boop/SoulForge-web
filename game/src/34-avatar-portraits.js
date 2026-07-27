@@ -5,8 +5,8 @@ const AVATAR_PORTRAIT_VER = 11;
 const AVATAR_SET_PORTRAIT_VER = 1;
 
 const AVATAR_GENDERS = [
-  { id: "male", name: "Мужской", desc: "Классический облик расы." },
-  { id: "female", name: "Женский", desc: "Классический облик расы." },
+  { id: "male", name: "Мужской", desc: "" },
+  { id: "female", name: "Женский", desc: "" },
 ];
 
 function isMysticArchetype(classId) {

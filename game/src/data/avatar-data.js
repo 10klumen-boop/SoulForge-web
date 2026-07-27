@@ -8,19 +8,19 @@ const L2_CLASSES = {
   fighter: {
     id: "fighter",
     name: "Воин",
-    desc: "Путь стали и заточки. С 9 уровня — бонус к рисковой заточке.",
+    desc: "Путь стали и заточки.",
     icon: UI_CLASS_ICONS.fighter,
   },
   mystic: {
     id: "mystic",
     name: "Мистик",
-    desc: "Путь свитков и души клинка. Бонус к заточке с 10 уровня.",
+    desc: "Путь свитков и души клинка.",
     icon: UI_CLASS_ICONS.mystic,
   },
   shaman: {
     id: "shaman",
     name: "Шаман",
-    desc: "Голос Паагрио и духов предков. Бонус к заточке с 10 уровня.",
+    desc: "Голос Паагрио и духов предков.",
     icon: UI_CLASS_ICONS.shaman,
   },
 };

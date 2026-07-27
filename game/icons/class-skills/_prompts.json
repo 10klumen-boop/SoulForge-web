@@ -1,0 +1,162 @@
+{
+  "gladiator": {
+    "name": "Гладиатор",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) two crossed dual swords forming an X slash; 2) arena gladiator shield with crossed blades behind; 3) spinning whirlwind of dual blades; 4) red fury aura around dual swords; 5) laurel and dual swords victory emblem",
+    "filename": "sheet_gladiator.png"
+  },
+  "warlord": {
+    "name": "Полководец",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) long spear tip thrust forward; 2) wall of spears and tower shield; 3) wide polearm sweep arc; 4) war banner and spear command emblem; 5) military banner crest",
+    "filename": "sheet_warlord.png"
+  },
+  "paladin": {
+    "name": "Паладин",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) holy sword with radiant cross light; 2) holy tower shield glowing gold-white; 3) purifying light blade streaks; 4) healing sunburst over shield; 5) golden holy cross on shield",
+    "filename": "sheet_paladin.png"
+  },
+  "dark_avenger": {
+    "name": "Мститель",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) dark revenge sword slash purple; 2) cursed black armor plate shield; 3) shadow claws slash marks; 4) dark oath rune and sword; 5) shadow panther silhouette crest",
+    "filename": "sheet_dark_avenger.png"
+  },
+  "treasure_hunter": {
+    "name": "Искатель сокровищ",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) backstab dagger from darkness; 2) smoke bomb cloud with dagger; 3) three flying daggers; 4) dagger piercing a gold pouch; 5) dagger and gold coin emblem",
+    "filename": "sheet_treasure_hunter.png"
+  },
+  "hawkeye": {
+    "name": "Стрелок",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) bow releasing two arrows; 2) hawk eye and bowstring aim; 3) rain of arrows from sky; 4) single glowing sniper arrow; 5) sharp hawk eye with bow",
+    "filename": "sheet_hawkeye.png"
+  },
+  "sorcerer": {
+    "name": "Чародей",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) solar fire prominence orb; 2) burning magical focus crystal; 3) flurry of fire sparks; 4) falling fiery meteor; 5) sorcerer fire orb emblem",
+    "filename": "sheet_sorcerer.png"
+  },
+  "necromancer": {
+    "name": "Некромант",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) bone spike projectile; 2) ghostly death veil shroud; 3) swarm of tiny spirit skulls; 4) dark soul-draining spike; 5) whispering skull with purple mist",
+    "filename": "sheet_necromancer.png"
+  },
+  "warlock": {
+    "name": "Колдун",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) summoner bond chain strike; 2) magical collar bond rings; 3) command rune with claw marks; 4) ritual circle with cat silhouette; 5) warlock chain and familiar crest",
+    "filename": "sheet_warlock.png"
+  },
+  "bishop": {
+    "name": "Епископ",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) holy light bolt from book; 2) cathedral barrier shield light; 3) choir of light rays; 4) great heal sunburst chalice; 5) bishop holy book and sun",
+    "filename": "sheet_bishop.png"
+  },
+  "prophet": {
+    "name": "Пророк",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) glowing prophetic word rune; 2) battle chant music rune; 3) rhythmic prophecy scroll waves; 4) divine revelation burst; 5) prophet scroll and song notes",
+    "filename": "sheet_prophet.png"
+  },
+  "temple_knight": {
+    "name": "Храмовый рыцарь",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) elven holy temple blade; 2) temple shield with mother tree leaf; 3) protective circle of light blades; 4) unbreakable vow shield seal; 5) temple vow leaf crest",
+    "filename": "sheet_temple_knight.png"
+  },
+  "swordsinger": {
+    "name": "Певец меча",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) singing sword with music note; 2) muse harp and sword; 3) cadence blade rhythm streaks; 4) finale crescendo sword burst; 5) blade muse emblem",
+    "filename": "sheet_swordsinger.png"
+  },
+  "plainswalker": {
+    "name": "Следопыт",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) forest dagger from leaves; 2) camouflage leaves veil; 3) thorny vine spikes; 4) grove heart glowing dagger; 5) forest path and dagger crest",
+    "filename": "sheet_plainswalker.png"
+  },
+  "silver_ranger": {
+    "name": "Серебряный рейнджер",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) silver glowing arrow; 2) owl eye and moon bow; 3) silver rain of arrows; 4) moonlit arrow shot; 5) silver bowstring crescent",
+    "filename": "sheet_silver_ranger.png"
+  },
+  "spellsinger": {
+    "name": "Певец заклинаний",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) hydro water blast orb; 2) flowing water music rune; 3) ice crystal music octave; 4) tidal wave crest; 5) water song droplet emblem",
+    "filename": "sheet_spellsinger.png"
+  },
+  "elemental_summoner": {
+    "name": "Призыватель стихий",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) elemental spirit strike; 2) elemental bond rings green; 3) dancing spirit wisps; 4) awakened elemental unicorn glow; 5) unicorn horn bond crest",
+    "filename": "sheet_elemental_summoner.png"
+  },
+  "elder": {
+    "name": "Старейшина",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) elder wooden staff leaf tip; 2) mother tree root shield; 3) ancestor spirit circle; 4) elder blessing branch light; 5) mother tree gift leaf crest",
+    "filename": "sheet_elder.png"
+  },
+  "shillien_knight": {
+    "name": "Рыцарь Шилен",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) shillien dark blade crescent; 2) dark goddess guard shield; 3) shadow circle slash; 4) goddess dark veil cover; 5) shillien oath crescent crest",
+    "filename": "sheet_shillien_knight.png"
+  },
+  "bladedancer": {
+    "name": "Танцор клинка",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) blade dancer dual step slash; 2) war dance dual blades swirl; 3) dance whirlwind blades; 4) abyss finale purple burst; 5) abyss rhythm drums blades",
+    "filename": "sheet_bladedancer.png"
+  },
+  "abyss_walker": {
+    "name": "Странник бездны",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) abyss dagger void stab; 2) night veil cloak; 3) critical dagger flurry; 4) execution dagger of shillien; 5) abyss stinger crest",
+    "filename": "sheet_abyss_walker.png"
+  },
+  "phantom_ranger": {
+    "name": "Призрачный рейнджер",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) phantom spectral arrow; 2) hunter phantom eye; 3) shadow arrow rain; 4) execution spectral arrow; 5) phantom bowstring crest",
+    "filename": "sheet_phantom_ranger.png"
+  },
+  "spellhowler": {
+    "name": "Заклинатель бури",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) dark wind tempest spiral; 2) howling wind rune; 3) needle wind flurry; 4) shillien hurricane vortex; 5) storm howl crest",
+    "filename": "sheet_spellhowler.png"
+  },
+  "phantom_summoner": {
+    "name": "Призрачный призыватель",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) phantom claw strike; 2) phantom chain bonds; 3) swarm of shadow wisps; 4) servant harvest scythe soul; 5) phantom summoner crest",
+    "filename": "sheet_phantom_summoner.png"
+  },
+  "shillien_elder": {
+    "name": "Старейшина Шилен",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) abyss elder staff; 2) shillien dark altar; 3) shadow litany waves; 4) dark blessing crescent; 5) altar blood crescent crest",
+    "filename": "sheet_shillien_elder.png"
+  },
+  "destroyer": {
+    "name": "Разрушитель",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) skull-crushing two-hand axe; 2) blood roar tribal mouth fire; 3) brutal cleave massacre arcs; 4) berserk frenzy red aura; 5) frenzied axe crest",
+    "filename": "sheet_destroyer.png"
+  },
+  "tyrant": {
+    "name": "Тиран",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) iron fist knuckle fury; 2) iron skin plate glow; 3) fist flurry punches; 4) tyrant domination aura; 5) beast fist claw crest",
+    "filename": "sheet_tyrant.png"
+  },
+  "overlord": {
+    "name": "Властитель",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) seal stamp strike rune; 2) binding seal chains; 3) overlord war cry totem; 4) paagrio fire will flame; 5) overlord seal crest",
+    "filename": "sheet_overlord.png"
+  },
+  "warcryer": {
+    "name": "Варкрайер",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) war drum strike; 2) war cry shout waves; 3) blood rhythm drums; 4) great warcry burst; 5) warcry throat crest",
+    "filename": "sheet_warcryer.png"
+  },
+  "bounty_hunter": {
+    "name": "Охотник за головами",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) contract stamp and pickaxe; 2) iron grip gauntlet; 3) chain sweep gathering; 4) big bounty contract scroll gold; 5) bounty hunter crest pouch",
+    "filename": "sheet_bounty_hunter.png"
+  },
+  "warsmith": {
+    "name": "Кузнец войны",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 1) steam hammer strike; 2) siege golem head gear; 3) metal shrapnel burst; 4) overheating golem core; 5) warsmith hammer and anvil crest",
+    "filename": "sheet_warsmith.png"
+  },
+  "race_elf": {
+    "name": "Эльфы",
+    "prompt": "Lineage 2 classic UI, exactly 5 separate square skill icons in one horizontal row, equal size, ornate bronze gold frames, dark fantasy game UI, centered symbols, clean readable silhouettes, NO TEXT no letters no numbers no watermark, not photorealistic, thin black gaps between icons. Left to right: 5) elven grove steel leaf-blade",
+    "filename": "sheet_race_elf.png"
+  }
+}

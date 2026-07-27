@@ -213,21 +213,33 @@ function renderAvatarPassiveSkillsPanel() {
     return;
   }
   const skills = passiveSkillsForAvatar(state.avatar).filter(
-    (s) => s.kind === "racial" || s.kind === "class" || s.kind === "profession"
+    (s) =>
+      s.kind === "racial" ||
+      s.kind === "class" ||
+      s.kind === "profession" ||
+      s.kind === "weapon_mastery"
   );
   if (!skills.length) {
     el.innerHTML = "";
     return;
   }
   const racial = skills.filter((s) => s.kind === "racial");
-  const classish = skills.filter((s) => s.kind === "class" || s.kind === "profession");
-  const rowHtml = (s) =>
-    '<div class="avatar-skill-row unlocked">' +
-    '<img src="' + (s.icon || "") + '" alt="">' +
-    "<div><b>" + s.name + "</b>" +
-    "<p>" + (s.blurb || s.desc || "") + "</p>" +
-    (s.gameplay ? '<p class="avatar-passive-gameplay">' + s.gameplay + "</p>" : "") +
-    "</div></div>";
+  const classish = skills.filter(
+    (s) => s.kind === "class" || s.kind === "profession" || s.kind === "weapon_mastery"
+  );
+  const rowHtml = (s) => {
+    const line =
+      (typeof passiveSkillGameplayLine === "function" && passiveSkillGameplayLine(s)) ||
+      convertMultiplierTextToPct(s.blurb || "") ||
+      "";
+    return (
+      '<div class="avatar-skill-row unlocked">' +
+      '<img src="' + (s.icon || "") + '" alt="">' +
+      "<div><b>" + s.name + "</b>" +
+      (line ? "<p>" + line.replace(/\.$/, "") + "</p>" : "") +
+      "</div></div>"
+    );
+  };
   el.innerHTML =
     '<h4 class="avatar-skills-title">Пассивные умения</h4>' +
     (racial.length
@@ -306,20 +318,24 @@ function renderAvatarRaceGrid() {
     const passiveHtml = racialSkills
       .map((s) => {
         const ico = s.icon
-          ? '<img class="avatar-race-passive-ico" src="' + s.icon + '" alt="" width="20" height="20">'
+          ? '<img class="avatar-race-passive-ico" src="' + s.icon + '" alt="" width="18" height="18">'
           : "";
+        // Короткие blurbs — иначе в карточке расы текст обрезается
+        const line = (s.blurb ||
+          (typeof passiveSkillGameplayLine === "function" && passiveSkillGameplayLine(s)) ||
+          "").replace(/\.$/, "");
         return (
           '<small class="avatar-race-passive">' +
           ico +
-          '<span><b>' + s.name + "</b> — " + (s.blurb || s.desc || "") + "</span></small>"
+          "<span><b>" + s.name + "</b><span class=\"avatar-race-passive-bonus\">" + line + "</span></span></small>"
         );
       })
       .join("");
     btn.innerHTML =
       '<img class="avatar-pick-race-ico" src="' + race.icon + '" alt="">' +
       "<strong>" + race.name + "</strong>" +
-      "<span>" + race.desc + "</span>" +
-      passiveHtml;
+      '<span class="avatar-pick-race-desc">' + race.desc + "</span>" +
+      '<div class="avatar-race-passives">' + passiveHtml + "</div>";
     btn.onclick = () => {
       Audio2.click();
       _avatarSetupDraft.raceId = race.id;
@@ -333,14 +349,8 @@ function renderAvatarRaceGrid() {
 
 function renderAvatarGenderGrid() {
   const grid = document.getElementById("avatarGenderGrid");
-  const hint = document.getElementById("avatarGenderHint");
   const race = avatarRaceInfo(_avatarSetupDraft.raceId);
   if (!grid || !race) return;
-  if (hint) {
-    const cls = avatarClassInfo(_avatarSetupDraft.classId, race.id);
-    hint.textContent =
-      "Портрет для «" + race.name + " — " + (cls?.name || "…") + "» — выбери пол.";
-  }
   const classId = _avatarSetupDraft.classId || "fighter";
   const genders = typeof AVATAR_GENDERS !== "undefined" ? AVATAR_GENDERS : [
     { id: "male", name: "Мужской", desc: "" },
@@ -359,8 +369,7 @@ function renderAvatarGenderGrid() {
         : "assets/portraits/" + race.id + "_fighter_" + g.id + ".png?v=1";
     btn.innerHTML =
       '<div class="avatar-gender-portrait"><img src="' + portrait + '" alt=""></div>' +
-      "<strong>" + g.name + "</strong>" +
-      "<span>" + (g.desc || "") + "</span>";
+      "<strong>" + g.name + "</strong>";
     btn.onclick = () => {
       Audio2.click();
       _avatarSetupDraft.genderId = g.id;
@@ -376,36 +385,35 @@ function renderAvatarGenderGrid() {
 
 function renderAvatarClassGrid() {
   const grid = document.getElementById("avatarClassGrid");
-  const hint = document.getElementById("avatarClassHint");
   const race = avatarRaceInfo(_avatarSetupDraft.raceId);
   if (!grid || !race) return;
   const branches = L2_RACE_CLASSES[race.id] || [];
-  if (hint) {
-    hint.textContent =
-      branches.length === 1
-        ? race.name + ": доступен только класс «" + L2_CLASSES[branches[0]].name + "»."
-        : "Выбери начальный класс для расы «" + race.name + "».";
-  }
+  const genderId = _avatarSetupDraft.genderId || "male";
   grid.innerHTML = "";
   branches.forEach((cid) => {
     const cls = avatarClassInfo(cid, race.id);
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "avatar-pick-card avatar-class-card" + (_avatarSetupDraft.classId === cid ? " sel" : "");
-    btn.innerHTML =
-      '<img src="' + cls.icon + '" alt="">' +
-      "<strong>" + cls.name + "</strong>" +
-      "<span>" + cls.desc + "</span>" +
-      (typeof professionPreviewIds === "function"
+    const portrait =
+      typeof avatarPortraitPath === "function"
+        ? avatarPortraitPath(race.id, genderId, cid)
+        : cls.icon;
+    const later =
+      typeof professionPreviewIds === "function"
         ? (function () {
             const ids = professionPreviewIds(race.id, cid);
             if (!ids.length) return "";
             const names = ids
               .map((id) => (typeof PROFESSIONS !== "undefined" && PROFESSIONS[id] ? PROFESSIONS[id].name : id))
               .join(" / ");
-            return '<small class="avatar-race-passive avatar-class-later"><span>Позже: ' + names + "</span></small>";
+            return '<small class="avatar-class-later">Позже: ' + names + "</small>";
           })()
-        : "");
+        : "";
+    btn.innerHTML =
+      '<div class="avatar-class-portrait"><img src="' + portrait + '" alt=""></div>' +
+      "<strong>" + cls.name + "</strong>" +
+      later;
     btn.onclick = () => {
       Audio2.click();
       _avatarSetupDraft.classId = cid;
@@ -416,24 +424,6 @@ function renderAvatarClassGrid() {
   if (branches.length === 1 && !_avatarSetupDraft.classId) {
     _avatarSetupDraft.classId = branches[0];
     renderAvatarClassGrid();
-  }
-  const preview = document.getElementById("avatarClassSkillsPreview");
-  if (preview) {
-    const cid = _avatarSetupDraft.classId;
-    if (cid && typeof combatSkillsForClass === "function") {
-      const skills = combatSkillsForClass(cid);
-      preview.hidden = false;
-      preview.innerHTML =
-        "<strong>Боевые скиллы · " + (L2_CLASSES[cid]?.name || cid) + "</strong>" +
-        "<ul>" +
-        skills
-          .map((s) => "<li><b>" + s.hotkey + "</b> · " + s.name + " <small>(ур. " + s.unlockLevel + ")</small> — " + s.desc + "</li>")
-          .join("") +
-        "</ul>";
-    } else {
-      preview.hidden = true;
-      preview.innerHTML = "";
-    }
   }
 }
 
@@ -447,11 +437,36 @@ function renderAvatarNameStep() {
       ? avatarPortraitPath(_avatarSetupDraft.raceId, _avatarSetupDraft.genderId, _avatarSetupDraft.classId)
       : "";
   if (summary && race && cls) {
+    const racialSkills =
+      typeof passiveSkillsRacialForRace === "function"
+        ? passiveSkillsRacialForRace(race.id, 1)
+        : [];
+    const passivesHtml = racialSkills
+      .map((s) => {
+        const ico = s.icon
+          ? '<img class="avatar-summary-passive-ico" src="' + s.icon + '" alt="" width="18" height="18">'
+          : "";
+        const line = (s.blurb ||
+          (typeof passiveSkillGameplayLine === "function" && passiveSkillGameplayLine(s)) ||
+          "").replace(/\.$/, "");
+        return (
+          '<div class="avatar-summary-passive">' +
+          ico +
+          "<span><b>" + s.name + "</b> · " + line + "</span></div>"
+        );
+      })
+      .join("");
     summary.innerHTML =
       (portrait ? '<div class="avatar-summary-portrait"><img src="' + portrait + '" alt=""></div>' : "") +
-      "<div><strong>" + race.name + " — " + cls.name + "</strong>" +
-      (gender ? "<p>" + gender.name + "</p>" : "") +
-      "<p>" + race.desc + "</p><p>" + cls.desc + "</p></div>";
+      '<div class="avatar-summary-body">' +
+      "<strong>" + race.name + " — " + cls.name + "</strong>" +
+      (gender ? '<p class="avatar-summary-gender">' + gender.name + "</p>" : "") +
+      (passivesHtml
+        ? '<div class="avatar-summary-passives"><span class="avatar-summary-passives-label">Расовые пассивки</span>' +
+          passivesHtml +
+          "</div>"
+        : "") +
+      "</div>";
     summary.className = "avatar-summary race-" + race.id;
   }
   const inp = document.getElementById("avatarNameInput");

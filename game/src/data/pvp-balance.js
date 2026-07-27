@@ -63,6 +63,7 @@ const PVP_EFFECT_REMAP = {
   directHit: { pvpEffect: "directHit", cdRounds: 2 },
   multiHit: { pvpEffect: "multiHit", cdRounds: 3 },
   damageBuff: { pvpEffect: "damageBuff", buffRounds: 3, cdRounds: 4 },
+  partyDamageBuff: { pvpEffect: "damageBuff", buffRounds: 2, cdRounds: 4 },
   timerSlow: {
     pvpEffect: "atkDebuff",
     debuffMult: 0.7,

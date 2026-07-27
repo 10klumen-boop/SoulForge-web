@@ -36,6 +36,7 @@ global.state = {
 
 loadScripts([
   "src/data/combat-skills-data.js",
+  "src/data/combat-skills-kits-data.js",
   "src/data/professions-data.js",
   "src/passive-skills-core.js",
   "src/professions-core.js",
@@ -69,13 +70,15 @@ test("CLASS_PASSIVE_SKILL_IDS filled for starters", () => {
 });
 
 test("class passives grant at level", () => {
-  const a = { raceId: "human", classId: "fighter", level: 12, created: true };
+  const a = { raceId: "human", classId: "fighter", level: 1, created: true };
   const ids = passiveSkillIdsGrantedToAvatar(a);
-  assert.ok(ids.indexOf("fighter_blade") >= 0);
-  assert.ok(ids.indexOf("fighter_guard") >= 0);
+  assert.ok(ids.indexOf("fighter_heavy_armor") >= 0);
+  assert.ok(ids.indexOf("fighter_weapon_mastery") >= 0);
+  assert.ok(ids.indexOf("fighter_blade") < 0, "старые novice-пассивки сняты с T0");
+  assert.ok(ids.indexOf("fighter_guard") < 0);
   assert.ok(ids.indexOf("human_steady") >= 0);
   const skills = passiveSkillsForAvatar(a);
-  assert.ok(skills.some((s) => s.id === "fighter_blade"));
+  assert.ok(skills.some((s) => s.id === "fighter_heavy_armor"));
 });
 
 test("starter armor pref", () => {
@@ -168,9 +171,12 @@ test("weapon mastery by role cats", () => {
   assert.ok(professionWeaponCats(hawkeye).indexOf("Bow") >= 0);
   assert.ok(avatarWeaponMasteryActive({ cat: "Bow" }, hawkeye));
   const mage = { classId: "mystic", professionId: "wizard", professionTier: 1 };
-  // wizard role mage → Blunt + Sword
+  // wizard: Blunt + MagicalSword (меч с маг. сродством)
   assert.ok(professionWeaponCats(mage).indexOf("Blunt") >= 0);
-  assert.ok(professionWeaponCats(mage).indexOf("Sword") >= 0);
+  assert.ok(
+    professionWeaponCats(mage).indexOf("MagicalSword") >= 0 ||
+      professionWeaponCats(mage).indexOf("Sword") >= 0
+  );
   assert.ok(avatarWeaponMasteryActive({ cat: "Blunt" }, mage));
   assert.ok(avatarWeaponMasteryActive({ cat: "Sword", weaponKind: "magical" }, mage));
   assert.ok(!avatarWeaponMasteryActive({ cat: "Sword", weaponKind: "physical" }, mage));
@@ -231,8 +237,92 @@ test("skill overlay on gladiator", () => {
     professionTier: 2,
   };
   const skills = combatSkillsForAvatar();
-  assert.ok(skills.some((s) => s.id === "whirlwind"));
+  assert.ok(skills.some((s) => s.id === "gladiator_r"));
+  assert.ok(!skills.some((s) => s.id === "power_strike"));
   assert.ok(!skills.some((s) => s.id === "blood_rage"));
+  assert.ok(!PROFESSIONS.gladiator.skillOverlay);
+});
+
+test("destroyer prefers TwoHandSword", () => {
+  assert.deepStrictEqual(professionWeaponCats({ professionId: "destroyer", classId: "fighter" }), ["TwoHandSword"]);
+});
+
+test("T2 unique passives from kits (not generics)", () => {
+  assert.deepStrictEqual(PROFESSIONS.swordsinger.passiveIds, ["prof_swordsinger"]);
+  assert.deepStrictEqual(PROFESSIONS.destroyer.passiveIds, ["prof_destroyer"]);
+  assert.ok(PASSIVE_SKILLS.prof_hawkeye.effects.some((e) => e.type === "arrowCostMult"));
+  assert.ok(PASSIVE_SKILLS.prof_warsmith.effects.some((e) => e.type === "materialsMult"));
+  assert.ok(PASSIVE_SKILLS.prof_bladedancer.effects.some((e) => e.type === "skillCdMult"));
+});
+
+test("T1 unique passives — no prof_generic leftovers", () => {
+  Object.values(PROFESSIONS).forEach((p) => {
+    (p.passiveIds || []).forEach((id) => {
+      assert.ok(!String(id).startsWith("prof_generic_"), p.id + " still uses " + id);
+      assert.ok(PASSIVE_SKILLS[id], "missing passive " + id + " for " + p.id);
+    });
+  });
+  assert.deepStrictEqual(PROFESSIONS.dark_wizard.passiveIds, ["prof_dark_wizard"]);
+  assert.strictEqual(PASSIVE_SKILLS.prof_dark_wizard.name, "Каркас тёмного мага");
+  assert.ok(PASSIVE_SKILLS.prof_dark_wizard.icon.indexOf("class-skills/dark_wizard_passive") >= 0);
+  assert.ok(!PASSIVE_SKILLS.prof_generic_1st_mage);
+});
+
+test("gear affinity: weaponCats and armorPref from planner", () => {
+  assert.deepStrictEqual(PROFESSIONS.gladiator.weaponCats, ["Dualsword"]);
+  assert.deepStrictEqual(PROFESSIONS.destroyer.weaponCats, ["TwoHandSword"]);
+  assert.strictEqual(PROFESSIONS.bladedancer.armorPref, "light");
+  assert.deepStrictEqual(PROFESSIONS.hawkeye.weaponCats, ["Bow"]);
+  assert.ok(!PROFESSIONS.rogue.weaponCats.includes("Bow"));
+});
+
+test("weapon mastery passives granted per profession cats", () => {
+  const a = {
+    created: true,
+    raceId: "human",
+    classId: "fighter",
+    level: 40,
+    professionId: "hawkeye",
+    professionTier: 2,
+  };
+  const ids = passiveSkillIdsGrantedToAvatar(a);
+  assert.ok(ids.indexOf("weapon_mastery_bow") >= 0);
+  assert.ok(ids.indexOf("fighter_weapon_mastery") < 0);
+  assert.ok(ids.indexOf("fighter_light_armor") >= 0);
+  assert.ok(ids.indexOf("fighter_blade") < 0, "новичок уходит после профессии");
+  assert.ok(ids.indexOf("fighter_guard") < 0);
+  assert.ok(PASSIVE_SKILLS.weapon_mastery_bow.icon.indexOf("class-skills/") >= 0);
+  assert.ok(PASSIVE_SKILLS.fighter_light_armor.icon.indexOf("class-skills/") >= 0);
+});
+
+test("bladedancer gets dualsword mastery, not novice passives", () => {
+  const a = {
+    created: true,
+    raceId: "dark_elf",
+    classId: "fighter",
+    level: 40,
+    professionId: "bladedancer",
+    professionTier: 2,
+  };
+  const ids = passiveSkillIdsGrantedToAvatar(a);
+  assert.ok(ids.indexOf("weapon_mastery_dualsword") >= 0);
+  assert.ok(ids.indexOf("fighter_light_armor") >= 0);
+  assert.ok(ids.indexOf("prof_bladedancer") >= 0);
+  assert.ok(ids.indexOf("fighter_blade") < 0);
+  assert.ok(ids.indexOf("fighter_guard") < 0);
+  const skills = passiveSkillsForAvatar(a);
+  assert.ok(skills.some((s) => s.id === "weapon_mastery_dualsword"));
+});
+
+test("passive descriptions use percent, not multipliers", () => {
+  assert.strictEqual(formatPassiveEffectPct({ type: "farmAdenaMult", value: 1.05 }), "адена с фарма +5%");
+  assert.strictEqual(formatPassiveEffectPct({ type: "skillCdMult", value: 0.92 }), "КД скиллов -8%");
+  assert.ok(!/×/.test(convertMultiplierTextToPct("адена ×1.05, КД ×0.92.")));
+  assert.ok(/\+5%/.test(convertMultiplierTextToPct("адена ×1.05.")));
+  assert.ok(/−8%|\-8%/.test(convertMultiplierTextToPct("расход стрел ×0.92.")));
+  const line = passiveSkillGameplayLine(PASSIVE_SKILLS.fighter_light_armor);
+  assert.ok(/\+6%/.test(line));
+  assert.ok(!/×/.test(line));
 });
 
 test("elf / dwarf / orc shaman trees exist", () => {

@@ -347,7 +347,10 @@ function rollArmorFragDrop(zoneId, mobType) {
   const range = type === "boss" ? cfg.qtyBoss : type === "golden" ? cfg.qtyGolden : cfg.qtyNormal;
   const lo = Array.isArray(range) ? range[0] : 1;
   const hi = Array.isArray(range) ? range[1] : lo;
-  const qty = lo >= hi ? lo : lo + Math.floor(Math.random() * (hi - lo + 1));
+  let qty = lo >= hi ? lo : lo + Math.floor(Math.random() * (hi - lo + 1));
+  if (typeof passiveEffectMult === "function") {
+    qty = Math.max(1, Math.round(qty * passiveEffectMult("materialsMult", typeof state !== "undefined" ? state.avatar : null)));
+  }
   return { fragId, qty, def: ARMOR_FRAGS[fragId] };
 }
 

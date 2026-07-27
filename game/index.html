@@ -12,8 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m151" />
-<link rel="stylesheet" href="styles/dark-fantasy.css?v=d14" />
+<link rel="stylesheet" href="styles/main.css?v=m161" />
+<link rel="stylesheet" href="styles/dark-fantasy.css?v=d15" />
+<link rel="stylesheet" href="styles/sf-ui.css?v=48" />
 <script src="cloud-config.js"></script>
 
 </head>
@@ -104,12 +105,13 @@
       <div class="login-stage">
         <h1 class="login-logo">SoulForge Prelude</h1>
         <div class="login-panel">
-          <div class="l2-login-win" role="dialog" aria-labelledby="l2LoginTitle">
-            <div class="l2-login-chrome" aria-hidden="true"></div>
-            <div class="l2-login-title" id="l2LoginTitle">Вход</div>
-            <div class="l2-login-body">
+          <div class="l2-login-win" role="dialog" aria-label="Вход">
+            <div class="l2-login-fill" aria-hidden="true"></div>
+            <div class="l2-login-frame" aria-hidden="true"></div>
+            <div class="l2-login-inner">
+              <div class="l2-login-body">
               <label class="l2-login-field" for="cloudNick">
-                <span>Аккаунт</span>
+                <span>Логин</span>
                 <input type="text" id="cloudNick" maxlength="16" pattern="[A-Za-z]{2,16}" autocomplete="username" spellcheck="false" placeholder="2–16 латинских букв" />
               </label>
               <label class="l2-login-field" for="cloudPass">
@@ -126,6 +128,7 @@
               <p class="l2-login-hint" id="cloudHint">Прогресс хранится на сервере и привязан к аккаунту.</p>
               <p class="l2-login-status" id="cloudAuthStatus" hidden></p>
               <code class="player-id" id="playerIdShort" hidden title="">—</code>
+              </div>
             </div>
           </div>
           <p class="login-copy">SoulForge · фан-проект · не связан с NCsoft</p>
@@ -140,47 +143,38 @@
 
     <section class="screen home-screen" id="screen-home">
       <div class="home-wrap">
-        <header class="home-header">
-          <div class="home-eyebrow">SoulForge · Lineage 2</div>
-          <h1 class="home-title">Enchant Sim</h1>
-          <p class="home-tagline">Заточка, задания и adena в духе классического L2</p>
+        <div class="home-fill" aria-hidden="true"></div>
+        <div class="home-frame" aria-hidden="true"></div>
+        <div class="home-inner">
+        <header class="home-header" hidden>
+          <h1 class="home-title">SoulForge</h1>
           <p class="home-account" id="homeAccountStatus" aria-live="polite">Войдите в аккаунт</p>
         </header>
         <nav class="home-nav" aria-label="Главное меню">
-          <button type="button" class="home-nav-btn home-nav-play" id="homePlayBtn">
-            <span class="home-nav-ico" aria-hidden="true">⚔</span>
-            <span class="home-nav-text"><strong>Играть</strong><small>Задания · фарм · заточка</small></span>
-          </button>
-          <button type="button" class="home-nav-btn" id="homeCharsBtn">
-            <span class="home-nav-ico" aria-hidden="true"><img src="icons/char_menu.png?v=10" alt=""></span>
-            <span class="home-nav-text"><strong>Персонажи</strong><small id="homeCharsSub">Выбор и создание</small></span>
-          </button>
-          <button type="button" class="home-nav-btn" id="homeRatingBtn">
-            <span class="home-nav-ico" aria-hidden="true"><img src="icons/etc_feather_gold_i00.png" alt=""></span>
-            <span class="home-nav-text"><strong>Рейтинг</strong><small id="homeRatingSub">Заточка · сила · богатство</small></span>
-          </button>
-          <button type="button" class="home-nav-btn" id="homeSettingsBtn">
-            <span class="home-nav-ico" aria-hidden="true">⚙</span>
-            <span class="home-nav-text"><strong>Настройки</strong><small>Звук · сохранение</small></span>
-          </button>
+          <button type="button" class="home-nav-btn home-nav-play" id="homePlayBtn">Играть</button>
+          <button type="button" class="home-nav-btn" id="homeCharsBtn">Персонажи</button>
+          <button type="button" class="home-nav-btn" id="homeRatingBtn">Рейтинг</button>
+          <button type="button" class="home-nav-btn" id="homeSettingsBtn">Настройки</button>
         </nav>
         <footer class="home-footer">
           <button type="button" class="home-login-link" id="homeLoginBtn">Войти в аккаунт</button>
           <span class="home-ver" data-game-ver>v0.35a</span>
         </footer>
+        </div>
       </div>
     </section>
 
 
     <section class="screen" id="screen-characters">
-      <div class="panel-head">
-        <button class="back" data-to="home">← Главное меню</button>
-        <h2>Персонажи</h2>
-      </div>
-      <div class="char-menu-body sub-screen-body">
-        <p class="char-menu-hint" id="charMenuHint">Выбери героя, создай нового или удали слот · до 5 персонажей</p>
-        <div class="char-roster" id="charRoster" role="listbox" aria-label="Слоты персонажей"></div>
-        <button type="button" class="char-menu-create" id="charMenuCreateBtn">+ Новый персонаж</button>
+      <div class="char-menu-wrap">
+        <div class="char-menu-fill" aria-hidden="true"></div>
+        <div class="char-menu-frame" aria-hidden="true"></div>
+        <div class="char-menu-inner">
+          <button type="button" class="back char-menu-back" data-to="home" id="charMenuBackBtn">← Назад</button>
+          <p class="char-menu-hint" id="charMenuHint">Выбери слот</p>
+          <div class="char-roster" id="charRoster" role="listbox" aria-label="Слоты персонажей"></div>
+          <button type="button" class="char-menu-create" id="charMenuCreateBtn">+ Новый персонаж</button>
+        </div>
       </div>
     </section>
 
@@ -280,6 +274,12 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.56.0</p>
+        <ul>
+          <li>Создание персонажа: рамка login/home, расы/класс/пол, расовые пассивки</li>
+          <li>Боевые скиллы T0: Q/E/R/F на 2/4/6/8; с профессией — весь кит сразу</li>
+          <li>Пассивки T0: раса + броня/мастерство; без старых «новичковых»</li>
+        </ul>
         <p class="patch-ver">v0.55.10</p>
         <ul>
           <li><b>Инвентарь</b> — кристаллизация брони (кол-во кристаллов с вики Interlude); тяни на слот или ПКМ.</li>
@@ -993,6 +993,13 @@
         <h2>Журнал квестов</h2>
         <span class="panel-head-meta" id="questJournalMetaHead"></span>
       </div>
+      <div class="sf-screen-hero sf-screen-hero--quests" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Путь героя</h3>
+          <p>Главы, поручения и награды — всё, что ведёт тебя через Аден.</p>
+        </div>
+      </div>
       <div class="quest-journal-list sf-scroll" id="questJournalList"></div>
     </section>
 
@@ -1012,6 +1019,13 @@
         <button class="back" data-to="menu">← В меню</button>
         <h2><img src="icons/account_warehouse.png?v=1" alt="" class="inv-head-ico"> Склад аккаунта</h2>
       </div>
+      <div class="sf-screen-hero sf-screen-hero--warehouse" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Общий склад</h3>
+          <p>Сундук аккаунта — экип между персонажами, без потери при смене героя.</p>
+        </div>
+      </div>
       <div class="account-storage-body sf-scroll" id="accountStorageBody"></div>
     </section>
 
@@ -1019,6 +1033,13 @@
       <div class="panel-head">
         <button class="back" data-to="menu">← В меню</button>
         <h2>Почта <span class="account-mail-badge" id="playerMailHeadBadge" hidden>0</span></h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--mail" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Почта игроков</h3>
+          <p>Передай адена, экип или стеки другому персонажу — через облачный сервер.</p>
+        </div>
       </div>
       <div class="account-storage-body sf-scroll" id="playerMailBody"></div>
     </section>
@@ -1036,6 +1057,13 @@
         <button type="button" class="back" id="shopBackBtn">← В меню</button>
         <h2 id="shopTitle"><img src="assets/ui/inventory_book.png" alt="" class="inv-head-ico"> Мастерская</h2>
       </div>
+      <div class="sf-screen-hero sf-screen-hero--shop" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Мастерская</h3>
+          <p>Свитки, заряды и услуги кузнеца — всё для заточки и боя.</p>
+        </div>
+      </div>
       <div class="wsbody sf-scroll" id="wsBody"></div>
     </section>
 
@@ -1044,10 +1072,17 @@
         <button class="back" data-to="menu">← В меню</button>
         <h2><img src="icons/warehouse_chest.png?v=1" alt="" class="inv-head-ico"> Рынок</h2>
       </div>
-      <div class="market-tabs" id="marketTabs" role="tablist">
-        <button type="button" class="market-tab sel" data-market-tab="browse">Каталог</button>
-        <button type="button" class="market-tab" data-market-tab="sell">Выставить</button>
-        <button type="button" class="market-tab" data-market-tab="mine">Мои лоты</button>
+      <div class="sf-screen-hero sf-screen-hero--market" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Торговая площадь</h3>
+          <p>Лоты игроков: купи, выстави или сними своё объявление.</p>
+        </div>
+      </div>
+      <div class="market-tabs sf-tabs sf-tabs-3" id="marketTabs" role="tablist">
+        <button type="button" class="market-tab sf-tab sel" data-market-tab="browse">Каталог</button>
+        <button type="button" class="market-tab sf-tab" data-market-tab="sell">Выставить</button>
+        <button type="button" class="market-tab sf-tab" data-market-tab="mine">Мои лоты</button>
       </div>
       <div class="market-body sf-scroll" id="marketBody"></div>
     </section>
@@ -1058,6 +1093,13 @@
         <h2>Арена</h2>
         <button type="button" class="pvp-help-btn" id="pvpHelpBtn" title="Как устроена арена">?</button>
       </div>
+      <div class="sf-screen-hero sf-screen-hero--pvp" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Арена дуэлей</h3>
+          <p>Испытай силу против других героев — рейтинг и слава ждут победителей.</p>
+        </div>
+      </div>
       <div class="pvp-arena-body sf-scroll" id="pvpArenaBody"></div>
     </section>
 
@@ -1065,6 +1107,13 @@
       <div class="panel-head panel-head-ornate">
         <button class="back" data-to="menu">← В меню</button>
         <h2><img src="assets/ui/bloodhood_icon02_crop.png" alt="" class="inv-head-ico"> Достижения</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--ach" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Трофеи и тайны</h3>
+          <p>Открывай вехи пути и забирай награды — секреты ждут внимательных.</p>
+        </div>
       </div>
       <div class="ach-sticky-meta">
         <div class="ach-head">
@@ -1226,30 +1275,30 @@
   </div>
 </div>
 <div class="avatar-setup-backdrop" id="avatarSetupBackdrop" hidden>
-  <div class="avatar-setup-box avatar-setup-wide" role="dialog" aria-modal="true" aria-labelledby="avatarSetupTitle">
-    <div class="story-ornament" aria-hidden="true">◆</div>
-    <h2 class="story-title" id="avatarSetupTitle">Создание персонажа</h2>
-    <p class="story-eyebrow" id="avatarSetupEyebrow">Шаг 1 · Раса</p>
+  <div class="avatar-setup-shell">
+    <div class="avatar-setup-box avatar-setup-wide" role="dialog" aria-modal="true" aria-labelledby="avatarSetupTitle">
+      <div class="avatar-setup-fill" aria-hidden="true"></div>
+      <div class="avatar-setup-frame" aria-hidden="true"></div>
+      <div class="avatar-setup-inner">
+        <h2 class="story-title" id="avatarSetupTitle">Создание персонажа</h2>
+        <p class="story-eyebrow" id="avatarSetupEyebrow">Шаг 1 · Раса</p>
 
-    <div class="avatar-setup-step" data-step="race">
-      <p class="avatar-pick-lead">Выбери расу, как в Lineage&nbsp;2.</p>
-      <div class="avatar-pick-grid" id="avatarRaceGrid"></div>
+        <div class="avatar-setup-step" data-step="race">
+          <div class="avatar-pick-grid" id="avatarRaceGrid"></div>
+        </div>
+        <div class="avatar-setup-step" data-step="class" hidden>
+          <div class="avatar-pick-grid avatar-pick-grid-class" id="avatarClassGrid"></div>
+        </div>
+        <div class="avatar-setup-step" data-step="gender" hidden>
+          <div class="avatar-pick-grid avatar-pick-grid-gender" id="avatarGenderGrid"></div>
+        </div>
+        <div class="avatar-setup-step" data-step="name" hidden>
+          <div class="avatar-summary" id="avatarSummary"></div>
+          <label class="avatar-name-label" for="avatarNameInput">Имя персонажа</label>
+          <input class="avatar-name-input" id="avatarNameInput" type="text" maxlength="16" autocomplete="off" placeholder="2–16 символов" />
+        </div>
+      </div>
     </div>
-    <div class="avatar-setup-step" data-step="class" hidden>
-      <p class="avatar-pick-hint" id="avatarClassHint"></p>
-      <div class="avatar-pick-grid avatar-pick-grid-class" id="avatarClassGrid"></div>
-      <div class="avatar-class-skills-preview" id="avatarClassSkillsPreview" hidden></div>
-    </div>
-    <div class="avatar-setup-step" data-step="gender" hidden>
-      <p class="avatar-pick-hint" id="avatarGenderHint">Выбери пол — портрет зависит от расы, класса и пола.</p>
-      <div class="avatar-pick-grid avatar-pick-grid-gender" id="avatarGenderGrid"></div>
-    </div>
-    <div class="avatar-setup-step" data-step="name" hidden>
-      <div class="avatar-summary" id="avatarSummary"></div>
-      <label class="avatar-name-label" for="avatarNameInput">Имя персонажа</label>
-      <input class="avatar-name-input" id="avatarNameInput" type="text" maxlength="16" autocomplete="off" placeholder="2–16 символов" />
-    </div>
-
     <div class="avatar-setup-actions">
       <button type="button" class="btn btn-ghost" id="avatarSetupBack">В меню</button>
       <button type="button" class="btn btn-primary story-ok" id="avatarSetupNext">Далее</button>
@@ -1257,12 +1306,17 @@
   </div>
 </div>
 <div class="avatar-setup-backdrop" id="professionPickBackdrop" hidden>
-  <div class="avatar-setup-box avatar-setup-wide" role="dialog" aria-modal="true" aria-labelledby="professionPickTitle">
-    <div class="story-ornament" aria-hidden="true">◆</div>
-    <h2 class="story-title" id="professionPickTitle">Профессия</h2>
-    <p class="story-eyebrow">Смена класса</p>
-    <p class="avatar-pick-lead" id="professionPickLead">Выбери ветку профессии.</p>
-    <div class="avatar-pick-grid avatar-pick-grid-class" id="professionPickGrid"></div>
+  <div class="avatar-setup-shell">
+    <div class="avatar-setup-box avatar-setup-wide" role="dialog" aria-modal="true" aria-labelledby="professionPickTitle">
+      <div class="avatar-setup-fill" aria-hidden="true"></div>
+      <div class="avatar-setup-frame" aria-hidden="true"></div>
+      <div class="avatar-setup-inner">
+        <h2 class="story-title" id="professionPickTitle">Профессия</h2>
+        <p class="story-eyebrow">Смена класса</p>
+        <p class="avatar-pick-lead" id="professionPickLead">Выбери ветку профессии.</p>
+        <div class="avatar-pick-grid avatar-pick-grid-class" id="professionPickGrid"></div>
+      </div>
+    </div>
     <div class="avatar-setup-actions">
       <button type="button" class="btn btn-ghost" id="professionPickLater">Позже</button>
     </div>
@@ -1339,7 +1393,7 @@
 <script src="src/data/armor-sets-data.js?v=12"></script>
 <script src="src/06-rules.js?v=13"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
-<script src="src/workshop-core.js?v=8"></script>
+<script src="src/workshop-core.js?v=9"></script>
 <script src="src/07-workshop.js?v=19"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
 <script src="src/08-menu.js?v=7"></script>
@@ -1347,7 +1401,7 @@
 <script src="src/enchant-ui.js?v=2"></script>
 <script src="src/inventory-ui.js?v=14"></script>
 <script src="src/account-storage-core.js?v=5"></script>
-<script src="src/account-storage-ui.js?v=5"></script>
+<script src="src/account-storage-ui.js?v=6"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js"></script>
 <script src="src/11-enchant.js?v=13"></script>
@@ -1355,17 +1409,17 @@
 <script src="src/mine-core.js?v=20"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js?v=5"></script>
-<script src="src/cloud-ui.js?v=3"></script>
+<script src="src/cloud-ui.js?v=4"></script>
 <script src="src/market-core.js?v=4"></script>
-<script src="src/market-ui.js?v=7"></script>
+<script src="src/market-ui.js?v=8"></script>
 <script src="src/player-mail-core.js?v=3"></script>
-<script src="src/player-mail-ui.js?v=3"></script>
+<script src="src/player-mail-ui.js?v=4"></script>
 <script src="src/chat-core.js?v=12"></script>
 <script src="src/chat-ui.js?v=5"></script>
 <script src="src/data/party-content-data.js?v=22"></script>
 <script src="src/party-core.js?v=14"></script>
 <script src="src/party-farm-core.js?v=5"></script>
-<script src="src/instance-core.js?v=39"></script>
+<script src="src/instance-core.js?v=42"></script>
 <script src="src/world-boss-core.js?v=14"></script>
 <script src="src/progress-store.js?v=4"></script>
 <script src="src/15-game-log.js?v=2"></script>
@@ -1382,15 +1436,15 @@
 <script src="src/21-intro.js?v=9"></script>
 <script src="src/33-ui-icons.js?v=14"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
-<script src="src/34-avatar-portraits.js?v=4"></script>
-<script src="src/35-characters.js?v=46"></script>
-<script src="src/data/avatar-data.js"></script>
-<script src="src/data/professions-data.js?v=11"></script>
+<script src="src/34-avatar-portraits.js?v=5"></script>
+<script src="src/35-characters.js?v=47"></script>
+<script src="src/data/avatar-data.js?v=2"></script>
+<script src="src/data/professions-data.js?v=16"></script>
 <script src="src/data/passive-skills-data.js?v=2"></script>
-<script src="src/passive-skills-core.js?v=3"></script>
-<script src="src/professions-core.js?v=11"></script>
+<script src="src/passive-skills-core.js?v=6"></script>
+<script src="src/professions-core.js?v=12"></script>
 <script src="src/avatar-core.js?v=6"></script>
-<script src="src/22-avatar.js?v=23"></script>
+<script src="src/22-avatar.js?v=32"></script>
 <script src="src/professions-ui.js?v=4"></script>
 <script src="src/avatar-gear-core.js?v=17"></script>
 <script src="src/armor-sets-core.js?v=13"></script>
@@ -1408,11 +1462,12 @@
 <script src="src/29-quest-journal.js?v=8"></script>
 <script src="src/prelude-finale-core.js?v=2"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
-<script src="src/data/combat-skills-data.js?v=2"></script>
-<script src="src/combat-skills-core.js?v=7"></script>
+<script src="src/data/combat-skills-data.js?v=3"></script>
+<script src="src/data/combat-skills-kits-data.js?v=4"></script>
+<script src="src/combat-skills-core.js?v=11"></script>
 <script src="src/31-combat-skills.js?v=11"></script>
-<script src="src/data/pvp-balance.js?v=3"></script>
-<script src="src/pvp-combat-core.js?v=8"></script>
+<script src="src/data/pvp-balance.js?v=4"></script>
+<script src="src/pvp-combat-core.js?v=10"></script>
 <script src="src/pvp-social-core.js?v=3"></script>
 <script src="src/pvp-combat-ui.js?v=21"></script>
 <script src="src/32-debug-log.js"></script>
@@ -1425,7 +1480,7 @@
 <script src="src/data/auto-clicker-balance.js?v=8"></script>
 <script src="src/auto-clicker-core.js?v=15"></script>
 <script src="src/auto-clicker-ui.js?v=7"></script>
-<script src="src/data-loader.js?v=18"></script>
+<script src="src/data-loader.js?v=24"></script>
 <script src="src/99-bootstrap.js?v=61"></script>
 
 </body>

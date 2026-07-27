@@ -1,0 +1,1224 @@
+[
+  [
+    {
+      "file": "racial_human_steady.png",
+      "name": "Размеренность",
+      "briefly": "+3% адены с заданий · +3% опыта во время охоты на монстров",
+      "tier": "race",
+      "group": "human",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, human pilgrim steady path motif, balanced bronze scales over calm coastal road at dawn, serene measured progress"
+    },
+    {
+      "file": "racial_human_path.png",
+      "name": "Открытая тропа",
+      "briefly": "В чужих зонах расовый бонус добычи не ниже +4%",
+      "tier": "race",
+      "group": "human",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, open crossroads of stone roads under pale sun, travel ribbon scroll, inviting journey, Talking Island mood"
+    },
+    {
+      "file": "racial_elf_glade.png",
+      "name": "Лёгкая опушка",
+      "briefly": "+6% адены с обычных мобов",
+      "tier": "race",
+      "group": "elf",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, elven forest glade, glowing Mother Tree leaf and soft luminous roots, green-silver harvest light"
+    },
+    {
+      "file": "racial_elf_blade.png",
+      "name": "Лезвие рощи",
+      "briefly": "+5% физ. урона (воин-эльф)",
+      "tier": "race",
+      "group": "elf",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, elven leaf-shaped silver blade among green light trails, fighter grove power, nature steel motif"
+    },
+    {
+      "file": "racial_elf_song.png",
+      "name": "Песнь леса",
+      "briefly": "+5% маг. урона (мистик-эльф)",
+      "tier": "race",
+      "group": "elf",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, elven spirit song, silver-green magical note and spirit orb among leaves, mystic precision"
+    },
+    {
+      "file": "racial_de_hunger.png",
+      "name": "Жажда добычи",
+      "briefly": "+8% адены с золотых мобов",
+      "tier": "race",
+      "group": "dark_elf",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dark elf predator hunger, crimson eye and fang over gold loot gleam in black willow shadow"
+    },
+    {
+      "file": "racial_de_shadow.png",
+      "name": "Тень охоты",
+      "briefly": "Акцент на редкой добыче (−адена с обычных)",
+      "tier": "race",
+      "group": "dark_elf",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dark elf shadow hunt, cloaked silhouette and curved dagger in violet-black mist, patient assassin, no gore"
+    },
+    {
+      "file": "racial_orc_hand.png",
+      "name": "Тяжёлая рука",
+      "briefly": "Чуть сильнее бьёт во время охоты на монстров (+1 к силе удара во время охоты на монстров)",
+      "tier": "race",
+      "group": "orc",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, orc heavy hand, massive war axe with Paagrio ember glow, plateau warrior strength"
+    }
+  ],
+  [
+    {
+      "file": "racial_orc_blood.png",
+      "name": "Кровь Паагрио",
+      "briefly": "+8% опыта во время охоты на монстров",
+      "tier": "race",
+      "group": "orc",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, Paagrio blood fire, ritual flame and blood-red rune on tribal totem, valor not tank shield"
+    },
+    {
+      "file": "racial_dwarf_vein.png",
+      "name": "Жила",
+      "briefly": "+12% опыта во время охоты на монстров · +8% адены в склад",
+      "tier": "race",
+      "group": "dwarf",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dwarven ore vein, glowing mineral seam and work hammer, full ore pouch, warm mine light"
+    },
+    {
+      "file": "racial_dwarf_hammer.png",
+      "name": "Молот рода",
+      "briefly": "+10% материалов во время охоты на монстров · +6% адены с заданий",
+      "tier": "race",
+      "group": "dwarf",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dwarven clan forge hammer striking anvil with bright sparks, bronze gold craft motif"
+    },
+    {
+      "file": "human_fighter_q.png",
+      "name": "Удар новичка",
+      "briefly": "Следующий удар ×2,2 · КД 9 с",
+      "tier": "t0",
+      "group": "human_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, простой прямой удар мечом, sparks, beginner warrior strike"
+    },
+    {
+      "file": "human_fighter_e.png",
+      "name": "Стойка ученика",
+      "briefly": "Удержание 3,5 с · КД 13 с",
+      "tier": "t0",
+      "group": "human_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, basic shield guard stance, training ground defense"
+    },
+    {
+      "file": "human_fighter_r.png",
+      "name": "Двойной замах",
+      "briefly": "2×1,1 ≈×2,2 · КД 11 с",
+      "tier": "t0",
+      "group": "human_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, two-handed swing flurry, crude but earnest"
+    },
+    {
+      "file": "human_fighter_f.png",
+      "name": "Боевой клич",
+      "briefly": "6 с усиления ×1,55 · КД 18 с",
+      "tier": "t0",
+      "group": "human_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, warrior battle shout, bronze horn and dust"
+    },
+    {
+      "file": "human_fighter_passive.png",
+      "name": "Путь воина",
+      "briefly": "+2% адены с заданий",
+      "tier": "t0",
+      "group": "human_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, crossed training swords badge, human fighter path"
+    }
+  ],
+  [
+    {
+      "file": "human_mystic_q.png",
+      "name": "Искра",
+      "briefly": "Залп ×2,4 · КД 9 с",
+      "tier": "t0",
+      "group": "human_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, small arcane spark from open palm"
+    },
+    {
+      "file": "human_mystic_e.png",
+      "name": "Щит маны",
+      "briefly": "6 с усиления ×1,5 · КД 13 с",
+      "tier": "t0",
+      "group": "human_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, faint blue mana barrier bubble"
+    },
+    {
+      "file": "human_mystic_r.png",
+      "name": "Всплеск",
+      "briefly": "Заморозка 2 с + 3×0,4 · КД 12 с",
+      "tier": "t0",
+      "group": "human_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, novice magic burst wave"
+    },
+    {
+      "file": "human_mystic_f.png",
+      "name": "Фокус ученика",
+      "briefly": "Удар ×1,9 и таймер врага +2,5 с · КД 17 с",
+      "tier": "t0",
+      "group": "human_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, glowing focus rune over grimoire"
+    },
+    {
+      "file": "human_mystic_passive.png",
+      "name": "Путь мистика",
+      "briefly": "+2% опыта во время охоты на монстров",
+      "tier": "t0",
+      "group": "human_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, simple open tome with candlelight"
+    },
+    {
+      "file": "elf_fighter_q.png",
+      "name": "Укол опушки",
+      "briefly": "Следующий удар ×2,2 · КД 9 с",
+      "tier": "t0",
+      "group": "elf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, elven short thrust with leaf motif"
+    },
+    {
+      "file": "elf_fighter_e.png",
+      "name": "Лёгкая стойка",
+      "briefly": "Удержание 3,2 с · КД 13 с",
+      "tier": "t0",
+      "group": "elf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, graceful elven guard, green silver"
+    },
+    {
+      "file": "elf_fighter_r.png",
+      "name": "Два шага",
+      "briefly": "2×1,15 ≈×2,3 · КД 10,5 с",
+      "tier": "t0",
+      "group": "elf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, swift twin steps strike silhouettes"
+    }
+  ],
+  [
+    {
+      "file": "elf_fighter_f.png",
+      "name": "Крик рощи",
+      "briefly": "6 с усиления ×1,55 · КД 18 с",
+      "tier": "t0",
+      "group": "elf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, forest wind call, leaf vortex"
+    },
+    {
+      "file": "elf_fighter_passive.png",
+      "name": "Путь лесного воина",
+      "briefly": "+2% адены с обычных",
+      "tier": "t0",
+      "group": "elf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, leaf and blade emblem"
+    },
+    {
+      "file": "elf_mystic_q.png",
+      "name": "Роса",
+      "briefly": "Залп ×2,4 · КД 9 с",
+      "tier": "t0",
+      "group": "elf_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dewdrop magic sparkle"
+    },
+    {
+      "file": "elf_mystic_e.png",
+      "name": "Пелена листвы",
+      "briefly": "6 с усиления ×1,5 · КД 13 с",
+      "tier": "t0",
+      "group": "elf_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, leaf veil ward"
+    },
+    {
+      "file": "elf_mystic_r.png",
+      "name": "Шёпот ветра",
+      "briefly": "Заморозка 2 с + 3×0,4 · КД 12 с",
+      "tier": "t0",
+      "group": "elf_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, wind whisper spiral"
+    },
+    {
+      "file": "elf_mystic_f.png",
+      "name": "Свет корней",
+      "briefly": "Удар ×1,9 и таймер врага +2,5 с · КД 17 с",
+      "tier": "t0",
+      "group": "elf_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, Mother Tree root glow"
+    },
+    {
+      "file": "elf_mystic_passive.png",
+      "name": "Путь лесного мистика",
+      "briefly": "+2% опыта во время охоты на монстров",
+      "tier": "t0",
+      "group": "elf_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, silver leaf and spirit orb"
+    },
+    {
+      "file": "de_fighter_q.png",
+      "name": "Укол тени",
+      "briefly": "Следующий удар ×2,25 · КД 8,5 с",
+      "tier": "t0",
+      "group": "de_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shadow dagger poke"
+    }
+  ],
+  [
+    {
+      "file": "de_fighter_e.png",
+      "name": "Стойка мглы",
+      "briefly": "Удержание 3,0 с · КД 13 с",
+      "tier": "t0",
+      "group": "de_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, mist cloak guard"
+    },
+    {
+      "file": "de_fighter_r.png",
+      "name": "Двойной клинок",
+      "briefly": "2×1,15 ≈×2,3 · КД 10,5 с",
+      "tier": "t0",
+      "group": "de_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, twin dark blades slash"
+    },
+    {
+      "file": "de_fighter_f.png",
+      "name": "Шёпот Шилен",
+      "briefly": "6 с усиления ×1,6 · КД 18 с",
+      "tier": "t0",
+      "group": "de_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, Shilen whisper violet rune"
+    },
+    {
+      "file": "de_fighter_passive.png",
+      "name": "Путь тени",
+      "briefly": "+2% адены с золотых",
+      "tier": "t0",
+      "group": "de_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dark crescent and dagger"
+    },
+    {
+      "file": "de_mystic_q.png",
+      "name": "Тёмная искра",
+      "briefly": "Залп ×2,45 · КД 8,5 с",
+      "tier": "t0",
+      "group": "de_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, violet dark spark"
+    },
+    {
+      "file": "de_mystic_e.png",
+      "name": "Завеса",
+      "briefly": "6 с усиления ×1,55 · КД 13 с",
+      "tier": "t0",
+      "group": "de_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shadow veil ward"
+    },
+    {
+      "file": "de_mystic_r.png",
+      "name": "Стон бездны",
+      "briefly": "Заморозка 2 с + 3×0,42 · КД 12 с",
+      "tier": "t0",
+      "group": "de_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, abyss moan ripple"
+    },
+    {
+      "file": "de_mystic_f.png",
+      "name": "Око Шилен",
+      "briefly": "Удар ×2,0 и таймер врага +2,5 с · КД 17 с",
+      "tier": "t0",
+      "group": "de_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, crimson eye of Shilen"
+    }
+  ],
+  [
+    {
+      "file": "de_mystic_passive.png",
+      "name": "Путь тёмной магии",
+      "briefly": "+2% адены с золотых",
+      "tier": "t0",
+      "group": "de_mystic",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, black willow and violet orb"
+    },
+    {
+      "file": "orc_fighter_q.png",
+      "name": "Грубый удар",
+      "briefly": "Следующий удар ×2,3 · КД 9 с",
+      "tier": "t0",
+      "group": "orc_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, heavy club smash sparks"
+    },
+    {
+      "file": "orc_fighter_e.png",
+      "name": "Каменная стойка",
+      "briefly": "Удержание 3,0 с · КД 13 с",
+      "tier": "t0",
+      "group": "orc_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, stubborn orc guard"
+    },
+    {
+      "file": "orc_fighter_r.png",
+      "name": "Яростный замах",
+      "briefly": "3×0,75 ≈×2,25 · КД 11 с",
+      "tier": "t0",
+      "group": "orc_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, berserk swing arc"
+    },
+    {
+      "file": "orc_fighter_f.png",
+      "name": "Рёв новичка",
+      "briefly": "7 с усиления ×1,55 · КД 18 с",
+      "tier": "t0",
+      "group": "orc_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, orc roar flame breath"
+    },
+    {
+      "file": "orc_fighter_passive.png",
+      "name": "Путь орка",
+      "briefly": "Чуть сильнее бьёт во время охоты на монстров (+1 к силе удара во время охоты на монстров)",
+      "tier": "t0",
+      "group": "orc_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, tribal axe emblem"
+    },
+    {
+      "file": "orc_shaman_start_q.png",
+      "name": "Искра тотема",
+      "briefly": "Следующий удар ×2,1 · КД 9 с",
+      "tier": "t0",
+      "group": "orc_shaman_start",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, small totem spark"
+    },
+    {
+      "file": "orc_shaman_start_e.png",
+      "name": "Костяной оберег",
+      "briefly": "Удержание 3,8 с · КД 13 с",
+      "tier": "t0",
+      "group": "orc_shaman_start",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, bone charm ward"
+    }
+  ],
+  [
+    {
+      "file": "orc_shaman_start_r.png",
+      "name": "Дым костра",
+      "briefly": "3×0,7 ≈×2,1 · КД 11,5 с",
+      "tier": "t0",
+      "group": "orc_shaman_start",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, ritual smoke wave"
+    },
+    {
+      "file": "orc_shaman_start_f.png",
+      "name": "Зов Паагрио",
+      "briefly": "Удар ×1,85 и таймер врага +3 с · КД 17 с",
+      "tier": "t0",
+      "group": "orc_shaman_start",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, Paagrio flame call"
+    },
+    {
+      "file": "orc_shaman_start_passive.png",
+      "name": "Путь шамана",
+      "briefly": "+2% опыта во время охоты на монстров",
+      "tier": "t0",
+      "group": "orc_shaman_start",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, simple tribal totem"
+    },
+    {
+      "file": "dwarf_fighter_q.png",
+      "name": "Удар молота",
+      "briefly": "Следующий удар сильнее в ×2,2 · КД 9 с",
+      "tier": "t0",
+      "group": "dwarf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, work hammer strike spark"
+    },
+    {
+      "file": "dwarf_fighter_e.png",
+      "name": "Железная стойка",
+      "briefly": "Враг замедлен на 3,8 с · КД 13 с",
+      "tier": "t0",
+      "group": "dwarf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, stout dwarf guard"
+    },
+    {
+      "file": "dwarf_fighter_r.png",
+      "name": "Двойной молот",
+      "briefly": "Два удара, каждый ×1,1 · КД 11 с",
+      "tier": "t0",
+      "group": "dwarf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, twin hammer taps"
+    },
+    {
+      "file": "dwarf_fighter_f.png",
+      "name": "Гул наковальни",
+      "briefly": "Удар ×1,9 и враг уходит позже на 2 с · КД 17 с",
+      "tier": "t0",
+      "group": "dwarf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, anvil ring shockwave"
+    },
+    {
+      "file": "dwarf_fighter_passive.png",
+      "name": "Путь гнома",
+      "briefly": "+2% адены с заданий · +2% адены в склад",
+      "tier": "t0",
+      "group": "dwarf_fighter",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, hammer and ore chunk badge"
+    }
+  ],
+  [
+    {
+      "file": "warrior_q.png",
+      "name": "Прямой удар",
+      "briefly": "Следующий удар ×2,5 · КД 8,5 с",
+      "tier": "t1",
+      "group": "warrior",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, clean sword thrust, human warrior"
+    },
+    {
+      "file": "warrior_e.png",
+      "name": "Стойка строя",
+      "briefly": "Удержание 4,0 с · КД 12,5 с",
+      "tier": "t1",
+      "group": "warrior",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, formation shield stance"
+    },
+    {
+      "file": "warrior_r.png",
+      "name": "Серия клинка",
+      "briefly": "3×0,8 ≈×2,4 · КД 11 с",
+      "tier": "t1",
+      "group": "warrior",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, three-hit sword series"
+    },
+    {
+      "file": "warrior_f.png",
+      "name": "Клич воина",
+      "briefly": "7 с усиления ×1,7 · КД 17 с",
+      "tier": "t1",
+      "group": "warrior",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, battlefield shout banner"
+    },
+    {
+      "file": "warrior_passive.png",
+      "name": "Каркас воина",
+      "briefly": "+3% адены с заданий",
+      "tier": "t1",
+      "group": "warrior",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, weakened dual-path warrior badge, sword and spear hint"
+    },
+    {
+      "file": "knight_q.png",
+      "name": "Щитовой удар",
+      "briefly": "Следующий удар ×2,4 · КД 8,5 с",
+      "tier": "t1",
+      "group": "knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shield bash holy glint"
+    },
+    {
+      "file": "knight_e.png",
+      "name": "Стена щита",
+      "briefly": "Удержание 4,5 с · КД 12,5 с",
+      "tier": "t1",
+      "group": "knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, tower shield wall"
+    },
+    {
+      "file": "knight_r.png",
+      "name": "Удар порядка",
+      "briefly": "3×0,75 ≈×2,25 · КД 11 с",
+      "tier": "t1",
+      "group": "knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, orderly sword chop"
+    }
+  ],
+  [
+    {
+      "file": "knight_f.png",
+      "name": "Клятва стража",
+      "briefly": "Удар ×2,0 и таймер врага +3 с · КД 17 с",
+      "tier": "t1",
+      "group": "knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, oath crest radiant"
+    },
+    {
+      "file": "knight_passive.png",
+      "name": "Каркас рыцаря",
+      "briefly": "+3% опыта во время охоты на монстров",
+      "tier": "t1",
+      "group": "knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shield and cross badge, light and dark hint"
+    },
+    {
+      "file": "rogue_q.png",
+      "name": "Укол",
+      "briefly": "Прямой удар ×2,7 · КД 8,5 с",
+      "tier": "t1",
+      "group": "rogue",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, quick dagger poke"
+    },
+    {
+      "file": "rogue_e.png",
+      "name": "Уклонение",
+      "briefly": "Удержание 2,5 с · КД 12 с",
+      "tier": "t1",
+      "group": "rogue",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dodge silhouette"
+    },
+    {
+      "file": "rogue_r.png",
+      "name": "Град уколов",
+      "briefly": "4×0,55 ≈×2,2 · КД 10,5 с",
+      "tier": "t1",
+      "group": "rogue",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dagger flurry"
+    },
+    {
+      "file": "rogue_f.png",
+      "name": "Тень кармана",
+      "briefly": "×3,0 и +8% адены 5 с · КД 17 с",
+      "tier": "t1",
+      "group": "rogue",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, loot pouch and dagger"
+    },
+    {
+      "file": "rogue_passive.png",
+      "name": "Каркас разбойника",
+      "briefly": "+4% адены с обычных",
+      "tier": "t1",
+      "group": "rogue",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dagger and bow crossed weakly"
+    },
+    {
+      "file": "wizard_q.png",
+      "name": "Стрела маны",
+      "briefly": "Залп ×2,7 · КД 8,5 с",
+      "tier": "t1",
+      "group": "wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, mana bolt"
+    }
+  ],
+  [
+    {
+      "file": "wizard_e.png",
+      "name": "Магический щит",
+      "briefly": "7 с усиления ×1,65 · КД 12,5 с",
+      "tier": "t1",
+      "group": "wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, arcane barrier"
+    },
+    {
+      "file": "wizard_r.png",
+      "name": "Цепь искр",
+      "briefly": "4×0,55 ≈×2,2 · КД 11 с",
+      "tier": "t1",
+      "group": "wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, spark chain"
+    },
+    {
+      "file": "wizard_f.png",
+      "name": "Всплеск школы",
+      "briefly": "Залп ×3,2 · КД 17 с",
+      "tier": "t1",
+      "group": "wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, school crest burst fire ice summon hint"
+    },
+    {
+      "file": "wizard_passive.png",
+      "name": "Каркас мага",
+      "briefly": "+3% адены с заданий",
+      "tier": "t1",
+      "group": "wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, three school runes faintly"
+    },
+    {
+      "file": "cleric_q.png",
+      "name": "Светлый удар",
+      "briefly": "Залп ×2,3 · КД 9 с",
+      "tier": "t1",
+      "group": "cleric",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, holy smack"
+    },
+    {
+      "file": "cleric_e.png",
+      "name": "Благословение",
+      "briefly": "Удержание 4,5 с · КД 13 с",
+      "tier": "t1",
+      "group": "cleric",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, blessing aura"
+    },
+    {
+      "file": "cleric_r.png",
+      "name": "Молитвенный круг",
+      "briefly": "3×0,65 ≈×1,95 · КД 12 с",
+      "tier": "t1",
+      "group": "cleric",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, prayer circle"
+    },
+    {
+      "file": "cleric_f.png",
+      "name": "Гимн ученика",
+      "briefly": "Удар ×1,9 и таймер врага +3,5 с · КД 17 с",
+      "tier": "t1",
+      "group": "cleric",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, hymn scroll glow"
+    }
+  ],
+  [
+    {
+      "file": "cleric_passive.png",
+      "name": "Каркас клерика",
+      "briefly": "+3% опыта во время охоты на монстров · +2% адены в склад",
+      "tier": "t1",
+      "group": "cleric",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, holy book and staff badge"
+    },
+    {
+      "file": "elven_knight_q.png",
+      "name": "Удар храма",
+      "briefly": "Следующий удар ×2,4 · КД 8,5 с",
+      "tier": "t1",
+      "group": "elven_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, elven temple sword"
+    },
+    {
+      "file": "elven_knight_e.png",
+      "name": "Щит рощи",
+      "briefly": "Удержание 4,5 с · КД 12,5 с",
+      "tier": "t1",
+      "group": "elven_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, leaf-etched shield"
+    },
+    {
+      "file": "elven_knight_r.png",
+      "name": "Ритм клинка",
+      "briefly": "3×0,78 ≈×2,3 · КД 11 с",
+      "tier": "t1",
+      "group": "elven_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, blade rhythm arcs"
+    },
+    {
+      "file": "elven_knight_f.png",
+      "name": "Обет света",
+      "briefly": "Удар ×2,0 и таймер врага +3 с · КД 17 с",
+      "tier": "t1",
+      "group": "elven_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, light vow crest"
+    },
+    {
+      "file": "elven_knight_passive.png",
+      "name": "Каркас светлого рыцаря",
+      "briefly": "+3% опыта во время охоты на монстров",
+      "tier": "t1",
+      "group": "elven_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, leaf shield badge"
+    },
+    {
+      "file": "elven_scout_q.png",
+      "name": "Укол опушки",
+      "briefly": "Прямой удар ×2,7 · КД 8,5 с",
+      "tier": "t1",
+      "group": "elven_scout",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, scout dagger"
+    },
+    {
+      "file": "elven_scout_e.png",
+      "name": "След",
+      "briefly": "Удержание 2,5 с · КД 12 с",
+      "tier": "t1",
+      "group": "elven_scout",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, footprint trail magic"
+    }
+  ],
+  [
+    {
+      "file": "elven_scout_r.png",
+      "name": "Град стрел",
+      "briefly": "5×0,45 ≈×2,25 · КД 11 с",
+      "tier": "t1",
+      "group": "elven_scout",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, arrow rain light"
+    },
+    {
+      "file": "elven_scout_f.png",
+      "name": "Прыжок ветра",
+      "briefly": "×3,1 · КД 17 с",
+      "tier": "t1",
+      "group": "elven_scout",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, wind leap silhouette"
+    },
+    {
+      "file": "elven_scout_passive.png",
+      "name": "Каркас разведчика",
+      "briefly": "+4% адены с обычных",
+      "tier": "t1",
+      "group": "elven_scout",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, leaf dagger and bow"
+    },
+    {
+      "file": "elven_wizard_q.png",
+      "name": "Капля",
+      "briefly": "Залп ×2,65 · КД 8,5 с",
+      "tier": "t1",
+      "group": "elven_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, water drop bolt"
+    },
+    {
+      "file": "elven_wizard_e.png",
+      "name": "Пелена",
+      "briefly": "7 с усиления ×1,6 · КД 12,5 с",
+      "tier": "t1",
+      "group": "elven_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, mist veil"
+    },
+    {
+      "file": "elven_wizard_r.png",
+      "name": "Хор стихий",
+      "briefly": "4×0,55 ≈×2,2 · КД 11 с",
+      "tier": "t1",
+      "group": "elven_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, elemental chord"
+    },
+    {
+      "file": "elven_wizard_f.png",
+      "name": "Зов единорога",
+      "briefly": "8 с усиления ×1,7 · КД 17 с",
+      "tier": "t1",
+      "group": "elven_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, unicorn summon glow soft"
+    },
+    {
+      "file": "elven_wizard_passive.png",
+      "name": "Каркас светлого мага",
+      "briefly": "+3% адены с заданий",
+      "tier": "t1",
+      "group": "elven_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, water leaf rune"
+    }
+  ],
+  [
+    {
+      "file": "oracle_q.png",
+      "name": "Луч",
+      "briefly": "Залп ×2,25 · КД 9 с",
+      "tier": "t1",
+      "group": "oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, soft heal ray"
+    },
+    {
+      "file": "oracle_e.png",
+      "name": "Оберег",
+      "briefly": "Удержание 4,2 с · КД 13 с",
+      "tier": "t1",
+      "group": "oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, nature ward"
+    },
+    {
+      "file": "oracle_r.png",
+      "name": "Круг росы",
+      "briefly": "3×0,65 ≈×1,95 · КД 12 с",
+      "tier": "t1",
+      "group": "oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dew circle"
+    },
+    {
+      "file": "oracle_f.png",
+      "name": "Песнь ученика",
+      "briefly": "Удар ×1,9 и таймер врага +3,5 с · КД 17 с",
+      "tier": "t1",
+      "group": "oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, oracle song note"
+    },
+    {
+      "file": "oracle_passive.png",
+      "name": "Каркас оракула",
+      "briefly": "+3% опыта во время охоты на монстров · +2% адены в склад",
+      "tier": "t1",
+      "group": "oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, Mother Tree staff badge"
+    },
+    {
+      "file": "palus_knight_q.png",
+      "name": "Тёмный удар",
+      "briefly": "Следующий удар ×2,45 · КД 8,5 с",
+      "tier": "t1",
+      "group": "palus_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dark sword chop"
+    },
+    {
+      "file": "palus_knight_e.png",
+      "name": "Щит Палуса",
+      "briefly": "Удержание 4,5 с · КД 12,5 с",
+      "tier": "t1",
+      "group": "palus_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, obsidian shield"
+    },
+    {
+      "file": "palus_knight_r.png",
+      "name": "Танец клинка",
+      "briefly": "3×0,8 ≈×2,4 · КД 11 с",
+      "tier": "t1",
+      "group": "palus_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, blade dance arcs dark"
+    }
+  ],
+  [
+    {
+      "file": "palus_knight_f.png",
+      "name": "Клятва тени",
+      "briefly": "Удар ×2,05 и таймер врага +3 с · КД 17 с",
+      "tier": "t1",
+      "group": "palus_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, Shilen oath crest"
+    },
+    {
+      "file": "palus_knight_passive.png",
+      "name": "Каркас рыцаря Палуса",
+      "briefly": "+3% опыта во время охоты на монстров",
+      "tier": "t1",
+      "group": "palus_knight",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, crescent shield badge"
+    },
+    {
+      "file": "assassin_q.png",
+      "name": "Укол бездны",
+      "briefly": "Прямой удар ×2,8 · КД 8 с",
+      "tier": "t1",
+      "group": "assassin",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, abyss dagger"
+    },
+    {
+      "file": "assassin_e.png",
+      "name": "Слияние с тенью",
+      "briefly": "Удержание 2,4 с · КД 12 с",
+      "tier": "t1",
+      "group": "assassin",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, melt into shadow"
+    },
+    {
+      "file": "assassin_r.png",
+      "name": "Град кинжалов",
+      "briefly": "4×0,58 ≈×2,3 · КД 10 с",
+      "tier": "t1",
+      "group": "assassin",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dagger hail"
+    },
+    {
+      "file": "assassin_f.png",
+      "name": "Метка добычи",
+      "briefly": "×3,2 и +8% адены 5 с · КД 17 с",
+      "tier": "t1",
+      "group": "assassin",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, prey mark rune"
+    },
+    {
+      "file": "assassin_passive.png",
+      "name": "Каркас убийцы",
+      "briefly": "+4% адены с обычных",
+      "tier": "t1",
+      "group": "assassin",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shadow dagger and bow"
+    },
+    {
+      "file": "dark_wizard_q.png",
+      "name": "Тёмная стрела",
+      "briefly": "Залп ×2,8 · КД 8,5 с",
+      "tier": "t1",
+      "group": "dark_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dark bolt"
+    }
+  ],
+  [
+    {
+      "file": "dark_wizard_e.png",
+      "name": "Завеса бури",
+      "briefly": "7 с усиления ×1,7 · КД 12 с",
+      "tier": "t1",
+      "group": "dark_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, storm veil"
+    },
+    {
+      "file": "dark_wizard_r.png",
+      "name": "Вой тени",
+      "briefly": "4×0,58 ≈×2,3 · КД 11 с",
+      "tier": "t1",
+      "group": "dark_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shadow howl"
+    },
+    {
+      "file": "dark_wizard_f.png",
+      "name": "Зов фантома",
+      "briefly": "8 с усиления ×1,75 · КД 17 с",
+      "tier": "t1",
+      "group": "dark_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, phantom summon mist"
+    },
+    {
+      "file": "dark_wizard_passive.png",
+      "name": "Каркас тёмного мага",
+      "briefly": "+3% адены с заданий",
+      "tier": "t1",
+      "group": "dark_wizard",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, violet storm rune"
+    },
+    {
+      "file": "shillien_oracle_q.png",
+      "name": "Тёмный луч",
+      "briefly": "Залп ×2,3 · КД 9 с",
+      "tier": "t1",
+      "group": "shillien_oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dark heal-ish ray violet"
+    },
+    {
+      "file": "shillien_oracle_e.png",
+      "name": "Кровь алтаря",
+      "briefly": "Удержание 4,5 с · КД 13 с",
+      "tier": "t1",
+      "group": "shillien_oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, altar blood ward stylized no gore"
+    },
+    {
+      "file": "shillien_oracle_r.png",
+      "name": "Круг тени",
+      "briefly": "3×0,7 ≈×2,1 · КД 12 с",
+      "tier": "t1",
+      "group": "shillien_oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shadow prayer circle"
+    },
+    {
+      "file": "shillien_oracle_f.png",
+      "name": "Шёпот алтаря",
+      "briefly": "Удар ×2,0 и таймер врага +3,5 с · КД 17 с",
+      "tier": "t1",
+      "group": "shillien_oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, altar whisper rune"
+    }
+  ],
+  [
+    {
+      "file": "shillien_oracle_passive.png",
+      "name": "Каркас оракула Шилен",
+      "briefly": "+3% опыта во время охоты на монстров · +2% адены в склад",
+      "tier": "t1",
+      "group": "shillien_oracle",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dark altar staff badge"
+    },
+    {
+      "file": "orc_raider_q.png",
+      "name": "Удар секиры",
+      "briefly": "Следующий удар ×2,6 · КД 8,5 с",
+      "tier": "t1",
+      "group": "orc_raider",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, axe chop"
+    },
+    {
+      "file": "orc_raider_e.png",
+      "name": "Яростная стойка",
+      "briefly": "Удержание 2,8 с · КД 12 с",
+      "tier": "t1",
+      "group": "orc_raider",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, berserk guard"
+    },
+    {
+      "file": "orc_raider_r.png",
+      "name": "Серия секиры",
+      "briefly": "4×0,6 ≈×2,4 · КД 10,5 с",
+      "tier": "t1",
+      "group": "orc_raider",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, axe flurry"
+    },
+    {
+      "file": "orc_raider_f.png",
+      "name": "Рёв налётчика",
+      "briefly": "8 с усиления ×1,75 · КД 17 с",
+      "tier": "t1",
+      "group": "orc_raider",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, raider roar"
+    },
+    {
+      "file": "orc_raider_passive.png",
+      "name": "Каркас налётчика",
+      "briefly": "+3% адены с заданий",
+      "tier": "t1",
+      "group": "orc_raider",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, twin axe badge"
+    },
+    {
+      "file": "orc_monk_q.png",
+      "name": "Удар кулака",
+      "briefly": "Следующий удар ×2,5 · КД 8 с",
+      "tier": "t1",
+      "group": "orc_monk",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, fist strike"
+    },
+    {
+      "file": "orc_monk_e.png",
+      "name": "Стойка зверя",
+      "briefly": "Удержание 2,5 с · КД 12 с",
+      "tier": "t1",
+      "group": "orc_monk",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, beast stance"
+    }
+  ],
+  [
+    {
+      "file": "orc_monk_r.png",
+      "name": "Град кулаков",
+      "briefly": "5×0,5 ≈×2,5 · КД 10 с",
+      "tier": "t1",
+      "group": "orc_monk",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, fist flurry"
+    },
+    {
+      "file": "orc_monk_f.png",
+      "name": "Крик зверя",
+      "briefly": "6 с усиления ×1,75 · КД 16 с",
+      "tier": "t1",
+      "group": "orc_monk",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, beast cry"
+    },
+    {
+      "file": "orc_monk_passive.png",
+      "name": "Каркас монаха",
+      "briefly": "+3% адены с заданий",
+      "tier": "t1",
+      "group": "orc_monk",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, brass knuckle totem"
+    },
+    {
+      "file": "orc_shaman_q.png",
+      "name": "Искра тотема",
+      "briefly": "Следующий удар ×2,4 · КД 8,5 с",
+      "tier": "t1",
+      "group": "orc_shaman",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, totem spark stronger"
+    },
+    {
+      "file": "orc_shaman_e.png",
+      "name": "Оберег клана",
+      "briefly": "Удержание 4,5 с · КД 12,5 с",
+      "tier": "t1",
+      "group": "orc_shaman",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, clan ward totem"
+    },
+    {
+      "file": "orc_shaman_r.png",
+      "name": "Ритм барабана",
+      "briefly": "4×0,55 ≈×2,2 · КД 11 с",
+      "tier": "t1",
+      "group": "orc_shaman",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, war drum ripples"
+    },
+    {
+      "file": "orc_shaman_f.png",
+      "name": "Клич шамана",
+      "briefly": "7 с усиления ×1,75 · КД 16 с",
+      "tier": "t1",
+      "group": "orc_shaman",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, shaman warcry flame"
+    },
+    {
+      "file": "orc_shaman_passive.png",
+      "name": "Каркас шамана",
+      "briefly": "+3% опыта во время охоты на монстров · чуть сильнее удар (+1 к силе во время охоты на монстров)",
+      "tier": "t1",
+      "group": "orc_shaman",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dual totem overlord warcry hint"
+    }
+  ],
+  [
+    {
+      "file": "scavenger_q.png",
+      "name": "Удар жилы",
+      "briefly": "Следующий удар сильнее в ×2,4 · КД 8,5 с",
+      "tier": "t1",
+      "group": "scavenger",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, dwarven hammer ore strike spark"
+    },
+    {
+      "file": "scavenger_e.png",
+      "name": "Мешок",
+      "briefly": "Враг замедлен на 4,0 с · КД 12,5 с",
+      "tier": "t1",
+      "group": "scavenger",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, loot sack open"
+    },
+    {
+      "file": "scavenger_r.png",
+      "name": "Грабёж жилы",
+      "briefly": "Три удара, каждый ×0,75 · КД 11 с",
+      "tier": "t1",
+      "group": "scavenger",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, ore steal sparkle"
+    },
+    {
+      "file": "scavenger_f.png",
+      "name": "Контракт",
+      "briefly": "Удар ×2,8 и +10% адены на 6 с · КД 17 с",
+      "tier": "t1",
+      "group": "scavenger",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, bounty contract scroll"
+    },
+    {
+      "file": "scavenger_passive.png",
+      "name": "Каркас собирателя",
+      "briefly": "+4% адены с заданий · +3% адены в склад",
+      "tier": "t1",
+      "group": "scavenger",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, hammer and pouch badge"
+    },
+    {
+      "file": "artisan_q.png",
+      "name": "Удар молота",
+      "briefly": "Следующий удар сильнее в ×2,4 · КД 8,5 с",
+      "tier": "t1",
+      "group": "artisan",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, smith hammer hit"
+    },
+    {
+      "file": "artisan_e.png",
+      "name": "Наковальня",
+      "briefly": "Враг замедлен на 4,5 с · КД 13 с",
+      "tier": "t1",
+      "group": "artisan",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, anvil guard"
+    },
+    {
+      "file": "artisan_r.png",
+      "name": "Искры горна",
+      "briefly": "Четыре удара, каждый ×0,55 · КД 11 с",
+      "tier": "t1",
+      "group": "artisan",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, forge spark spray"
+    }
+  ],
+  [
+    {
+      "file": "artisan_f.png",
+      "name": "Чертёж голема",
+      "briefly": "Три удара ×0,75 и враг замедлен ещё на 1,5 с · КД 17 с",
+      "tier": "t1",
+      "group": "artisan",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, golem blueprint glow"
+    },
+    {
+      "file": "artisan_passive.png",
+      "name": "Каркас ремесленника",
+      "briefly": "+6% материалов во время охоты на монстров · +4% адены в склад",
+      "tier": "t1",
+      "group": "artisan",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, hammer anvil gear badge"
+    },
+    {
+      "file": "weapon_mastery_dualdagger.png",
+      "name": "Мастерство парных кинжалов",
+      "briefly": "Охотник / Собиратель / Искатель / Следопыт / Странник бездны / Певец меча: парные кинжалы +6%",
+      "tier": "affinity",
+      "group": "weapon",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, two crossed curved dual daggers emblem, small bounty pouch hint, clean silhouette"
+    },
+    {
+      "file": "weapon_mastery_twohand_sword.png",
+      "name": "Мастерство двуручного меча",
+      "briefly": "Налётчик / Разрушитель: двуручный меч +6%",
+      "tier": "affinity",
+      "group": "weapon",
+      "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, huge two-handed greatsword upright, orc warrior crest, heavy blade spark"
+    }
+  ]
+]

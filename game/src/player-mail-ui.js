@@ -251,7 +251,7 @@ function renderPlayerMailHtml() {
         "<span>→ " +
         (m.recipientName || "—") +
         "</span></div>" +
-        '<button type="button" class="btn" data-cancel-mail="' +
+        '<button type="button" class="btn btn-ghost" data-cancel-mail="' +
         m.id +
         '"' +
         (_playerMailBusy ? " disabled" : "") +

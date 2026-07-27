@@ -906,6 +906,7 @@ function catchGnome(g, e, opts) {
   const dmg = typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 8;
   let appliedMult = guard.mult || 1;
   if (typeof mineSkillClickMult === "function") appliedMult *= mineSkillClickMult();
+  if (typeof passiveEffectMult === "function") appliedMult *= passiveEffectMult("farmDamageMult", state.avatar);
   let applied = Math.max(1, Math.round(dmg * appliedMult));
   if (typeof applyMineShotDamageMult === "function") applied = applyMineShotDamageMult(applied);
   else applied = Math.max(1, Math.round(applied * 0.5));
@@ -947,6 +948,7 @@ function finishMobKill(g, type, dropAt, guard) {
   if (type === "boss") {
     reward = mineGoldenReward();
     reward = Math.round(reward * (bossDef?.rewardMult || 3) * guard.mult);
+    reward = typeof mineApplySkillAdenaBonus === "function" ? mineApplySkillAdenaBonus(reward) : reward;
     reward = mineGuardApplyAdena(reward);
     color = "#ff6b4a";
     if (typeof gameLog === "function") gameLog("☠ " + (bossDef?.name || "Босс") + " повержен!", "success");
@@ -969,6 +971,7 @@ function finishMobKill(g, type, dropAt, guard) {
   } else if (type === "golden") {
     reward = mineGoldenReward();
     reward = Math.round(reward * guard.mult);
+    reward = typeof mineApplySkillAdenaBonus === "function" ? mineApplySkillAdenaBonus(reward) : reward;
     reward = mineGuardApplyAdena(reward);
     color = "#ffc46b";
     const weaponChance = typeof mineGoldenWeaponChance === "function" ? mineGoldenWeaponChance() : 1;
@@ -987,6 +990,7 @@ function finishMobKill(g, type, dropAt, guard) {
   } else {
     reward = mineNormalReward();
     reward = Math.round(reward * guard.mult);
+    reward = typeof mineApplySkillAdenaBonus === "function" ? mineApplySkillAdenaBonus(reward) : reward;
     reward = mineGuardApplyAdena(reward);
     color = "#9be6a6";
   }

@@ -88,8 +88,6 @@ function syncCloudUI() {
   if (regBtn) regBtn.hidden = !!auth;
   if (logoutBtn) logoutBtn.hidden = !auth;
   if (cancelBtn) cancelBtn.hidden = cloudEnabled();
-  const titleEl = document.getElementById("l2LoginTitle");
-  if (titleEl) titleEl.textContent = auth?.nick ? "Сессия" : "Вход";
   if (nickInput) {
     nickInput.hidden = false;
     if (auth?.nick) nickInput.value = auth.nick;

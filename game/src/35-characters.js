@@ -171,9 +171,9 @@ function updateHomeCharsSubtitle() {
   if (a?.created && String(a.name || "").trim()) {
     el.textContent = "Играем: " + a.name + " · " + created + "/" + max;
   } else if (created === 0) {
-    el.textContent = "0/" + max + " · выбери слот и создай героя";
+    el.textContent = "0/" + max;
   } else {
-    el.textContent = created + "/" + max + " персонажей";
+    el.textContent = created + "/" + max;
   }
 }
 
@@ -183,9 +183,9 @@ function updateCharMenuHint() {
   migrateCharactersStructure();
   const { created, max } = countCharacterSlots();
   if (created === 0) {
-    el.textContent = "5 слотов · нажми пустой или «+ Новый персонаж» · " + created + "/" + max;
+    el.textContent = "Пустой слот · " + created + "/" + max;
   } else {
-    el.textContent = "Выбери героя или пустой слот · " + created + "/" + max + " персонажей";
+    el.textContent = "Выбери слот · " + created + "/" + max;
   }
 }
 
@@ -363,7 +363,7 @@ function renderCharacterRoster() {
         '<span class="char-slot-portrait char-slot-portrait-ph" aria-hidden="true">?</span>' +
         '<span class="char-slot-body">' +
         '<span class="char-slot-name">Пустой слот</span>' +
-        '<span class="char-slot-meta">Нажми, чтобы создать</span>' +
+        '<span class="char-slot-meta">Создать</span>' +
         (isActive ? '<span class="char-slot-badge">Выбран</span>' : "") +
         "</span>";
     }
