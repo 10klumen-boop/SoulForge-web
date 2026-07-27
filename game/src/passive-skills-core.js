@@ -53,12 +53,25 @@ function weaponMasteryPassiveIdsForAvatar(avatar) {
   return out;
 }
 
+/** Расовая пассивка с baseClass — только для своего стартового класса (воин/мистик/шаман). */
+function passiveSkillMatchesBaseClass(skill, classId) {
+  if (!skill || !skill.baseClass) return true;
+  if (!classId) return true;
+  return skill.baseClass === classId;
+}
+
 function passiveSkillIdsGrantedToAvatar(avatar) {
   const a = avatar || (typeof state !== "undefined" ? state.avatar : null) || {};
   const ids = [];
   const raceMap = typeof RACE_PASSIVE_SKILL_IDS !== "undefined" ? RACE_PASSIVE_SKILL_IDS : null;
   const raceIds = raceMap && a.raceId ? raceMap[a.raceId] : null;
-  if (Array.isArray(raceIds)) ids.push(...raceIds);
+  const baseCid = typeof starterClassId === "function" ? starterClassId(a) : a.classId;
+  if (Array.isArray(raceIds)) {
+    raceIds.forEach((id) => {
+      const sk = passiveSkillById(id);
+      if (passiveSkillMatchesBaseClass(sk, baseCid)) ids.push(id);
+    });
+  }
   const classMap = typeof CLASS_PASSIVE_SKILL_IDS !== "undefined" ? CLASS_PASSIVE_SKILL_IDS : null;
   const classIds = classMap && a.classId ? classMap[a.classId] : null;
   const hasProfession = !!a.professionId;
@@ -182,13 +195,13 @@ function passiveSkillsForAvatar(avatar) {
     .filter((s) => s && (s.unlockLevel || 1) <= lvl);
 }
 
-function passiveSkillsRacialForRace(raceId, level) {
+function passiveSkillsRacialForRace(raceId, level, classId) {
   const lvl = level != null ? level : 1;
   const raceMap = typeof RACE_PASSIVE_SKILL_IDS !== "undefined" ? RACE_PASSIVE_SKILL_IDS : null;
   const ids = (raceMap && raceMap[raceId]) || [];
   return ids
     .map(passiveSkillById)
-    .filter((s) => s && (s.unlockLevel || 1) <= lvl);
+    .filter((s) => s && (s.unlockLevel || 1) <= lvl && passiveSkillMatchesBaseClass(s, classId));
 }
 
 /** Сумма аддитивных эффектов (farmBonus, enchantChanceAdd, matkAdd, zoneRaceBonusFloor). */

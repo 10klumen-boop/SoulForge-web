@@ -52,19 +52,37 @@
         }
       ]
     },
+    "elf_blade": {
+      "id": "elf_blade",
+      "kind": "racial",
+      "name": "Лезвие рощи",
+      "blurb": "+3% физ. урона (воин)",
+      "desc": "Сталь опушки легка, но режет точно. Воины эльфов чувствуют ритм леса в ударе — физическая сила охоты чуть острее, чем у чужаков на тех же тропах.",
+      "gameplay": "Урон охоты +3% (только воин-эльф).",
+      "icon": "icons/class-skills/racial_elf_blade.png?v=1",
+      "unlockLevel": 1,
+      "baseClass": "fighter",
+      "effects": [
+        {
+          "type": "farmDamageMult",
+          "value": 1.03
+        }
+      ]
+    },
     "elf_song": {
       "id": "elf_song",
       "kind": "racial",
       "name": "Песнь леса",
-      "blurb": "+2 MATK",
-      "desc": "В крови эльфов — серебро Эльмора. Песнь леса не кричит — она настраивает руку и дух: магическая сила и точность ощущаются естественнее, чем грубая мощь.",
-      "gameplay": "MATK +2.",
+      "blurb": "+3% маг. урона (мистик)",
+      "desc": "В крови эльфов — серебро Эльмора. Песнь леса не кричит — она настраивает дух: магическая сила охоты ощущается естественнее у тех, кто идёт путём мистика.",
+      "gameplay": "Урон охоты +3% (только мистик-эльф).",
       "icon": "icons/class-skills/racial_elf_song.png?v=1",
       "unlockLevel": 1,
+      "baseClass": "mystic",
       "effects": [
         {
-          "type": "matkAdd",
-          "value": 2
+          "type": "farmDamageMult",
+          "value": 1.03
         }
       ]
     },
@@ -1401,6 +1419,7 @@
     ],
     "elf": [
       "elf_glade",
+      "elf_blade",
       "elf_song"
     ],
     "dark_elf": [

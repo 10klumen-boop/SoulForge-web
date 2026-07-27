@@ -274,6 +274,23 @@ test("gear affinity: weaponCats and armorPref from planner", () => {
   assert.strictEqual(PROFESSIONS.bladedancer.armorPref, "light");
   assert.deepStrictEqual(PROFESSIONS.hawkeye.weaponCats, ["Bow"]);
   assert.ok(!PROFESSIONS.rogue.weaponCats.includes("Bow"));
+  assert.ok(PROFESSIONS.elven_scout.weaponCats.includes("Bow"));
+  assert.ok(PROFESSIONS.elven_scout.weaponCats.includes("Dagger"));
+});
+
+test("elven scout gets bow mastery passive", () => {
+  const a = {
+    created: true,
+    raceId: "elf",
+    classId: "fighter",
+    level: 10,
+    professionId: "elven_scout",
+    professionTier: 1,
+  };
+  const ids = passiveSkillIdsGrantedToAvatar(a);
+  assert.ok(ids.indexOf("weapon_mastery_bow") >= 0);
+  assert.ok(ids.indexOf("weapon_mastery_dagger") >= 0);
+  assert.ok(ids.indexOf("prof_elven_scout") >= 0);
 });
 
 test("weapon mastery passives granted per profession cats", () => {

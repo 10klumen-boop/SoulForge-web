@@ -51,15 +51,19 @@ function runTests() {
     assert.strictEqual(typeof a.test, "function");
   });
 
-  test("passive-skills catalog: 5 races × 2", () => {
+  test("passive-skills catalog: 5 races with racials", () => {
     assert.ok(PASSIVE_SKILLS && PASSIVE_SKILLS.human_steady);
     assert.strictEqual(Object.keys(RACE_PASSIVE_SKILL_IDS).length, 5);
     Object.keys(RACE_PASSIVE_SKILL_IDS).forEach((race) => {
-      assert.strictEqual(RACE_PASSIVE_SKILL_IDS[race].length, 2);
+      const n = RACE_PASSIVE_SKILL_IDS[race].length;
+      assert.ok(n >= 2, race + " racial count");
       RACE_PASSIVE_SKILL_IDS[race].forEach((id) => {
         assert.ok(PASSIVE_SKILLS[id], "missing skill " + id);
       });
     });
+    assert.strictEqual(RACE_PASSIVE_SKILL_IDS.elf.length, 3);
+    assert.strictEqual(PASSIVE_SKILLS.elf_blade.baseClass, "fighter");
+    assert.strictEqual(PASSIVE_SKILLS.elf_song.baseClass, "mystic");
     assert.ok(CLASS_PASSIVE_SKILL_IDS.fighter && CLASS_PASSIVE_SKILL_IDS.fighter.length >= 1);
     assert.ok(PASSIVE_SKILLS.fighter_blade);
     assert.ok(PASSIVE_SKILLS.prof_gladiator);

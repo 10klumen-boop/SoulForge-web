@@ -267,8 +267,8 @@ _reg({
 });
 _reg({
   id: "elven_scout", name: "Разведчик", tier: 1, baseClass: "fighter", races: ["elf"], from: null,
-  role: "dagger", armorPref: "light", weaponCats: ["Dagger", "Dualdagger"], passiveIds: ["prof_elven_scout"],
-  desc: "Лёгкая броня, кинжал и лес. Позже — Следопыт или Серебряный рейнджер.",
+  role: "dagger", armorPref: "light", weaponCats: ["Dagger", "Dualdagger", "Bow"], passiveIds: ["prof_elven_scout"],
+  desc: "Лёгкая броня, кинжал, лук и лес. Позже — Следопыт или Серебряный рейнджер.",
 });
 _reg({
   id: "temple_knight", name: "Храмовый рыцарь", tier: 2, baseClass: "fighter", races: ["elf"], from: ["elven_knight"],

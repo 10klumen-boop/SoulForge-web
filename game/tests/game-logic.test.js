@@ -209,7 +209,7 @@ function runTests() {
     assert.strictEqual(s.farmBonus, 0);
   });
 
-  test("avatarStats: orc farmBonus, dwarf no mine flat, elf matkAdd", () => {
+  test("avatarStats: orc farmBonus, dwarf no mine flat, elf fighter no matk racial", () => {
     state.avatar = { raceId: "orc", classId: "fighter", level: 1, gear: { weapon: null } };
     assert.strictEqual(avatarStats().farmBonus, 1);
     state.avatar = { raceId: "dwarf", classId: "fighter", level: 1, gear: { weapon: null } };
@@ -217,8 +217,38 @@ function runTests() {
     state.avatar = { raceId: "elf", classId: "fighter", level: 1, gear: { weapon: null } };
     const lb = avatarLevelStatBonus(1);
     const cls = classStatBonus("fighter");
-    const expected = RACE_BASE_STATS.elf.matk + cls.matk + lb.atk + 2;
+    // Воин-эльф: Лезвие рощи (+3% урон), не Песнь леса (MATK)
+    const expected = RACE_BASE_STATS.elf.matk + cls.matk + lb.atk;
     assert.strictEqual(avatarStats().matk, expected);
+    assert.strictEqual(passiveEffectMult("farmDamageMult", state.avatar), 1.03);
+    assert.ok(passiveSkillIdsGrantedToAvatar(state.avatar).indexOf("elf_blade") >= 0);
+    assert.ok(passiveSkillIdsGrantedToAvatar(state.avatar).indexOf("elf_song") < 0);
+  });
+
+  test("elf mystic gets song, not blade", () => {
+    const a = { raceId: "elf", classId: "mystic", level: 1, created: true };
+    const ids = passiveSkillIdsGrantedToAvatar(a);
+    assert.ok(ids.indexOf("elf_glade") >= 0);
+    assert.ok(ids.indexOf("elf_song") >= 0);
+    assert.ok(ids.indexOf("elf_blade") < 0);
+    assert.strictEqual(passiveEffectMult("farmDamageMult", a), 1.03);
+  });
+
+  test("elf scout / knight / ranger: fighter racials only", () => {
+    ["elven_scout", "elven_knight", "silver_ranger", "plainswalker"].forEach((pid) => {
+      const a = {
+        created: true,
+        raceId: "elf",
+        classId: "fighter",
+        level: 40,
+        professionId: pid,
+        professionTier: pid === "elven_scout" || pid === "elven_knight" ? 1 : 2,
+      };
+      const ids = passiveSkillIdsGrantedToAvatar(a);
+      assert.ok(ids.indexOf("elf_blade") >= 0, pid + " should have elf_blade");
+      assert.ok(ids.indexOf("elf_song") < 0, pid + " must not have elf_song");
+      assert.ok(ids.indexOf("elf_glade") >= 0, pid + " should have elf_glade");
+    });
   });
 
   test("passiveEffectMult: race handwriting numbers", () => {

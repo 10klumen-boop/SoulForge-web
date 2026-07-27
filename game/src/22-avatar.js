@@ -439,7 +439,7 @@ function renderAvatarNameStep() {
   if (summary && race && cls) {
     const racialSkills =
       typeof passiveSkillsRacialForRace === "function"
-        ? passiveSkillsRacialForRace(race.id, 1)
+        ? passiveSkillsRacialForRace(race.id, 1, _avatarSetupDraft.classId)
         : [];
     const passivesHtml = racialSkills
       .map((s) => {
