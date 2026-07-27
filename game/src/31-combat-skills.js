@@ -7,15 +7,19 @@ function syncMineSkillBtn(btn, skill) {
   const unlocked = isCombatSkillUnlocked(skill);
   const ready = unlocked && cd <= 0;
   btn.className =
-    "mine-skill-btn" + (ready ? "" : " on-cd") + (unlocked ? "" : " locked");
+    "mine-skill-btn" +
+    (ready ? " is-ready" : "") +
+    (cd > 0 ? " on-cd" : "") +
+    (unlocked ? "" : " locked");
   btn.disabled = !unlocked;
-  const keyHint = mineSkillBarIsMobile() ? "" : " [" + skill.hotkey + "]";
+  const keyHint = " [" + skill.hotkey + "]";
   btn.title =
     skill.name +
     keyHint +
     " · " +
     skill.desc +
     (unlocked ? "" : " · ур. " + skill.unlockLevel);
+
   let img = btn.querySelector("img");
   if (!img) {
     img = document.createElement("img");
@@ -25,15 +29,18 @@ function syncMineSkillBtn(btn, skill) {
   if (img.getAttribute("src") !== skill.icon) img.src = skill.icon;
 
   let keyEl = btn.querySelector(".mine-skill-key");
-  if (mineSkillBarIsMobile()) {
-    if (keyEl) keyEl.remove();
+  if (!keyEl) {
+    keyEl = document.createElement("span");
+    keyEl.className = "mine-skill-key";
+    btn.appendChild(keyEl);
+  }
+  keyEl.textContent = skill.hotkey;
+
+  const pct = typeof combatSkillCooldownPct === "function" ? combatSkillCooldownPct(skill) : 0;
+  if (pct > 0) {
+    btn.style.setProperty("--cd-pct", String(Math.round(pct * 1000) / 10));
   } else {
-    if (!keyEl) {
-      keyEl = document.createElement("span");
-      keyEl.className = "mine-skill-key";
-      btn.appendChild(keyEl);
-    }
-    keyEl.textContent = skill.hotkey;
+    btn.style.removeProperty("--cd-pct");
   }
 
   let cdEl = btn.querySelector(".mine-skill-cd");
@@ -67,13 +74,22 @@ function renderMineSkillBar() {
   if (!dock) {
     bar.innerHTML =
       '<div class="mine-skill-dock">' +
+      '<div class="mine-skill-toolbar">' +
       '<div class="mine-skill-drag" title="Перетащить плашку" aria-label="Перетащить"></div>' +
+      '<div class="mine-skill-scale" aria-label="Масштаб панели">' +
+      '<button type="button" class="mine-skill-scale-btn" data-scale="-" title="Уменьшить">−</button>' +
+      '<button type="button" class="mine-skill-scale-btn" data-scale="+" title="Увеличить">+</button>' +
+      "</div>" +
+      "</div>" +
       '<div class="mine-skill-bar-inner"></div>' +
       "</div>";
     dock = bar.querySelector(".mine-skill-dock");
     mineSkillBarDragBound = false;
+    mineSkillBarScaleBound = false;
     bindMineSkillBarDrag(bar);
+    if (typeof bindMineSkillBarScale === "function") bindMineSkillBarScale(bar);
   }
+  if (typeof applyMineSkillBarScale === "function") applyMineSkillBarScale(bar);
   applyMineSkillBarPos(bar);
   const inner = bar.querySelector(".mine-skill-bar-inner");
   if (!inner) return;
@@ -116,7 +132,7 @@ function renderAvatarSkillsPanel() {
     '<h4 class="avatar-skills-title">Боевые скиллы' +
     (className ? " · " + className : "") +
     "</h4>" +
-    '<p class="avatar-skills-hint">На поле задания · клавиши Q · E · R · F</p>' +
+    '<p class="avatar-skills-hint">На поле задания · клавиши Q · E · R · F · масштаб −/+ на панели</p>' +
     skills.map((s) => {
       const open = lvl >= s.unlockLevel;
       return (

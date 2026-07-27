@@ -12,6 +12,18 @@ function formatAutoClickerRemaining(ms) {
   return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
 }
 
+function autoClickerPacksSignature() {
+  const packs = typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER.packs : [];
+  return packs
+    .map((p) => {
+      const price = typeof autoClickerPackPrice === "function" ? autoClickerPackPrice(p) : p.price;
+      const can = typeof autoClickerCanBuyPack === "function" ? autoClickerCanBuyPack(p) : { ok: true };
+      const poor = (state.adena || 0) < price;
+      return p.id + ":" + price + ":" + (can.ok && !poor ? "1" : "0");
+    })
+    .join("|");
+}
+
 function autoClickerPacksButtonsHtml() {
   const packs = typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER.packs : [];
   const fmtA = typeof fmtAdena === "function" ? fmtAdena : (n) => String(n);
@@ -46,12 +58,36 @@ function autoClickerPacksButtonsHtml() {
 function wireAutoClickerBuyButtons(root) {
   if (!root) return;
   root.querySelectorAll(".auto-clicker-buy").forEach((btn) => {
-    btn.onclick = (e) => {
+    if (btn._sfBuyWired) return;
+    btn._sfBuyWired = true;
+    const fire = (e) => {
+      if (btn.disabled) return;
       e.preventDefault();
       e.stopPropagation();
       if (typeof buyAutoClickerPack === "function") buyAutoClickerPack(btn.dataset.pack);
     };
+    // pointerdown: HUD тикает часто — click теряется при перерисовке
+    btn.addEventListener("pointerdown", (e) => {
+      if (e.button != null && e.button !== 0) return;
+      fire(e);
+    });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
   });
+}
+
+function syncAutoClickerPackButtons(packsEl) {
+  if (!packsEl) return;
+  const sig = autoClickerPacksSignature();
+  if (packsEl.dataset.packSig === sig && packsEl.childElementCount) {
+    wireAutoClickerBuyButtons(packsEl);
+    return;
+  }
+  packsEl.dataset.packSig = sig;
+  packsEl.innerHTML = autoClickerPacksButtonsHtml();
+  wireAutoClickerBuyButtons(packsEl);
 }
 
 function renderAutoClickerPanel(opts) {
@@ -161,19 +197,21 @@ function renderAutoClickerHud() {
     hint.textContent = enabled ? "Вкл" : "Выкл";
   }
 
-  if (packsEl) {
-    packsEl.innerHTML = autoClickerPacksButtonsHtml();
-    wireAutoClickerBuyButtons(packsEl);
-  }
+  syncAutoClickerPackButtons(packsEl);
 
   if (!hud.dataset.wired) {
     hud.dataset.wired = "1";
-    hud.addEventListener("click", (e) => {
+    hud.addEventListener("pointerdown", (e) => {
+      if (e.button != null && e.button !== 0) return;
       e.preventDefault();
       e.stopPropagation();
       if (typeof autoClickerRemainingMs === "function" && autoClickerRemainingMs() <= 0) return;
       if (typeof toggleAutoClickerEnabled === "function") toggleAutoClickerEnabled();
       renderAutoClickerHud();
+    });
+    hud.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
     });
   }
 }

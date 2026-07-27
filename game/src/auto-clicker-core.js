@@ -321,10 +321,15 @@ function autoClickerTick() {
 
 function startAutoClickerLoop() {
   if (_autoClickerTimer) return;
+  let _hudTick = 0;
   _autoClickerTimer = setInterval(() => {
     try {
       autoClickerTick();
-      if (typeof renderAutoClickerHud === "function") renderAutoClickerHud();
+      // HUD раз в ~200мс: только таймер/классы; кнопки пакетов не пересоздаём зря
+      _hudTick += 1;
+      if (_hudTick % 4 === 0 && typeof renderAutoClickerHud === "function") {
+        renderAutoClickerHud();
+      }
     } catch (e) {
       console.error("autoClickerTick failed:", e);
     }

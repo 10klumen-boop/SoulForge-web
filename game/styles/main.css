@@ -4260,6 +4260,10 @@
   .story-backdrop.story-prelude-finale .story-title { color: var(--gold-soft); }
   .prelude-chaos-tease { margin-top: 10px; color: var(--text-dim); font-size: 13px; }
   .mine-skill-bar {
+    --mine-skill-scale: 1;
+    --mine-skill-slot: calc(52px * var(--mine-skill-scale));
+    --mine-skill-gap: calc(7px * var(--mine-skill-scale));
+    --mine-skill-ico: calc(40px * var(--mine-skill-scale));
     position: absolute;
     z-index: 40;
     left: 50%;
@@ -4273,102 +4277,205 @@
   }
   .mine-skill-bar[hidden] { display: none !important; }
   .mine-skill-dock {
+    --dock-gold: rgba(212, 175, 110, 0.55);
+    position: relative;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
-    padding: 5px 7px 7px;
-    border-radius: 12px;
-    border: 1px solid rgba(201,168,106,.38);
-    background: linear-gradient(180deg, rgba(30,22,14,.94), rgba(12,9,6,.97));
-    box-shadow: 0 12px 28px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+    gap: calc(6px * var(--mine-skill-scale));
+    padding: calc(10px * var(--mine-skill-scale)) calc(12px * var(--mine-skill-scale)) calc(11px * var(--mine-skill-scale));
+    border-radius: calc(8px * var(--mine-skill-scale));
+    border: 1px solid var(--dock-gold);
+    background: linear-gradient(180deg, rgba(22,16,10,.78) 0%, rgba(8,6,4,.88) 100%);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,.65),
+      0 12px 28px rgba(0,0,0,.55),
+      inset 0 1px 0 rgba(255,230,180,.08);
     user-select: none;
+    overflow: visible;
   }
-  .mine-skill-drag {
-    height: 11px;
-    border-radius: 6px;
-    cursor: grab;
-    touch-action: none;
-    background:
-      linear-gradient(90deg, transparent 12%, rgba(201,168,106,.22) 12%, rgba(201,168,106,.22) 88%, transparent 88%),
-      radial-gradient(circle at 30% 50%, rgba(201,168,106,.55) 1.2px, transparent 1.4px),
-      radial-gradient(circle at 50% 50%, rgba(201,168,106,.55) 1.2px, transparent 1.4px),
-      radial-gradient(circle at 70% 50%, rgba(201,168,106,.55) 1.2px, transparent 1.4px);
-    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-    opacity: 0.75;
+  .mine-skill-dock::before,
+  .mine-skill-dock::after {
+    content: "";
+    position: absolute;
+    width: calc(14px * var(--mine-skill-scale));
+    height: calc(14px * var(--mine-skill-scale));
+    pointer-events: none;
+    z-index: 1;
+    border-color: rgba(232, 207, 149, 0.8);
+    border-style: solid;
+    border-width: 0;
   }
-  .mine-skill-drag:active,
-  .mine-skill-bar.is-dragging .mine-skill-drag { cursor: grabbing; opacity: 1; }
-  .mine-skill-bar.is-dragging { z-index: 30; }
+  .mine-skill-dock::before {
+    top: -1px; left: -1px;
+    border-top-width: 2px;
+    border-left-width: 2px;
+    border-top-left-radius: calc(7px * var(--mine-skill-scale));
+  }
+  .mine-skill-dock::after {
+    bottom: -1px; right: -1px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+    border-bottom-right-radius: calc(7px * var(--mine-skill-scale));
+  }
+  .mine-skill-toolbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: calc(12px * var(--mine-skill-scale));
+    z-index: 2;
+  }
+  .mine-skill-toolbar::before {
+    content: "";
+    position: absolute;
+    top: calc(-11px * var(--mine-skill-scale));
+    right: calc(-13px * var(--mine-skill-scale));
+    width: calc(14px * var(--mine-skill-scale));
+    height: calc(14px * var(--mine-skill-scale));
+    pointer-events: none;
+    border-top: 2px solid rgba(232, 207, 149, 0.8);
+    border-right: 2px solid rgba(232, 207, 149, 0.8);
+    border-top-right-radius: calc(7px * var(--mine-skill-scale));
+  }
   .mine-skill-bar-inner {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 6px;
+    gap: var(--mine-skill-gap);
+  }
+  .mine-skill-bar-inner::after {
+    content: "";
+    position: absolute;
+    left: calc(-13px * var(--mine-skill-scale));
+    bottom: calc(-12px * var(--mine-skill-scale));
+    width: calc(14px * var(--mine-skill-scale));
+    height: calc(14px * var(--mine-skill-scale));
+    pointer-events: none;
+    border-bottom: 2px solid rgba(232, 207, 149, 0.8);
+    border-left: 2px solid rgba(232, 207, 149, 0.8);
+    border-bottom-left-radius: calc(7px * var(--mine-skill-scale));
+  }
+  .mine-skill-drag {
+    flex: 1;
+    height: calc(8px * var(--mine-skill-scale));
+    border-radius: 4px;
+    cursor: grab;
+    touch-action: none;
+    background:
+      radial-gradient(circle, rgba(201,168,106,.5) 1px, transparent 1.2px) 30% 50% / 100% 100% no-repeat,
+      radial-gradient(circle, rgba(201,168,106,.5) 1px, transparent 1.2px) 50% 50% / 100% 100% no-repeat,
+      radial-gradient(circle, rgba(201,168,106,.5) 1px, transparent 1.2px) 70% 50% / 100% 100% no-repeat;
+    opacity: 0.5;
+  }
+  .mine-skill-drag:active,
+  .mine-skill-bar.is-dragging .mine-skill-drag { cursor: grabbing; opacity: 1; }
+  .mine-skill-bar.is-dragging { z-index: 50; }
+  .mine-skill-scale { display: flex; gap: 2px; flex-shrink: 0; }
+  .mine-skill-scale-btn {
+    width: calc(20px * var(--mine-skill-scale));
+    height: calc(16px * var(--mine-skill-scale));
+    padding: 0;
+    border-radius: 3px;
+    border: 1px solid rgba(201,168,106,.32);
+    background: rgba(0,0,0,.35);
+    color: rgba(232,207,149,.9);
+    font: inherit;
+    font-size: calc(11px * var(--mine-skill-scale));
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .mine-skill-scale-btn:hover {
+    border-color: rgba(232,207,149,.7);
+    color: #f2e6c8;
+    background: rgba(201,168,106,.12);
   }
   .mine-skill-btn {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    border: 1px solid rgba(110,86,48,.7);
-    border-radius: 10px;
-    background: linear-gradient(180deg, rgba(36,26,16,.95), rgba(14,8,4,.92));
-    box-shadow: inset 0 1px 0 rgba(231,207,149,.08), 0 2px 8px rgba(0,0,0,.35);
+    width: var(--mine-skill-slot);
+    height: var(--mine-skill-slot);
+    padding: calc(3px * var(--mine-skill-scale));
+    border: 1px solid rgba(201,168,106,.4);
+    border-radius: calc(4px * var(--mine-skill-scale));
+    background: rgba(0,0,0,.55);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.5);
     color: var(--txt);
     cursor: pointer;
     flex-shrink: 0;
-    transition: border-color .15s, filter .15s, transform .1s;
+    overflow: hidden;
+    transition: border-color .15s, filter .15s, transform .1s, box-shadow .15s;
   }
   .mine-skill-btn:hover:not(:disabled) {
-    border-color: rgba(201,168,106,.55);
+    border-color: rgba(232,207,149,.75);
     filter: brightness(1.08);
   }
   .mine-skill-btn:active:not(:disabled) { transform: scale(.96); }
+  .mine-skill-btn.is-ready {
+    border-color: rgba(232,207,149,.7);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.45), 0 0 0 1px rgba(201,168,106,.15);
+  }
   .mine-skill-btn img {
-    width: 34px;
-    height: 34px;
-    border-radius: 6px;
+    position: relative;
+    z-index: 1;
+    width: var(--mine-skill-ico);
+    height: var(--mine-skill-ico);
+    border-radius: calc(2px * var(--mine-skill-scale));
+    object-fit: contain;
     flex-shrink: 0;
     pointer-events: none;
+    image-rendering: auto;
   }
-  .mine-skill-btn.on-cd { opacity: .85; }
-  .mine-skill-btn.locked { opacity: .4; cursor: not-allowed; }
+  .mine-skill-btn.on-cd { opacity: 1; }
+  .mine-skill-btn.locked {
+    opacity: 1;
+    cursor: not-allowed;
+    filter: grayscale(0.85) brightness(0.55);
+  }
+  .mine-skill-btn.locked img { opacity: 0.7; }
   .mine-skill-name { display: none !important; }
   .mine-skill-key {
     position: absolute;
-    top: 2px;
-    right: 2px;
-    z-index: 2;
-    min-width: 14px;
-    padding: 0 3px;
-    font-size: 9px;
-    font-weight: 800;
-    line-height: 1.35;
-    color: #1a120a;
+    top: 1px; right: 1px; z-index: 4;
+    min-width: calc(12px * var(--mine-skill-scale));
+    padding: 0 calc(2px * var(--mine-skill-scale));
+    font-size: calc(8px * var(--mine-skill-scale));
+    font-weight: 700;
+    line-height: 1.3;
+    color: rgba(242,230,200,.95);
     text-align: center;
-    border-radius: 3px;
-    border: 1px solid rgba(90,70,40,.55);
-    background: linear-gradient(180deg, #e7cf95, #c9a86a);
-    box-shadow: 0 1px 2px rgba(0,0,0,.45);
+    border-radius: 2px;
+    border: 0;
+    background: rgba(0,0,0,.62);
+    pointer-events: none;
   }
   .mine-skill-cd {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 9px;
-    font-size: 13px;
+    border-radius: inherit;
+    font-size: calc(14px * var(--mine-skill-scale));
     font-weight: 800;
-    color: #ffd0c0;
-    background: rgba(0,0,0,.5);
-    text-shadow: 0 1px 3px rgba(0,0,0,.9);
+    color: #ffe8c8;
+    background:
+      conic-gradient(
+        from 0deg,
+        rgba(0,0,0,.72) 0deg,
+        rgba(0,0,0,.72) calc(var(--cd-pct, 100) * 3.6deg),
+        rgba(0,0,0,.18) calc(var(--cd-pct, 100) * 3.6deg)
+      );
+    text-shadow: 0 1px 3px rgba(0,0,0,.95);
+    pointer-events: none;
   }
   .gnome.mob-shielded .mine-solo-card::before {
     content: "🛡";
@@ -8389,32 +8496,40 @@
       pointer-events: none;
     }
     .mine-skill-drag { display: none !important; }
-    .mine-skill-key { display: none !important; }
+    .mine-skill-toolbar { justify-content: flex-end; }
     .mine-skill-dock {
-      padding: 6px 8px;
-      border-radius: 12px;
+      padding: calc(6px * var(--mine-skill-scale)) calc(8px * var(--mine-skill-scale));
+      border-radius: calc(12px * var(--mine-skill-scale));
       pointer-events: auto;
     }
-    .mine-skill-bar-inner { gap: 8px; }
+    .mine-skill-bar-inner { gap: var(--mine-skill-gap); }
     .mine-skill-btn {
-      width: 56px;
-      height: 56px;
-      min-width: 56px;
-      min-height: 56px;
-      border-radius: 12px;
+      width: var(--mine-skill-slot);
+      height: var(--mine-skill-slot);
+      min-width: var(--mine-skill-slot);
+      min-height: var(--mine-skill-slot);
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      /* ????????? ???? ??????? ??? ??????????? ????? */
-      box-shadow: inset 0 1px 0 rgba(231,207,149,.08), 0 2px 8px rgba(0,0,0,.35);
     }
     .mine-skill-btn::before {
       content: "";
       position: absolute;
-      inset: -8px;
-      border-radius: 16px;
+      inset: calc(-8px * var(--mine-skill-scale));
+      border-radius: calc(16px * var(--mine-skill-scale));
+      z-index: 0;
+      background: none;
     }
-    .mine-skill-btn img { width: 36px; height: 36px; pointer-events: none; }
-    .mine-skill-cd { font-size: 14px; pointer-events: none; }
+    .mine-skill-btn img {
+      width: var(--mine-skill-ico);
+      height: var(--mine-skill-ico);
+      pointer-events: none;
+    }
+    .mine-skill-cd { pointer-events: none; }
+    .mine-skill-scale-btn {
+      min-width: 28px;
+      min-height: 24px;
+      touch-action: manipulation;
+    }
     .gnome.mine-solo .mine-solo-card {
       max-width: min(78vw, 200px);
     }

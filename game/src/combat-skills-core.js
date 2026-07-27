@@ -381,11 +381,70 @@ function useCombatSkill(skillId) {
 }
 
 const MINE_SKILL_BAR_POS_KEY = "sf_mine_skill_bar_pos_v1";
+const MINE_SKILL_BAR_SCALE_KEY = "sf_mine_skill_bar_scale_v1";
+const MINE_SKILL_BAR_SCALE_MIN = 0.75;
+const MINE_SKILL_BAR_SCALE_MAX = 1.5;
+const MINE_SKILL_BAR_SCALE_STEP = 0.1;
 let mineSkillBarDragBound = false;
+let mineSkillBarScaleBound = false;
 
 function mineSkillBarIsMobile() {
   return typeof window.matchMedia === "function" &&
     window.matchMedia("(max-width: 640px)").matches;
+}
+
+function clampMineSkillBarScale(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 1;
+  const stepped = Math.round(n / MINE_SKILL_BAR_SCALE_STEP) * MINE_SKILL_BAR_SCALE_STEP;
+  return Math.min(MINE_SKILL_BAR_SCALE_MAX, Math.max(MINE_SKILL_BAR_SCALE_MIN, Math.round(stepped * 100) / 100));
+}
+
+function readMineSkillBarScale() {
+  try {
+    const raw = localStorage.getItem(MINE_SKILL_BAR_SCALE_KEY);
+    if (raw == null || raw === "") return 1;
+    return clampMineSkillBarScale(Number(raw));
+  } catch (_) {
+    return 1;
+  }
+}
+
+function saveMineSkillBarScale(scale) {
+  try {
+    localStorage.setItem(MINE_SKILL_BAR_SCALE_KEY, String(clampMineSkillBarScale(scale)));
+  } catch (_) {}
+}
+
+function applyMineSkillBarScale(bar) {
+  if (!bar) bar = document.getElementById("mineSkillBar");
+  if (!bar) return;
+  const scale = readMineSkillBarScale();
+  bar.style.setProperty("--mine-skill-scale", String(scale));
+}
+
+function nudgeMineSkillBarScale(dir) {
+  const next = clampMineSkillBarScale(readMineSkillBarScale() + (dir < 0 ? -MINE_SKILL_BAR_SCALE_STEP : MINE_SKILL_BAR_SCALE_STEP));
+  saveMineSkillBarScale(next);
+  applyMineSkillBarScale();
+  const bar = document.getElementById("mineSkillBar");
+  if (bar && !mineSkillBarIsMobile()) clampMineSkillBarToField(bar);
+  return next;
+}
+
+function combatSkillEffectiveCdMs(skill) {
+  if (!skill) return 1;
+  let cdMs = Number(skill.cdMs) || 1;
+  if (typeof passiveEffectMult === "function") {
+    cdMs = Math.max(500, Math.round(cdMs * passiveEffectMult("skillCdMult", state.avatar)));
+  }
+  return Math.max(1, cdMs);
+}
+
+function combatSkillCooldownPct(skill) {
+  const left = combatSkillCooldownLeft(skill?.id);
+  if (left <= 0) return 0;
+  return Math.min(1, left / combatSkillEffectiveCdMs(skill));
 }
 
 function clearMineSkillBarInlinePos(bar) {
@@ -462,6 +521,25 @@ function clampMineSkillBarToField(bar) {
   bar.style.right = "auto";
   bar.style.transform = "translateX(-50%)";
   saveMineSkillBarPos(leftPct, bottomPct);
+}
+
+function bindMineSkillBarScale(bar) {
+  if (!bar || mineSkillBarScaleBound) return;
+  const scaleEl = bar.querySelector(".mine-skill-scale");
+  if (!scaleEl) return;
+  mineSkillBarScaleBound = true;
+  scaleEl.addEventListener("pointerdown", (e) => {
+    const btn = e.target && e.target.closest ? e.target.closest("[data-scale]") : null;
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const dir = btn.getAttribute("data-scale") === "-" ? -1 : 1;
+    nudgeMineSkillBarScale(dir);
+  });
+  scaleEl.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
 }
 
 function bindMineSkillBarDrag(bar) {
