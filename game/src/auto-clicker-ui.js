@@ -12,6 +12,48 @@ function formatAutoClickerRemaining(ms) {
   return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
 }
 
+function autoClickerPacksButtonsHtml() {
+  const packs = typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER.packs : [];
+  const fmtA = typeof fmtAdena === "function" ? fmtAdena : (n) => String(n);
+  return packs
+    .map((p) => {
+      const price = typeof autoClickerPackPrice === "function" ? autoClickerPackPrice(p) : p.price;
+      const can = typeof autoClickerCanBuyPack === "function" ? autoClickerCanBuyPack(p) : { ok: true };
+      const poor = (state.adena || 0) < price;
+      const disabled = !can.ok || poor;
+      const title = !can.ok
+        ? can.reason || "Недоступно"
+        : poor
+          ? "Не хватает adena"
+          : p.label + " · " + fmtA(price);
+      return (
+        '<button type="button" class="mine-autoclicker-buy auto-clicker-buy"' +
+        (disabled ? " disabled" : "") +
+        ' data-pack="' +
+        p.id +
+        '" title="' +
+        title.replace(/"/g, "&quot;") +
+        '">' +
+        p.label +
+        " · " +
+        fmtA(price) +
+        "</button>"
+      );
+    })
+    .join("");
+}
+
+function wireAutoClickerBuyButtons(root) {
+  if (!root) return;
+  root.querySelectorAll(".auto-clicker-buy").forEach((btn) => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof buyAutoClickerPack === "function") buyAutoClickerPack(btn.dataset.pack);
+    };
+  });
+}
+
 function renderAutoClickerPanel(opts) {
   opts = opts || {};
   const root = document.getElementById("autoClickerPanel");
@@ -25,56 +67,47 @@ function renderAutoClickerPanel(opts) {
   }
   root.hidden = false;
   const rem = typeof autoClickerRemainingMs === "function" ? autoClickerRemainingMs() : 0;
-  const active = typeof autoClickerIsActive === "function" ? autoClickerIsActive() : false;
   const enabled = state.autoClicker?.enabled !== false;
-  const packs = typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER.packs : [];
-  const maxMs = typeof autoClickerMaxStackMs === "function"
-    ? autoClickerMaxStackMs()
-    : (AUTO_CLICKER?.maxStackMs || 0);
+  const maxMs =
+    typeof autoClickerMaxStackMs === "function"
+      ? autoClickerMaxStackMs()
+      : AUTO_CLICKER?.maxStackMs || 0;
   const maxH = maxMs > 0 ? Math.round(maxMs / 3600000) : 0;
-  const fmtA = typeof fmtAdena === "function" ? fmtAdena : (n) => String(n);
   const status = opts.status
-    ? '<p class="avatar-boost-status avatar-boost-status--' + (opts.statusKind || "ok") + '">' + opts.status + "</p>"
+    ? '<p class="avatar-boost-status avatar-boost-status--' +
+      (opts.statusKind || "ok") +
+      '">' +
+      opts.status +
+      "</p>"
     : "";
-
-  const packsHtml = packs.map((p) => {
-    const price = typeof autoClickerPackPrice === "function" ? autoClickerPackPrice(p) : p.price;
-    const can = typeof autoClickerCanBuyPack === "function" ? autoClickerCanBuyPack(p) : { ok: true };
-    const disabled = !can.ok;
-    return '<button type="button" class="btn btn-primary btn-sm auto-clicker-buy"' +
-      (disabled ? " disabled" : "") +
-      ' data-pack="' + p.id + '">' +
-      p.label + " · " + fmtA(price) + "</button>";
-  }).join("");
 
   root.innerHTML =
     '<div class="avatar-boost-head">' +
-      '<img class="avatar-boost-ico" src="' + AUTO_CLICKER_ICON + '" alt="" width="40" height="40">' +
-      '<div class="avatar-boost-titles">' +
-        "<b>Автоудар</b>" +
-        '<span class="avatar-boost-meta">' +
-          (rem > 0 ? formatAutoClickerRemaining(rem) + (enabled ? " · вкл" : " · пауза") : "не куплен") +
-          (maxH > 0 ? " · макс. " + maxH + " ч" : "") +
-        "</span>" +
-      "</div>" +
+    '<img class="avatar-boost-ico" src="' +
+    AUTO_CLICKER_ICON +
+    '" alt="" width="40" height="40">' +
+    '<div class="avatar-boost-titles">' +
+    "<b>Автоудар</b>" +
+    '<span class="avatar-boost-meta">' +
+    (rem > 0
+      ? formatAutoClickerRemaining(rem) + (enabled ? " · вкл" : " · пауза")
+      : "не куплен") +
+    (maxH > 0 ? " · макс. " + maxH + " ч" : "") +
+    "</span>" +
     "</div>" +
-    '<p class="avatar-boost-line">Бьёт цели на поле задания, пока действует таймер. Цена растёт с главой зоны. Стак до ' +
-      (maxH > 0 ? maxH + " ч" : "лимита") + ".</p>" +
+    "</div>" +
+    '<p class="avatar-boost-line">Пакеты 15/30/60 мин — в окне боя на поле задания (рядом с Вкл/Выкл). Цена растёт с главой. Стак до ' +
+    (maxH > 0 ? maxH + " ч" : "лимита") +
+    ".</p>" +
     status +
-    '<div class="avatar-boost-actions auto-clicker-packs">' + packsHtml + "</div>" +
     (rem > 0
       ? '<div class="avatar-boost-actions">' +
-          '<button type="button" class="btn btn-ghost btn-sm" id="autoClickerToggleBtn">' +
-            (enabled ? "Выключить" : "Включить") +
-          "</button>" +
+        '<button type="button" class="btn btn-ghost btn-sm" id="autoClickerToggleBtn">' +
+        (enabled ? "Выключить" : "Включить") +
+        "</button>" +
         "</div>"
       : "");
 
-  root.querySelectorAll(".auto-clicker-buy").forEach((btn) => {
-    btn.onclick = () => {
-      if (typeof buyAutoClickerPack === "function") buyAutoClickerPack(btn.dataset.pack);
-    };
-  });
   const toggle = document.getElementById("autoClickerToggleBtn");
   if (toggle) {
     toggle.onclick = () => {
@@ -84,31 +117,54 @@ function renderAutoClickerPanel(opts) {
 }
 
 function renderAutoClickerHud() {
+  const row = document.getElementById("mineAutoClickerRow");
   const hud = document.getElementById("mineAutoClickerHud");
-  if (!hud) return;
+  const packsEl = document.getElementById("mineAutoClickerPacks");
+  if (!row || !hud) return;
   if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
   if (typeof clampAutoClickerToMax === "function") clampAutoClickerToMax();
   if (typeof autoClickerBlockedInCurrentMine === "function" && autoClickerBlockedInCurrentMine()) {
-    hud.hidden = true;
+    row.hidden = true;
     return;
   }
+  if (!state.avatar?.created) {
+    row.hidden = true;
+    return;
+  }
+
   const rem = typeof autoClickerRemainingMs === "function" ? autoClickerRemainingMs() : 0;
   const active = typeof autoClickerIsActive === "function" ? autoClickerIsActive() : false;
   const enabled = state.autoClicker?.enabled !== false;
-  if (rem <= 0) {
-    hud.hidden = true;
-    return;
-  }
+
+  row.hidden = false;
   hud.hidden = false;
   hud.classList.toggle("is-on", !!active);
   hud.classList.toggle("is-paused", rem > 0 && !enabled);
+  hud.classList.toggle("is-empty", rem <= 0);
   hud.setAttribute("aria-pressed", active ? "true" : "false");
-  hud.title = enabled ? "Нажми, чтобы выключить автоудар" : "Нажми, чтобы включить автоудар";
+  hud.disabled = rem <= 0;
+  hud.title =
+    rem <= 0
+      ? "Купи пакет справа, чтобы запустить автоудар"
+      : enabled
+        ? "Нажми, чтобы выключить автоудар"
+        : "Нажми, чтобы включить автоудар";
 
   const label = document.getElementById("mineAutoClickerLabel");
   const hint = document.getElementById("mineAutoClickerToggleHint");
-  if (label) label.textContent = "Автоудар " + formatAutoClickerRemaining(rem);
-  if (hint) hint.textContent = enabled ? "Вкл" : "Выкл";
+  if (label) {
+    label.textContent =
+      rem > 0 ? "Автоудар " + formatAutoClickerRemaining(rem) : "Автоудар";
+  }
+  if (hint) {
+    hint.hidden = rem <= 0;
+    hint.textContent = enabled ? "Вкл" : "Выкл";
+  }
+
+  if (packsEl) {
+    packsEl.innerHTML = autoClickerPacksButtonsHtml();
+    wireAutoClickerBuyButtons(packsEl);
+  }
 
   if (!hud.dataset.wired) {
     hud.dataset.wired = "1";

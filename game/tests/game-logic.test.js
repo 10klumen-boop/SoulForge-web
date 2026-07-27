@@ -209,9 +209,10 @@ function runTests() {
     assert.strictEqual(s.farmBonus, 0);
   });
 
-  test("avatarStats: orc farmBonus, dwarf no mine flat, elf fighter no matk racial", () => {
+  test("avatarStats: orc farm damage %, dwarf no mine flat, elf fighter no matk racial", () => {
     state.avatar = { raceId: "orc", classId: "fighter", level: 1, gear: { weapon: null } };
-    assert.strictEqual(avatarStats().farmBonus, 1);
+    assert.strictEqual(avatarStats().farmBonus, 0);
+    assert.strictEqual(passiveEffectMult("farmDamageMult", state.avatar), 1.03);
     state.avatar = { raceId: "dwarf", classId: "fighter", level: 1, gear: { weapon: null } };
     assert.strictEqual(avatarStats().farmBonus, 0);
     state.avatar = { raceId: "elf", classId: "fighter", level: 1, gear: { weapon: null } };
@@ -261,7 +262,8 @@ function runTests() {
     assert.strictEqual(passiveEffectSum("enchantChanceAdd", "dwarf"), 0.004);
     assert.strictEqual(passiveEffectSum("enchantChanceAdd", "human"), 0);
     assert.strictEqual(passiveEffectSum("zoneRaceBonusFloor", "human"), 0.04);
-    assert.strictEqual(passiveEffectSum("farmBonus", "orc"), 1);
+    assert.strictEqual(passiveEffectSum("farmBonus", "orc"), 0);
+    assert.strictEqual(passiveEffectMult("farmDamageMult", "orc"), 1.03);
   });
 
   test("avatarIsMystic reflects classId", () => {

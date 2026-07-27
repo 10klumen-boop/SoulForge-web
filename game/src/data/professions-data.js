@@ -38,8 +38,10 @@ const STARTER_WEAPON_CATS = {
   shaman: ["Blunt"],
 };
 
-/** Множитель урона/DEF при совпадении armorPref (≥2 куска нужного kind). */
+/** Множитель урона/DEF при совпадении armorPref (полный комплект kind — 5 кусков). */
 const ARMOR_AFFINITY_MULT = 1.06;
+/** Минимум кусков одного kind для сродства брони. */
+const ARMOR_AFFINITY_MIN_PIECES = 5;
 /** Множитель DEF кусков/листа при чужом kind брони (фарм + арена). */
 const OFF_ARMOR_DEF_MULT = 0.42;
 

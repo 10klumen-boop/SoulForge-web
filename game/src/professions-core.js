@@ -319,9 +319,11 @@ function migrateAvatarProfessionFields(next) {
   return next;
 }
 
-/** Доминирующий kind экипированной брони (≥2 куска одного kind). */
+/** Доминирующий kind экипированной брони (полный комплект одного kind). */
 function avatarEquippedArmorKind() {
   if (typeof iterEquippedGear !== "function" || typeof ARMOR_SETS === "undefined") return null;
+  const need =
+    typeof ARMOR_AFFINITY_MIN_PIECES === "number" ? ARMOR_AFFINITY_MIN_PIECES : 5;
   const counts = {};
   let total = 0;
   iterEquippedGear().forEach(({ item }) => {
@@ -334,7 +336,7 @@ function avatarEquippedArmorKind() {
     counts[kind] = (counts[kind] || 0) + 1;
     total++;
   });
-  if (total < 2) return null;
+  if (total < need) return null;
   let best = null;
   let bestN = 0;
   Object.keys(counts).forEach((k) => {
@@ -343,7 +345,7 @@ function avatarEquippedArmorKind() {
       best = k;
     }
   });
-  return bestN >= 2 ? best : null;
+  return bestN >= need ? best : null;
 }
 
 function avatarArmorAffinityActive(avatar) {
@@ -378,7 +380,7 @@ function armorAffinityHintLine(avatar) {
           "» — DEF ×0.42, без бонусов сета (фарм/арена)"
       );
     } else {
-      lines.push("Сродство брони: ≥2 шт. («" + label + "») — урон/DEF и бонусы сета");
+      lines.push("Сродство брони: 5/5 («" + label + "») — урон/DEF и бонусы сета");
     }
   }
   const cats = professionWeaponCats(avatar);

@@ -410,7 +410,7 @@
     });
 
     const knobs = [
-      { group: "Affinity", key: "ARMOR_AFFINITY_MULT", value: ARMOR_AFFINITY_MULT, note: "≥2 куска pref" },
+      { group: "Affinity", key: "ARMOR_AFFINITY_MULT", value: ARMOR_AFFINITY_MULT, note: "5/5 кусков pref" },
       { group: "Affinity", key: "WEAPON_MASTERY_MULT", value: WEAPON_MASTERY_MULT, note: "" },
       { group: "Affinity", key: "OFF / HYBRID", value: WEAPON_AFFINITY_OFF_MULT + " / " + WEAPON_AFFINITY_HYBRID_MULT, note: "" },
       {

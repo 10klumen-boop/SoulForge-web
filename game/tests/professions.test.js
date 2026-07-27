@@ -400,14 +400,20 @@ test("armor affinity active when kind matches", () => {
   };
   global.isArmorItem = (it) => !!it && it.kind === "armor";
   global.armorItemDef = (it) => ({ setId: it.setId });
-  global.iterEquippedGear = () => [
-    { item: { kind: "armor", setId: "mithril" } },
-    { item: { kind: "armor", setId: "mithril" } },
-  ];
+  const fiveHeavy = () =>
+    Array.from({ length: 5 }, () => ({ item: { kind: "armor", setId: "mithril" } }));
+  global.iterEquippedGear = fiveHeavy;
   const a = { classId: "fighter", professionId: null };
   assert.strictEqual(avatarEquippedArmorKind(), "heavy");
   assert.ok(avatarArmorAffinityActive(a));
   assert.strictEqual(avatarArmorAffinityMult(a), ARMOR_AFFINITY_MULT);
+
+  global.iterEquippedGear = () => [
+    { item: { kind: "armor", setId: "mithril" } },
+    { item: { kind: "armor", setId: "mithril" } },
+  ];
+  assert.strictEqual(avatarEquippedArmorKind(), null, "2/5 не достаточно");
+  assert.ok(!avatarArmorAffinityActive(a));
 
   global.iterEquippedGear = () => [
     { item: { kind: "armor", setId: "mithril" } },
@@ -435,16 +441,12 @@ test("rogue / hawkeye prefer light armor", () => {
   };
   global.isArmorItem = (it) => !!it && it.kind === "armor";
   global.armorItemDef = (it) => ({ setId: it.setId });
-  global.iterEquippedGear = () => [
-    { item: { kind: "armor", setId: "manticore" } },
-    { item: { kind: "armor", setId: "manticore" } },
-  ];
+  global.iterEquippedGear = () =>
+    Array.from({ length: 5 }, () => ({ item: { kind: "armor", setId: "manticore" } }));
   const rogue = { classId: "fighter", professionId: "rogue", professionTier: 1 };
   assert.ok(avatarArmorAffinityActive(rogue));
-  global.iterEquippedGear = () => [
-    { item: { kind: "armor", setId: "mithril" } },
-    { item: { kind: "armor", setId: "mithril" } },
-  ];
+  global.iterEquippedGear = () =>
+    Array.from({ length: 5 }, () => ({ item: { kind: "armor", setId: "mithril" } }));
   assert.ok(!avatarArmorAffinityActive(rogue));
   const ids = passiveSkillIdsGrantedToAvatar({
     raceId: "human",

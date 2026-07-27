@@ -1991,17 +1991,26 @@
   }
   .tile .tile-badge[hidden] { display: none !important; }
 
-  /* ??????? / ????: ????? ?????, ???? ??????? */
+  /* История / Фарм / ВБ: герой скрыт, хаб растянут */
   #screen-menu[data-hub-mode="story"] .hero,
-  #screen-menu[data-hub-mode="farm"] .hero {
+  #screen-menu[data-hub-mode="farm"] .hero,
+  #screen-menu[data-hub-mode="worldboss"] .hero {
     display: none;
   }
   #screen-menu[data-hub-mode="story"] .story-arc-bar,
-  #screen-menu[data-hub-mode="farm"] .story-arc-bar {
+  #screen-menu[data-hub-mode="farm"] .story-arc-bar,
+  #screen-menu[data-hub-mode="worldboss"] .story-arc-bar {
+    display: none;
+  }
+  /* Во вложенном хабе — только ← Назад, без «Главное меню» рядом */
+  #screen-menu[data-hub-mode="story"] .hub-top-row,
+  #screen-menu[data-hub-mode="farm"] .hub-top-row,
+  #screen-menu[data-hub-mode="worldboss"] .hub-top-row {
     display: none;
   }
   #screen-menu[data-hub-mode="story"] .farm-hub,
-  #screen-menu[data-hub-mode="farm"] .farm-hub {
+  #screen-menu[data-hub-mode="farm"] .farm-hub,
+  #screen-menu[data-hub-mode="worldboss"] .farm-hub {
     margin-top: 8px;
     flex: 1 1 auto;
     min-height: 0;
@@ -4426,17 +4435,25 @@
   }
   .btn-sm { padding: 8px 12px; font-size: 13px; border-radius: 10px; flex: 0 0 auto; }
   .auto-clicker-packs { margin-bottom: 6px; }
+  .mine-autoclicker-row {
+    display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px 8px;
+    margin: 0 12px 8px; width: calc(100% - 24px); box-sizing: border-box;
+  }
   .mine-autoclicker-hud {
     display: flex; align-items: center; gap: 8px;
-    margin: 0 12px 8px; padding: 6px 10px; border-radius: 8px;
+    margin: 0; padding: 6px 10px; border-radius: 8px;
     background: rgba(0,0,0,.35); border: 1px solid var(--edge2);
     color: var(--gold-soft); font-family: inherit; font-size: 12px; font-weight: 600;
-    cursor: pointer; width: calc(100% - 24px);
+    cursor: pointer; flex: 1 1 160px; min-width: 0;
     box-sizing: border-box; text-align: left;
   }
-  .mine-autoclicker-hud:hover { border-color: rgba(201,168,106,.45); }
+  .mine-autoclicker-hud:disabled {
+    cursor: default; opacity: .85;
+  }
+  .mine-autoclicker-hud:hover:not(:disabled) { border-color: rgba(201,168,106,.45); }
   .mine-autoclicker-hud.is-on { color: #9be6a6; border-color: rgba(155,230,166,.35); }
   .mine-autoclicker-hud.is-paused { color: #e8b06a; border-color: rgba(232,176,106,.35); opacity: .92; }
+  .mine-autoclicker-hud.is-empty { color: var(--txt-dim); }
   .mine-autoclicker-ico { width: 22px; height: 22px; object-fit: contain; image-rendering: auto; flex-shrink: 0; }
   .mine-autoclicker-label { flex: 1; min-width: 0; font-variant-numeric: tabular-nums; }
   .mine-autoclicker-toggle {
@@ -4450,6 +4467,25 @@
   }
   .mine-autoclicker-hud.is-paused .mine-autoclicker-toggle {
     background: rgba(232,176,106,.12); border-color: rgba(232,176,106,.3);
+  }
+  .mine-autoclicker-packs {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch;
+    flex: 2 1 220px; min-width: 0;
+  }
+  .mine-autoclicker-buy {
+    flex: 1 1 auto; min-width: 72px; padding: 6px 8px;
+    border-radius: 8px; font: inherit; font-size: 11px; font-weight: 700;
+    color: var(--gold-soft); cursor: var(--cursor-l2);
+    border: 1px solid rgba(201,168,106,.32);
+    background: linear-gradient(180deg, #3a1c18, #1a0c0a);
+    white-space: nowrap;
+  }
+  .mine-autoclicker-buy:hover:not(:disabled) {
+    border-color: rgba(232,207,149,.65);
+    filter: brightness(1.08);
+  }
+  .mine-autoclicker-buy:disabled {
+    opacity: .45; cursor: default; filter: none;
   }
   .passive-earn {
     display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
@@ -5686,11 +5722,16 @@
     margin: 0 0 8px;
   }
   .farm-field-back {
-    width: 32px; height: 32px; flex-shrink: 0;
-    border-radius: 8px; font: inherit; font-size: 16px; line-height: 1;
+    width: auto; min-width: 32px; height: 34px; flex-shrink: 0;
+    padding: 0 12px;
+    border-radius: 8px; font: inherit; font-size: 12px; font-weight: 700; line-height: 1;
     color: var(--gold-soft); cursor: var(--cursor-l2);
-    border: 1px solid rgba(201,168,106,.28);
-    background: rgba(0,0,0,.28);
+    border: 1px solid rgba(201,168,106,.35);
+    background: linear-gradient(180deg, #2a2014, #161008);
+  }
+  .farm-field-back:hover {
+    border-color: var(--gold);
+    filter: brightness(1.08);
   }
   .farm-field-head {
     margin: 0; padding: 0 2px;
@@ -6837,25 +6878,97 @@
     margin-bottom: 12px;
   }
   .farm-zone-chip {
-    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
-    padding: 14px 14px 12px; border-radius: 12px; min-height: 108px;
-    border: 1px solid rgba(201,168,106,.22); background: rgba(12,9,6,.55);
-    cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%;
+    position: relative;
+    isolation: isolate;
+    display: block;
+    padding: 0;
+    border-radius: 12px;
+    min-height: 148px;
+    overflow: hidden;
+    border: 1px solid rgba(201,168,106,.28);
+    background: #0c0906;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    width: 100%;
     transition: border-color .15s, transform .15s, box-shadow .15s;
   }
-  .farm-zone-chip:hover { border-color: rgba(201,168,106,.45); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.35); }
-  .farm-zone-chip img { width: 56px; height: 56px; object-fit: contain; border-radius: 8px; flex-shrink: 0; image-rendering: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,.45)); }
-  .farm-zone-chip strong { display: block; font-size: 14px; color: var(--gold-soft); line-height: 1.25; font-family: var(--font-display); font-weight: 600; }
-  .farm-zone-chip small {
-    font-size: 12px; color: var(--txt-dim); line-height: 1.35;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  .farm-zone-chip:hover {
+    border-color: rgba(201,168,106,.55);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0,0,0,.4);
   }
-  .farm-zone-chip.sel { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(201,168,106,.25), 0 6px 16px rgba(0,0,0,.3); background: rgba(201,168,106,.1); }
-  .farm-zone-chip.ok { border-color: rgba(120,200,120,.3); }
-  .farm-zone-chip.rec:not(.sel) { border-color: rgba(201,168,106,.55); box-shadow: 0 0 12px rgba(201,168,106,.14); }
+  .farm-zone-chip-art {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+    pointer-events: none;
+    transform: scale(1.22);
+    image-rendering: auto;
+  }
+  .farm-zone-chip-veil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(6,4,3,.18) 0%, rgba(6,4,3,.42) 42%, rgba(6,4,3,.88) 100%),
+      linear-gradient(90deg, rgba(6,4,3,.55) 0%, rgba(6,4,3,.12) 55%, rgba(6,4,3,.35) 100%);
+  }
+  .farm-zone-chip-body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 4px;
+    min-height: 148px;
+    padding: 12px 12px 10px;
+    box-sizing: border-box;
+  }
+  .farm-zone-chip strong {
+    display: block;
+    font-size: 14px;
+    color: #f2e6c8;
+    line-height: 1.25;
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0,0,0,.85);
+  }
+  .farm-zone-chip small {
+    font-size: 12px;
+    color: rgba(232, 220, 190, 0.86);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  }
+  .farm-zone-chip.sel {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px rgba(201,168,106,.35), 0 8px 20px rgba(0,0,0,.4), 0 0 18px rgba(201,168,106,.18);
+  }
+  .farm-zone-chip.ok { border-color: rgba(120,200,120,.4); }
+  .farm-zone-chip.rec:not(.sel) {
+    border-color: rgba(201,168,106,.6);
+    box-shadow: 0 0 14px rgba(201,168,106,.18);
+  }
   .farm-zone-chip.rec strong::after { content: " \2605"; color: var(--gold); font-size: 11px; } /* ★ */
-  .farm-zone-chip.lock { opacity: .82; }
-  .farm-zone-chip.soon { opacity: .5; cursor: not-allowed; }
+  .farm-zone-chip.lock .farm-zone-chip-veil {
+    background:
+      linear-gradient(180deg, rgba(8,6,5,.45) 0%, rgba(8,6,5,.72) 45%, rgba(8,6,5,.92) 100%);
+  }
+  .farm-zone-chip.soon {
+    opacity: .72;
+    cursor: not-allowed;
+  }
+  .farm-zone-chip.soon .farm-zone-chip-art { filter: grayscale(.35) brightness(.7); }
   .farm-zone-chip.story-done strong::after { content: " \2713"; color: var(--gold); font-size: 12px; } /* ✓ */
   .farm-hub-story-actions {
     display: grid;
@@ -6988,8 +7101,9 @@
     .hero-cycle { display: none; }
     .hero h1 { font-size: clamp(24px, 4vw, 32px); }
     .farm-zone-list { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-    .farm-zone-chip { min-height: 96px; padding: 12px; }
-    .farm-zone-chip img { width: 48px; height: 48px; }
+    .farm-zone-chip,
+    .farm-zone-chip-body { min-height: 128px; }
+    .farm-zone-chip-body { padding: 10px; }
   }
   .avatar-farm-hint { font-size: 11px; color: var(--txt-dim); margin: 0; line-height: 1.4; }
   .dev-avatar-xp {

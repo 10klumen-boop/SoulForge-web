@@ -58,7 +58,7 @@
   {
     "file": "racial_orc_hand.png",
     "name": "Тяжёлая рука",
-    "briefly": "Чуть сильнее бьёт во время охоты на монстров (+1 к силе удара во время охоты на монстров)",
+    "briefly": "+3% урона во время охоты на монстров",
     "tier": "race",
     "group": "orc",
     "prompt": "Lineage 2 classic UI skill icon, perfect square 1:1 composition, dark fantasy game UI, ornate bronze-gold frame fully visible with margin inside, centered symbol, clean readable silhouette, no text, no watermark, not photorealistic, single icon only, no collage, no grid, orc heavy hand, massive war axe with Paagrio ember glow, plateau warrior strength"

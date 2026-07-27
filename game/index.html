@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m161" />
+<link rel="stylesheet" href="styles/main.css?v=m164" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d15" />
 <link rel="stylesheet" href="styles/sf-ui.css?v=48" />
 <script src="cloud-config.js"></script>
@@ -274,6 +274,14 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.56.3</p>
+        <ul>
+          <li><b>Автоудар</b> — пакеты 15/30/60 мин покупаются в окне боя рядом с Вкл/Выкл.</li>
+          <li><b>Фарм / История</b> — карточки зон с фоном локации (как у мирового босса).</li>
+          <li><b>Броня</b> — soft-сродство kind только при полном сете 5/5.</li>
+          <li><b>Орк</b> — «Тяжёлая рука» даёт +3% урона фарма (не плоский +1).</li>
+          <li><b>UI</b> — «← Назад» в полях не пересекается с «Главное меню».</li>
+        </ul>
         <p class="patch-ver">v0.56.0</p>
         <ul>
           <li>Создание персонажа: рамка login/home, расы/класс/пол, расовые пассивки</li>
@@ -343,7 +351,7 @@
         </ul>
         <p class="patch-ver">v0.49.20</p>
         <ul>
-          <li><b>Арена</b> — классовые пассивки брони дают PvP-статы при сродстве (≥2 куска своего kind).</li>
+          <li><b>Арена</b> — классовые пассивки брони дают PvP-статы при сродстве (5/5 своего kind).</li>
         </ul>
         <p class="patch-ver">v0.49.19</p>
         <ul>
@@ -461,7 +469,7 @@
         <ul>
           <li><b>Классы</b> — мягкая лестница профессий: 1-я на ур. 10, 2-я на ур. 20; иконки веток с masterwork.wiki.</li>
           <li><b>Шаман</b> — свой боевой kit; классовые пассивы у воина/мистика/шамана.</li>
-          <li><b>Броня</b> — soft-сродство heavy/light/robe (+6% урон/DEF при ≥2 кусках).</li>
+          <li><b>Броня</b> — soft-сродство heavy/light/robe (+6% урон/DEF при 5/5 кусках).</li>
         </ul>
         <p class="patch-ver">v0.45.6</p>
         <ul>
@@ -810,7 +818,7 @@
 
         <section class="farm-field" id="storyField" aria-label="История" hidden>
           <div class="farm-field-head-row">
-            <button type="button" class="farm-field-back" id="storyFieldBack" title="Назад">←</button>
+            <button type="button" class="farm-field-back" id="storyFieldBack" title="Назад к выбору">← Назад</button>
             <div class="farm-field-head">История</div>
           </div>
           <div class="farm-zone-list" id="storyZoneList"></div>
@@ -843,7 +851,7 @@
 
         <section class="farm-field" id="farmField" aria-label="Фарм" hidden>
           <div class="farm-field-head-row">
-            <button type="button" class="farm-field-back" id="farmFieldBack" title="Назад">←</button>
+            <button type="button" class="farm-field-back" id="farmFieldBack" title="Назад к выбору">← Назад</button>
             <div class="farm-field-head">Фарм</div>
           </div>
           <div class="farm-zone-list" id="freeFarmZoneList"></div>
@@ -860,7 +868,7 @@
 
         <section class="farm-field" id="worldBossField" aria-label="Мировой босс" hidden>
           <div class="farm-field-head-row">
-            <button type="button" class="farm-field-back" id="worldBossFieldBack" title="Назад">←</button>
+            <button type="button" class="farm-field-back" id="worldBossFieldBack" title="Назад к выбору">← Назад</button>
             <div class="farm-field-head">Мировой босс</div>
           </div>
           <div class="world-boss-hub sf-scroll" id="worldBossHubBody"></div>
@@ -1225,11 +1233,14 @@
       <div class="mine-session-loot" id="mineSessionLoot" hidden aria-label="Дроп за сессию"></div>
       <div class="mine-resource-fav" id="mineResourceFav" hidden aria-label="Избранное для дофарма"></div>
       <div class="mine-quest-hud" id="mineQuestHud" hidden></div>
-      <button type="button" class="mine-autoclicker-hud" id="mineAutoClickerHud" hidden title="Вкл / выкл автоудар" aria-pressed="false">
-        <img class="mine-autoclicker-ico" src="icons/auto_strike.png?v=1" alt="" aria-hidden="true">
-        <span class="mine-autoclicker-label" id="mineAutoClickerLabel">Автоудар</span>
-        <span class="mine-autoclicker-toggle" id="mineAutoClickerToggleHint">Выкл</span>
-      </button>
+      <div class="mine-autoclicker-row" id="mineAutoClickerRow" hidden>
+        <button type="button" class="mine-autoclicker-hud" id="mineAutoClickerHud" title="Вкл / выкл автоудар" aria-pressed="false">
+          <img class="mine-autoclicker-ico" src="icons/auto_strike.png?v=1" alt="" aria-hidden="true">
+          <span class="mine-autoclicker-label" id="mineAutoClickerLabel">Автоудар</span>
+          <span class="mine-autoclicker-toggle" id="mineAutoClickerToggleHint">Выкл</span>
+        </button>
+        <div class="mine-autoclicker-packs" id="mineAutoClickerPacks" aria-label="Пакеты автоудара"></div>
+      </div>
       <div class="minefield" id="minefield">
         <div class="mine-skill-bar" id="mineSkillBar" hidden aria-label="Боевые умения"></div>
         <div class="mine-stage" id="mineStage">
@@ -1382,7 +1393,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=464"></script>
+<script src="src/01-constants.js?v=465"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
 <script src="src/02-state.js?v=50"></script>
 <script src="src/data/audio-data.js?v=2"></script>
@@ -1394,7 +1405,7 @@
 <script src="src/06-rules.js?v=13"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
 <script src="src/workshop-core.js?v=9"></script>
-<script src="src/07-workshop.js?v=19"></script>
+<script src="src/07-workshop.js?v=20"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
 <script src="src/08-menu.js?v=7"></script>
 <script src="src/09-inventory.js?v=65"></script>
@@ -1439,12 +1450,12 @@
 <script src="src/34-avatar-portraits.js?v=5"></script>
 <script src="src/35-characters.js?v=47"></script>
 <script src="src/data/avatar-data.js?v=2"></script>
-<script src="src/data/professions-data.js?v=17"></script>
+<script src="src/data/professions-data.js?v=18"></script>
 <script src="src/data/passive-skills-data.js?v=2"></script>
 <script src="src/passive-skills-core.js?v=7"></script>
-<script src="src/professions-core.js?v=12"></script>
+<script src="src/professions-core.js?v=13"></script>
 <script src="src/avatar-core.js?v=6"></script>
-<script src="src/22-avatar.js?v=33"></script>
+<script src="src/22-avatar.js?v=34"></script>
 <script src="src/professions-ui.js?v=4"></script>
 <script src="src/avatar-gear-core.js?v=17"></script>
 <script src="src/armor-sets-core.js?v=13"></script>
@@ -1473,14 +1484,14 @@
 <script src="src/32-debug-log.js"></script>
 <script src="src/avatar-math.js?v=14"></script>
 <script src="src/avatar-stats-core.js?v=8"></script>
-<script src="src/24-avatar-stats.js?v=26"></script>
+<script src="src/24-avatar-stats.js?v=27"></script>
 <script src="src/data/passive-income-balance.js?v=4"></script>
 <script src="src/passive-income-core.js?v=8"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
 <script src="src/data/auto-clicker-balance.js?v=8"></script>
-<script src="src/auto-clicker-core.js?v=15"></script>
-<script src="src/auto-clicker-ui.js?v=7"></script>
-<script src="src/data-loader.js?v=25"></script>
+<script src="src/auto-clicker-core.js?v=16"></script>
+<script src="src/auto-clicker-ui.js?v=8"></script>
+<script src="src/data-loader.js?v=27"></script>
 <script src="src/99-bootstrap.js?v=61"></script>
 
 </body>

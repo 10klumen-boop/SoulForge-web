@@ -187,7 +187,7 @@ function renderWorkshopArmorTypeHub(body) {
       hint.innerHTML =
         "Твоё сродство: <b>" +
         prefLabel +
-        "</b> (≥2 куска → +6% урон/DEF). Дальше — сет и крафт.";
+        "</b> (5/5 кусков → +6% урон/DEF). Дальше — сет и крафт.";
     }
   }
   kinds.forEach((k) => {

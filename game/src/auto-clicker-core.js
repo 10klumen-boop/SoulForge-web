@@ -147,14 +147,20 @@ function autoClickerIsActive(now) {
   return autoClickerRemainingMs(now) > 0;
 }
 
+function notifyAutoClickerUi(msg, statusKind) {
+  if (typeof toast === "function" && msg) toast(msg, statusKind === "ok" ? "ok" : "warn");
+  if (typeof renderAutoClickerPanel === "function") {
+    renderAutoClickerPanel(msg ? { status: msg, statusKind: statusKind || "ok" } : undefined);
+  }
+  if (typeof renderAutoClickerHud === "function") renderAutoClickerHud();
+}
+
 function buyAutoClickerPack(packId) {
   ensureAutoClickerState();
   clampAutoClickerToMax();
   const pack = autoClickerPackById(packId);
   if (!pack) {
-    if (typeof renderAutoClickerPanel === "function") {
-      renderAutoClickerPanel({ status: "Неизвестный пакет автоудара", statusKind: "warn" });
-    }
+    notifyAutoClickerUi("Неизвестный пакет автоудара", "warn");
     return false;
   }
   const now = Date.now();
@@ -168,17 +174,13 @@ function buyAutoClickerPack(packId) {
       const roomMin = Math.max(1, Math.floor(can.room / 60000));
       msg = "Свободно только ~" + roomMin + " мин (макс. " + maxH + " ч)";
     }
-    if (typeof renderAutoClickerPanel === "function") {
-      renderAutoClickerPanel({ status: msg, statusKind: "warn" });
-    }
+    notifyAutoClickerUi(msg, "warn");
     return false;
   }
   const price = autoClickerPackPrice(pack);
   if ((state.adena || 0) < price) {
     const need = typeof fmtAdena === "function" ? fmtAdena(price) : price;
-    if (typeof renderAutoClickerPanel === "function") {
-      renderAutoClickerPanel({ status: "Не хватает adena (нужно " + need + ")", statusKind: "warn" });
-    }
+    notifyAutoClickerUi("Не хватает adena (нужно " + need + ")", "warn");
     return false;
   }
   ProgressStore.update("adena", (a) => (a || 0) - price);
@@ -197,9 +199,7 @@ function buyAutoClickerPack(packId) {
   if (typeof Audio2 !== "undefined" && Audio2.success) Audio2.success();
   startAutoClickerLoop();
   if (typeof renderAvatarScreen === "function") renderAvatarScreen();
-  if (typeof renderAutoClickerPanel === "function") {
-    renderAutoClickerPanel({ status: "Автоудар: +" + pack.label, statusKind: "ok" });
-  }
+  notifyAutoClickerUi("Автоудар: +" + pack.label, "ok");
   return true;
 }
 

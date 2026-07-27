@@ -156,7 +156,7 @@ function renderAvatarPerkChips(prog, bonusPct) {
     chips.push(
       avatarPerkChipHtml(
         "Броня",
-        active ? "«" + label + "» · +" + pct + "% урон/DEF" : "Нужно ≥2 шт. («" + label + "»)",
+        active ? "«" + label + "» · +" + pct + "% урон/DEF" : "Нужно 5/5 («" + label + "»)",
         active ? "ok" : ""
       )
     );

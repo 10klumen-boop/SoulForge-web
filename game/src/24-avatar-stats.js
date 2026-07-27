@@ -163,8 +163,15 @@ function fillFarmZoneList(listEl, zones, opts) {
         : view.icon || zone.icon;
     const sub = mode === "farm" ? farmFreeZoneChipText(zone, st) : farmZoneChipText(zone, st);
     row.innerHTML =
-      '<img src="' + chipIco + '" alt="">' +
-      "<span><strong>" + view.name + "</strong><small>" + sub + "</small></span>";
+      '<img class="farm-zone-chip-art" src="' +
+      chipIco +
+      '" alt="" draggable="false">' +
+      '<span class="farm-zone-chip-veil" aria-hidden="true"></span>' +
+      '<span class="farm-zone-chip-body"><strong>' +
+      view.name +
+      "</strong><small>" +
+      sub +
+      "</small></span>";
     row.onclick = () => {
       if (row.disabled) return;
       Audio2.click();
