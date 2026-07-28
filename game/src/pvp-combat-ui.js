@@ -505,7 +505,7 @@ function pvpUpdateArenaBadge(n) {
 }
 
 function pvpIsBlockingUiOpen() {
-  const ids = ["modalBackdrop", "achModalBackdrop", "achRewardBackdrop", "storyBackdrop"];
+  const ids = ["modalBackdrop", "storyBackdrop"];
   return ids.some((id) => {
     const el = document.getElementById(id);
     return el && !el.hidden;
@@ -1756,8 +1756,6 @@ function wirePvpArenaHotkeys() {
     if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
     const modalOpen =
       (document.getElementById("modalBackdrop") && !document.getElementById("modalBackdrop").hidden) ||
-      (document.getElementById("achModalBackdrop") && !document.getElementById("achModalBackdrop").hidden) ||
-      (document.getElementById("achRewardBackdrop") && !document.getElementById("achRewardBackdrop").hidden) ||
       (document.getElementById("storyBackdrop") && !document.getElementById("storyBackdrop").hidden);
     if (modalOpen) return;
     const fight = document.querySelector("#pvpArenaBody .pvp-fight:not(.is-over)");

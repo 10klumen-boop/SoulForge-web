@@ -1,0 +1,192 @@
+/* Каталог городов → угодий (без карты) */
+
+:root {
+  --ap-bg: #0c0b09;
+  --ap-panel: #16130f;
+  --ap-line: rgba(201, 168, 106, 0.35);
+  --ap-gold: #c9a86a;
+  --ap-txt: #e8dcc0;
+  --ap-dim: #9a8f78;
+  --ap-font: "Segoe UI", Tahoma, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--ap-bg);
+  color: var(--ap-txt);
+  font-family: var(--ap-font);
+}
+
+.ap-app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.ap-head {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ap-line);
+  background: #14110e;
+}
+.ap-head strong { display: block; color: var(--ap-gold); font-size: 15px; }
+.ap-head span { font-size: 12px; color: var(--ap-dim); }
+.ap-head-actions a {
+  color: var(--ap-gold);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ap-side {
+  overflow: auto;
+  padding: 12px;
+  border-right: 1px solid var(--ap-line);
+  background: var(--ap-panel);
+}
+.ap-side h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ap-gold);
+}
+.ap-hub-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+.ap-hub-list button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  padding: 10px 10px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(0,0,0,.35);
+  color: var(--ap-txt);
+  cursor: pointer;
+}
+.ap-hub-list button small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ap-dim);
+  font-size: 11px;
+}
+.ap-hub-list button.sel {
+  border-color: rgba(201,168,106,.55);
+  background: rgba(201,168,106,.18);
+}
+
+.ap-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+.ap-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ap-line);
+}
+.ap-toolbar strong { flex: 1; color: var(--ap-gold); }
+
+.ap-table-wrap { overflow: auto; }
+.ap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.ap-table th, .ap-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(201,168,106,.15);
+}
+.ap-table th {
+  position: sticky;
+  top: 0;
+  background: #1a1612;
+  color: var(--ap-gold);
+}
+.ap-table tbody tr { cursor: pointer; }
+.ap-table tbody tr:hover { background: rgba(201,168,106,.08); }
+.ap-table tbody tr.is-sel { background: rgba(201,168,106,.18); }
+.ap-table .is-live { color: var(--ap-gold); }
+.ap-table .is-draft { color: #b8d4a0; }
+.ap-table .is-planned { color: var(--ap-dim); }
+
+.ap-edit {
+  border-top: 1px solid var(--ap-line);
+  padding: 14px;
+  background: var(--ap-panel);
+}
+.ap-edit h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ap-gold);
+}
+.ap-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--ap-dim);
+}
+.ap-field input, .ap-field select {
+  font: inherit;
+  font-size: 13px;
+  color: var(--ap-txt);
+  background: #0a0907;
+  border: 1px solid var(--ap-line);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.ap-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.ap-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.ap-btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ap-line);
+  background: #0a0907;
+  color: var(--ap-txt);
+  cursor: pointer;
+}
+.ap-btn:disabled { opacity: 0.45; cursor: default; }
+.ap-btn-primary {
+  background: #3a2e18;
+  border-color: rgba(201,168,106,.65);
+  color: #f3e2b8;
+}
+.ap-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.ap-btns-row { flex-direction: row; flex-wrap: wrap; }
+.ap-status { margin: 10px 0 0; font-size: 12px; color: var(--ap-dim); }

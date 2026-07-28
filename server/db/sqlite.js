@@ -20,6 +20,9 @@ const { attachPvpMethods } = require("./pvp");
 const { attachPartyContentMethods } = require("./party-content");
 const { attachWorldBossMethods } = require("./world-boss");
 const { attachPartyLfgMethods } = require("./party-lfg");
+const { attachClanEconomyMethods } = require("./clan-warehouse");
+const { attachClanBuffMethods } = require("./clan-buffs");
+const { attachClanBossMethods } = require("./clan-boss");
 
 function ensureScoreColumn(db, name, ddl) {
   const cols = db.prepare("PRAGMA table_info(scores)").all();
@@ -507,16 +510,17 @@ function createSqliteStore(opts) {
   function buildAccountSnapshotPayload(data) {
     const wh = data?.accountWarehouse && typeof data.accountWarehouse === "object"
       ? data.accountWarehouse
-      : { items: [] };
+      : { items: [], stacks: [] };
     const mail = data?.accountMail && typeof data.accountMail === "object"
       ? data.accountMail
       : { messages: [] };
     const items = Array.isArray(wh.items) ? wh.items : [];
+    const stacks = Array.isArray(wh.stacks) ? wh.stacks : [];
     const messages = Array.isArray(mail.messages) ? mail.messages : [];
     return {
-      accountWarehouse: { items },
+      accountWarehouse: { items, stacks },
       accountMail: { messages },
-      warehouseCount: items.length,
+      warehouseCount: items.length + stacks.length,
       mailCount: messages.length,
     };
   }
@@ -1117,6 +1121,7 @@ function createSqliteStore(opts) {
         "equipped",
         "materials",
         "shots",
+        "scrolls",
         "autoShots",
         "achievements",
         "collectibles",
@@ -1209,6 +1214,7 @@ function createSqliteStore(opts) {
         : { messages: [] };
       data.accountWarehouse = {
         items: Array.isArray(wh.items) ? wh.items : [],
+        stacks: Array.isArray(wh.stacks) ? wh.stacks : [],
       };
       data.accountMail = {
         messages: Array.isArray(mail.messages) ? mail.messages : [],
@@ -1230,7 +1236,9 @@ function createSqliteStore(opts) {
         payload: JSON.stringify({
           action: "restore_account_snapshot",
           snapshotId,
-          warehouseCount: data.accountWarehouse.items.length,
+          warehouseCount:
+            data.accountWarehouse.items.length +
+            (Array.isArray(data.accountWarehouse.stacks) ? data.accountWarehouse.stacks.length : 0),
           mailCount: data.accountMail.messages.length,
           fromSeq: snap.seq,
         }),
@@ -1243,7 +1251,9 @@ function createSqliteStore(opts) {
         seq: nextSeq,
         summary,
         snapshotId,
-        warehouseCount: data.accountWarehouse.items.length,
+        warehouseCount:
+          data.accountWarehouse.items.length +
+          (Array.isArray(data.accountWarehouse.stacks) ? data.accountWarehouse.stacks.length : 0),
         mailCount: data.accountMail.messages.length,
         activeLevelUnchanged: summary.active_level === prevLevel,
       };
@@ -1838,6 +1848,9 @@ function createSqliteStore(opts) {
   attachPartyContentMethods(db, store);
   attachWorldBossMethods(db, store);
   attachPartyLfgMethods(db, store);
+  attachClanEconomyMethods(db, store, persistDeps);
+  attachClanBuffMethods(db, store);
+  attachClanBossMethods(db, store);
 
   return store;
 }

@@ -1,4 +1,4 @@
-// ===== Unit-тесты: броня, слоты, сеты, farm power, sustain, крафт =====
+﻿// ===== Unit-тесты: броня, слоты, сеты, farm power, sustain, крафт =====
 const assert = require("assert");
 const { loadScripts } = require("./setup");
 
@@ -54,8 +54,8 @@ global.passiveEffectSum = () => 0;
 global.racialEffectSum = () => 0;
 global.farmZoneById = (id) => {
   const side = {
-    scrap_field: { id: "scrap_field", chapter: 1, side: true, targetPower: 50 },
-    mithril_forge: { id: "mithril_forge", chapter: 2, side: true, targetPower: 106 },
+    wasteland: { id: "wasteland", chapter: 1, side: true, targetPower: 50 },
+    abandoned_coal_low: { id: "abandoned_coal_low", chapter: 2, side: true, targetPower: 106 },
   };
   if (side[id]) return side[id];
   if (id === "dark_cavern") return { id: "dark_cavern", chapter: 4, targetPower: 140 };
@@ -66,8 +66,8 @@ global.MINE_REF_CHAPTER_STEP = 0.09;
 global.FARM_ZONES = [
   { id: "banana_mine", chapter: 1 },
   { id: "elven_ruins", chapter: 2 },
-  { id: "scrap_field", chapter: 1, side: true },
-  { id: "mithril_forge", chapter: 2, side: true },
+  { id: "wasteland", chapter: 1, side: true },
+  { id: "abandoned_coal_low", chapter: 2, side: true },
   { id: "orc_barracks", chapter: 3 },
 ];
 global.zoneBossDef = () => ({ hpMult: 14 });
@@ -333,13 +333,13 @@ function runTests() {
     state.inventory = [];
     state.adena = 100000;
     state.materials = { soul: 100, spirit: 0, mithril_boots_piece: 10 };
-    state.crystals = { D: 0, C: 10, B: 0, A: 0 };
+    state.crystals = { D: 10, C: 0, B: 0, A: 0 };
     const it = craftArmor("mithril_boots");
     assert.ok(it);
     assert.strictEqual(it.id, "mithril_boots");
     assert.strictEqual(state.materials.mithril_boots_piece, 4);
     assert.strictEqual(state.materials.soul, 90);
-    assert.strictEqual(state.crystals.C, 8);
+    assert.strictEqual(state.crystals.D, 8);
     assert.strictEqual(state.adena, 90000);
     assert.strictEqual(state.inventory.length, 1);
   });
@@ -349,15 +349,23 @@ function runTests() {
     Math.random = () => 0;
     try {
       assert.strictEqual(rollArmorFragDrop("elven_ruins", "boss"), null);
-      const dPool = armorFragIdsForZone("scrap_field");
-      assert.ok(dPool.length === 30, "D zone pools 6 sets × 5, got " + dPool.length);
-      const cPool = armorFragIdsForZone("mithril_forge");
-      assert.ok(cPool.length === 55, "C zone pools 11 sets × 5, got " + cPool.length);
-      const scrap = rollArmorFragDrop("scrap_field", "boss");
+      const dPool = armorFragIdsForZone("wasteland");
+      assert.ok(dPool.length === 10, "wasteland bone+brigandine ×5, got " + dPool.length);
+      const coalPool = armorFragIdsForZone("abandoned_coal_low");
+      assert.ok(coalPool.length === 10, "coal mithril+chain ×5, got " + coalPool.length);
+      const scrap = rollArmorFragDrop("wasteland", "boss");
       assert.ok(scrap && scrap.fragId && dPool.indexOf(scrap.fragId) >= 0);
-      const forge = rollArmorFragDrop("mithril_forge", "boss");
-      assert.ok(forge && forge.fragId && cPool.indexOf(forge.fragId) >= 0);
+      const forge = rollArmorFragDrop("abandoned_coal_low", "boss");
+      assert.ok(forge && forge.fragId && coalPool.indexOf(forge.fragId) >= 0);
       assert.ok(dPool.every((id) => id.indexOf("mithril_") !== 0));
+      assert.strictEqual(AMAP.mithril_boots.grade, "D");
+      assert.strictEqual(ARMOR_SETS.mithril.grade, "D");
+      assert.strictEqual(ARMOR_SETS.chain.grade, "D");
+      // сеты разведены: orc = bone, ant = plated+drake
+      assert.strictEqual(armorFragIdsForZone("orc_barracks_hunt").length, 5);
+      assert.strictEqual(armorFragIdsForZone("ant_nest").length, 10);
+      assert.ok(armorFragIdsForZone("langk_lizardman").length === 5, "manticore home");
+      assert.ok(armorFragIdsForZone("blazing_swamp").length === 5, "demon home");
     } finally {
       Math.random = orig;
     }
@@ -375,34 +383,17 @@ function runTests() {
     assert.ok(state.materials.bone_boots_piece < 10);
   });
 
-  test("seventeen armor sets share two farm zones", () => {
+  test("seventeen armor sets spread across hunting zones", () => {
     assert.strictEqual(Object.keys(ARMOR_SETS).length, 17);
-    assert.deepStrictEqual(ARMOR_FRAG_ZONES.scrap_field, [
-      "bone",
-      "brigandine",
-      "manticore",
-      "reinforced",
-      "elven_mithril",
-      "knowledge",
-    ]);
-    assert.deepStrictEqual(ARMOR_FRAG_ZONES.mithril_forge, [
-      "mithril",
-      "chain",
-      "tempered",
-      "theca",
-      "plated",
-      "drake",
-      "composite",
-      "full_plate",
-      "karmian",
-      "divine",
-      "demon",
-    ]);
-    assert.strictEqual(farmZoneIdForArmorSet("bone"), "scrap_field");
-    assert.strictEqual(farmZoneIdForArmorSet("full_plate"), "mithril_forge");
+    assert.deepStrictEqual(ARMOR_FRAG_ZONES.wasteland, ["bone", "brigandine"]);
+    assert.deepStrictEqual(ARMOR_FRAG_ZONES.abandoned_coal_low, ["mithril", "chain"]);
+    assert.strictEqual(farmZoneIdForArmorSet("bone"), "wasteland");
+    assert.strictEqual(farmZoneIdForArmorSet("full_plate"), "cruma_tower_entrance");
+    assert.strictEqual(farmZoneIdForArmorSet("karmian"), "enchanted_valley");
+    assert.strictEqual(farmZoneIdForArmorSet("demon"), "blazing_swamp");
+    assert.ok(Object.keys(ARMOR_FRAG_ZONES).length >= 20, "armor spread across many zones");
     assert.strictEqual(ARMOR.length, 85);
     assert.strictEqual(ARMOR_CRAFT.length, 85);
-    assert.strictEqual(farmZoneIdForArmorSet("karmian"), "mithril_forge");
   });
 
   test("armor sets have heavy/light/robe kinds", () => {
@@ -436,14 +427,14 @@ function runTests() {
     assert.ok(lines.some((l) => l.startsWith("2:")));
   });
 
-  test("mithril_forge side farm has no quests or chapter boss", () => {
-    assert.strictEqual(zoneQuestSteps("mithril_forge").length, 0);
-    assert.strictEqual(activeZoneQuest("mithril_forge"), null);
-    assert.strictEqual(isZoneBossPending("mithril_forge"), false);
-    assert.strictEqual(shouldOfferZoneBoss("mithril_forge"), false);
-    assert.ok(isZoneChapterComplete("mithril_forge"));
-    assert.ok(!ZONE_BOSSES.mithril_forge);
-    assert.ok(!ZONE_CHAPTER_REWARDS.mithril_forge);
+  test("abandoned_coal_low side farm has no quests or chapter boss", () => {
+    assert.strictEqual(zoneQuestSteps("abandoned_coal_low").length, 0);
+    assert.strictEqual(activeZoneQuest("abandoned_coal_low"), null);
+    assert.strictEqual(isZoneBossPending("abandoned_coal_low"), false);
+    assert.strictEqual(shouldOfferZoneBoss("abandoned_coal_low"), false);
+    assert.ok(isZoneChapterComplete("abandoned_coal_low"));
+    assert.ok(!ZONE_BOSSES.abandoned_coal_low);
+    assert.ok(!ZONE_CHAPTER_REWARDS.abandoned_coal_low);
   });
 
   console.log("\n" + passed + " passed, " + failed + " failed");

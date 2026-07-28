@@ -7,7 +7,7 @@ function removeInvItem(uid) {
 }
 
 function openAccessory(item) {
-  const def = COLLECTIBLES[item.id];
+  const def = typeof accessoryDef === "function" ? accessoryDef(item) : COLLECTIBLES[item.id];
   if (!def || !isAccessoryItem(item)) return;
   curAcc = { item, def };
   renderAccessory();
@@ -20,13 +20,24 @@ function renderAccessory() {
   $("#accTitle").textContent = def.name;
   $("#accImg").src = def.icon;
   $("#accName").textContent = def.name;
-  $("#accNote").textContent = def.desc || "Эпический аксессуар";
+  const lines =
+    typeof formatJewelryBonusLines === "function" ? formatJewelryBonusLines(def) : [];
+  const note =
+    (def.epic ? "Эпический аксессуар. " : def.grade ? "Бижутерия " + def.grade + "-грейда. " : "") +
+    (lines.length ? lines.join(" · ") + ". " : "") +
+    (def.desc || "");
+  $("#accNote").textContent = note.trim() || "Аксессуар";
   const worn = typeof isItemEquipped === "function" && isItemEquipped(item.uid);
   const eqBtn = $("#accEquipBtn");
   eqBtn.disabled = worn || !state.avatar?.created;
   eqBtn.textContent = worn ? "Уже надето" : state.avatar?.created ? "⚡ Надеть на персонажа" : "Создай персонажа";
-  const fpIco = $("#accFunpayBtn img");
-  if (fpIco) fpIco.src = FUNPAY_ICON;
+  const showFunpay = !!def.epic;
+  const fpBtn = $("#accFunpayBtn");
+  const fpHint = $("#accFunpayHint");
+  if (fpBtn) fpBtn.hidden = !showFunpay;
+  if (fpHint) fpHint.hidden = !showFunpay;
+  const fpIco = fpBtn && fpBtn.querySelector("img");
+  if (fpIco && showFunpay) fpIco.src = FUNPAY_ICON;
 }
 
 function equipAccessory() {
@@ -47,11 +58,16 @@ function equipAccessory() {
 async function funpayAccessory() {
   if (!curAcc) return;
   const { item, def } = curAcc;
+  if (!def?.epic) {
+    toast("FunPay только для эпической бижутерии", "warn");
+    return;
+  }
+  const wipePct = Math.round((typeof funpayWipeChance === "function" ? funpayWipeChance() : 0.5) * 100);
   const ok = await showConfirm({
     title: "FunPay",
     html: `<div class="modal-funpay">
       <p>Хрюкнуть <b>${def.name}</b> на FunPay?</p>
-      <p class="modal-funpay-risk">50% шанс потерять <b>весь прогресс</b> навсегда.</p>
+      <p class="modal-funpay-risk">${wipePct}% шанс потерять <b>весь прогресс</b> навсегда.</p>
     </div>`,
     okText: "Хрюкнуть",
     cancelText: "Отмена",

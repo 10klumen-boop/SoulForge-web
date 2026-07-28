@@ -15,15 +15,29 @@ function migrateFarmZone() {
 
   if (typeof migrateAvatar === "function") migrateAvatar();
 
-  const cur = state.farmZone;
+  let cur = state.farmZone;
+  if (typeof resolveFarmZoneId === "function") {
+    const resolved = resolveFarmZoneId(cur);
+    if (resolved && resolved !== cur) {
+      ProgressStore.set("farmZone", resolved);
+      cur = resolved;
+    }
+  }
 
-  const zone = FARM_ZONES.find((z) => z.id === cur);
+  const zone = typeof farmZoneById === "function"
+    ? farmZoneById(cur)
+    : FARM_ZONES.find((z) => z.id === cur);
 
-  if (zone && zone.active) return;
+  if (zone && zone.active && zone.id === cur) return;
+
+  if (zone && zone.active && zone.id !== cur) {
+    ProgressStore.set("farmZone", zone.id);
+    return;
+  }
 
   const fallback = FARM_ZONES.find((z) => z.active && canEnterFarmZone(z)) || FARM_ZONES[0];
 
-  if (state.farmZone !== fallback.id) {
+  if (fallback && state.farmZone !== fallback.id) {
     ProgressStore.set("farmZone", fallback.id);
   }
 
@@ -239,7 +253,7 @@ function farmZoneChipText(zone, st) {
 
     const parts = [];
 
-    if (st.needLevel > 0) parts.push("р." + zone.reqLevel);
+    if (st.needLevel > 0) parts.push("от ур." + zone.reqLevel);
 
     if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
 
@@ -260,7 +274,7 @@ function farmZoneChipText(zone, st) {
     const tgt = farmZoneTargetPower(zone);
     const pwr = st.power || avatarFarmPower();
     const fit = pwr >= tgt ? "✓" : Math.round((pwr / tgt) * 100) + "%";
-    return beat.targets + " · сила " + fit + " · +" + Math.round((avatarMineRewardMult(zone.id) - 1) * 100) + "%";
+    return beat.targets + " · сила " + fit;
   }
 
   return view.desc;
@@ -292,8 +306,6 @@ function farmZoneMetaText(zone, st) {
 
   }
 
-  const mult = avatarMineRewardMult(zone.id);
-
   const tgt = farmZoneTargetPower(zone);
 
   const pwr = st.power || avatarFarmPower();
@@ -301,7 +313,7 @@ function farmZoneMetaText(zone, st) {
   const fit = pwr >= tgt ? "норма" : fmt(pwr) + "/" + fmt(tgt) + " силы";
   const dropLbl = typeof mineDropGradeSummary === "function" ? mineDropGradeSummary(zone.id) : "D";
 
-  return "Дроп " + dropLbl + " · +" + Math.round((mult - 1) * 100) + "% · " + fit;
+  return "Дроп " + dropLbl + " · " + fit;
 }
 
 
@@ -322,7 +334,10 @@ function avatarMineRewardMult(zoneId) {
 
   const entry = Math.max(zone.reqPower || 0, Math.floor(target * 0.86));
 
-  const chapter = zone.chapter || 1;
+  const chapter =
+    typeof farmZoneProgressChapter === "function"
+      ? farmZoneProgressChapter(zone)
+      : zone.chapter || 1;
 
   const chapterScale = zone.mine?.rewardScale || (1 + (chapter - 1) * 0.1);
 

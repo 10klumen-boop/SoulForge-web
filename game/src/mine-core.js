@@ -155,6 +155,7 @@ function clearExclusiveMineOverlays(mode) {
   mode = mode || "solo";
   const wantInstance = mode === "instance";
   const wantWb = mode === "worldBoss";
+  const wantClanBoss = mode === "clanBoss";
 
   if (!wantInstance) {
     if (typeof stopInstancePoll === "function") stopInstancePoll();
@@ -194,6 +195,23 @@ function clearExclusiveMineOverlays(mode) {
     } catch (_) {}
     try {
       if (typeof worldBossEndPrompted !== "undefined") worldBossEndPrompted = false;
+    } catch (_) {}
+  }
+
+  if (!wantClanBoss) {
+    if (typeof stopClanBossPoll === "function") stopClanBossPoll();
+    if (typeof clanBossClearDomMob === "function") {
+      try {
+        clanBossClearDomMob();
+      } catch (_) {}
+    }
+    const ch = document.getElementById("clanBossHud");
+    if (ch) ch.remove();
+    try {
+      if (typeof clanBossSessionActive !== "undefined") clanBossSessionActive = false;
+    } catch (_) {}
+    try {
+      if (typeof clanBossEndPrompted !== "undefined") clanBossEndPrompted = false;
     } catch (_) {}
   }
 
@@ -310,6 +328,7 @@ function stopMine() {
   mineActive = false;
   mineOverlayPaused = false;
   if (typeof worldBossAfterStopMine === "function") worldBossAfterStopMine();
+  if (typeof clanBossAfterStopMine === "function") clanBossAfterStopMine();
   if (typeof partyFarmAfterStopMine === "function") partyFarmAfterStopMine();
   if (typeof instanceAfterStopMine === "function") instanceAfterStopMine();
   if (typeof stopAutoClickerLoop === "function") stopAutoClickerLoop();
@@ -508,6 +527,21 @@ function mineNormalReward() {
   return amt;
 }
 
+/** Holder +adena% только online mine; не трогает passive. */
+function mineApplyClanTerritoryAdena(amount) {
+  const zoneId = typeof currentMineZoneId === "function" ? currentMineZoneId() : state.farmZone;
+  const pct = typeof clanTerritoryAdenaBonusPct === "function" ? clanTerritoryAdenaBonusPct(zoneId) : 0;
+  if (!pct || !amount) return amount;
+  return Math.round(amount * (1 + pct / 100));
+}
+
+/** Clan C weekly buff +adena% (online mine only). */
+function mineApplyClanBuffAdena(amount) {
+  const pct = typeof clanBuffAdenaPct === "function" ? clanBuffAdenaPct() : 0;
+  if (!pct || !amount) return amount;
+  return Math.round(amount * (1 + pct / 100));
+}
+
 function mineGoldenReward() {
   const { lo, hi } = mineAdenaBaseRange("golden");
   let amt = playtestIncome(lo + Math.floor(Math.random() * Math.max(1, hi - lo + 1)));
@@ -520,6 +554,53 @@ function mineGoldenReward() {
 
 function renderMineHudStats() {
   if (typeof syncMineShotHud === "function") syncMineShotHud();
+  if (typeof clanHydrateWorldState === "function") clanHydrateWorldState(false);
+  if (typeof syncMineClanTerritoryHud === "function") syncMineClanTerritoryHud();
+}
+
+/** Z2: чип владельца / holder-bonus в HUD фарма (только capturable). */
+function syncMineClanTerritoryHud() {
+  const el = document.getElementById("mineClanTerritoryHud");
+  if (!el) return;
+  if (typeof isClanBossSessionActive === "function" && isClanBossSessionActive()) {
+    el.hidden = true;
+    el.textContent = "";
+    el.className = "mh mine-clan-territory";
+    return;
+  }
+  const zoneId = typeof currentMineZoneId === "function" ? currentMineZoneId() : state.farmZone;
+  const st =
+    typeof clanTerritoryStatusForZone === "function" ? clanTerritoryStatusForZone(zoneId) : null;
+  const buffPct = typeof clanBuffAdenaPct === "function" ? clanBuffAdenaPct() : 0;
+  if ((!st || !st.capturable || !st.siegeEnabled) && !(buffPct > 0)) {
+    el.hidden = true;
+    el.textContent = "";
+    el.className = "mh mine-clan-territory";
+    return;
+  }
+  el.hidden = false;
+  if (st && st.capturable && st.siegeEnabled) {
+    el.className =
+      "mh mine-clan-territory" +
+      (st.isMyClan ? " is-mine" : st.holder ? " is-held" : " is-neutral");
+    if (st.isMyClan && st.bonusPct) {
+      el.textContent = "Клан · +" + st.bonusPct + "% adena";
+      el.title = st.lineMeta || "Бонус владельца (только online)";
+    } else if (st.holder) {
+      el.textContent = "Владеет: " + st.holder.clanName;
+      el.title = "Бонус только у клана-владельца";
+    } else {
+      el.textContent = "Спорная · нейтрал";
+      el.title = "Захват — в меню Клан → Угодья";
+    }
+  } else {
+    el.className = "mh mine-clan-territory is-mine";
+    el.textContent = "";
+    el.title = "Недельный клан-бафф";
+  }
+  if (buffPct > 0) {
+    el.textContent = (el.textContent ? el.textContent + " · " : "") + "бафф +" + buffPct + "%";
+  }
 }
 
 function pauseMineForOverlay() {
@@ -555,6 +636,7 @@ function spawnGnome(forcedType) {
   if (!mineActive) return;
   if (typeof partyFarmShouldBlockLocalSpawn === "function" && partyFarmShouldBlockLocalSpawn()) return;
   if (typeof worldBossShouldBlockLocalSpawn === "function" && worldBossShouldBlockLocalSpawn()) return;
+  if (typeof clanBossShouldBlockLocalSpawn === "function" && clanBossShouldBlockLocalSpawn()) return;
   if (typeof instanceShouldBlockLocalSpawn === "function" && instanceShouldBlockLocalSpawn()) return;
   if (mineOverlayPaused) {
     queueNextMob(280);
@@ -890,6 +972,10 @@ function catchGnome(g, e, opts) {
     worldBossHandleHit(g, opts);
     return;
   }
+  if (g._clanBossEncounter && typeof clanBossHandleHit === "function") {
+    clanBossHandleHit(g, opts);
+    return;
+  }
   if (g._instanceEncounter && typeof instanceHandleHit === "function") {
     instanceHandleHit(g, opts);
     return;
@@ -925,6 +1011,56 @@ function catchGnome(g, e, opts) {
   finishMobKill(g, type, dropAt, guard);
 }
 
+function trackMineScrollDrop(zoneId, mobType, dropAt) {
+  if (typeof rollScrollDrop !== "function" || typeof addScroll !== "function") return;
+  const sDrop = rollScrollDrop(zoneId, mobType);
+  if (!sDrop) return;
+  if (!addScroll(sDrop.target, sDrop.typeId, sDrop.grade, sDrop.qty)) return;
+  const label =
+    typeof scrollLabel === "function"
+      ? scrollLabel(sDrop.target, sDrop.typeId, sDrop.grade)
+      : "Свиток";
+  trackMineSessionLoot({
+    kind: "scroll",
+    id: sDrop.target + ":" + sDrop.typeId + ":" + sDrop.grade,
+    name: label,
+    qty: sDrop.qty,
+    grade: sDrop.grade,
+  });
+  if (typeof floatText === "function" && dropAt) {
+    floatText(dropAt.x, dropAt.y - 104, label + " ×" + sDrop.qty, "#ffe082");
+  }
+}
+
+/** Ролл оружия с любого моба (шанс — mineWeaponDropChance). */
+function tryMineWeaponDrop(zoneId, mobType) {
+  const chance =
+    typeof mineWeaponDropChance === "function"
+      ? mineWeaponDropChance(mobType)
+      : mobType === "golden" || mobType === "boss"
+        ? 0.12
+        : 0.03;
+  if (!(chance > 0) || Math.random() >= chance) return null;
+  const drop = typeof rollMineWeaponDrop === "function" ? rollMineWeaponDrop(zoneId) : null;
+  if (!drop) return null;
+  const added = addToInventory(drop.id, {
+    source: mobType === "boss" ? "zone_boss" : mobType === "golden" ? "golden" : "farm",
+    zoneId,
+  });
+  if (!added) {
+    if (typeof toast === "function") {
+      toast("Оружие… но инвентарь полон (" + INV_CAP + ")!", "warn");
+    }
+    return null;
+  }
+  const tag =
+    mobType === "boss" ? "Босс" : mobType === "golden" ? "Золотая цель" : "Моб";
+  if (typeof toast === "function") {
+    toast("⚔ " + tag + ": " + drop.name + " (" + drop.grade + ") → в инвентарь!", "loot");
+  }
+  return drop;
+}
+
 function finishMobKill(g, type, dropAt, guard) {
   removeGnome(g, "caught");
   const zoneId = typeof currentMineZoneId === "function" ? currentMineZoneId() : (state.farmZone || "banana_mine");
@@ -949,6 +1085,8 @@ function finishMobKill(g, type, dropAt, guard) {
     reward = mineGoldenReward();
     reward = Math.round(reward * (bossDef?.rewardMult || 3) * guard.mult);
     reward = typeof mineApplySkillAdenaBonus === "function" ? mineApplySkillAdenaBonus(reward) : reward;
+    reward = typeof mineApplyClanTerritoryAdena === "function" ? mineApplyClanTerritoryAdena(reward) : reward;
+    reward = typeof mineApplyClanBuffAdena === "function" ? mineApplyClanBuffAdena(reward) : reward;
     reward = mineGuardApplyAdena(reward);
     color = "#ff6b4a";
     if (typeof gameLog === "function") gameLog("☠ " + (bossDef?.name || "Босс") + " повержен!", "success");
@@ -968,31 +1106,43 @@ function finishMobKill(g, type, dropAt, guard) {
         }
       }
     }
+    if (typeof rollJewelryFragDrop === "function") {
+      const jDrop = rollJewelryFragDrop(zoneId, "boss");
+      if (jDrop && typeof addShardToInventory === "function") {
+        const granted = addShardToInventory(jDrop.fragId, jDrop.qty, { source: "zone_boss", zoneId, silent: true });
+        if (granted) {
+          trackMineSessionLoot({
+            kind: "jewelry_frag",
+            id: jDrop.fragId,
+            name: jDrop.def.name,
+            qty: jDrop.qty,
+            icon: jDrop.def.icon,
+          });
+          floatText(dropAt.x, dropAt.y - 40, jDrop.def.name + " ×" + jDrop.qty, "#c9a0ff");
+          if (typeof toast === "function") toast("✧ " + jDrop.def.name + " ×" + jDrop.qty, "loot");
+        }
+      }
+    }
+    trackMineScrollDrop(zoneId, "boss", dropAt);
+    weaponDrop = tryMineWeaponDrop(zoneId, "boss");
   } else if (type === "golden") {
     reward = mineGoldenReward();
     reward = Math.round(reward * guard.mult);
     reward = typeof mineApplySkillAdenaBonus === "function" ? mineApplySkillAdenaBonus(reward) : reward;
+    reward = typeof mineApplyClanTerritoryAdena === "function" ? mineApplyClanTerritoryAdena(reward) : reward;
+    reward = typeof mineApplyClanBuffAdena === "function" ? mineApplyClanBuffAdena(reward) : reward;
     reward = mineGuardApplyAdena(reward);
     color = "#ffc46b";
-    const weaponChance = typeof mineGoldenWeaponChance === "function" ? mineGoldenWeaponChance() : 1;
-    if (Math.random() < weaponChance) {
-      const drop = rollMineWeaponDrop(zoneId);
-      if (drop) {
-        const added = addToInventory(drop.id, { source: "golden", zoneId });
-        if (added) {
-          weaponDrop = drop;
-          toast("💰 Золотая цель обронила: " + drop.name + " (" + drop.grade + ") → в инвентарь!", "loot");
-        } else {
-          toast("💰 Золотая цель… но инвентарь полон (" + INV_CAP + ")!", "warn");
-        }
-      }
-    }
+    weaponDrop = tryMineWeaponDrop(zoneId, "golden");
   } else {
     reward = mineNormalReward();
     reward = Math.round(reward * guard.mult);
     reward = typeof mineApplySkillAdenaBonus === "function" ? mineApplySkillAdenaBonus(reward) : reward;
+    reward = typeof mineApplyClanTerritoryAdena === "function" ? mineApplyClanTerritoryAdena(reward) : reward;
+    reward = typeof mineApplyClanBuffAdena === "function" ? mineApplyClanBuffAdena(reward) : reward;
     reward = mineGuardApplyAdena(reward);
     color = "#9be6a6";
+    weaponDrop = tryMineWeaponDrop(zoneId, "normal");
   }
   if (type === "golden" || type === "normal") {
     if (typeof rollArmorFragDrop === "function") {
@@ -1011,6 +1161,27 @@ function finishMobKill(g, type, dropAt, guard) {
         }
       }
     }
+    if (typeof rollJewelryFragDrop === "function") {
+      const jDrop = rollJewelryFragDrop(zoneId, type);
+      if (jDrop && typeof addShardToInventory === "function") {
+        const granted = addShardToInventory(jDrop.fragId, jDrop.qty, {
+          source: type,
+          zoneId,
+          silent: true,
+        });
+        if (granted) {
+          trackMineSessionLoot({
+            kind: "jewelry_frag",
+            id: jDrop.fragId,
+            name: jDrop.def.name,
+            qty: jDrop.qty,
+            icon: jDrop.def.icon,
+          });
+          floatText(dropAt.x, dropAt.y - 88, jDrop.def.name + " ×" + jDrop.qty, "#c9a0ff");
+        }
+      }
+    }
+    trackMineScrollDrop(zoneId, type, dropAt);
   }
   if (guard && guard.bySkill && typeof floatText === "function") {
     floatText(dropAt.x, dropAt.y - 48, "скилл-финиш", "#9ad4ff");
@@ -1057,7 +1228,7 @@ function finishMobKill(g, type, dropAt, guard) {
     mineSession.kills = (mineSession.kills || 0) + 1;
     if (weaponDrop) mineSession.weapons = (mineSession.weapons || 0) + 1;
   }
-  if ((type === "boss" || type === "golden" || type === "banan") && typeof logCharacterEvent === "function") {
+  if ((weaponDrop || type === "boss" || type === "golden" || type === "banan") && typeof logCharacterEvent === "function") {
     logCharacterEvent("loot_rare", {
       type,
       zoneId,

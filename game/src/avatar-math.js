@@ -94,15 +94,23 @@ function avatarStatBonusesFromGear() {
 
     const b = def?.bonuses;
 
-    if (!b) return;
+    if (!b && !(def && (def.mdef || def.pdef))) return;
 
-    if (b.patk) out.patk += b.patk;
+    if (b?.patk) out.patk += b.patk;
 
-    if (b.matk) out.matk += b.matk;
+    if (b?.matk) out.matk += b.matk;
 
-    if (b.pdef) out.pdef += b.pdef;
+    if (b?.pdef) out.pdef += b.pdef;
 
-    if (b.mdef) out.mdef += b.mdef;
+    let mdef = (b && b.mdef) || 0;
+    if (!mdef && def?.mdef) mdef = def.mdef;
+    const jewPlus = item.plus || 0;
+    if (typeof jewelryEnchantMdefBonus === "function") {
+      mdef += jewelryEnchantMdefBonus(jewPlus);
+    } else if (jewPlus) {
+      mdef += jewPlus;
+    }
+    if (mdef) out.mdef += mdef;
 
   });
 
@@ -110,6 +118,9 @@ function avatarStatBonusesFromGear() {
     const set = avatarSetBonuses();
     if (set.pdef) out.pdef += set.pdef;
     if (set.mdef) out.mdef += set.mdef;
+  }
+  if (typeof avatarJewelrySetMdef === "function") {
+    out.mdef += avatarJewelrySetMdef();
   }
 
   return out;
@@ -385,63 +396,112 @@ function farmZoneTargetPower(zone) {
 
 
 
-/** Базовый рост adena по главе и уровню (до бонуса силы).
- *  Кривая главы = ECONOMY.farmAdenaPerHour относительно гл.I. */
+/** Базовый рост adena по зоне и уровню (до бонуса силы).
+ *  Сюжет: ECONOMY.farmAdenaPerHour по chapter.
+ *  Охота: от L2 mid зоны (не от reqLevel — гейты отдельно). */
 function mineProgressAdenaScale(zoneId) {
   zoneId = zoneId || state.farmZone || "banana_mine";
   const zone = farmZoneById(zoneId);
-  const chapter = zone.chapter || 1;
   const lvl = state.avatar?.level || 1;
+  const lvlMult = 1 + Math.max(0, lvl - 1) * 0.02;
+  if (zone && zone.side) {
+    const mid =
+      typeof farmZoneL2Mid === "function"
+        ? farmZoneL2Mid(zone)
+        : Math.max(1, Number(zone.reqLevel) || 1) * 2.2;
+    // mid12 → ×1, mid55 → ×8
+    const zoneMult = 1 + Math.max(0, mid - 12) * (7 / 43);
+    return zoneMult * lvlMult;
+  }
+  const chapter =
+    typeof farmZoneProgressChapter === "function"
+      ? farmZoneProgressChapter(zone)
+      : zone?.chapter || 1;
   const chapterMult =
     typeof economyChapterFarmMult === "function"
       ? economyChapterFarmMult(chapter)
       : ([1, 2, 3.5, 5.5, 8][chapter - 1] || 1);
-  const lvlMult = 1 + Math.max(0, lvl - 1) * 0.02;
   return chapterMult * lvlMult;
 }
 
 
 
-/** Веса грейдов оружия с золотой цели — только по главе зоны. */
+/** Веса грейдов оружия с фарма (грейд — mineDropWeights).
+ *  Сюжет: только D. Охота: банда L2 (≤30 = D, 30+ = C).
+ *  B/A — позже (сейчас вес 0). */
 function mineDropWeights(zoneId) {
   const zone = farmZoneById(zoneId || state.farmZone || "banana_mine");
-  const chapter = zone.chapter || 1;
-  const tables = {
-    1: { D: 100, C: 0, B: 0, A: 0 },
-    2: { D: 78, C: 22, B: 0, A: 0 },
-    3: { D: 55, C: 35, B: 10, A: 0 },
-    4: { D: 35, C: 40, B: 25, A: 0 },
-    5: { D: 0, C: 52, B: 33, A: 15 },
-  };
-  return { ...(tables[chapter] || tables[1]) };
+  if (zone && !zone.side) {
+    return { D: 100, C: 0, B: 0, A: 0 };
+  }
+  const band =
+    typeof farmZoneLootBand === "function" ? farmZoneLootBand(zone) : null;
+  if (band === "d20" || band === "d30") {
+    return { D: 100, C: 0, B: 0, A: 0 };
+  }
+  if (band === "c40" || band === "c40p") {
+    return { D: 0, C: 100, B: 0, A: 0 };
+  }
+  // fallback: старый chapter-band
+  const chapter =
+    typeof farmZoneProgressChapter === "function"
+      ? farmZoneProgressChapter(zone)
+      : zone.chapter || 1;
+  if (chapter <= 2) return { D: 100, C: 0, B: 0, A: 0 };
+  return { D: 0, C: 100, B: 0, A: 0 };
 }
 
 function mineDropGradeSummary(zoneId) {
   const zone = farmZoneById(zoneId || state.farmZone || "banana_mine");
-  const ch = zone.chapter || 1;
-  const labels = {
-    1: "только D",
-    2: "D, иногда C",
-    3: "D, C, редко B",
-    4: "D, C, B",
-    5: "C, B, редко A",
-  };
-  return labels[ch] || "D";
+  if (zone && !zone.side) return "только D";
+  const band =
+    typeof farmZoneLootBand === "function" ? farmZoneLootBand(zone) : null;
+  if (band === "d20") return "D (L2 ≤20)";
+  if (band === "d30") return "D (L2 20–30)";
+  if (band === "c40") return "C (L2 30–40)";
+  if (band === "c40p") return "C (L2 40+)";
+  const grade =
+    typeof farmZoneLootGrade === "function" ? farmZoneLootGrade(zone) : "D";
+  return grade === "C" ? "C" : "D";
 }
 
 
 
-/** Шанс выпадения оружия с золотой цели (грейд — mineDropWeights). */
-function mineGoldenWeaponChance() {
+/** Базовый шанс оружия (референс = золотой). Ниже старого «только golden». */
+function mineWeaponDropChanceBase() {
   const zone = farmZoneById(state.farmZone || "banana_mine");
-  const chapter = zone.chapter || 1;
   const lvl = state.avatar?.level || 1;
   const power = avatarFarmPower();
   const target = farmZoneTargetPower(zone);
-  // База ~10–22% по главам (+2% к формуле), потолок 37%
-  let ch = 0.10 + chapter * 0.025 + Math.max(0, lvl - zone.reqLevel) * 0.01;
-  if (power >= target) ch += 0.03;
-  if (power >= target * 1.15) ch += 0.02;
-  return Math.min(0.37, ch);
+  if (zone && !zone.side) {
+    let ch = 0.028 + Math.min(0.02, Math.max(0, (zone.chapter || 1) - 1) * 0.005);
+    if (power >= target) ch += 0.008;
+    return Math.min(0.055, ch);
+  }
+  const prog =
+    typeof farmZoneProgressChapter === "function"
+      ? farmZoneProgressChapter(zone)
+      : zone.chapter || 1;
+  let ch = 0.07 + prog * 0.015 + Math.max(0, lvl - (zone.reqLevel || 1)) * 0.006;
+  if (power >= target) ch += 0.02;
+  if (power >= target * 1.15) ch += 0.012;
+  return Math.min(0.18, ch);
+}
+
+/**
+ * Шанс оружия с моба: обычный / золотой / босс.
+ * Обычные тоже дропают, но реже; золотые выше обычных (база снижена vs старый golden-only).
+ */
+function mineWeaponDropChance(mobType) {
+  const base = mineWeaponDropChanceBase();
+  const type = mobType === "boss" || mobType === "golden" ? mobType : "normal";
+  if (type === "boss") return Math.min(0.4, base * 1.75);
+  if (type === "golden") return base;
+  return Math.min(0.055, base * 0.28);
+}
+
+/** @deprecated используй mineWeaponDropChance("golden") */
+function mineGoldenWeaponChance() {
+  return mineWeaponDropChance("golden");
 }
 

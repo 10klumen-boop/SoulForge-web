@@ -273,11 +273,11 @@ function toastAchievement(ach) {
 
 let gamePaused = false;
 let gamePauseDepth = 0;
-let achModalQueue = [];
-let achModalDraining = false;
-let achModalKeyHandler = null;
 
 const OVERLAY_OK_ARM_MS = 650;
+const ACH_TOAST_MS = 4200;
+const ACH_TOAST_STAGGER_MS = 380;
+const ACH_TOAST_MAX = 3;
 
 function armOverlayOkButton(btn, lockedClass, ms) {
   if (!btn) return;
@@ -304,8 +304,6 @@ function isBlockingOverlayOpen() {
   const ids = [
     "storyBackdrop",
     "modalBackdrop",
-    "achModalBackdrop",
-    "achRewardBackdrop",
     "avatarSetupBackdrop",
     "avatarEquipBackdrop",
   ];
@@ -316,7 +314,7 @@ function isBlockingOverlayOpen() {
 }
 
 function syncGamePauseState() {
-  const shouldPause = isBlockingOverlayOpen() || achModalDraining;
+  const shouldPause = isBlockingOverlayOpen();
   gamePauseDepth = shouldPause ? 1 : 0;
   const wasPaused = gamePaused;
   gamePaused = shouldPause;
@@ -369,143 +367,105 @@ function achModalIcon(ach) {
   return resolveAchIcon(ach);
 }
 
-function presentAchievementModal(ach, remaining) {
-  return new Promise((resolve) => {
-    const backdrop = document.getElementById("achModalBackdrop");
-    const box = backdrop && backdrop.querySelector(".ach-modal-box");
-    const ico = document.getElementById("achModalIco");
-    const kicker = document.getElementById("achModalKicker");
-    const title = document.getElementById("achModalTitle");
-    const desc = document.getElementById("achModalDesc");
-    const reward = document.getElementById("achModalReward");
-    const queue = document.getElementById("achModalQueue");
-    const okBtn = document.getElementById("achModalOk");
-    const badge = document.getElementById("achModalBadge");
-    if (!backdrop || !ico || !title || !desc || !okBtn) { resolve(); return; }
-
-    const rw = formatAchReward(ach.reward);
-    const secret = !!ach.hidden;
-    if (box) box.classList.toggle("secret", secret);
-    if (badge) badge.textContent = secret ? "🔮" : "🏆";
-    if (kicker) kicker.textContent = secret ? "Секретное достижение!" : "Поздравляем!";
-    ico.src = achModalIcon(ach);
-    ico.onerror = () => { ico.src = ACH_ICON; };
-    title.textContent = ach.title;
-    desc.textContent = ach.desc;
-    if (reward) reward.textContent = rw ? "Награда: " + rw : "";
-    if (queue) {
-      queue.hidden = remaining <= 0;
-      queue.textContent = remaining > 0 ? "Ещё " + remaining + " " + (remaining === 1 ? "достижение" : remaining < 5 ? "достижения" : "достижений") : "";
-    }
-
-    const close = () => {
-      backdrop.hidden = true;
-      if (achModalKeyHandler) {
-        document.removeEventListener("keydown", achModalKeyHandler);
-        achModalKeyHandler = null;
-      }
-      okBtn.onclick = null;
-      backdrop.onclick = null;
-      resolve();
-    };
-
-    achModalKeyHandler = (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (isOverlayOkLocked(okBtn, "ach-modal-btn--locked")) return;
-        Audio2.click();
-        close();
-      }
-    };
-    okBtn.onclick = () => {
-      if (isOverlayOkLocked(okBtn, "ach-modal-btn--locked")) return;
-      Audio2.click();
-      close();
-    };
-    // Закрытие только по кнопке (и Enter) — клик по пустому фону не закрывает.
-    backdrop.onclick = null;
-    document.addEventListener("keydown", achModalKeyHandler);
-    backdrop.hidden = false;
-    armOverlayOkButton(okBtn, "ach-modal-btn--locked");
-    if (typeof Audio2 !== "undefined") {
-      if (secret && Audio2.jackpot) Audio2.jackpot();
-      else if (Audio2.success) Audio2.success();
-    }
-    okBtn.focus();
-  });
+function ensureAchToastHost() {
+  let host = document.getElementById("achToastHost");
+  if (host) return host;
+  const actions = document.querySelector(".topbar-actions");
+  if (!actions) return null;
+  host = document.createElement("div");
+  host.id = "achToastHost";
+  host.className = "ach-toast-host";
+  host.setAttribute("aria-live", "polite");
+  host.setAttribute("aria-relevant", "additions");
+  actions.insertBefore(host, actions.firstChild);
+  return host;
 }
 
-function presentAchievementReward(ach) {
-  const src = (ach && ach.rewardImage) || ACH_REWARD_IMAGE;
-  if (!src) return Promise.resolve();
-  return new Promise((resolve) => {
-    const backdrop = document.getElementById("achRewardBackdrop");
-    const img = document.getElementById("achRewardImg");
-    const title = document.getElementById("achRewardTitle");
-    const desc = document.getElementById("achRewardDesc");
-    const kicker = document.getElementById("achRewardKicker");
-    const okBtn = document.getElementById("achRewardOk");
-    if (!backdrop || !img || !okBtn) { resolve(); return; }
-
-    if (kicker) kicker.textContent = "🔮 Секретная награда";
-    if (title) title.textContent = (ach && ach.title) || "Секретная награда";
-    if (desc) desc.textContent = (ach && ach.desc) || "Ты открыл все обычные достижения.";
-    img.hidden = false;
-    img.src = src;
-
-    let keyHandler = null;
-    const close = () => {
-      backdrop.hidden = true;
-      img.src = "";
-      if (keyHandler) document.removeEventListener("keydown", keyHandler);
-      okBtn.onclick = null;
-      backdrop.onclick = null;
-      resolve();
-    };
-
-    keyHandler = (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (isOverlayOkLocked(okBtn, "ach-reward-btn--locked")) return;
-        Audio2.click();
-        close();
-      }
-    };
-    okBtn.onclick = () => {
-      if (isOverlayOkLocked(okBtn, "ach-reward-btn--locked")) return;
-      Audio2.click();
-      close();
-    };
-    // Закрытие только по кнопке (и Enter) — клик по пустому фону не закрывает.
-    backdrop.onclick = null;
-    document.addEventListener("keydown", keyHandler);
-    backdrop.hidden = false;
-    armOverlayOkButton(okBtn, "ach-reward-btn--locked");
-    if (typeof Audio2 !== "undefined" && Audio2.jackpot) Audio2.jackpot();
-    okBtn.focus();
-  });
-}
-
-async function drainAchievementModals() {
-  if (achModalDraining || !achModalQueue.length) return;
-  achModalDraining = true;
-  syncGamePauseState();
-  while (achModalQueue.length) {
-    const ach = achModalQueue.shift();
-    const remaining = achModalQueue.length;
-    await presentAchievementModal(ach, remaining);
-    if (ach.rewardImage) await presentAchievementReward(ach);
+function dismissAchToast(el) {
+  if (!el || el._achDismissing) return;
+  el._achDismissing = true;
+  if (el._dismissTimer) {
+    clearTimeout(el._dismissTimer);
+    el._dismissTimer = null;
   }
-  achModalDraining = false;
-  syncGamePauseState();
+  el.classList.add("ach-toast--out");
+  setTimeout(() => {
+    if (el.parentNode) el.parentNode.removeChild(el);
+  }, 320);
+}
+
+function mountAchToast(el, ms) {
+  const host = ensureAchToastHost();
+  if (!host) return;
+  host.appendChild(el);
+  while (host.children.length > ACH_TOAST_MAX) {
+    dismissAchToast(host.firstElementChild);
+  }
+  requestAnimationFrame(() => el.classList.add("ach-toast--in"));
+  el.addEventListener("click", () => dismissAchToast(el));
+  el._dismissTimer = setTimeout(() => dismissAchToast(el), ms == null ? ACH_TOAST_MS : ms);
+}
+
+function presentAchievementToast(ach) {
+  const secret = !!ach.hidden;
+  const rw = formatAchReward(ach.reward);
+  const el = document.createElement("div");
+  el.className = "ach-toast" + (secret ? " secret" : "");
+  el.setAttribute("role", "status");
+  el.innerHTML =
+    '<div class="ach-toast-rays" aria-hidden="true"></div>' +
+    '<div class="ach-toast-shine" aria-hidden="true"></div>' +
+    '<img class="ach-toast-ico" alt="">' +
+    '<div class="ach-toast-body">' +
+      '<div class="ach-toast-kicker"></div>' +
+      '<div class="ach-toast-title"></div>' +
+      (rw ? '<div class="ach-toast-reward"></div>' : "") +
+    "</div>";
+  const ico = el.querySelector(".ach-toast-ico");
+  ico.src = achModalIcon(ach);
+  ico.onerror = () => { ico.src = ACH_ICON; };
+  el.querySelector(".ach-toast-kicker").textContent = secret ? "Секретное достижение" : "Достижение";
+  el.querySelector(".ach-toast-title").textContent = ach.title || "";
+  const rewardEl = el.querySelector(".ach-toast-reward");
+  if (rewardEl) rewardEl.textContent = rw;
+  if (typeof Audio2 !== "undefined") {
+    if (secret && Audio2.jackpot) Audio2.jackpot();
+    else if (Audio2.success) Audio2.success();
+  }
+  mountAchToast(el, ACH_TOAST_MS);
+}
+
+function presentAchievementRewardToast(ach) {
+  const src = (ach && ach.rewardImage) || ACH_REWARD_IMAGE;
+  if (!src) return;
+  const el = document.createElement("div");
+  el.className = "ach-toast ach-toast--reward secret";
+  el.setAttribute("role", "status");
+  el.innerHTML =
+    '<div class="ach-toast-rays" aria-hidden="true"></div>' +
+    '<div class="ach-toast-shine" aria-hidden="true"></div>' +
+    '<div class="ach-toast-body">' +
+      '<div class="ach-toast-kicker">Секретная награда</div>' +
+      '<div class="ach-toast-title"></div>' +
+      '<img class="ach-toast-reward-img" alt="">' +
+    "</div>";
+  el.querySelector(".ach-toast-title").textContent = (ach && ach.title) || "Секретная награда";
+  const img = el.querySelector(".ach-toast-reward-img");
+  img.src = src;
+  if (typeof Audio2 !== "undefined" && Audio2.jackpot) Audio2.jackpot();
+  mountAchToast(el, 5000);
 }
 
 function enqueueAchievementModals(list) {
   if (!list.length) return;
-  achModalQueue.push(...list);
-  drainAchievementModals();
+  list.forEach((ach, i) => {
+    setTimeout(() => {
+      presentAchievementToast(ach);
+      if (ach.rewardImage) {
+        setTimeout(() => presentAchievementRewardToast(ach), 220);
+      }
+    }, i * ACH_TOAST_STAGGER_MS);
+  });
 }
 
 function notifyAchievements(list, opts) {

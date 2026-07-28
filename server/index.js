@@ -56,7 +56,8 @@ function leasePayload(lease) {
 }
 
 function jsonError(res, status, message) {
-  return res.status(status).json({ ok: false, error: message });
+  // error + message: клиентские экраны читают то одно, то другое
+  return res.status(status).json({ ok: false, error: message, message });
 }
 
 function adminKeyOk(got) {
@@ -1138,7 +1139,10 @@ app.post("/chat/clan/invite", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
   try {
-    const result = store.chatInviteClan(user, { nick: req.body?.nick, now: Date.now() });
+    const result = store.chatInviteClan(user, {
+      charName: req.body?.charName || req.body?.name || req.body?.nick,
+      now: Date.now(),
+    });
     if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
     res.json(result);
   } catch (e) {
@@ -1157,6 +1161,266 @@ app.post("/chat/clan/leave", (req, res) => {
   } catch (e) {
     console.error("POST /chat/clan/leave", e);
     return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.get("/chat/clan/invites", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.chatListClanInvites(user));
+  } catch (e) {
+    console.error("GET /chat/clan/invites", e);
+    return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.post("/chat/clan/invite/respond", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatRespondClanInvite(user, {
+      inviteId: req.body?.inviteId,
+      accept: !!req.body?.accept,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/invite/respond", e);
+    return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.post("/chat/clan/kick", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatKickClan(user, {
+      charName: req.body?.charName || req.body?.name || req.body?.nick,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/kick", e);
+    return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.post("/chat/clan/role", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.chatSetClanRole(user, {
+      charName: req.body?.charName || req.body?.name || req.body?.nick,
+      role: req.body?.role,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/role", e);
+    return jsonError(res, 500, "Ошибка клана");
+  }
+});
+
+app.get("/chat/clan/territories", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.clanListTerritories());
+  } catch (e) {
+    console.error("GET /chat/clan/territories", e);
+    return jsonError(res, 500, "Ошибка территорий");
+  }
+});
+
+app.post("/chat/clan/territories/claim", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanClaimTerritory(user, {
+      territoryId: req.body?.territoryId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/territories/claim", e);
+    return jsonError(res, 500, "Ошибка территорий");
+  }
+});
+
+app.post("/chat/clan/territories/contest", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanContestTerritory(user, {
+      territoryId: req.body?.territoryId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/territories/contest", e);
+    return jsonError(res, 500, "Ошибка территорий");
+  }
+});
+
+app.post("/chat/clan/territories/release", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanReleaseTerritory(user, {
+      territoryId: req.body?.territoryId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/territories/release", e);
+    return jsonError(res, 500, "Ошибка территорий");
+  }
+});
+
+app.get("/chat/clan/warehouse", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanGetWarehouse(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /chat/clan/warehouse", e);
+    return jsonError(res, 500, "Ошибка склада");
+  }
+});
+
+app.post("/chat/clan/warehouse/deposit", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanWarehouseDeposit(user, {
+      amount: req.body?.amount,
+      characterId: req.body?.characterId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/warehouse/deposit", e);
+    return jsonError(res, 500, "Ошибка склада");
+  }
+});
+
+app.post("/chat/clan/warehouse/withdraw", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanWarehouseWithdraw(user, {
+      amount: req.body?.amount,
+      characterId: req.body?.characterId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/warehouse/withdraw", e);
+    return jsonError(res, 500, "Ошибка склада");
+  }
+});
+
+app.get("/chat/clan/buffs", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanGetBuffs(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /chat/clan/buffs", e);
+    return jsonError(res, 500, "Ошибка баффов");
+  }
+});
+
+app.post("/chat/clan/buffs/study", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanStudyBuff(user, {
+      buffId: req.body?.buffId,
+      characterId: req.body?.characterId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/buffs/study", e);
+    return jsonError(res, 500, "Ошибка изучения баффа");
+  }
+});
+
+app.get("/chat/clan/boss", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanBossState(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("GET /chat/clan/boss", e);
+    return jsonError(res, 500, "Ошибка клан-босса");
+  }
+});
+
+app.post("/chat/clan/boss/start", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanBossStart(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/boss/start", e);
+    return jsonError(res, 500, "Ошибка клан-босса");
+  }
+});
+
+app.post("/chat/clan/boss/join", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanBossJoin(user, { now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/boss/join", e);
+    return jsonError(res, 500, "Ошибка клан-босса");
+  }
+});
+
+app.post("/chat/clan/boss/hit", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanBossHit(user, { dmg: req.body?.dmg, now: Date.now() });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/boss/hit", e);
+    return jsonError(res, 500, "Ошибка клан-босса");
+  }
+});
+
+app.post("/chat/clan/boss/leave", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    res.json(store.clanBossLeave(user, { now: Date.now() }));
+  } catch (e) {
+    console.error("POST /chat/clan/boss/leave", e);
+    return jsonError(res, 500, "Ошибка клан-босса");
   }
 });
 

@@ -70,6 +70,8 @@ function playerMailStackKeyOf(st) {
   if (st.kind === "material") return "material:" + st.ore;
   if (st.kind === "shot") return "shot:" + st.shotKind + ":" + st.grade;
   if (st.kind === "armor_piece") return "armor_piece:" + st.fragId;
+  if (st.kind === "jewelry_piece") return "jewelry_piece:" + st.fragId;
+  if (st.kind === "scroll") return "scroll:" + st.target + ":" + st.typeId + ":" + st.grade;
   return "";
 }
 
@@ -81,6 +83,8 @@ function playerMailParseStackKey(key) {
   if (parts[0] === "material") return { kind: "material", ore: parts[1] };
   if (parts[0] === "shot") return { kind: "shot", shotKind: parts[1], grade: parts[2] };
   if (parts[0] === "armor_piece") return { kind: "armor_piece", fragId: parts.slice(1).join(":") };
+  if (parts[0] === "jewelry_piece") return { kind: "jewelry_piece", fragId: parts.slice(1).join(":") };
+  if (parts[0] === "scroll") return { kind: "scroll", target: parts[1], typeId: parts[2], grade: parts[3] };
   return null;
 }
 

@@ -4,7 +4,7 @@ const ACCOUNT_WAREHOUSE_CAP = 40;
 const ACCOUNT_MAIL_CAP = 50;
 
 function defaultAccountWarehouse() {
-  return { items: [] };
+  return { items: [], stacks: [] };
 }
 
 function defaultAccountMail() {
@@ -16,6 +16,7 @@ function ensureAccountStorage() {
     state.accountWarehouse = defaultAccountWarehouse();
   }
   if (!Array.isArray(state.accountWarehouse.items)) state.accountWarehouse.items = [];
+  if (!Array.isArray(state.accountWarehouse.stacks)) state.accountWarehouse.stacks = [];
   if (!state.accountMail || typeof state.accountMail !== "object") {
     state.accountMail = defaultAccountMail();
   }
@@ -34,9 +35,40 @@ function cloneInvItem(it) {
   }
 }
 
+function accountWarehouseStackKey(st) {
+  if (!st || st.kind !== "scroll") return null;
+  const target =
+    typeof normalizeScrollTarget === "function"
+      ? normalizeScrollTarget(st.target)
+      : st.target === "armor"
+        ? "armor"
+        : "weapon";
+  const typeId =
+    typeof normalizeScrollTypeId === "function"
+      ? normalizeScrollTypeId(st.typeId || st.scrollType)
+      : st.typeId || st.scrollType || "regular";
+  const grade =
+    typeof normalizeScrollGrade === "function"
+      ? normalizeScrollGrade(st.grade)
+      : String(st.grade || "").toUpperCase();
+  if (!target || !typeId || !grade) return null;
+  return "scroll:" + target + ":" + typeId + ":" + grade;
+}
+
+function parseAccountWarehouseStackKey(key) {
+  const parts = String(key || "").split(":");
+  if (parts[0] !== "scroll" || parts.length < 4) return null;
+  return {
+    kind: "scroll",
+    target: parts[1],
+    typeId: parts[2],
+    grade: parts[3],
+  };
+}
+
 function accountWarehouseCount() {
   ensureAccountStorage();
-  return state.accountWarehouse.items.length;
+  return (state.accountWarehouse.items || []).length + (state.accountWarehouse.stacks || []).length;
 }
 
 function accountWarehouseFree() {
@@ -125,6 +157,128 @@ function depositInvItemToWarehouse(uid) {
   if (typeof toast === "function") {
     const def = typeof invItemDef === "function" ? invItemDef(taken) : null;
     toast("На склад: " + (def?.name || "?"), "success");
+  }
+  return true;
+}
+
+function warehouseScrollLabel(st) {
+  if (typeof scrollLabel === "function") {
+    return scrollLabel(st.target, st.typeId || st.scrollType, st.grade);
+  }
+  return "Свиток " + (st.target || "") + " " + (st.typeId || "") + " " + (st.grade || "");
+}
+
+function warehouseScrollIcon(st) {
+  const typeId = st.typeId || st.scrollType || "regular";
+  const target = st.target === "armor" ? "armor" : "weapon";
+  if (typeof scrollTierIcon === "function") return scrollTierIcon(typeId, st.grade || "D", target);
+  return target === "armor"
+    ? "icons/etc_scroll_of_enchant_armor_i01.png"
+    : "icons/etc_scroll_of_enchant_weapon_i01.png";
+}
+
+/**
+ * Положить свитки активного персонажа на склад аккаунта.
+ * Одинаковые стаки сливаются; новый стак занимает 1 слот склада.
+ */
+function depositScrollToWarehouse(target, typeId, grade, qty) {
+  ensureAccountStorage();
+  if (!state.avatar?.created) {
+    if (typeof toast === "function") toast("Сначала создай персонажа", "warn");
+    return false;
+  }
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (
+    typeof hasScroll !== "function" ||
+    typeof consumeScroll !== "function" ||
+    !hasScroll(target, typeId, grade, n)
+  ) {
+    if (typeof toast === "function") toast("Недостаточно свитков", "warn");
+    return false;
+  }
+  const key = accountWarehouseStackKey({ kind: "scroll", target, typeId, grade });
+  if (!key) {
+    if (typeof toast === "function") toast("Неверный свиток", "warn");
+    return false;
+  }
+  const stacks = state.accountWarehouse.stacks;
+  const existing = stacks.find((s) => accountWarehouseStackKey(s) === key);
+  if (!existing && accountWarehouseIsFull()) {
+    if (typeof toast === "function") toast("Склад аккаунта полон (" + ACCOUNT_WAREHOUSE_CAP + ")", "warn");
+    return false;
+  }
+  if (!consumeScroll(target, typeId, grade, n)) {
+    if (typeof toast === "function") toast("Не удалось списать свитки", "warn");
+    return false;
+  }
+  const norm = parseAccountWarehouseStackKey(key);
+  if (existing) {
+    existing.qty = Math.max(0, Math.floor(Number(existing.qty) || 0)) + n;
+  } else {
+    stacks.push({
+      kind: "scroll",
+      target: norm.target,
+      typeId: norm.typeId,
+      grade: norm.grade,
+      qty: n,
+    });
+  }
+  persistAccountStorage();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("warehouse_deposit", {
+      kind: "scroll",
+      target: norm.target,
+      typeId: norm.typeId,
+      grade: norm.grade,
+      qty: n,
+      fromCharId: state.activeCharacterId || null,
+    });
+  }
+  if (typeof toast === "function") {
+    toast("На склад: " + warehouseScrollLabel(norm) + " ×" + n, "success");
+  }
+  return true;
+}
+
+/** Забрать свитки со склада в сумку активного персонажа. */
+function withdrawScrollFromWarehouse(stackKey, qty) {
+  ensureAccountStorage();
+  if (!state.avatar?.created) {
+    if (typeof toast === "function") toast("Сначала создай персонажа", "warn");
+    return false;
+  }
+  const stacks = state.accountWarehouse.stacks;
+  const idx = stacks.findIndex((s) => accountWarehouseStackKey(s) === stackKey);
+  if (idx < 0) {
+    if (typeof toast === "function") toast("Свитки не на складе", "warn");
+    return false;
+  }
+  const st = stacks[idx];
+  const have = Math.max(0, Math.floor(Number(st.qty) || 0));
+  const n = Math.max(1, Math.min(have, Math.floor(Number(qty) || have)));
+  if (n < 1 || typeof addScroll !== "function") {
+    if (typeof toast === "function") toast("Нечего забирать", "warn");
+    return false;
+  }
+  if (!addScroll(st.target, st.typeId, st.grade, n)) {
+    if (typeof toast === "function") toast("Не удалось выдать свитки", "warn");
+    return false;
+  }
+  st.qty = have - n;
+  if (st.qty <= 0) stacks.splice(idx, 1);
+  persistAccountStorage();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("warehouse_withdraw", {
+      kind: "scroll",
+      target: st.target,
+      typeId: st.typeId,
+      grade: st.grade,
+      qty: n,
+      fromCharId: state.activeCharacterId || null,
+    });
+  }
+  if (typeof toast === "function") {
+    toast("В сумку: " + warehouseScrollLabel(st) + " ×" + n, "success");
   }
   return true;
 }

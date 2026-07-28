@@ -262,6 +262,7 @@ function buildCombatSheet(input) {
     critChance: passives.add.crit,
     atkMult: passives.mult.atk,
     defMult: passives.mult.def,
+    isAvatar: !!liveAvatar,
   };
 }
 
@@ -319,7 +320,14 @@ function pvpComputeHitDamage(attacker, defender, skillMult, rng) {
   let next = attacker.buffs.nextHitMult || 1;
   let outgoingDebuff = attacker.buffs.atkDebuffMult || 1;
 
-  let combined = (skillMult || 1) * buffMult * next * shotMult * outgoingDebuff;
+  let clanPvpMult = 1;
+  if (sheetA.isAvatar && typeof clanBuffPvpPct === "function") {
+    const pct = Math.max(0, Number(clanBuffPvpPct()) || 0);
+    if (pct > 0) clanPvpMult = 1 + pct / 100;
+  }
+
+  let combined =
+    (skillMult || 1) * buffMult * next * shotMult * outgoingDebuff * clanPvpMult;
   combined = pvpClamp(combined, 0.05, cap);
 
   const roll = typeof rng === "function" ? rng() : 0.5;
@@ -327,6 +335,13 @@ function pvpComputeHitDamage(attacker, defender, skillMult, rng) {
 
   const raw = atk * scale * combined;
   let damage = Math.max(1, Math.round(raw * (1 - mit) * variance));
+
+  if (sheetB.isAvatar && typeof clanBuffPvpDefPct === "function") {
+    const defPct = Math.max(0, Math.min(90, Number(clanBuffPvpDefPct()) || 0));
+    if (defPct > 0) {
+      damage = Math.max(1, Math.round(damage * (1 - defPct / 100)));
+    }
+  }
 
   if (defender.buffs.guarding) {
     const g =
@@ -435,8 +450,36 @@ function pvpResolveAction(attacker, defender, action, rng) {
       }
 
       if (eff === "atkDebuff") {
-        defender.buffs.atkDebuffMult = skill.debuffMult || 0.7;
-        defender.buffs.atkDebuffRounds = skill.debuffRounds || 1;
+        let resist = 0;
+        if (defender.sheet.isAvatar && typeof avatarJewelryDebuffResist === "function") {
+          resist = avatarJewelryDebuffResist();
+        }
+        const rngFn = typeof rng === "function" ? rng : Math.random;
+        if (resist > 0 && rngFn() < resist) {
+          events.push({
+            kind: "resist",
+            actor: name,
+            target: defender.sheet.name,
+            skillId: skill.id,
+            text:
+              defender.sheet.name +
+              " сопротивляется дебаффу «" +
+              skill.name +
+              "» (" +
+              Math.round(resist * 100) +
+              "%)",
+          });
+          return events;
+        }
+        let rounds = skill.debuffRounds || 1;
+        let mult = skill.debuffMult || 0.7;
+        if (resist > 0) {
+          // Частичное ослабление, если полный resist не сработал
+          rounds = Math.max(1, Math.round(rounds * (1 - resist * 0.35)));
+          mult = Math.min(1, mult + (1 - mult) * resist * 0.25);
+        }
+        defender.buffs.atkDebuffMult = mult;
+        defender.buffs.atkDebuffRounds = rounds;
         events.push({
           kind: "debuff",
           actor: name,
@@ -449,7 +492,7 @@ function pvpResolveAction(attacker, defender, action, rng) {
             "» — урон " +
             defender.sheet.name +
             " ×" +
-            (skill.debuffMult || 0.7),
+            mult,
         });
         return events;
       }
@@ -513,14 +556,34 @@ function pvpResolveAction(attacker, defender, action, rng) {
             total,
         });
         if (eff === "freezeMulti") {
-          defender.buffs.atkDebuffMult = skill.debuffMult || 0.7;
-          defender.buffs.atkDebuffRounds = skill.debuffRounds || 1;
-          events.push({
-            kind: "debuff",
-            actor: name,
-            target: defender.sheet.name,
-            text: defender.sheet.name + " скован (−урон)",
-          });
+          let resist = 0;
+          if (defender.sheet.isAvatar && typeof avatarJewelryDebuffResist === "function") {
+            resist = avatarJewelryDebuffResist();
+          }
+          const rngFn = typeof rng === "function" ? rng : Math.random;
+          if (resist > 0 && rngFn() < resist) {
+            events.push({
+              kind: "resist",
+              actor: name,
+              target: defender.sheet.name,
+              text: defender.sheet.name + " сопротивляется сковыванию",
+            });
+          } else {
+            let rounds = skill.debuffRounds || 1;
+            let mult = skill.debuffMult || 0.7;
+            if (resist > 0) {
+              rounds = Math.max(1, Math.round(rounds * (1 - resist * 0.35)));
+              mult = Math.min(1, mult + (1 - mult) * resist * 0.25);
+            }
+            defender.buffs.atkDebuffMult = mult;
+            defender.buffs.atkDebuffRounds = rounds;
+            events.push({
+              kind: "debuff",
+              actor: name,
+              target: defender.sheet.name,
+              text: defender.sheet.name + " скован (−урон)",
+            });
+          }
         }
         return events;
       }

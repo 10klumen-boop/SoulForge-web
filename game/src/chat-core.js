@@ -365,11 +365,8 @@ function renderChatSocialBar() {
   } else if (ch === "clan") {
     if (!chatSocial.clan) {
       social.innerHTML =
-        '<button type="button" class="game-chat-social-btn is-muted" data-act="clan-create" disabled aria-disabled="true" title="Временно недоступно">Создать клан</button>' +
-        '<span class="game-chat-social-hint">создание временно недоступно</span>';
+        '<span class="game-chat-social-hint">Клан — плитка «Клан» в меню</span>';
     } else {
-      const leader = (chatSocial.clan.members || []).find((m) => m.userId === chatSocial.clan.leaderUserId);
-      const amLeader = !!(leader && leader.nick === myNick);
       const n = (chatSocial.clan.members || []).length;
       social.innerHTML =
         '<span class="game-chat-social-meta">' +
@@ -377,10 +374,7 @@ function renderChatSocialBar() {
         " · " +
         n +
         "</span>" +
-        (amLeader
-          ? '<button type="button" class="game-chat-social-btn" data-act="clan-invite">+ Ник</button>'
-          : "") +
-        '<button type="button" class="game-chat-social-btn ghost" data-act="clan-leave">Выйти</button>';
+        '<span class="game-chat-social-hint">управление — меню «Клан»</span>';
     }
   }
 
@@ -434,30 +428,9 @@ async function handleChatSocialAction(act) {
     if (typeof openPartyScreen === "function") return openPartyScreen();
     return setChatStatus("Приглашение — в меню «Группа»", "warn");
   }
-  if (act === "clan-create") {
-    return setChatStatus("Создание клана временно недоступно", "warn");
-  }
-  if (act === "clan-leave") {
-    const r = await chatApi("/chat/clan/leave", { method: "POST", body: {} });
-    if (!r.ok) return setChatStatus(r.error, "warn");
-    chatSocial = { party: r.party || chatSocial.party, clan: null };
-    chatCanSend = false;
-    clearChatFeed();
-    chatLastIdByChannel.clan = 0;
-    chatKnownIdsByChannel.clan = new Set();
-    chatBootstrapped.clan = false;
-    syncChatComposeUi();
-    setChatStatus("Вы покинули клан");
-    return;
-  }
-  if (act === "clan-invite") {
-    const nick = window.prompt("Ник аккаунта для приглашения в клан:");
-    if (!nick) return;
-    const r = await chatApi("/chat/clan/invite", { method: "POST", body: { nick: nick.trim() } });
-    if (!r.ok) return setChatStatus(r.error, "warn");
-    chatSocial = { party: r.party || chatSocial.party, clan: r.clan || chatSocial.clan };
-    syncChatComposeUi();
-    setChatStatus("Приглашён: " + (r.invited || nick));
+  if (act === "clan-create" || act === "clan-invite" || act === "clan-leave") {
+    if (typeof openClanScreen === "function") return openClanScreen();
+    return setChatStatus("Управление кланом — в меню «Клан»", "warn");
   }
 }
 
@@ -568,6 +541,7 @@ async function chatPollNow() {
         setChatStatus("");
       }
       syncChatComposeUi();
+      if (typeof clanHydrateWorldState === "function") clanHydrateWorldState(false);
       // Полный re-render панели группы только с party-полла — иначе Ready/вкладки мигают
     }
 

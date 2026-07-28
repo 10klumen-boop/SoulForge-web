@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m168" />
-<link rel="stylesheet" href="styles/dark-fantasy.css?v=d15" />
-<link rel="stylesheet" href="styles/sf-ui.css?v=48" />
+<link rel="stylesheet" href="styles/main.css?v=m239" />
+<link rel="stylesheet" href="styles/dark-fantasy.css?v=d18" />
+<link rel="stylesheet" href="styles/sf-ui.css?v=49" />
 <script src="cloud-config.js"></script>
 
 </head>
@@ -76,6 +76,7 @@
   <div class="topbar">
     <div class="brand"><span class="l2">SoulForge Lineage 2</span><span class="sub">Enchant Sim</span></div>
     <div class="topbar-actions">
+      <div class="ach-toast-host" id="achToastHost" aria-live="polite" aria-relevant="additions"></div>
       <div class="avatar-hub" id="avatarHub" hidden>
         <button type="button" class="avatar-hub-btn" id="avatarHubBtn" title="Персонаж">
           <img id="avatarHubIcon" src="icons/etc_scroll_of_enchant_weapon_i03.png" alt="">
@@ -274,6 +275,121 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.58.22</p>
+        <ul>
+          <li><b>Клан · уровень</b> — накопительный XP (склад / угодья / рейд); изучение баффов по ур.1–5</li>
+          <li><b>Клан · PvP-баффы</b> — Доблесть (+урон) и Эгида (−входящий) на арене</li>
+          <li><b>Заточка</b> — обычная продажа оружия/брони/бижи убрана; продажа на рынке</li>
+          <li><b>Тултипы</b> — при наведении в сумке и на экипе: статы, грейд, сет</li>
+        </ul>
+        <p class="patch-ver">v0.58.21</p>
+        <ul>
+          <li><b>Фарм · оружие</b> — дроп со всех мобов (не только золотых); шанс снижен, у золотых выше обычных</li>
+          <li><b>Охота · фильтр</b> — mid ≤20 → «до 20» (Ветряной холм / Феллмер / Нейтралка больше не в 20–30)</li>
+          <li><b>UI</b> — на плитках L2-диапазон + «от ур.N» (не «р.N»)</li>
+        </ul>
+        <p class="patch-ver">v0.58.20</p>
+        <ul>
+          <li><b>Охота · лут</b> — Угольные шахты снова L2 ≤20 / только D; Mithril/Chain = D; на 30+ чистый C (без смеси D)</li>
+        </ul>
+        <p class="patch-ver">v0.58.19</p>
+        <ul>
+          <li><b>Достижения</b> — уведомление слева от персонажа/адены, 4 сек, без паузы игры</li>
+        </ul>
+        <p class="patch-ver">v0.58.18</p>
+        <ul>
+          <li><b>Охота · гейты</b> — reqLevel/сила выровнены по L2: на SF 20 открыт только ≤30; зоны 30–40 с SF 22+, 40+ с SF 30+</li>
+        </ul>
+        <p class="patch-ver">v0.58.17</p>
+        <ul>
+          <li><b>Охота · банды лута</b> — L2 ≤20 и 20–30: дроп D; 30–40 и 40+: дроп C. Тултипы зон показывают банду явно</li>
+        </ul>
+        <p class="patch-ver">v0.58.16</p>
+        <ul>
+          <li><b>Охота</b> — адена растёт с reqLevel зоны; броня и бижа разведены по локациям (не только Пустошь/Уголь)</li>
+          <li><b>Сюжет</b> — дроп только D и реже (оружие/свитки)</li>
+        </ul>
+        <p class="patch-ver">v0.58.15</p>
+        <ul>
+          <li><b>Баланс сюжета 1→10</b> — XP за шаги/клир глав I–III; гейты IV lvl8 / V lvl10; охота: XP/adena/дроп от reqLevel; lootTags управляют свитками и кусками брони/бижи</li>
+        </ul>
+        <p class="patch-ver">v0.58.14</p>
+        <ul>
+          <li><b>Мобы</b> — Ol Mahum перерисованы как гиеноголовые гноллы (не кабаны); добавлены Turek Orc, Amber Basilisk, Androscorpio; Queen Ant без спрайта</li>
+        </ul>
+        <p class="patch-ver">v0.58.13</p>
+        <ul>
+          <li><b>Новые мобы охоты</b> — по L2Hub/L2J: муравей-солдат, ол махум (+лучник), ящеры Лангк/Мейл, василиск, зомби руин, спартои, тиран, стакато, багбир, оса; пулы Wasteland/Camp/Ant Nest/Ruins/Langk/Cruma и др. обновлены</li>
+        </ul>
+        <p class="patch-ver">v0.58.12</p>
+        <ul>
+          <li><b>Мобы охоты</b> — пулы по канону L2 (прокси на доступные спрайты): Wasteland/Abandoned Camp/Ruins/Execution/Ant Nest/Breka и остальные hunting-зоны; сюжетные главы без изменений</li>
+        </ul>
+        <p class="patch-ver">v0.58.11</p>
+        <ul>
+          <li><b>Арт охоты</b> — свои фоны/чипы: Окраина деревни, Угольные шахты (без алиаса на гл. I / кузницу; сюжетные чипы не трогались)</li>
+        </ul>
+        <p class="patch-ver">v0.58.10</p>
+        <ul>
+          <li><b>Арт охоты — финал каталога</b> — расовые soft + Giran/Oren/Heine/Aden: фоны×2 и чипы без рамки на отдельных slug (сюжетные banana_mine/elven_ruins/orc_barracks/dark_cavern не трогались)</li>
+        </ul>
+        <p class="patch-ver">v0.58.9</p>
+        <ul>
+          <li><b>Арт Dion</b> — фоны×2 + чипы без рамки: Холмы, Улей, Равнины, Партизаны, Флоран, Болота Крумы, Муравейник, вход Башни Крумы (сюжетные чипы не трогались)</li>
+        </ul>
+        <p class="patch-ver">v0.58.8</p>
+        <ul>
+          <li><b>Арт Gludio mid</b> — фоны×2 + чипы без рамки: Нейтральная зона, Лангк, Мейл, Руины Отчаяния, Злые угодья, Казарма орков</li>
+        </ul>
+        <p class="patch-ver">v0.58.7</p>
+        <ul>
+          <li><b>Уникальный арт охоты</b> — фоны (×2) и чипы: Пустошь, Заброшенный лагерь, Руины Агонии, Поле казни, Ветряной холм, Жатва Феллмер</li>
+        </ul>
+        <p class="patch-ver">v0.58.6</p>
+        <ul>
+          <li><b>Giran+ live</b> — Ущелье смерти, Сад горгон, Крепость Брека, вход DV; Орен (Зачарованная / Море спор); Хейн (Аллигаторы); Аден (Пылающее болото)</li>
+          <li>Весь каталог охоты в меню Фарм теперь playable (кроме пустых хабов Goddard/Rune/Schuttgart)</li>
+        </ul>
+        <p class="patch-ver">v0.58.5</p>
+        <ul>
+          <li><b>Охота ≤40 live</b> — открыты 18 planned/draft угодий: Gludin, Gludio mid, Dion, школа тёмных, руины эльфов (охота). Каталог: live + вход с вкладки Фарм</li>
+          <li>Осада на новых capturable (Казарма орков, Муравейник) пока выкл. — free hunt; Giran+/40+ остаются «скоро»</li>
+        </ul>
+        <p class="patch-ver">v0.58.4</p>
+        <ul>
+          <li><b>Охота по городам</b> — вкладка Фарм: полный стек угодий каталога, группы по хабам; live — играть, draft/planned — «скоро»</li>
+          <li><b>Угодья Gludio+</b> — захват: Заброшенный лагерь (+3%, рента 45k) и Руины Агонии (+4%, 55k); лимит клана по-прежнему 2 farm</li>
+          <li><b>Клан-баффы</b> — авто от онлайна + изучение доп. баффов за адену склада</li>
+        </ul>
+        <p class="patch-ver">v0.58.3</p>
+        <ul>
+          <li><b>Угодья без карты</b> — Клан → список городов и охотничьих угодий; claim MVP на месте. Каталог: <code>aden-pins.html</code></li>
+          <li><b>Сила осады</b> — оценка от состава, профессий и вложений (склад/активность); отдельно от недельных баффов</li>
+        </ul>
+        <p class="patch-ver">v0.58.2</p>
+        <ul>
+          <li><b>Карта Aden</b> — (архив) зоны-полигоны; заменено списком городов в 0.58.3</li>
+        </ul>
+        <p class="patch-ver">v0.58.1</p>
+        <ul>
+          <li><b>Клан playtest</b> — серверный claim Пустошь/Поле казни; holder +adena% online; рента → склад; карта без remount при poll</li>
+          <li>Города на карте — хабы без захвата; баффы и рейд — отдельные разделы клана</li>
+        </ul>
+        <p class="patch-ver">v0.58.0</p>
+        <ul>
+          <li>Охотничьи угодья MVP: Пустошь (ex scrap), лагерь, Агония, уголь, Поле казни + окраина расы</li>
+          <li>Alias сейвов scrap→wasteland, mithril→уголь; CTA выпуска в hunting на ур. 10</li>
+          <li>Клан: создание, pending-инвайты, кик, экран + карта Aden (2 siege-пина)</li>
+          <li>Holder +adena% только online mine; пассив без clan-бонуса</li>
+        </ul>
+        <p class="patch-ver">v0.57.0</p>
+        <ul>
+          <li><b>Свитки заточки</b> — фарм/рынок + расход свитка; adena за попытку остаётся (вывод экономики). Свитки оружия и брони (броня = броня + бижутерия).</li>
+          <li><b>Заточка брони</b> — +N к P.Def/M.Def; провал как у оружия (обычный → кристаллы, благ. → +0).</li>
+          <li><b>Заточка бижутерии</b> — грейдовая бижу до +12 (+M.Def) тем же свитком брони; эпик без заточки.</li>
+          <li><b>Инвентарь</b> — вкладка «Свитки»; клик по броне/бижу — заточка, надеть — drag на paperdoll.</li>
+          <li><b>Склад / рынок</b> — свитки кладутся на склад аккаунта; продажа на рынке: Продать → Свитки.</li>
+        </ul>
         <p class="patch-ver">v0.56.4</p>
         <ul>
           <li><b>Скиллбар</b> — масштаб −/+ на поле, L2-слоты, общая рамка панели, сектор CD.</li>
@@ -808,8 +924,8 @@
           <button type="button" class="farm-hub-entry-btn" id="farmEntryFarm" data-farm-entry="farm">
             <img class="farm-hub-entry-ico" src="icons/btn_farm.png?v=4" alt="" draggable="false">
             <span class="farm-hub-entry-copy">
-              <strong>Фарм</strong>
-              <small>Кузница · фрагменты брони</small>
+              <strong>Охота</strong>
+              <small>Угодья по городам · полный стек</small>
             </span>
           </button>
           <button type="button" class="farm-hub-entry-btn farm-hub-entry-wb" id="farmEntryWorldBoss" data-farm-entry="worldboss">
@@ -854,15 +970,17 @@
           </div>
         </section>
 
-        <section class="farm-field" id="farmField" aria-label="Фарм" hidden>
+        <section class="farm-field" id="farmField" aria-label="Охотничьи угодья" hidden>
           <div class="farm-field-head-row">
             <button type="button" class="farm-field-back" id="farmFieldBack" title="Назад к выбору">← Назад</button>
-            <div class="farm-field-head">Фарм</div>
+            <div class="farm-field-head">Охотничьи угодья</div>
           </div>
-          <div class="farm-zone-list" id="freeFarmZoneList"></div>
+          <p class="farm-hub-city-hint" id="farmHubCityHint">Плитки угодий · фильтр по уровню (город — в подписи).</p>
+          <div class="farm-level-filters" id="farmLevelFilters" role="tablist" aria-label="Фильтр по уровню"></div>
+          <div class="farm-zone-list farm-hub-city-grid farm-catalog-zone-grid farm-catalog sf-scroll" id="freeFarmZoneList"></div>
           <div class="farm-hub-play">
             <button type="button" class="mine-banner" id="farmPlayBanner">
-              <div><div class="mb-t" id="farmPlayTitle">Кузница</div><div class="mb-d" id="farmPlayMeta">Фрагменты брони · без сюжета</div></div>
+              <div><div class="mb-t" id="farmPlayTitle">Охота</div><div class="mb-d" id="farmPlayMeta">Выбери угодье в городе</div></div>
               <span class="mb-go" aria-hidden="true">
                 <img class="mb-go-ico" src="icons/btn_play.png?v=1" alt="">
                 <span class="mb-go-label">Играть</span>
@@ -915,6 +1033,13 @@
             <span class="tile-badge" id="partyTileBadge" hidden>0</span>
           </span>
           <span class="tile-cap"><span class="tname">Группа</span><span class="tcount" id="partyTileMeta">Собрать</span></span>
+        </div>
+        <div class="tile" id="clanTile" role="button" tabindex="0">
+          <span class="tile-hit">
+            <img class="tile-ico" src="icons/party_menu.png?v=2" alt="" aria-hidden="true">
+            <span class="tile-badge" id="clanTileBadge" hidden>0</span>
+          </span>
+          <span class="tile-cap"><span class="tname">Клан</span><span class="tcount" id="clanTileMeta">Создать</span></span>
         </div>
         <div class="tile" id="shopTile" role="button" tabindex="0">
           <span class="tile-hit"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"></span>
@@ -1065,6 +1190,90 @@
       <div class="party-screen-body sf-scroll" id="partyScreenBody"></div>
     </section>
 
+    <section class="screen" id="screen-clan">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img src="icons/party_menu.png?v=2" alt="" class="inv-head-ico"> Клан</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--clan" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Клан</h3>
+          <p>Состав, угодья, склад и клятва силы — всё под одним знаменем.</p>
+        </div>
+      </div>
+      <div class="clan-screen-body party-screen-body" id="clanScreenBody"></div>
+    </section>
+
+    <section class="screen" id="screen-clan-grounds">
+      <div class="panel-head">
+        <button type="button" class="back" id="clanGroundsBackBtn">← К клану</button>
+        <h2>Угодья</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--clan-grounds" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Охотничьи угодья</h3>
+          <p>Города → зоны охоты. Захвати узел — рента на склад, бонус на фарме.</p>
+        </div>
+      </div>
+      <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanGroundsScreenBody"></div>
+    </section>
+
+    <section class="screen" id="screen-clan-warehouse">
+      <div class="panel-head">
+        <button type="button" class="back" id="clanWarehouseBackBtn">← К клану</button>
+        <h2>Склад клана</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--clan-warehouse" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Склад клана</h3>
+          <p>Взносы и рента с узлов. Отсюда платят изучение клан-баффов.</p>
+        </div>
+      </div>
+      <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanWarehouseScreenBody"></div>
+    </section>
+
+    <section class="screen" id="screen-clan-buffs">
+      <div class="panel-head">
+        <button type="button" class="back" id="clanBuffsBackBtn">← К клану</button>
+        <h2>Баффы клана</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--clan-buffs" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Клятва и баффы</h3>
+          <p>Авто от онлайна + изучение за адену склада. Сила осады — здесь же.</p>
+        </div>
+      </div>
+      <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanBuffsScreenBody"></div>
+    </section>
+
+    <section class="screen" id="screen-clan-raid">
+      <div class="panel-head">
+        <button type="button" class="back" id="clanRaidBackBtn">← К клану</button>
+        <h2>Рейд клана</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--clan-raid" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Рейд клана</h3>
+          <p>Общий босс · 1 000 000 HP · без недельного лимита (временно).</p>
+        </div>
+      </div>
+      <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanRaidScreenBody"></div>
+    </section>
+
+    <section class="screen" id="screen-aden-map">
+      <div class="panel-head">
+        <button type="button" class="back" id="adenMapBackBtn">← К клану</button>
+        <h2>Карта Aden</h2>
+        <p class="party-panel-status is-empty" id="adenMapStatus" hidden></p>
+      </div>
+      <div class="aden-map-body" id="adenMapBody"></div>
+    </section>
+
     <section class="screen" id="screen-shop">
       <div class="panel-head">
         <button type="button" class="back" id="shopBackBtn">← В меню</button>
@@ -1171,17 +1380,17 @@
 
         <div class="control">
           <div class="atk">
-            <div class="box"><div class="num" id="patk">0 <small id="patkAdd"></small></div><div class="cap">P. Atk</div></div>
-            <div class="box"><div class="num" id="matk">0 <small id="matkAdd"></small></div><div class="cap">M. Atk</div></div>
+            <div class="box"><div class="num" id="patk">0 <small id="patkAdd"></small></div><div class="cap" id="patkCap">P. Atk</div></div>
+            <div class="box"><div class="num" id="matk">0 <small id="matkAdd"></small></div><div class="cap" id="matkCap">M. Atk</div></div>
           </div>
           <div class="scrolls" id="scrolls"></div>
-          <div class="odds">Шанс: <b id="oddsVal">—</b> · цена: <b id="costVal">—</b></div>
+          <div class="odds">Шанс: <b id="oddsVal">—</b> · свиток: <b id="scrollQtyVal">—</b> · цена: <b id="costVal">—</b></div>
           <div class="actions">
             <button class="btn btn-primary" id="enchBtn">Заточить ✦</button>
             <button class="btn btn-ghost" id="newBtn" title="В инвентарь (N)">В инвентарь</button>
           </div>
-          <button class="btn btn-sell" id="sellBtn" title="Продать (S)">Продать</button>
-          <div class="hint">Space — заточить · S — продать · N — в инвентарь · Esc — назад</div>
+          <p class="ench-market-note" id="enchMarketNote">Продажа — на рынке</p>
+          <div class="hint">Space — заточить · N — в инвентарь · Esc — назад</div>
         </div>
       </div>
     </section>
@@ -1204,7 +1413,7 @@
             <img src="icons/etc_pig_coin_i00.png" alt="" class="funpay-ico"> Хрюкнуть на FunPay
           </button>
         </div>
-        <div class="acc-hint">FunPay: 50% шанс потерять весь прогресс</div>
+        <div class="acc-hint" id="accFunpayHint">FunPay: 50% шанс потерять весь прогресс</div>
       </div>
     </section>
 
@@ -1227,6 +1436,7 @@
           <div class="mh">Убито: <b id="mineCaught">0</b></div>
           <div class="mh">Упущено: <b id="mineMissed">0</b></div>
         </div>
+        <div class="mh mine-clan-territory" id="mineClanTerritoryHud" hidden title="Владелец спорной зоны"></div>
         <button type="button" class="mh mine-shot-toggle" id="mineShotToggle" title="Авто Soulshot / Spiritshot" aria-pressed="true">
           <span class="mine-shot-ico-wrap" aria-hidden="true">
             <img class="mine-shot-ico" id="mineShotIcon" src="icons/etc_spirit_bullet_blue_i00.png" alt="">
@@ -1365,84 +1575,72 @@
     </div>
   </div>
 </div>
-<div class="ach-modal-backdrop" id="achModalBackdrop" hidden>
-  <div class="ach-modal-box" role="dialog" aria-modal="true" aria-labelledby="achModalTitle">
-    <div class="ach-modal-rays" aria-hidden="true"></div>
-    <div class="ach-modal-badge" id="achModalBadge">🏆</div>
-    <img class="ach-modal-ico" id="achModalIco" src="" alt="">
-    <div class="ach-modal-kicker" id="achModalKicker">Достижение разблокировано!</div>
-    <h2 class="ach-modal-title" id="achModalTitle"></h2>
-    <p class="ach-modal-desc" id="achModalDesc"></p>
-    <div class="ach-modal-reward" id="achModalReward"></div>
-    <div class="ach-modal-queue" id="achModalQueue" hidden></div>
-  </div>
-  <div class="ach-modal-actions">
-    <button type="button" class="btn btn-primary ach-modal-btn ach-modal-btn--locked" id="achModalOk" aria-disabled="true">Отлично!</button>
-  </div>
-</div>
-<div class="ach-reward-backdrop" id="achRewardBackdrop" hidden>
-  <div class="ach-reward-box" role="dialog" aria-modal="true" aria-labelledby="achRewardTitle">
-    <div class="ach-reward-head">
-      <div class="ach-reward-kicker" id="achRewardKicker">🔮 Секретная награда</div>
-      <h2 class="ach-reward-title" id="achRewardTitle">Полная коллекция</h2>
-      <p class="ach-reward-desc" id="achRewardDesc"></p>
-    </div>
-    <div class="ach-reward-frame">
-      <img class="ach-reward-img" id="achRewardImg" src="" alt="">
-    </div>
-  </div>
-  <div class="ach-reward-actions">
-    <button type="button" class="btn btn-primary ach-reward-btn ach-reward-btn--locked" id="achRewardOk" aria-disabled="true">Закрыть</button>
-  </div>
-</div>
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=466"></script>
+<script src="src/01-constants.js?v=489"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
-<script src="src/02-state.js?v=50"></script>
+<script src="src/02-state.js?v=52"></script>
 <script src="src/data/audio-data.js?v=2"></script>
 <script src="src/03-audio.js?v=3"></script>
 <script src="src/04-settings.js"></script>
-<script src="src/05-dom.js?v=50"></script>
+<script src="src/05-dom.js?v=54"></script>
 <script src="src/data/enchant-balance.js?v=5"></script>
-<script src="src/data/armor-sets-data.js?v=12"></script>
-<script src="src/06-rules.js?v=13"></script>
+<script src="src/data/armor-sets-data.js?v=14"></script>
+<script src="src/data/jewelry-sets-data.js?v=6"></script>
+<script src="src/06-rules.js?v=14"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
-<script src="src/workshop-core.js?v=9"></script>
-<script src="src/07-workshop.js?v=20"></script>
+<script src="src/workshop-core.js?v=10"></script>
+<script src="src/jewelry-sets-core.js?v=3"></script>
+<script src="src/07-workshop.js?v=24"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
-<script src="src/08-menu.js?v=7"></script>
-<script src="src/09-inventory.js?v=65"></script>
-<script src="src/enchant-ui.js?v=2"></script>
-<script src="src/inventory-ui.js?v=14"></script>
-<script src="src/account-storage-core.js?v=5"></script>
-<script src="src/account-storage-ui.js?v=6"></script>
+<script src="src/data/farm-zones-balance.js?v=9"></script>
+<script src="src/data/clan-territories-data.js?v=14"></script>
+<script src="src/data/clan-hunting-catalog-data.js?v=7"></script>
+<script src="src/data/clan-map-regions-data.js?v=4"></script>
+<script src="src/data/clan-buffs-balance.js?v=7"></script>
+<script src="src/data/clan-siege-power-balance.js?v=1"></script>
+<script src="src/data/clan-boss-data.js?v=4"></script>
+<script src="src/data/scroll-drop-balance.js?v=6"></script>
+<script src="src/scroll-core.js?v=8"></script>
+<script src="src/08-menu.js?v=9"></script>
+<script src="src/09-inventory.js?v=69"></script>
+<script src="src/enchant-ui.js?v=8"></script>
+<script src="src/item-tooltip-ui.js?v=1"></script>
+<script src="src/inventory-ui.js?v=22"></script>
+<script src="src/account-storage-core.js?v=6"></script>
+<script src="src/account-storage-ui.js?v=7"></script>
 <script src="src/data/dev-data.js"></script>
-<script src="src/dev-core.js"></script>
-<script src="src/11-enchant.js?v=13"></script>
+<script src="src/dev-core.js?v=4"></script>
+<script src="src/11-enchant.js?v=18"></script>
 <script src="src/mine-ui.js?v=4"></script>
-<script src="src/mine-core.js?v=20"></script>
+<script src="src/mine-core.js?v=30"></script>
 <script src="src/13-portable-save.js"></script>
-<script src="src/cloud-core.js?v=5"></script>
+<script src="src/cloud-core.js?v=7"></script>
 <script src="src/cloud-ui.js?v=4"></script>
-<script src="src/market-core.js?v=4"></script>
-<script src="src/market-ui.js?v=8"></script>
-<script src="src/player-mail-core.js?v=3"></script>
-<script src="src/player-mail-ui.js?v=4"></script>
-<script src="src/chat-core.js?v=12"></script>
+<script src="src/market-core.js?v=9"></script>
+<script src="src/market-ui.js?v=13"></script>
+<script src="src/player-mail-core.js?v=8"></script>
+<script src="src/player-mail-ui.js?v=6"></script>
+<script src="src/chat-core.js?v=15"></script>
+<script src="src/clan-core.js?v=18"></script>
+<script src="src/clan-siege-power-core.js?v=2"></script>
+<script src="src/clan-boss-core.js?v=12"></script>
+<script src="src/clan-map-ui.js?v=12"></script>
+<script src="src/clan-grounds-ui.js?v=15"></script>
+<script src="src/clan-ui.js?v=36"></script>
 <script src="src/chat-ui.js?v=5"></script>
 <script src="src/data/party-content-data.js?v=22"></script>
 <script src="src/party-core.js?v=14"></script>
 <script src="src/party-farm-core.js?v=5"></script>
 <script src="src/instance-core.js?v=42"></script>
 <script src="src/world-boss-core.js?v=14"></script>
-<script src="src/progress-store.js?v=4"></script>
+<script src="src/progress-store.js?v=5"></script>
 <script src="src/15-game-log.js?v=2"></script>
-<script src="src/16-accessory.js?v=2"></script>
+<script src="src/16-accessory.js?v=5"></script>
 <script src="src/data/achievement-data.js?v=4"></script>
 <script src="src/data/economy-balance.js?v=4"></script>
-<script src="src/achievements-core.js?v=6"></script>
+<script src="src/achievements-core.js?v=7"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
 <script src="src/19-home.js?v=3"></script>
@@ -1450,7 +1648,7 @@
 <script src="src/data/prologue-data.js"></script>
 <script src="src/intro-core.js"></script>
 <script src="src/21-intro.js?v=9"></script>
-<script src="src/33-ui-icons.js?v=14"></script>
+<script src="src/33-ui-icons.js?v=25"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=5"></script>
 <script src="src/35-characters.js?v=47"></script>
@@ -1459,45 +1657,46 @@
 <script src="src/data/passive-skills-data.js?v=2"></script>
 <script src="src/passive-skills-core.js?v=7"></script>
 <script src="src/professions-core.js?v=13"></script>
-<script src="src/avatar-core.js?v=6"></script>
+<script src="src/avatar-core.js?v=9"></script>
 <script src="src/22-avatar.js?v=34"></script>
 <script src="src/professions-ui.js?v=4"></script>
-<script src="src/avatar-gear-core.js?v=17"></script>
-<script src="src/armor-sets-core.js?v=13"></script>
+<script src="src/avatar-gear-core.js?v=20"></script>
+<script src="src/armor-sets-core.js?v=15"></script>
 <script src="src/resource-favorites-core.js?v=1"></script>
 <script src="src/avatar-armor-display.js?v=2"></script>
-<script src="src/23-avatar-gear.js?v=17"></script>
-<script src="src/story-zones-core.js?v=5"></script>
+<script src="src/23-avatar-gear.js?v=22"></script>
+<script src="src/story-zones-core.js?v=6"></script>
+<script src="src/hunting-cta-ui.js?v=1"></script>
 <script src="src/25-story-zones.js?v=11"></script>
-<script src="src/data/mine-visuals-data.js?v=17"></script>
-<script src="src/26-mine-visuals.js?v=41"></script>
+<script src="src/data/mine-visuals-data.js?v=27"></script>
+<script src="src/26-mine-visuals.js?v=49"></script>
 <script src="src/data/quest-data.js?v=2"></script>
 <script src="src/quest-core.js?v=6"></script>
 <script src="src/27-quests.js?v=48"></script>
-<script src="src/quest-journal-core.js?v=4"></script>
-<script src="src/29-quest-journal.js?v=8"></script>
+<script src="src/quest-journal-core.js?v=5"></script>
+<script src="src/29-quest-journal.js?v=9"></script>
 <script src="src/prelude-finale-core.js?v=2"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
 <script src="src/data/combat-skills-data.js?v=3"></script>
 <script src="src/data/combat-skills-kits-data.js?v=4"></script>
-<script src="src/combat-skills-core.js?v=12"></script>
+<script src="src/combat-skills-core.js?v=14"></script>
 <script src="src/31-combat-skills.js?v=12"></script>
 <script src="src/data/pvp-balance.js?v=4"></script>
-<script src="src/pvp-combat-core.js?v=10"></script>
+<script src="src/pvp-combat-core.js?v=13"></script>
 <script src="src/pvp-social-core.js?v=3"></script>
-<script src="src/pvp-combat-ui.js?v=21"></script>
+<script src="src/pvp-combat-ui.js?v=22"></script>
 <script src="src/32-debug-log.js"></script>
-<script src="src/avatar-math.js?v=14"></script>
-<script src="src/avatar-stats-core.js?v=8"></script>
-<script src="src/24-avatar-stats.js?v=27"></script>
+<script src="src/avatar-math.js?v=23"></script>
+<script src="src/avatar-stats-core.js?v=12"></script>
+<script src="src/24-avatar-stats.js?v=40"></script>
 <script src="src/data/passive-income-balance.js?v=4"></script>
 <script src="src/passive-income-core.js?v=8"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
 <script src="src/data/auto-clicker-balance.js?v=8"></script>
-<script src="src/auto-clicker-core.js?v=17"></script>
+<script src="src/auto-clicker-core.js?v=18"></script>
 <script src="src/auto-clicker-ui.js?v=9"></script>
-<script src="src/data-loader.js?v=27"></script>
-<script src="src/99-bootstrap.js?v=61"></script>
+<script src="src/data-loader.js?v=36"></script>
+<script src="src/99-bootstrap.js?v=66"></script>
 
 </body>
 </html>

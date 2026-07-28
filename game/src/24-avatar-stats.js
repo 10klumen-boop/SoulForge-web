@@ -18,6 +18,17 @@ function syncMenuHubMode() {
   if (grid) grid.dataset.hubMode = mode;
 }
 
+/** Полоса фильтра каталога фарма: "all" | "1-20" | "20-30" | "30-40" | "40+" */
+let menuFarmLevelBand = null;
+
+const FARM_LEVEL_BANDS = [
+  { id: "all", label: "Все" },
+  { id: "1-20", label: "до 20" },
+  { id: "20-30", label: "20–30" },
+  { id: "30-40", label: "30–40" },
+  { id: "40+", label: "40+" },
+];
+
 function setMenuFarmEntry(mode) {
   const inParty =
     typeof partyMemberCount === "function"
@@ -34,8 +45,14 @@ function setMenuFarmEntry(mode) {
     if (typeof openPartyScreen === "function") openPartyScreen();
     return;
   }
-  menuFarmEntry =
+  const next =
     mode === "story" || mode === "farm" || mode === "worldboss" ? mode : null;
+  if (next !== "farm") {
+    menuFarmLevelBand = null;
+  } else if (menuFarmEntry !== "farm") {
+    menuFarmLevelBand = defaultFarmLevelBand();
+  }
+  menuFarmEntry = next;
   if (menuFarmEntry === "story" || menuFarmEntry === "farm") {
     const zones =
       menuFarmEntry === "farm"
@@ -129,6 +146,10 @@ function wireFarmHubEntry() {
 function fillFarmZoneList(listEl, zones, opts) {
   opts = opts || {};
   if (!listEl) return;
+  if (opts.mode === "farm" && typeof fillFreeFarmCatalog === "function") {
+    fillFreeFarmCatalog(listEl);
+    return;
+  }
   listEl.innerHTML = "";
   const mode = opts.mode || "story";
   if (!zones.length) {
@@ -140,57 +161,665 @@ function fillFarmZoneList(listEl, zones, opts) {
     return;
   }
   zones.forEach((zone) => {
-    const st = farmZoneStatus(zone);
-    const view = typeof zoneRaceView === "function" ? zoneRaceView(zone) : zone;
-    const rec =
-      typeof recommendedFarmZoneId === "function" &&
-      recommendedFarmZoneId({ mode }) === zone.id;
-    const row = document.createElement("button");
-    row.type = "button";
-    row.className =
-      "farm-zone-chip" +
-      (state.farmZone === zone.id ? " sel" : "") +
-      (st.ok && zone.active ? " ok" : "") +
-      (!zone.active ? " soon" : "") +
-      (!st.ok && zone.active ? " lock" : "") +
-      (rec && st.ok ? " rec" : "") +
-      (mode === "story" && typeof storyChapterSeen === "function" && storyChapterSeen(zone.id)
-        ? " story-done"
-        : "");
-    const chipIco =
-      typeof uiZoneChipIcon === "function"
-        ? uiZoneChipIcon(zone.id, state.avatar?.raceId)
-        : view.icon || zone.icon;
-    const sub = mode === "farm" ? farmFreeZoneChipText(zone, st) : farmZoneChipText(zone, st);
-    row.innerHTML =
-      '<img class="farm-zone-chip-art" src="' +
-      chipIco +
-      '" alt="" draggable="false">' +
-      '<span class="farm-zone-chip-veil" aria-hidden="true"></span>' +
-      '<span class="farm-zone-chip-body"><strong>' +
-      view.name +
-      "</strong><small>" +
-      sub +
-      "</small></span>";
-    row.onclick = () => {
-      if (row.disabled) return;
-      Audio2.click();
-      selectFarmZone(zone.id);
-    };
-    listEl.appendChild(row);
+    listEl.appendChild(buildFarmZoneChip(zone, mode));
   });
 }
 
-function farmFreeZoneChipText(zone, st) {
-  if (!zone.active) return "скоро";
+function defaultFarmLevelBand() {
+  if (!state.avatar?.created) return "all";
+  const lvl = Math.max(1, Math.floor(Number(state.avatar.level) || 1));
+  // SF level ≈ грубый ориентир к полосам L2
+  if (lvl <= 4) return "1-20";
+  if (lvl <= 10) return "20-30";
+  if (lvl <= 16) return "30-40";
+  return "40+";
+}
+
+function parseFarmL2Mid(entry, zone) {
+  const l2 = entry?.l2Lvl || zone?.l2Lvl || "";
+  const m = String(l2).match(/(\d+)\s*[–\-~]\s*(\d+)/);
+  if (m) return (Number(m[1]) + Number(m[2])) / 2;
+  const one = String(l2).match(/(\d+)\s*\+/);
+  if (one) return Number(one[1]) + 5;
+  if (zone && zone.lvlMin != null && zone.lvlMax != null) {
+    return (Number(zone.lvlMin) + Number(zone.lvlMax)) / 2;
+  }
+  if (zone && zone.lvlMin != null) return Number(zone.lvlMin);
+  const req = Number(zone?.reqLevel) || 0;
+  if (req <= 0) return 12;
+  if (req <= 4) return 15;
+  if (req <= 10) return 25;
+  if (req <= 16) return 35;
+  return 45;
+}
+
+function farmLevelBandId(mid) {
+  const n = Number(mid) || 0;
+  // mid ровно 20 (напр. L2 15–25) → «до 20», не «20–30»
+  if (n <= 20) return "1-20";
+  if (n < 30) return "20-30";
+  if (n < 40) return "30-40";
+  return "40+";
+}
+
+function farmCatalogHubLabel(hubId) {
+  if (!hubId) return "";
+  if (hubId === "race") return "Старт";
+  const hub =
+    typeof clanHuntingHubById === "function" ? clanHuntingHubById(hubId) : null;
+  return (hub && hub.labelRu) || hubId;
+}
+
+function collectFarmCatalogEntries() {
+  const tree = typeof farmHubTreeForMenu === "function" ? farmHubTreeForMenu() : [];
+  const out = [];
+  tree.forEach((hub) => {
+    (hub.farms || []).forEach((entry) => {
+      const resolved = resolveCatalogFarmForMenu(entry);
+      const mid = parseFarmL2Mid(entry, resolved.zone);
+      out.push({
+        entry,
+        hub,
+        resolved,
+        mid,
+        band: farmLevelBandId(mid),
+      });
+    });
+  });
+  out.sort((a, b) => {
+    if (a.resolved.playable !== b.resolved.playable) return a.resolved.playable ? -1 : 1;
+    if (a.mid !== b.mid) return a.mid - b.mid;
+    return String(a.entry.labelRu || "").localeCompare(String(b.entry.labelRu || ""), "ru");
+  });
+  return out;
+}
+
+/** Каталог угодий: плитки + фильтр по уровню. */
+function fillFreeFarmCatalog(listEl) {
+  if (!listEl) return;
+  hideFarmZoneTip();
+  listEl.innerHTML = "";
+  listEl.className =
+    "farm-zone-list farm-hub-city-grid farm-catalog-zone-grid farm-catalog sf-scroll";
+  if (!listEl.dataset.farmTipScrollWired) {
+    listEl.dataset.farmTipScrollWired = "1";
+    listEl.addEventListener("scroll", hideFarmZoneTip, { passive: true });
+  }
+
+  const hint = document.getElementById("farmHubCityHint");
+  const backBtn = document.getElementById("farmFieldBack");
+  const filtersEl = document.getElementById("farmLevelFilters");
+  if (hint) hint.textContent = "Плитки угодий · фильтр по уровню (город — в подписи).";
+  if (backBtn) {
+    backBtn.title = "Назад к выбору";
+    backBtn.textContent = "← Назад";
+  }
+
+  if (!menuFarmLevelBand) menuFarmLevelBand = defaultFarmLevelBand();
+
+  const all = collectFarmCatalogEntries();
+  if (filtersEl) {
+    filtersEl.innerHTML = "";
+    filtersEl.hidden = !all.length;
+    FARM_LEVEL_BANDS.forEach((band) => {
+      const count =
+        band.id === "all" ? all.length : all.filter((x) => x.band === band.id).length;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "farm-level-chip" + (menuFarmLevelBand === band.id ? " is-on" : "");
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-selected", menuFarmLevelBand === band.id ? "true" : "false");
+      btn.dataset.farmBand = band.id;
+      btn.innerHTML =
+        "<b>" +
+        escFarmHubText(band.label) +
+        "</b><small>" +
+        count +
+        "</small>";
+      btn.onclick = () => {
+        if (typeof Audio2 !== "undefined") Audio2.click();
+        menuFarmLevelBand = band.id;
+        if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
+      };
+      filtersEl.appendChild(btn);
+    });
+  }
+
+  if (!all.length) {
+    const empty = document.createElement("p");
+    empty.className = "farm-hub-empty";
+    empty.textContent = "Каталог охотничьих угодий пуст.";
+    listEl.appendChild(empty);
+    return;
+  }
+
+  const filtered =
+    menuFarmLevelBand === "all"
+      ? all
+      : all.filter((x) => x.band === menuFarmLevelBand);
+
+  if (!filtered.length) {
+    const empty = document.createElement("p");
+    empty.className = "farm-hub-empty";
+    empty.textContent = "Нет угодий в этой полосе уровней.";
+    listEl.appendChild(empty);
+    return;
+  }
+
+  filtered.forEach((item) => {
+    listEl.appendChild(
+      buildFarmZoneChip(item.resolved.zone, "farm", {
+        catalog: item.entry,
+        playable: item.resolved.playable,
+        hubLabel: item.hub.labelRu || farmCatalogHubLabel(item.hub.hubId),
+      })
+    );
+  });
+}
+
+/** @deprecated имя оставлено для совместимости вызовов */
+function fillFreeFarmHubByCities(listEl) {
+  return fillFreeFarmCatalog(listEl);
+}
+
+function escFarmHubText(s) {
+  if (typeof escHtml === "function") return escHtml(s);
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function resolveCatalogFarmForMenu(entry) {
+  const zid = entry.farmZoneId || entry.id;
+  const live =
+    typeof farmZoneById === "function"
+      ? farmZoneById(zid)
+      : typeof FARM_ZONES !== "undefined"
+        ? FARM_ZONES.find((z) => z.id === zid)
+        : null;
+  if (live && live.side && !live.party) {
+    return { zone: live, playable: !!live.active };
+  }
+  return {
+    zone: {
+      id: zid,
+      name: entry.labelRu || zid,
+      side: true,
+      party: false,
+      active: false,
+      hubId: entry.hubId,
+      catalogStatus: entry.status || "planned",
+      l2Lvl: entry.l2Lvl || "",
+      icon: "icons/btn_farm.png?v=4",
+      reqLevel: 0,
+      reqPower: 0,
+    },
+    playable: false,
+  };
+}
+
+function buildFarmZoneChip(zone, mode, extra) {
+  extra = extra || {};
+  const st = typeof farmZoneStatus === "function" ? farmZoneStatus(zone) : { ok: false };
+  const view = typeof zoneRaceView === "function" ? zoneRaceView(zone) : zone;
+  const rec =
+    typeof recommendedFarmZoneId === "function" &&
+    recommendedFarmZoneId({ mode }) === zone.id;
+  const row = document.createElement("button");
+  row.type = "button";
+  const terr =
+    typeof clanTerritoryStatusForZone === "function" ? clanTerritoryStatusForZone(zone.id) : null;
+  const catalog = extra.catalog || null;
+  const playable = extra.playable !== false && !!zone.active;
+  const soon = !playable;
+  row.className =
+    "farm-zone-chip" +
+    (state.farmZone === zone.id && playable ? " sel" : "") +
+    (st.ok && playable ? " ok" : "") +
+    (soon ? " soon" : "") +
+    (!st.ok && playable ? " lock" : "") +
+    (rec && st.ok && playable ? " rec" : "") +
+    (mode === "story" && typeof storyChapterSeen === "function" && storyChapterSeen(zone.id)
+      ? " story-done"
+      : "") +
+    (typeof zoneChipArtIsFramed === "function" && zoneChipArtIsFramed(zone.id)
+      ? " is-framed-art"
+      : "") +
+    (terr && terr.capturable && terr.siegeEnabled
+      ? terr.isMyClan
+        ? " clan-mine"
+        : terr.holder
+          ? " clan-held"
+          : " clan-neutral"
+      : "");
+  if (catalog && catalog.status) row.setAttribute("data-catalog-status", catalog.status);
+  const chipIco =
+    typeof uiZoneChipIcon === "function"
+      ? uiZoneChipIcon(zone.id, state.avatar?.raceId)
+      : view.icon || zone.icon || "icons/btn_farm.png?v=4";
+  let sub;
+  if (mode === "farm") {
+    if (playable) sub = farmFreeZoneChipText(zone, st, extra);
+    else if (catalog?.status === "draft") {
+      sub =
+        (extra.hubLabel ? extra.hubLabel + " · " : "") +
+        "черновик · доделаем";
+    } else if (catalog?.l2Lvl) {
+      sub =
+        (extra.hubLabel ? extra.hubLabel + " · " : "") +
+        "скоро · L2 " +
+        catalog.l2Lvl;
+    } else {
+      sub = (extra.hubLabel ? extra.hubLabel + " · " : "") + "скоро";
+    }
+  } else {
+    sub = farmZoneChipText(zone, st);
+  }
+  row.innerHTML =
+    '<img class="farm-zone-chip-art" src="' +
+    chipIco +
+    '" alt="" draggable="false">' +
+    '<span class="farm-zone-chip-veil" aria-hidden="true"></span>' +
+    '<span class="farm-zone-chip-body"><strong>' +
+    (view.name || zone.name || zone.id) +
+    "</strong><small>" +
+    sub +
+    "</small></span>";
+  if (soon) {
+    row.setAttribute("aria-disabled", "true");
+  }
+  row.onclick = () => {
+    if (soon || row.getAttribute("aria-disabled") === "true") return;
+    Audio2.click();
+    selectFarmZone(zone.id);
+  };
+  wireFarmZoneChipTooltip(row, zone, extra);
+  return row;
+}
+
+const FARM_LOOT_TAG_RU = {
+  armor_d: "броня D",
+  armor_c: "броня C",
+  armor_b: "броня B",
+  jewelry_d: "бижу D",
+  jewelry_c: "бижу C",
+  scroll_d: "свитки D",
+  scroll_c: "свитки C",
+  material: "материалы",
+};
+
+function farmTipPct(x) {
+  return Math.round(Number(x) * 100) + "%";
+}
+
+function farmTipRow(label, value) {
+  return (
+    "<tr><th>" +
+    escFarmHubText(label) +
+    "</th><td>" +
+    value +
+    "</td></tr>"
+  );
+}
+
+function farmZoneArmorFragTipRows(zoneId) {
+  const zid =
+    typeof resolveFarmZoneId === "function" ? resolveFarmZoneId(zoneId) : zoneId;
+  let pool = typeof ARMOR_FRAG_ZONES !== "undefined" ? ARMOR_FRAG_ZONES[zid] : null;
+  if (typeof pool === "string") pool = [pool];
+  const rows = [];
+  if (Array.isArray(pool) && pool.length) {
+    const names =
+      typeof ARMOR_SETS !== "undefined"
+        ? pool.map((sid) => ARMOR_SETS[sid]?.name || sid).filter(Boolean)
+        : pool.slice();
+    rows.push(farmTipRow("Куски брони", escFarmHubText(names.join(", "))));
+  }
+  let jPool = typeof JEWELRY_FRAG_ZONES !== "undefined" ? JEWELRY_FRAG_ZONES[zid] : null;
+  if (typeof jPool === "string") jPool = [jPool];
+  if (Array.isArray(jPool) && jPool.length) {
+    const names =
+      typeof JEWELRY_SETS !== "undefined"
+        ? jPool.map((sid) => JEWELRY_SETS[sid]?.name || sid).filter(Boolean)
+        : jPool.slice();
+    rows.push(farmTipRow("Куски бижи", escFarmHubText(names.join(", "))));
+  }
+  return rows;
+}
+
+function farmZoneLootBandTipRows(zone) {
+  if (!zone || !zone.side) return [];
+  const label =
+    typeof farmZoneLootBandLabel === "function" ? farmZoneLootBandLabel(zone) : "";
+  if (!label) return [];
+  const grade =
+    typeof farmZoneLootGrade === "function" ? farmZoneLootGrade(zone) : "D";
+  const rows = [farmTipRow("Банда лута", escFarmHubText(label))];
+  rows.push(
+    farmTipRow(
+      "Грейд",
+      escFarmHubText(
+        grade +
+          " · куски, оружие, свитки" +
+          (grade === "D" ? " (растёт с уровнем зоны)" : "")
+      )
+    )
+  );
+  return rows;
+}
+
+function farmZoneWeaponTipRows(zone) {
+  if (!zone || !zone.id) return [];
+  const grade =
+    typeof mineDropGradeSummary === "function" ? mineDropGradeSummary(zone.id) : "";
+  const weights =
+    typeof mineDropWeights === "function" ? mineDropWeights(zone.id) : null;
+  const rows = [];
+  if (grade) rows.push(farmTipRow("Оружие", escFarmHubText(grade)));
+  if (weights) {
+    const parts = ["D", "C", "B", "A"]
+      .filter((g) => (weights[g] || 0) > 0)
+      .map((g) => g + " " + Math.round(weights[g]) + "%");
+    if (parts.length) rows.push(farmTipRow("Грейды", escFarmHubText(parts.join(" · "))));
+  }
+  const wChance = farmZoneWeaponChanceTip(zone);
+  if (wChance) rows.push(farmTipRow("Шанс оружия", escFarmHubText(wChance)));
+  return rows;
+}
+
+function farmZoneWeaponChanceTip(zone) {
+  if (!zone || typeof mineWeaponDropChance !== "function") {
+    if (typeof farmZoneGoldenWeaponChancePct === "function") {
+      const g = farmZoneGoldenWeaponChancePct(zone);
+      return g != null ? "золотой ≈ " + g + "%" : null;
+    }
+    return null;
+  }
+  const prev = state.farmZone;
+  state.farmZone = zone.id;
+  try {
+    const n = Math.round(mineWeaponDropChance("normal") * 1000) / 10;
+    const g = Math.round(mineWeaponDropChance("golden") * 1000) / 10;
+    return "обычный ≈ " + n + "% · золотой ≈ " + g + "%";
+  } finally {
+    state.farmZone = prev;
+  }
+}
+
+function farmZoneGoldenWeaponChancePct(zone) {
+  if (!zone || typeof farmZoneTargetPower !== "function") return null;
+  const fn =
+    typeof mineWeaponDropChance === "function"
+      ? (t) => mineWeaponDropChance(t)
+      : typeof mineGoldenWeaponChance === "function"
+        ? () => mineGoldenWeaponChance()
+        : null;
+  if (!fn) return null;
+  const prev = state.farmZone;
+  state.farmZone = zone.id;
+  try {
+    return Math.round(fn("golden") * 100);
+  } finally {
+    state.farmZone = prev;
+  }
+}
+
+function farmZoneScrollTipRows(zone) {
+  if (!zone || !zone.side) return [];
+  const g =
+    typeof scrollDropGradeForZone === "function"
+      ? scrollDropGradeForZone(zone.id)
+      : typeof farmZoneLootGrade === "function"
+        ? farmZoneLootGrade(zone)
+        : "D";
+  return [farmTipRow("Свитки", escFarmHubText(g))];
+}
+
+function farmZoneAdenaTipRange(zoneId, kind) {
+  const golden = kind === "golden";
+  const defLo = golden
+    ? typeof MINE_ADENA_GOLDEN !== "undefined"
+      ? MINE_ADENA_GOLDEN.min
+      : 18000
+    : typeof MINE_ADENA_REWARD !== "undefined"
+      ? MINE_ADENA_REWARD.min
+      : 3000;
+  const defHi = golden
+    ? typeof MINE_ADENA_GOLDEN !== "undefined"
+      ? MINE_ADENA_GOLDEN.max
+      : 43200
+    : typeof MINE_ADENA_REWARD !== "undefined"
+      ? MINE_ADENA_REWARD.max
+      : 7200;
+  let lo =
+    typeof tuneInt === "function"
+      ? tuneInt(golden ? "mine.goldenMin" : "mine.rewardMin", defLo)
+      : defLo;
+  let hi =
+    typeof tuneInt === "function"
+      ? tuneInt(golden ? "mine.goldenMax" : "mine.rewardMax", defHi)
+      : defHi;
+  const scale =
+    typeof mineProgressAdenaScale === "function" ? mineProgressAdenaScale(zoneId) : 1;
+  lo = Math.max(1, Math.round(lo * scale));
+  hi = Math.max(1, Math.round(hi * scale));
+  if (typeof playtestIncome === "function") {
+    lo = playtestIncome(lo);
+    hi = playtestIncome(hi);
+  }
+  let mult =
+    typeof avatarMineRewardMult === "function" ? avatarMineRewardMult(zoneId) : 1;
+  if (!(mult > 0)) {
+    const zone =
+      typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+    const chapter = zone?.chapter || 1;
+    mult = zone?.mine?.rewardScale || 1 + (chapter - 1) * 0.1;
+  }
+  lo = Math.round(lo * mult);
+  hi = Math.round(hi * mult);
+  const raceKey = golden ? "goldenAdenaMult" : "normalAdenaMult";
+  const raceFn =
+    typeof passiveEffectMult === "function"
+      ? passiveEffectMult
+      : typeof racialEffectMult === "function"
+        ? racialEffectMult
+        : null;
+  if (raceFn) {
+    const rm = raceFn(raceKey, state.avatar || state.avatar?.raceId);
+    lo = Math.round(lo * rm);
+    hi = Math.round(hi * rm);
+  }
+  return { lo, hi };
+}
+
+function farmZoneAdenaTipRows(zoneId) {
+  const fmtA = typeof fmtAdena === "function" ? fmtAdena : (n) => String(n);
+  const n = farmZoneAdenaTipRange(zoneId, "normal");
+  const g = farmZoneAdenaTipRange(zoneId, "golden");
+  return [
+    farmTipRow("Adena", fmtA(n.lo) + "–" + fmtA(n.hi)),
+    farmTipRow("Золотой", fmtA(g.lo) + "–" + fmtA(g.hi)),
+  ];
+}
+
+function farmZoneTooltipHtml(zone, extra) {
+  extra = extra || {};
+  if (!zone) return "";
+  const view = typeof zoneRaceView === "function" ? zoneRaceView(zone) : zone;
+  const name = view.name || zone.name || zone.id;
+  const hub =
+    extra.hubLabel ||
+    farmCatalogHubLabel(zone.hubId) ||
+    "";
+  const catalog = extra.catalog || null;
+  const playable = extra.playable !== false && !!zone.active;
+
+  let meta = "";
+  if (hub || zone.l2Lvl || (zone.lvlMin != null && zone.lvlMax != null)) {
+    const bits = [];
+    if (hub) bits.push(hub);
+    if (zone.l2Lvl) bits.push("L2 " + zone.l2Lvl);
+    else if (zone.lvlMin != null && zone.lvlMax != null) {
+      bits.push("L2 " + zone.lvlMin + "–" + zone.lvlMax);
+    }
+    meta =
+      '<div class="farm-zone-tip-meta">' + escFarmHubText(bits.join(" · ")) + "</div>";
+  }
+
+  const rows = [];
+  if (zone.side) {
+    rows.push(...farmZoneLootBandTipRows(zone));
+    rows.push(...farmZoneAdenaTipRows(zone.id));
+    rows.push(...farmZoneScrollTipRows(zone));
+
+    const fragRows = farmZoneArmorFragTipRows(zone.id);
+    if (fragRows.length) rows.push(...fragRows);
+    else if (Array.isArray(zone.lootTags) && zone.lootTags.length) {
+      rows.push(
+        farmTipRow(
+          "Лут",
+          escFarmHubText(
+            zone.lootTags.map((t) => FARM_LOOT_TAG_RU[t] || t).join(", ")
+          )
+        )
+      );
+    }
+
+    rows.push(...farmZoneWeaponTipRows(zone));
+
+    const terr =
+      typeof clanTerritoryStatusForZone === "function"
+        ? clanTerritoryStatusForZone(zone.id)
+        : null;
+    if (terr && terr.capturable && terr.siegeEnabled && terr.lineMeta) {
+      rows.push(farmTipRow("Клан", escFarmHubText(terr.lineMeta)));
+    }
+    if (!playable && catalog) {
+      rows.push(
+        farmTipRow(
+          "Статус",
+          catalog.status === "draft" ? "черновик" : "скоро"
+        )
+      );
+    }
+  } else {
+    if (view.storyTag) rows.push(farmTipRow("Сюжет", escFarmHubText(view.storyTag)));
+    rows.push(farmTipRow("Дроп", escFarmHubText("только D · редко")));
+    rows.push(...farmZoneWeaponTipRows(zone));
+  }
+
+  if (!rows.length) return "";
+
+  return (
+    '<strong class="farm-zone-tip-title">' +
+    escFarmHubText(name) +
+    "</strong>" +
+    meta +
+    '<table class="farm-zone-tip-table"><tbody>' +
+    rows.join("") +
+    "</tbody></table>"
+  );
+}
+
+function ensureFarmZoneTipEl() {
+  let tip = document.getElementById("farmZoneTip");
+  if (tip) return tip;
+  tip = document.createElement("div");
+  tip.id = "farmZoneTip";
+  tip.className = "farm-zone-tip";
+  tip.hidden = true;
+  tip.setAttribute("role", "tooltip");
+  document.body.appendChild(tip);
+  return tip;
+}
+
+function hideFarmZoneTip() {
+  const tip = document.getElementById("farmZoneTip");
+  if (tip) {
+    tip.hidden = true;
+    tip.innerHTML = "";
+  }
+}
+
+function positionFarmZoneTip(tip, anchor) {
+  const r = anchor.getBoundingClientRect();
+  tip.hidden = false;
+  tip.style.left = "0px";
+  tip.style.top = "0px";
+  const tw = tip.offsetWidth || 260;
+  const th = tip.offsetHeight || 120;
+  let left = r.left + r.width / 2 - tw / 2;
+  let top = r.top - th - 10;
+  if (top < 8) top = r.bottom + 10;
+  left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+  tip.style.left = Math.round(left) + "px";
+  tip.style.top = Math.round(top) + "px";
+}
+
+function wireFarmZoneChipTooltip(row, zone, extra) {
+  if (!row || row.dataset.tipWired) return;
+  row.dataset.tipWired = "1";
+  const show = () => {
+    const tip = ensureFarmZoneTipEl();
+    tip.innerHTML = farmZoneTooltipHtml(zone, extra);
+    positionFarmZoneTip(tip, row);
+  };
+  const hide = () => hideFarmZoneTip();
+  row.addEventListener("mouseenter", show);
+  row.addEventListener("mouseleave", hide);
+  row.addEventListener("focus", show);
+  row.addEventListener("blur", hide);
+  row.addEventListener(
+    "click",
+    () => {
+      hide();
+    },
+    true
+  );
+}
+
+function farmZoneL2RangeLabel(zone) {
+  if (!zone) return "";
+  if (zone.l2Lvl) return "L2 " + zone.l2Lvl;
+  const lo = Number(zone.lvlMin);
+  const hi = Number(zone.lvlMax);
+  if (Number.isFinite(lo) && Number.isFinite(hi) && hi >= lo) {
+    return "L2 " + lo + "–" + hi;
+  }
+  if (Number.isFinite(lo)) return "L2 " + lo + "+";
+  return "";
+}
+
+function farmFreeZoneChipText(zone, st, extra) {
+  extra = extra || {};
+  const hub =
+    extra.hubLabel ||
+    farmCatalogHubLabel(zone.hubId) ||
+    "";
+  const l2 = farmZoneL2RangeLabel(zone);
+  const bits = [];
+  if (hub) bits.push(hub);
+  if (l2) bits.push(l2);
+  const prefix = bits.length ? bits.join(" · ") + " · " : "";
+  if (!zone.active) return (bits.length ? bits.join(" · ") + " · " : "") + "скоро";
   if (!st.ok) {
-    const parts = [];
-    if (st.needLevel > 0) parts.push("р." + zone.reqLevel);
+    const parts = bits.slice();
+    if (st.needLevel > 0) parts.push("от ур." + zone.reqLevel);
     if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
     return parts.length ? parts.join(" · ") : "закрыто";
   }
-  const mult = typeof avatarMineRewardMult === "function" ? avatarMineRewardMult(zone.id) : 1;
-  return "фрагменты · +" + Math.round((mult - 1) * 100) + "% adena";
+  const grade =
+    typeof farmZoneLootGrade === "function" ? farmZoneLootGrade(zone) : null;
+  let line = prefix + (grade ? "дроп " + grade : "фрагменты");
+  const terr =
+    typeof clanTerritoryStatusForZone === "function" ? clanTerritoryStatusForZone(zone.id) : null;
+  if (terr && terr.capturable && terr.siegeEnabled && terr.lineShort) {
+    line += " · " + terr.lineShort;
+  }
+  return line;
 }
 
 function updatePlayBanner(opts) {
@@ -220,7 +849,6 @@ function updatePlayBanner(opts) {
     return;
   }
   banner.classList.remove("mine-locked");
-  const mult = avatarMineRewardMult(zone.id);
   if (opts.farm) {
     let pool = typeof ARMOR_FRAG_ZONES !== "undefined" ? ARMOR_FRAG_ZONES[zone.id] : null;
     if (typeof pool === "string") pool = [pool];
@@ -228,20 +856,29 @@ function updatePlayBanner(opts) {
       Array.isArray(pool) && typeof ARMOR_SETS !== "undefined"
         ? pool.map((sid) => ARMOR_SETS[sid]?.name || sid).filter(Boolean)
         : [];
-    metaEl.textContent =
-      (names.length ? "Куски: " + names.join(" / ") + " · " : "Фрагменты брони · ") +
-      "+" + Math.round((mult - 1) * 100) + "% adena";
+    const grade =
+      typeof farmZoneLootGrade === "function" ? farmZoneLootGrade(zone) : null;
+    let meta = names.length
+      ? "Куски: " + names.join(" / ")
+      : grade
+        ? "Дроп " + grade
+        : "Фрагменты брони";
+    const terr =
+      typeof clanTerritoryStatusForZone === "function" ? clanTerritoryStatusForZone(zone.id) : null;
+    if (terr && terr.capturable && terr.siegeEnabled && terr.lineMeta) {
+      meta += " · " + terr.lineMeta;
+    }
+    metaEl.textContent = meta;
     return;
   }
   if (typeof isPreludeComplete === "function" && isPreludeComplete()) {
-    metaEl.textContent =
-      "Prelude завершён · эпоха Хаоса · +" + Math.round((mult - 1) * 100) + "% adena";
+    metaEl.textContent = "Prelude завершён · эпоха Хаоса";
     return;
   }
   const beat = typeof zoneStoryBeat === "function" ? zoneStoryBeat(zone.id) : null;
   metaEl.textContent = beat?.questRef
-    ? beat.questRef + " · +" + Math.round((mult - 1) * 100) + "% adena"
-    : view.storyTag + " · сила " + fmt(st.power) + " · +" + Math.round((mult - 1) * 100) + "% adena";
+    ? beat.questRef
+    : view.storyTag + " · сила " + fmt(st.power);
 }
 
 function renderAvatarStatsPanel() {
@@ -295,6 +932,8 @@ function renderMenuFarmHub() {
   if (storyField) storyField.hidden = menuFarmEntry !== "story";
   if (farmField) farmField.hidden = menuFarmEntry !== "farm";
   if (worldBossField) worldBossField.hidden = menuFarmEntry !== "worldboss";
+  const farmLevelFilters = document.getElementById("farmLevelFilters");
+  if (farmLevelFilters && menuFarmEntry !== "farm") farmLevelFilters.hidden = true;
   if (typeof syncMenuHubMode === "function") syncMenuHubMode();
 
   const storyZones = typeof storyFarmZones === "function" ? storyFarmZones() : FARM_ZONES.filter((z) => !z.side && !z.party);
@@ -318,6 +957,8 @@ function renderMenuFarmHub() {
       farm: false,
     });
   } else if (menuFarmEntry === "farm") {
+    const farmBack = document.getElementById("farmFieldBack");
+    if (farmBack) farmBack.textContent = "← Назад";
     fillFarmZoneList(document.getElementById("freeFarmZoneList"), farmZones, { mode: "farm" });
     const farmZone =
       selected && selected.side && !selected.party
@@ -402,9 +1043,7 @@ function renderMenuHero() {
   }
 
   if (stepGoldD) {
-    const mult = typeof avatarMineRewardMult === "function" ? avatarMineRewardMult(zoneId) : 1;
-    const pct = Math.round((mult - 1) * 100);
-    stepGoldD.textContent = pct > 0 ? ("+" + pct + "% adena · крафт") : "Продавай · крафти";
+    stepGoldD.textContent = "Продавай · крафти";
   }
 
   if (stepIco) {

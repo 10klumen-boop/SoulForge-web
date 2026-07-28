@@ -142,6 +142,19 @@ function playerMailParcelLabel(parcel) {
     const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
     return (frag?.name || fid || "Кусок брони") + " ×" + qty;
   }
+  if (kind === "jewelry_piece") {
+    const fid = it.fragId || it.id;
+    const frag =
+      (typeof ACCESSORY_FRAGS !== "undefined" && ACCESSORY_FRAGS[fid]) ||
+      (typeof JEWELRY_FRAGS !== "undefined" && JEWELRY_FRAGS[fid]) ||
+      null;
+    return (frag?.name || fid || "Кусок бижутерии") + " ×" + qty;
+  }
+  if (kind === "scroll") {
+    const typeId = it.typeId || it.scrollType || it.scroll_type;
+    if (typeof scrollLabel === "function") return scrollLabel(it.target, typeId, it.grade) + " ×" + qty;
+    return "Свиток " + (it.grade || "") + " ×" + qty;
+  }
   if (typeof accountStorageItemLabel === "function") return accountStorageItemLabel(it);
   if (typeof marketListingTitle === "function") {
     return marketListingTitle({ kind, item: it, qty });
@@ -168,6 +181,22 @@ function playerMailParcelIcon(parcel) {
     const fid = it.fragId || it.id;
     const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
     return frag?.icon || "icons/etc_crystal_white_i00.png";
+  }
+  if (kind === "jewelry_piece") {
+    const fid = it.fragId || it.id;
+    const frag =
+      (typeof ACCESSORY_FRAGS !== "undefined" && ACCESSORY_FRAGS[fid]) ||
+      (typeof JEWELRY_FRAGS !== "undefined" && JEWELRY_FRAGS[fid]) ||
+      null;
+    return frag?.icon || "icons/etc_broken_crystal_silver_i00.png";
+  }
+  if (kind === "scroll") {
+    const typeId = it.typeId || it.scrollType || it.scroll_type || "regular";
+    const target = it.target === "armor" || it.target === "jewelry" ? "armor" : "weapon";
+    if (typeof scrollTierIcon === "function") return scrollTierIcon(typeId, it.grade || "D", target);
+    return target === "armor"
+      ? "icons/etc_scroll_of_enchant_armor_i01.png"
+      : "icons/etc_scroll_of_enchant_weapon_i01.png";
   }
   if (typeof accountStorageItemIcon === "function") return accountStorageItemIcon(it);
   return "icons/weapon_small_sword_i00.png";

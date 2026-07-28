@@ -30,7 +30,16 @@ function zoneQuestStepRewardDef(zoneId, step) {
   } else if (s === 2 && ch >= 4) {
     crystals.D = 1;
   }
-  return { adena, soul, spirit, crystals };
+  // XP: закрывает гейты II/III/IV на пути поручений (без golden-такса). Гл.IV–V — только киллы.
+  const stepXp = [
+    [22, 24, 28],
+    [30, 35, 40],
+    [65, 70, 80],
+    [0, 0, 0],
+    [0, 0, 0],
+  ];
+  const xp = (stepXp[ch - 1] && stepXp[ch - 1][s - 1]) || 0;
+  return { adena, soul, spirit, crystals, xp };
 }
 
 function ensureStepRewardsState() {
@@ -51,6 +60,7 @@ function formatQuestStepLootLines(zoneId, step) {
   const lines = [];
   const adena = typeof playtestIncome === "function" ? playtestIncome(rw.adena || 0) : (rw.adena || 0);
   if (adena) lines.push("+" + fmtAdena(adena) + " adena");
+  if (rw.xp) lines.push("+" + fmt(rw.xp) + " XP");
   if (rw.soul) lines.push("Soul Ore ×" + fmt(rw.soul));
   if (rw.spirit) lines.push("Spirit Ore ×" + fmt(rw.spirit));
   if (rw.crystals) {
@@ -86,6 +96,9 @@ function applyQuestStepReward(zoneId, step, questId, opts) {
       Object.keys(rw.crystals).forEach((g) => { next[g] = (next[g] || 0) + (rw.crystals[g] || 0); });
       return next;
     });
+  }
+  if (rw.xp && typeof grantAvatarXp === "function") {
+    grantAvatarXp(rw.xp, { silent: true });
   }
   ProgressStore.update("questProgress", (q) => ({ ...(q || {}), stepRewards: { ...(q?.stepRewards || {}), [questId]: true } }));
   if ($("#adena")) $("#adena").textContent = fmt(state.adena);
@@ -147,6 +160,9 @@ function applyChapterReward(zoneId, opts) {
       return next;
     });
   }
+  if (rw.xp && typeof grantAvatarXp === "function") {
+    grantAvatarXp(rw.xp, { silent: true });
+  }
   let armorGranted = null;
   if (rw.armorId && typeof grantArmorDrop === "function") {
     const res = grantArmorDrop(rw.armorId, { source: "chapter", zoneId, silent: !!opts.silent });
@@ -168,6 +184,7 @@ function applyChapterReward(zoneId, opts) {
   if (!opts.silent && typeof gameLog === "function") {
     const view = typeof zoneRaceView === "function" ? zoneRaceView(zoneId) : { name: zoneId };
     let msg = "Награда главы «" + (view.name || zoneId) + "»: +" + fmtAdena(adena) + " adena";
+    if (rw.xp) msg += " · +" + fmt(rw.xp) + " XP";
     if (armorGranted) msg += " · " + armorGranted.name;
     if (fragGranted.length) {
       msg += " · " + fragGranted.map((f) => f.name + " ×" + f.qty).join(", ");
@@ -186,6 +203,7 @@ function chapterRewardBodyHtml(zoneId) {
   parts.push('<div class="chapter-reward-loot">');
   parts.push("<p><b>Награда:</b></p><ul>");
   if (rw.adena) parts.push("<li>+" + fmtAdena(typeof playtestIncome === "function" ? playtestIncome(rw.adena) : rw.adena) + " adena</li>");
+  if (rw.xp) parts.push("<li>+" + fmt(rw.xp) + " XP</li>");
   if (rw.soul) parts.push("<li>Soul Ore ×" + fmt(rw.soul) + "</li>");
   if (rw.spirit) parts.push("<li>Spirit Ore ×" + fmt(rw.spirit) + "</li>");
   if (rw.crystals) {

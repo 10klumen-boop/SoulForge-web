@@ -150,7 +150,7 @@ function finishInvPointerDrag(e) {
     } else {
       const cz = invCrystallizeZone();
       if (cz && e && pointInElement(e, cz)) {
-        if (it && !isAccessoryItem(it)) {
+        if (it && canCrystallizeInventoryItem(it)) {
           crystallizeAt(pd.idx);
         }
       }
@@ -222,25 +222,76 @@ function setCrystallizeIco(zone, state) {
   zone.classList.toggle("hover", state === "over");
 }
 
+function canCrystallizeInventoryItem(it) {
+  if (!it) return false;
+  if (typeof isShardItem === "function" && isShardItem(it)) return false;
+  if (isAccessoryItem(it)) {
+    const def =
+      typeof accessoryDef === "function"
+        ? accessoryDef(it)
+        : typeof COLLECTIBLES !== "undefined"
+          ? COLLECTIBLES[it.id]
+          : null;
+    if (!def || def.epic) return false;
+    if (!def.grade || def.grade === "NG") return false;
+    return true;
+  }
+  if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    const def =
+      typeof armorItemDef === "function"
+        ? armorItemDef(it)
+        : typeof AMAP !== "undefined"
+          ? AMAP[it.id]
+          : null;
+    return !!(def && def.grade && def.grade !== "NG");
+  }
+  const w = typeof WMAP !== "undefined" ? WMAP[it.id] : null;
+  if (!w) return false;
+  if (typeof weaponCanEnchant === "function" && !weaponCanEnchant(w)) return false;
+  return !!(w.grade && w.grade !== "NG");
+}
+
 async function crystallizeAt(idx) {
   const inv = state.inventory || [];
   const it = inv[idx];
-  if (!it || isAccessoryItem(it)) return;
+  if (!it) return;
+  if (typeof isShardItem === "function" && isShardItem(it)) return;
   if (typeof isItemEquipped === "function" && isItemEquipped(it.uid)) {
     toast("Сначала сними предмет", "warn");
     return;
   }
 
-  const isArmor = typeof isArmorItem === "function" && isArmorItem(it);
-  const def = isArmor
-    ? typeof armorItemDef === "function"
-      ? armorItemDef(it)
-      : typeof AMAP !== "undefined"
-        ? AMAP[it.id]
-        : null
-    : WMAP[it.id];
+  const isAcc = isAccessoryItem(it);
+  const isArmor = !isAcc && typeof isArmorItem === "function" && isArmorItem(it);
+  let def = null;
+  let kind = "weapon";
+  if (isAcc) {
+    def =
+      typeof accessoryDef === "function"
+        ? accessoryDef(it)
+        : typeof COLLECTIBLES !== "undefined"
+          ? COLLECTIBLES[it.id]
+          : null;
+    kind = "accessory";
+    if (!def) return;
+    if (def.epic) {
+      toast("Эпическую бижутерию нельзя кристаллизовать", "warn");
+      return;
+    }
+  } else if (isArmor) {
+    def =
+      typeof armorItemDef === "function"
+        ? armorItemDef(it)
+        : typeof AMAP !== "undefined"
+          ? AMAP[it.id]
+          : null;
+    kind = "armor";
+  } else {
+    def = typeof WMAP !== "undefined" ? WMAP[it.id] : null;
+    kind = "weapon";
+  }
   if (!def) return;
-  if (!isArmor && typeof weaponCanEnchant === "function" && !weaponCanEnchant(def)) {
+  if (!isAcc && !isArmor && typeof weaponCanEnchant === "function" && !weaponCanEnchant(def)) {
     toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
     return;
   }
@@ -248,7 +299,7 @@ async function crystallizeAt(idx) {
     toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
     return;
   }
-  const plus = isArmor ? 0 : it.plus || 0;
+  const plus = isArmor || isAcc ? (isArmor ? it.plus || 0 : 0) : it.plus || 0;
   const yld = crystalYield(def, plus);
   const grade = def.grade;
   const plusStr = plus ? " +" + plus : "";
@@ -282,9 +333,9 @@ async function crystallizeAt(idx) {
     logCharacterEvent("crystallize", {
       itemId: def.id,
       itemName: def.name,
-      kind: isArmor ? "armor" : "weapon",
-      weaponId: isArmor ? undefined : def.id,
-      weaponName: isArmor ? undefined : def.name,
+      kind,
+      weaponId: kind === "weapon" ? def.id : undefined,
+      weaponName: kind === "weapon" ? def.name : undefined,
       grade,
       plus,
       crystals: yld,
@@ -328,7 +379,7 @@ function attachInvItemDrag(slot, idx, opts) {
     slot.addEventListener("contextmenu", (e) => {
       const inv = state.inventory || [];
       const it = inv[idx];
-      if (!it || isAccessoryItem(it)) return;
+      if (!it || !canCrystallizeInventoryItem(it)) return;
       e.preventDefault();
       crystallizeAt(idx);
     });
@@ -386,7 +437,21 @@ function appendInvStackSlot(grid, opts) {
   const slot = document.createElement("div");
   const gClass = opts.gradeClass ? " " + opts.gradeClass : "";
   slot.className = "inv-slot filled inv-stack" + gClass;
-  slot.title = opts.title || opts.name || "";
+  const tipOpts = {
+    name: opts.name,
+    icon: opts.icon,
+    qty: opts.qty,
+    badge: opts.badge,
+    gradeClass: opts.badge ? "g-" + String(opts.badge) : "",
+    kind: opts.kind || "Стек",
+    role: opts.role || "",
+    extra: opts.extra || "",
+    actions: opts.actions || [],
+  };
+  const plain =
+    typeof itemTooltipPlainFromStack === "function"
+      ? itemTooltipPlainFromStack(tipOpts)
+      : opts.title || opts.name || "";
   const ico = opts.icon
     ? '<img src="' + opts.icon + '" alt="" loading="lazy" draggable="false" onerror="this.style.visibility=\'hidden\'">'
     : "";
@@ -394,6 +459,18 @@ function appendInvStackSlot(grid, opts) {
   const lbl = opts.badge ? '<span class="inv-stack-badge">' + opts.badge + "</span>" : "";
   slot.innerHTML = ico + qty + lbl;
   if (opts.onclick) slot.onclick = opts.onclick;
+  if (typeof wireItemTooltip === "function") {
+    wireItemTooltip(
+      slot,
+      () =>
+        typeof itemTooltipHtmlFromStack === "function"
+          ? itemTooltipHtmlFromStack(tipOpts)
+          : "",
+      plain
+    );
+  } else if (plain) {
+    slot.title = plain;
+  }
   grid.appendChild(slot);
 }
 
@@ -410,16 +487,42 @@ function fillInvResourceGrid(grid, tabId) {
   }
 
   if (tabId === "frag") {
-    const stacks = listArmorFragStacks();
-    if (!stacks.length) note("Нет кусков брони. Фарми зоны в меню «Фарм».");
-    else {
+    const stacks = typeof listFragStacks === "function" ? listFragStacks() : listArmorFragStacks();
+    if (!stacks.length) {
+      note("Нет кусков. Фарми Свалку (D) / Кузницу (C) — броня и бижутерия.");
+    } else {
       hasStacks = true;
       stacks.forEach((row) => {
+        const isJewel = row.kind === "jewelry";
         appendInvStackSlot(grid, {
           name: row.def.name,
           icon: row.def.icon,
           qty: row.qty,
-          title: row.def.name + "\n×" + row.qty + " · крафт в Мастерской → Броня",
+          kind: isJewel ? "Кусок бижутерии" : "Кусок брони",
+          role: isJewel
+            ? "Крафт в Мастерской → Бижутерия"
+            : "Крафт в Мастерской → Броня",
+        });
+        filled++;
+      });
+    }
+  } else if (tabId === "scroll") {
+    const stacks = typeof listScrollStacks === "function" ? listScrollStacks() : [];
+    if (!stacks.length) {
+      note("Нет свитков. Фарми зоны или купи на рынке у игроков.");
+    } else {
+      hasStacks = true;
+      stacks.forEach((row) => {
+        appendInvStackSlot(grid, {
+          name: row.name,
+          icon: row.icon,
+          qty: row.qty,
+          badge: row.grade,
+          gradeClass: "g-" + row.grade + " inv-scroll",
+          kind: "Свиток заточки",
+          role:
+            "Заточка " +
+            (row.target === "armor" ? "брони / бижутерии" : "оружия"),
         });
         filled++;
       });
@@ -440,14 +543,15 @@ function fillInvResourceGrid(grid, tabId) {
           qty: row.qty,
           badge: row.grade,
           gradeClass: "g-" + row.grade,
-          title: row.name + "\n×" + row.qty,
+          kind: "Заряд",
+          role: "Автоудар / бой",
         });
         filled++;
       });
     }
   } else if (tabId === "crystal") {
     const stacks = listCrystalStacks();
-    if (!stacks.length) note("Нет кристаллов. Кристаллизуй оружие или броню в сумке.");
+    if (!stacks.length) note("Нет кристаллов. Кристаллизуй оружие, броню или бижутерию D/C.");
     else {
       hasStacks = true;
       stacks.forEach((row) => {
@@ -457,7 +561,8 @@ function fillInvResourceGrid(grid, tabId) {
           qty: row.qty,
           badge: row.grade,
           gradeClass: "g-" + row.grade,
-          title: "Crystal (" + row.grade + "-Grade)\n×" + row.qty,
+          kind: "Кристалл",
+          role: "Крафт и обмен",
         });
         filled++;
       });
@@ -472,7 +577,8 @@ function fillInvResourceGrid(grid, tabId) {
           name: row.name,
           icon: row.icon,
           qty: row.qty,
-          title: row.name + "\n×" + row.qty,
+          kind: "Руда",
+          role: "Крафт зарядов и рецептов",
         });
         filled++;
       });
@@ -529,10 +635,22 @@ function appendInvItemSlot(grid, it, idx) {
     return;
   }
   const slot = document.createElement("div");
+  const wireTip = () => {
+    if (typeof wireItemTooltip !== "function") return;
+    wireItemTooltip(
+      slot,
+      () =>
+        typeof itemTooltipHtmlFromInvItem === "function"
+          ? itemTooltipHtmlFromInvItem(it)
+          : "",
+      typeof itemTooltipPlainFromInvItem === "function"
+        ? itemTooltipPlainFromInvItem(it)
+        : def.name || ""
+    );
+  };
   if (typeof isShardItem === "function" && isShardItem(it)) {
     const qty = Math.max(1, Math.floor(Number(it.qty) || 1));
     slot.className = "inv-slot filled g-D";
-    slot.title = def.name + "\n×" + qty + " · осколок · крафт в Мастерской → Бижутерия";
     slot.innerHTML =
       '<img src="' +
       def.icon +
@@ -543,38 +661,38 @@ function appendInvItemSlot(grid, it, idx) {
       Audio2.click();
       if (typeof toast === "function") toast(def.name + " ×" + qty + " · крафт в Мастерской", "info");
     };
+    wireTip();
   } else if (isAccessoryItem(it)) {
-    slot.className = "inv-slot filled g-epic";
-    slot.title = def.name + "\nБижутерия · клик — детали · тяни на слот серьги/кольца/ожерелья";
-    slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
-    slot.onclick = () => { if (invClickBlocked()) return; Audio2.click(); openAccessory(it); };
-    attachInvItemDrag(slot, idx);
-  } else if (typeof isArmorItem === "function" && isArmorItem(it)) {
-    const slotRu = def.slot === "helmet" ? "шлем" : def.slot === "chest" ? "доспех" : def.slot === "legs" ? "поножи" : def.slot === "gloves" ? "перчатки" : def.slot === "boots" ? "сапоги" : def.slot;
-    slot.className = "inv-slot filled g-" + (def.grade || "C");
-    slot.title = def.name + " [" + (def.grade || "?") + "]\nP.Def " + (def.pdef || 0) + " · M.Def " + (def.mdef || 0) +
-      "\nСлот: " + slotRu + " · клик — надеть · тяни на экип / кристаллизацию · ПКМ" +
-      (def.cc ? "\nКристаллизация: " + def.cc + " × " + (def.grade || "?") : "");
-    slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
+    const gKey = typeof inventoryItemGradeKey === "function" ? inventoryItemGradeKey(it) : (def.epic ? "epic" : def.grade || "epic");
+    const isEpic = !!def.epic;
+    slot.className = "inv-slot filled g-" + gKey;
+    const canCry = canCrystallizeInventoryItem(it);
+    slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">${it.plus ? `<span class="ip">+${it.plus}</span>` : ""}`;
     slot.onclick = () => {
       if (invClickBlocked()) return;
       Audio2.click();
-      if (typeof equipArmorToAvatar === "function") equipArmorToAvatar(it);
-      else if (typeof firstFreeSlotForItem === "function") {
-        const sid = firstFreeSlotForItem(it);
-        if (sid && typeof equipAvatarSlot === "function") equipAvatarSlot(sid, it);
+      if (isEpic) {
+        openAccessory(it);
+        return;
       }
-      if (typeof renderInventory === "function") renderInventory();
+      if (typeof openEnchant === "function") openEnchant(it);
+    };
+    attachInvItemDrag(slot, idx, canCry ? { crystallize: true } : {});
+    wireTip();
+  } else if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    slot.className = "inv-slot filled g-" + (def.grade || "C");
+    slot.innerHTML = `<img src="${def.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">${it.plus ? `<span class="ip">+${it.plus}</span>` : ""}`;
+    slot.onclick = () => {
+      if (invClickBlocked()) return;
+      Audio2.click();
+      if (typeof openEnchant === "function") openEnchant(it);
     };
     attachInvItemDrag(slot, idx, { crystallize: true });
+    wireTip();
   } else {
     const w = def;
-    const p = statAt(w.patk, w.ps, it.plus), m = statAt(w.matk, w.ms, it.plus);
     const ng = w.grade === "NG" || (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(w));
     slot.className = "inv-slot filled g-" + (w.grade || "NG");
-    const gradeTag = w.grade === "NG" ? "NG" : w.grade;
-    slot.title = `${w.name} [${gradeTag}]${it.plus ? " +" + it.plus : ""}\nP.Atk ${fmt(p)} · M.Atk ${fmt(m)}` +
-      (ng ? "\nNG — клик: продать за " + fmtAdena(typeof sellValue === "function" ? sellValue(w, 0) : 1000) : "\nКлик — заточка · тяни на слот оружия или кристаллизацию · ПКМ");
     slot.innerHTML = `<img src="${w.icon}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">${it.plus ? `<span class="ip">+${it.plus}</span>` : ""}`;
     slot.onclick = () => {
       if (invClickBlocked()) return;
@@ -587,6 +705,7 @@ function appendInvItemSlot(grid, it, idx) {
     };
     if (ng) attachInvItemDrag(slot, idx);
     else attachInvSlotCryst(slot, idx);
+    wireTip();
   }
   grid.appendChild(slot);
 }
@@ -599,7 +718,7 @@ function appendInvCrystallizeFooter(list) {
     '<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="' +
     CRYSTALLIZE_ICON.normal +
     '" alt="" draggable="false"></div>' +
-    '<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Тяни оружие или броню сюда · ПКМ по предмету</span></div>';
+    '<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Тяни оружие, броню или бижу D/C · ПКМ по предмету</span></div>';
   attachCrystallizeZone(cz);
   list.appendChild(cz);
 }
@@ -607,6 +726,7 @@ function appendInvCrystallizeFooter(list) {
 function renderInventory() {
   const list = $("#invList");
   if (!list) return;
+  if (typeof hideItemTip === "function") hideItemTip();
   list.innerHTML = "";
   if (!state.crystals) state.crystals = { D: 0, C: 0, B: 0, A: 0 };
   const inv = state.inventory || [];

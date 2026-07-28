@@ -4,12 +4,15 @@
 // вынесены в data/workshop-balance.js.
 
 let wsTab = "soul";
-/** null = хаб (две кнопки), shots | armor = раздел */
+/** null = хаб (две кнопки), shots | armor | jewelry = раздел */
 let wsMainTab = null;
 /** null = хаб подвидов (heavy/light/robe); иначе id из ARMOR_KINDS */
 let wsArmorKind = null;
 /** null = список сетов выбранного подвида; иначе id сета из ARMOR_SETS */
 let wsArmorSetId = null;
+/** null | "graded" | "epic" — подраздел бижутерии */
+let wsJewelryTab = null;
+let wsJewelrySetId = null;
 
 
 function orePrice(type) {
@@ -203,6 +206,15 @@ function canCraftAccessory(accessoryId) {
   const adena = state.adena || 0;
   if (shards < r.shardQty) return { ok: false, reason: "shard", need: r.shardQty, have: shards };
   if (adena < (r.adena || 0)) return { ok: false, reason: "adena", need: r.adena || 0, have: adena };
+  const cryNeed = Math.max(0, Math.floor(Number(r.cry) || 0));
+  const oreNeed = Math.max(0, Math.floor(Number(r.oreSoul) || 0));
+  if (cryNeed > 0 || oreNeed > 0) {
+    const grade = def.grade || "D";
+    const cry = state.crystals?.[grade] || 0;
+    const ore = state.materials?.soul || 0;
+    if (cry < cryNeed) return { ok: false, reason: "cry", need: cryNeed, have: cry, grade };
+    if (ore < oreNeed) return { ok: false, reason: "ore", need: oreNeed, have: ore };
+  }
   return { ok: true, recipe: r, def };
 }
 
@@ -211,6 +223,8 @@ function craftAccessory(accessoryId) {
   if (!check.ok) {
     if (typeof toast === "function") {
       if (check.reason === "shard") toast("Не хватает осколков (нужно " + check.need + ")", "warn");
+      else if (check.reason === "cry") toast("Не хватает кристаллов " + check.grade + " (нужно " + check.need + ")", "warn");
+      else if (check.reason === "ore") toast("Не хватает Soul Ore (нужно " + check.need + ")", "warn");
       else if (check.reason === "adena") toast("Недостаточно adena", "warn");
       else toast("Рецепт недоступен", "warn");
     }
@@ -233,6 +247,23 @@ function craftAccessory(accessoryId) {
     ProgressStore.update("materials", (m) => {
       const next = { ...(m || { soul: 0, spirit: 0 }) };
       next[r.shardId] = Math.max(0, (next[r.shardId] || 0) - r.shardQty);
+      return next;
+    });
+  }
+  const cryNeed = Math.max(0, Math.floor(Number(r.cry) || 0));
+  const oreNeed = Math.max(0, Math.floor(Number(r.oreSoul) || 0));
+  if (oreNeed > 0) {
+    ProgressStore.update("materials", (m) => {
+      const next = { ...(m || { soul: 0, spirit: 0 }) };
+      next.soul = Math.max(0, (next.soul || 0) - oreNeed);
+      return next;
+    });
+  }
+  if (cryNeed > 0) {
+    const grade = check.def.grade || "D";
+    ProgressStore.update("crystals", (c) => {
+      const next = { ...(c || { D: 0, C: 0, B: 0, A: 0 }) };
+      next[grade] = Math.max(0, (next[grade] || 0) - cryNeed);
       return next;
     });
   }

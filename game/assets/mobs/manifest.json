@@ -238,5 +238,95 @@
     "w": 466,
     "h": 480,
     "sheetW": 512
+  },
+  "ant-soldier": {
+    "slug": "ant-soldier",
+    "w": 295,
+    "h": 480,
+    "sheetW": 512
+  },
+  "ol-mahum": {
+    "slug": "ol-mahum",
+    "w": 280,
+    "h": 480,
+    "sheetW": 512
+  },
+  "ol-mahum-archer": {
+    "slug": "ol-mahum-archer",
+    "w": 225,
+    "h": 480,
+    "sheetW": 450
+  },
+  "langk-lizardman": {
+    "slug": "langk-lizardman",
+    "w": 303,
+    "h": 480,
+    "sheetW": 512
+  },
+  "basilisk": {
+    "slug": "basilisk",
+    "w": 511,
+    "h": 480,
+    "sheetW": 512
+  },
+  "ruin-zombie": {
+    "slug": "ruin-zombie",
+    "w": 197,
+    "h": 480,
+    "sheetW": 394
+  },
+  "spartoi": {
+    "slug": "spartoi",
+    "w": 258,
+    "h": 480,
+    "sheetW": 512
+  },
+  "tyrant": {
+    "slug": "tyrant",
+    "w": 392,
+    "h": 480,
+    "sheetW": 512
+  },
+  "marsh-stakato": {
+    "slug": "marsh-stakato",
+    "w": 297,
+    "h": 480,
+    "sheetW": 512
+  },
+  "tumran-bugbear": {
+    "slug": "tumran-bugbear",
+    "w": 358,
+    "h": 480,
+    "sheetW": 512
+  },
+  "giant-wasp": {
+    "slug": "giant-wasp",
+    "w": 349,
+    "h": 480,
+    "sheetW": 512
+  },
+  "maille-lizardman": {
+    "slug": "maille-lizardman",
+    "w": 327,
+    "h": 480,
+    "sheetW": 512
+  },
+  "turek-orc": {
+    "slug": "turek-orc",
+    "w": 319,
+    "h": 480,
+    "sheetW": 512
+  },
+  "amber-basilisk": {
+    "slug": "amber-basilisk",
+    "w": 480,
+    "h": 480,
+    "sheetW": 512
+  },
+  "androscorpio": {
+    "slug": "androscorpio",
+    "w": 350,
+    "h": 480,
+    "sheetW": 512
   }
 }

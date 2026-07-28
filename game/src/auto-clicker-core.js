@@ -236,12 +236,14 @@ function toggleAutoClickerEnabled() {
 }
 
 function autoClickerBlockedInCurrentMine() {
-  // Инстансы и мировой босс — только ручные клики (автофарм выключен).
+  // Инстансы, мировой босс и клан-рейд — только ручные клики.
   if (typeof mineSession !== "undefined" && mineSession && mineSession.instance) return true;
   if (typeof mineSession !== "undefined" && mineSession && mineSession.worldBoss) return true;
+  if (typeof mineSession !== "undefined" && mineSession && mineSession.clanBoss) return true;
   if (typeof isInstanceSessionActive === "function" && isInstanceSessionActive()) return true;
   if (typeof isPartyFarmSessionActive === "function" && isPartyFarmSessionActive()) return true;
   if (typeof isWorldBossSessionActive === "function" && isWorldBossSessionActive()) return true;
+  if (typeof isClanBossSessionActive === "function" && isClanBossSessionActive()) return true;
   return false;
 }
 

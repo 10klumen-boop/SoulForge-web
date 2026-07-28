@@ -1,4 +1,9 @@
 function scrollFor(grade, typeId) {
+  if (typeof scrollDef === "function") {
+    const s = scrollDef("weapon", grade, typeId);
+    s.cost = s.estimate || 0;
+    return s;
+  }
   const t = SCROLL_TYPES.find((x) => x.id === typeId) || SCROLL_TYPES[0];
   const icon = typeof scrollTierIcon === "function" ? scrollTierIcon(t.id, grade) : SCROLL_ICON[grade];
   const base = tune("scroll.price." + grade, GRADE_BASE_PRICE[grade] || 50_000);
@@ -7,6 +12,7 @@ function scrollFor(grade, typeId) {
     id: t.id, name: t.name, behavior: t.behavior, desc: t.desc, icon,
     tier: (typeof SCROLL_TIER !== "undefined" ? SCROLL_TIER[t.id] : 1) || 1,
     cost: Math.round(base * mult),
+    estimate: Math.round(base * mult),
   };
 }
 
@@ -35,6 +41,20 @@ function defaultState() {
     equipped: {},
     materials: { soul: 0, spirit: 0 },
     shots: { soul: { D: 0, C: 0, B: 0, A: 0 }, spirit: { D: 0, C: 0, B: 0, A: 0 } },
+    scrolls: {
+      weapon: {
+        regular: { D: 0, C: 0, B: 0, A: 0 },
+        blessed: { D: 0, C: 0, B: 0, A: 0 },
+        destruction: { D: 0, C: 0, B: 0, A: 0 },
+        crystal: { D: 0, C: 0, B: 0, A: 0 },
+      },
+      armor: {
+        regular: { D: 0, C: 0, B: 0, A: 0 },
+        blessed: { D: 0, C: 0, B: 0, A: 0 },
+        destruction: { D: 0, C: 0, B: 0, A: 0 },
+        crystal: { D: 0, C: 0, B: 0, A: 0 },
+      },
+    },
     autoShots: true,
     achievements: { unlocked: {}, stats: {} },
     passiveIncome: { lastCollectAt: 0, warehouseLv: 0 },
@@ -43,7 +63,7 @@ function defaultState() {
     partyFarm: { dailyUsedMs: 0, dayKey: "", lastZoneId: "" },
     instanceLocks: {},
     overflowLoot: [],
-    accountWarehouse: { items: [] },
+    accountWarehouse: { items: [], stacks: [] },
     accountMail: { messages: [] },
     devTune: {},
     balanceResetVer: BALANCE_RESET_VER,
@@ -80,7 +100,7 @@ function freshCharacterProgressSnapshot() {
   const keys = [
     "avatar", "adena", "farmZone", "storyProgress", "questProgress",
     "records", "totals", "storySeen", "inventory", "crystals",
-    "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
+    "collectibles", "equipped", "materials", "shots", "scrolls", "autoShots", "achievements",
     "passiveIncome", "autoClicker", "resourceFavorites",
     "partyFarm", "instanceLocks", "overflowLoot",
   ];
@@ -125,7 +145,7 @@ function applyBalanceResetIfNeeded(st) {
   st.audioVol = keepAudio;
   st.alwaysOnTop = keepTop;
   st.devTune = {};
-  st.accountWarehouse = { items: [] };
+  st.accountWarehouse = { items: [], stacks: [] };
   st.accountMail = { messages: [] };
   st.balanceResetVer = BALANCE_RESET_VER;
   st.farmZone = "banana_mine";
@@ -165,12 +185,29 @@ function mergeSavedData(data) {
     if (!st.questProgress.bossGrind) st.questProgress.bossGrind = {};
   }
   applyBalanceResetIfNeeded(st);
-  if (!st.accountWarehouse || typeof st.accountWarehouse !== "object") st.accountWarehouse = { items: [] };
+  if (!st.accountWarehouse || typeof st.accountWarehouse !== "object") st.accountWarehouse = { items: [], stacks: [] };
   if (!Array.isArray(st.accountWarehouse.items)) st.accountWarehouse.items = [];
+  if (!Array.isArray(st.accountWarehouse.stacks)) st.accountWarehouse.stacks = [];
   if (!st.accountMail || typeof st.accountMail !== "object") st.accountMail = { messages: [] };
   if (!Array.isArray(st.accountMail.messages)) st.accountMail.messages = [];
   if (typeof initCharacters === "function") initCharacters();
   if (st.autoShots == null) st.autoShots = true;
+  if (!st.scrolls || typeof st.scrolls !== "object") {
+    st.scrolls = {
+      weapon: {
+        regular: { D: 0, C: 0, B: 0, A: 0 },
+        blessed: { D: 0, C: 0, B: 0, A: 0 },
+        destruction: { D: 0, C: 0, B: 0, A: 0 },
+        crystal: { D: 0, C: 0, B: 0, A: 0 },
+      },
+      armor: {
+        regular: { D: 0, C: 0, B: 0, A: 0 },
+        blessed: { D: 0, C: 0, B: 0, A: 0 },
+        destruction: { D: 0, C: 0, B: 0, A: 0 },
+        crystal: { D: 0, C: 0, B: 0, A: 0 },
+      },
+    };
+  }
   if (!st.audioVol || typeof st.audioVol !== "object") st.audioVol = defaultAudioVol();
   else {
     const dv = defaultAudioVol();

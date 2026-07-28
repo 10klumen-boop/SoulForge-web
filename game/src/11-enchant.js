@@ -4,9 +4,11 @@
 
 let busy = false;
 
-/** Записать plus/spent экипированного или инвентарного оружия через ProgressStore (не in-place). */
+/** Записать plus/spent экипированного или инвентарного предмета через ProgressStore (не in-place). */
 function syncEnchantItemToStore() {
   if (!cur || !cur.item) return;
+  const isArmor = cur.kind === "armor";
+  const isJew = cur.kind === "accessory" || cur.kind === "jewelry";
   if (cur.equipped) {
     const uid = cur.item.uid;
     const id = cur.item.id;
@@ -14,28 +16,27 @@ function syncEnchantItemToStore() {
     const spent = cur.item.spent || 0;
     const starter = !!cur.item.starter;
     const broken = !!cur.broken;
+    const slotId = cur.gearSlot || (isArmor || isJew ? null : "weapon");
+    if (!slotId) return;
     ProgressStore.update("avatar", (a) => {
       const next = { ...(a || {}) };
       const gear = {
         ...(next.gear || (typeof defaultAvatarGear === "function" ? defaultAvatarGear() : {})),
       };
       if (broken) {
-        gear.weapon = null;
+        gear[slotId] = null;
+      } else if (isArmor) {
+        gear[slotId] = { uid, id, plus, spent, kind: "armor" };
+      } else if (isJew) {
+        gear[slotId] = { uid, id, plus, spent, kind: "accessory" };
       } else {
-        gear.weapon = {
-          uid,
-          id,
-          plus,
-          spent,
-          kind: "weapon",
-          starter,
-        };
+        gear[slotId] = { uid, id, plus, spent, kind: "weapon", starter };
       }
       next.gear = gear;
       return next;
     });
-    if (!broken && typeof equippedWeaponItem === "function") {
-      const live = equippedWeaponItem();
+    if (!broken) {
+      const live = (state.avatar?.gear || {})[slotId];
       if (live) cur.item = live;
     }
     return;
@@ -45,7 +46,12 @@ function syncEnchantItemToStore() {
   const plus = cur.plus | 0;
   const spent = cur.item.spent || 0;
   ProgressStore.update("inventory", (inv) =>
-    (inv || []).map((it) => (it.uid === uid ? { ...it, plus, spent } : it))
+    (inv || []).map((it) => {
+      if (it.uid !== uid) return it;
+      if (isArmor) return { ...it, kind: "armor", plus, spent };
+      if (isJew) return { ...it, kind: "accessory", plus, spent };
+      return { ...it, plus, spent };
+    })
   );
   const live = (state.inventory || []).find((it) => it.uid === uid);
   if (live) cur.item = live;
@@ -53,57 +59,109 @@ function syncEnchantItemToStore() {
 
 function doEnchant() {
   if (busy || (typeof isGamePaused === "function" && isGamePaused())) return;
-  if (!cur || cur.broken) return;
-  const capPlus = typeof scrollMaxPlus === "function" ? scrollMaxPlus(cur.scroll) : MAX_PLUS;
+  if (!cur || cur.broken || !cur.weapon) return;
+  const isArmor = cur.kind === "armor";
+  const isJew = cur.kind === "accessory" || cur.kind === "jewelry";
+  const capPlus =
+    typeof enchantItemCapPlus === "function"
+      ? enchantItemCapPlus(cur.kind, cur.scroll)
+      : typeof scrollMaxPlus === "function"
+        ? scrollMaxPlus(cur.scroll)
+        : MAX_PLUS;
   if (cur.plus >= capPlus) return;
-  const sc = scrollFor(cur.weapon.grade, cur.scroll);
-  if (state.adena < sc.cost) { toast("Недостаточно adena!", "warn"); return; }
+  const target = isArmor || isJew ? "armor" : "weapon";
+  const grade = cur.weapon.grade;
+  const sc =
+    typeof scrollDef === "function" ? scrollDef(target, grade, cur.scroll) : scrollFor(grade, cur.scroll);
+  if (typeof hasScroll === "function" && !hasScroll(target, cur.scroll, grade, 1)) {
+    toast("Нет свитка в сумке — фарми зоны или купи на рынке", "warn");
+    return;
+  }
+  const adenaCost = Math.max(0, Math.floor(Number(sc.estimate != null ? sc.estimate : sc.cost) || 0));
+  if ((state.adena || 0) < adenaCost) {
+    toast("Недостаточно adena!", "warn");
+    return;
+  }
   busy = true;
   renderEnch();
-  ProgressStore.update("adena", (a) => (a || 0) - sc.cost);
-  cur.item.spent = (cur.item.spent || 0) + sc.cost;
+  if (typeof consumeScroll === "function") {
+    if (!consumeScroll(target, cur.scroll, grade, 1)) {
+      busy = false;
+      toast("Нет свитка в сумке", "warn");
+      renderEnch();
+      return;
+    }
+  }
+  if (adenaCost > 0) {
+    ProgressStore.update("adena", (a) => Math.max(0, (a || 0) - adenaCost));
+  }
+  const estimate = adenaCost;
+  cur.item.spent = (cur.item.spent || 0) + estimate;
   ProgressStore.update("totals", (t) => ({ ...(t || { tries: 0, fails: 0, earned: 0 }), tries: (t?.tries || 0) + 1 }));
   const hour = new Date().getHours();
   if (hour >= 0 && hour < 5 && typeof achStat === "function") achStat("nightEnchants", 1);
   Audio2.charge();
-  const stage = $("#stage"); stage.classList.add("charging");
+  const stage = $("#stage");
+  stage.classList.add("charging");
   setVerdict("Заточка...", "neutral");
   $("#adena").textContent = fmt(state.adena);
   $("#pSpent").textContent = fmtAdena(cur.item.spent);
   const chance = successChance(cur.plus, sc.behavior);
   const win = Math.random() < chance;
+  const itemLabel = isJew ? "бижутерия" : isArmor ? "броня" : "оружие";
+  const ItemLabel = isJew ? "Бижутерия" : isArmor ? "Броня" : "Оружие";
+  const intactSuffix = isArmor || isJew ? "а" : "";
   setTimeout(() => {
     stage.classList.remove("charging");
     let animMs = 0;
     if (win) {
-      cur.plus++; cur.item.plus = cur.plus;
+      cur.plus++;
+      cur.item.plus = cur.plus;
       stage.classList.add("success");
       const gi = glowInfo(cur.plus);
       enchFlash("success", gi.color);
       const maxed = cur.plus >= capPlus;
       maxed ? Audio2.jackpot() : Audio2.success();
       enchantFirework(gi.color, maxed ? 52 : 36);
-      playEnchantPlusPop(cur.plus, { maxed: maxed && capPlus >= MAX_PLUS });
+      playEnchantPlusPop(cur.plus, {
+        maxed: maxed,
+        capLabel: isJew ? "+12!" : capPlus >= MAX_PLUS ? "+16!" : "+" + capPlus + "!",
+      });
       animMs = 520;
       setTimeout(() => stage.classList.remove("success"), animMs);
       setTimeout(() => stage.classList.remove("success-flash"), 880);
       setVerdict(
-        maxed && capPlus >= MAX_PLUS ? "+16 МАКСИМУМ — ЛЕГЕНДА!" : (cur.plus >= 12 ? "Великолепно! +" + cur.plus : "Успех! +" + cur.plus),
+        maxed && isJew
+          ? "+12 МАКСИМУМ!"
+          : maxed && capPlus >= MAX_PLUS
+            ? "+16 МАКСИМУМ — ЛЕГЕНДА!"
+            : cur.plus >= 12
+              ? "Великолепно! +" + cur.plus
+              : "Успех! +" + cur.plus,
         "good"
       );
       gameLog(
-        (maxed && capPlus >= MAX_PLUS ? "ЛЕГЕНДА! " : "") + cur.weapon.name + " [" + cur.weapon.grade + "] → +" + cur.plus,
-        maxed && capPlus >= MAX_PLUS ? "success" : "enchant"
+        (maxed ? "МАКС! " : "") +
+          cur.weapon.name +
+          " [" +
+          cur.weapon.grade +
+          "] → +" +
+          cur.plus,
+        maxed ? "success" : "enchant"
       );
-      notifyWeaponRecord(cur.weapon, cur.plus);
+      if (cur.kind === "weapon") notifyWeaponRecord(cur.weapon, cur.plus);
       if (typeof logCharacterEvent === "function") {
         logCharacterEvent("enchant_ok", {
-          weaponId: cur.weapon.id,
-          weaponName: cur.weapon.name,
+          itemId: cur.weapon.id,
+          itemName: cur.weapon.name,
+          weaponId: cur.kind === "weapon" ? cur.weapon.id : undefined,
+          weaponName: cur.kind === "weapon" ? cur.weapon.name : undefined,
+          kind: cur.kind || "weapon",
           grade: cur.weapon.grade,
           plus: cur.plus,
           scroll: sc.id,
-          cost: sc.cost,
+          scrollTarget: target,
+          cost: estimate,
         });
       }
     } else {
@@ -115,84 +173,93 @@ function doEnchant() {
       setTimeout(() => stage.classList.remove("shake"), animMs);
       if (sc.behavior === "reset") {
         const plusBefore = cur.plus;
-        cur.plus = 0; cur.item.plus = 0; setVerdict("Провал — заточка сброшена до +0 (оружие цело)", "bad");
+        cur.plus = 0;
+        cur.item.plus = 0;
+        setVerdict("Провал — заточка сброшена до +0 (" + itemLabel + " цел" + intactSuffix + ")", "bad");
         gameLog("Провал (благ.): " + cur.weapon.name + " — сброс до +0", "fail");
-        shards(cur.weapon.glow, 16);
+        shards(cur.weapon.glow || "#ffc847", 16);
         if (typeof logCharacterEvent === "function") {
           logCharacterEvent("enchant_fail", {
-            weaponId: cur.weapon.id,
-            weaponName: cur.weapon.name,
+            itemId: cur.weapon.id,
+            itemName: cur.weapon.name,
+            kind: cur.kind || "weapon",
             grade: cur.weapon.grade,
             plusBefore,
             scroll: sc.id,
-            cost: sc.cost,
-            behavior: "reset",
+            scrollTarget: target,
+            failMode: "reset",
+            cost: estimate,
           });
         }
       } else if (sc.behavior === "destruction") {
         const plusBefore = cur.plus;
-        setVerdict("Провал — оружие цело (+" + cur.plus + ")", "bad");
+        setVerdict("Провал — " + itemLabel + " цел" + intactSuffix + " (+" + cur.plus + ")", "bad");
         gameLog("Провал (разруш.): " + cur.weapon.name + " +" + plusBefore + " — без изменений", "fail");
-        shards(cur.weapon.glow, 10);
+        shards(cur.weapon.glow || "#ffc847", 10);
         if (typeof logCharacterEvent === "function") {
           logCharacterEvent("enchant_fail", {
-            weaponId: cur.weapon.id,
-            weaponName: cur.weapon.name,
+            itemId: cur.weapon.id,
+            itemName: cur.weapon.name,
+            kind: cur.kind || "weapon",
             grade: cur.weapon.grade,
             plusBefore,
             scroll: sc.id,
-            cost: sc.cost,
-            behavior: "destruction",
+            scrollTarget: target,
+            failMode: "destruction",
+            cost: estimate,
           });
         }
       } else {
         const plusBefore = cur.plus;
-        notifyWeaponRecord(cur.weapon, cur.plus);
-        cur.broken = true;
-        if (typeof achStat === "function") achStat("weaponsBroken", 1);
-        if (!cur.equipped) {
-          ProgressStore.set("inventory", (state.inventory || []).filter((x) => x.uid !== cur.item.uid));
-        }
-        const grade = cur.weapon.grade;
+        if (cur.kind === "weapon") notifyWeaponRecord(cur.weapon, cur.plus);
         const yld = crystalYield(cur.weapon, cur.plus);
+        const gradeCry = cur.weapon.grade || "D";
         ProgressStore.update("crystals", (c) => {
           const next = { ...(c || { D: 0, C: 0, B: 0, A: 0 }) };
-          next[grade] = (next[grade] || 0) + yld;
+          next[gradeCry] = (next[gradeCry] || 0) + yld;
           return next;
         });
-        stage.classList.add("fail");
-        animMs = Math.max(animMs, 560);
-        setTimeout(() => {
-          stage.classList.remove("fail");
-          if (cur.broken) renderEnch();
-        }, 560);
-        const plusTag = cur.plus ? " +" + cur.plus : "";
-        setVerdict("Оружие рассыпалось → +" + yld + " кристаллов (" + grade + ")", "bad");
-        shards(CRYSTAL_COLOR[grade] || "#ff5a5a", 30);
-        gameLog("Разрушено: " + cur.weapon.name + plusTag + " → +" + yld + " крист. (" + grade + ")", "fail");
+        cur.broken = true;
+        cur.plus = 0;
+        cur.item.plus = 0;
+        const plusTag = plusBefore ? " +" + plusBefore : "";
+        setVerdict(ItemLabel + " рассыпал" + (isArmor || isJew ? "ась" : "ось") + " → +" + yld + " кристаллов (" + gradeCry + ")", "bad");
+        gameLog("Разрушено: " + cur.weapon.name + plusTag + " → +" + yld + " крист. (" + gradeCry + ")", "fail");
+        shards(cur.weapon.glow || "#ff5a5a", 22);
         if (typeof logCharacterEvent === "function") {
-          logCharacterEvent("enchant_break", {
-            weaponId: cur.weapon.id,
-            weaponName: cur.weapon.name,
-            grade,
+          logCharacterEvent("enchant_fail", {
+            itemId: cur.weapon.id,
+            itemName: cur.weapon.name,
+            kind: cur.kind || "weapon",
+            grade: cur.weapon.grade,
             plus: plusBefore,
             scroll: sc.id,
-            cost: sc.cost,
+            scrollTarget: target,
+            failMode: "break",
             crystals: yld,
+            cost: estimate,
           });
         }
+        // Remove broken item from inventory / gear
+        if (cur.equipped) {
+          syncEnchantItemToStore();
+        } else {
+          ProgressStore.set("inventory", (state.inventory || []).filter((x) => x.uid !== cur.item.uid));
+        }
+        if (cur.broken) renderEnch();
       }
     }
-    // Сначала в store (экип живёт в avatar.gear), потом XP — иначе clone avatar откатывает plus.
-    syncEnchantItemToStore();
+    if (!cur.broken) syncEnchantItemToStore();
     if (typeof onEnchantAvatarXp === "function") {
       onEnchantAvatarXp(win, cur.plus, sc.behavior, !!cur.broken);
     }
-    save(); renderMenu();
+    save();
+    renderMenu();
     if (cur.equipped) {
       if (typeof renderAvatarGearSlots === "function") renderAvatarGearSlots();
       if (typeof renderAvatarHub === "function") renderAvatarHub();
       if (typeof renderMineHudStats === "function") renderMineHudStats();
+      if (typeof refreshInvPaperdoll === "function") refreshInvPaperdoll();
     }
     renderEnch();
     setTimeout(() => {
@@ -202,37 +269,11 @@ function doEnchant() {
     }, animMs);
   }, 600);
 }
-
 function newWeapon() { Audio2.click(); goInventory(); }
 
+/** Обычная продажа с экрана заточки отключена — оружие/броня/бижа только через рынок. */
 function sellWeapon() {
-  if (busy || !cur || cur.broken) return;
-  if (cur.equipped) { toast("Сначала сними оружие в инвентаре", "warn"); return; }
-  if (!canSellWeapon(cur.weapon, cur.plus)) { toast("Продать можно только с +4 и выше"); return; }
-  const sv = sellValue(cur.weapon, cur.plus);
-  ProgressStore.update("adena", (a) => (a || 0) + sv);
-  ProgressStore.update("totals", (t) => ({ ...(t || { tries: 0, fails: 0, earned: 0 }), earned: (t?.earned || 0) + sv }));
-  Audio2.success();
-  ProgressStore.set("inventory", (state.inventory || []).filter((x) => x.uid !== cur.item.uid));
-  const plusLabel = isNgSellWeapon(cur.weapon) ? "" : (" +" + cur.plus);
-  toast("Продано" + plusLabel + " " + cur.weapon.name + " за " + fmt(sv) + " adena", "gold");
-  if (typeof achStat === "function" && !isNgSellWeapon(cur.weapon)) achStat("weaponsSold", 1);
-  if (typeof achStatMax === "function" && !isNgSellWeapon(cur.weapon)) achStatMax("maxSoldPlus", cur.plus);
-  if (typeof onSellAvatarXp === "function" && !isNgSellWeapon(cur.weapon)) onSellAvatarXp(cur.plus);
-  save();
-  $("#adena").textContent = fmt(state.adena);
-  if (typeof checkAchievements === "function") checkAchievements();
-  if (typeof noteLeaderboardEvent === "function") noteLeaderboardEvent("sell");
-  if (typeof logCharacterEvent === "function") {
-    logCharacterEvent("sell_weapon", {
-      weaponId: cur.weapon.id,
-      weaponName: cur.weapon.name,
-      grade: cur.weapon.grade,
-      plus: cur.plus,
-      adenaGain: sv,
-    });
-  }
-  goInventory();
+  toast("Продажа — на рынке", "warn");
 }
 
 function enchantFxOrigin() {

@@ -98,4 +98,49 @@ test("blocks starter; allows mail to any created char including self", () => {
   assert.strictEqual(state.inventory.length, 0);
 });
 
+// --- scrolls on warehouse ---
+global.GRADE_BASE_PRICE = { D: 50000, C: 280000, B: 1100000, A: 4500000 };
+global.SCROLL_TIER = { regular: 1, blessed: 2, destruction: 3, crystal: 4 };
+global.SCROLL_TYPES = [
+  { id: "regular", name: "W", nameArmor: "A", mult: 1, behavior: "break", desc: "x" },
+];
+global.scrollTierIcon = (t, g, tgt) => t + "_" + g + "_" + (tgt || "w") + ".png";
+global.tune = (_k, fb) => fb;
+global.ProgressStore.update = (key, fn) => {
+  state[key] = typeof fn === "function" ? fn(state[key]) : fn;
+  return state[key];
+};
+loadScripts(["src/data/scroll-drop-balance.js", "src/scroll-core.js"]);
+
+test("deposit and withdraw scroll stacks", () => {
+  state.accountWarehouse = { items: [], stacks: [] };
+  state.scrolls = emptyScrollsState();
+  assert.ok(addScroll("armor", "regular", "D", 10));
+  assert.ok(depositScrollToWarehouse("armor", "regular", "D", 4));
+  assert.strictEqual(scrollQty("armor", "regular", "D"), 6);
+  assert.strictEqual(state.accountWarehouse.stacks.length, 1);
+  assert.strictEqual(state.accountWarehouse.stacks[0].qty, 4);
+  assert.strictEqual(accountWarehouseCount(), 1);
+  // merge same stack
+  assert.ok(depositScrollToWarehouse("armor", "regular", "D", 2));
+  assert.strictEqual(state.accountWarehouse.stacks[0].qty, 6);
+  assert.strictEqual(accountWarehouseCount(), 1);
+  const key = accountWarehouseStackKey(state.accountWarehouse.stacks[0]);
+  assert.ok(withdrawScrollFromWarehouse(key, 3));
+  assert.strictEqual(scrollQty("armor", "regular", "D"), 7);
+  assert.strictEqual(state.accountWarehouse.stacks[0].qty, 3);
+  assert.ok(withdrawScrollFromWarehouse(key));
+  assert.strictEqual(state.accountWarehouse.stacks.length, 0);
+  assert.strictEqual(scrollQty("armor", "regular", "D"), 10);
+});
+
+test("jewelry alias deposits as armor scroll", () => {
+  state.accountWarehouse = { items: [], stacks: [] };
+  state.scrolls = emptyScrollsState();
+  assert.ok(addScroll("jewelry", "regular", "C", 5));
+  assert.strictEqual(scrollQty("armor", "regular", "C"), 5);
+  assert.ok(depositScrollToWarehouse("jewelry", "regular", "C", 5));
+  assert.strictEqual(state.accountWarehouse.stacks[0].target, "armor");
+});
+
 console.log("All account-storage tests passed.");

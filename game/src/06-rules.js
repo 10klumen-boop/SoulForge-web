@@ -2,7 +2,7 @@
 // Константы баланса (affinity, GRADE_VALUE, CRYSTAL_*, COLLECTIBLES и т.д.)
 // вынесены в data/enchant-balance.js.
 // Цикл: шахта → заточка/продажа → мастерская (кристаллы + руда → заряды).
-// Золотой гном: небольшой бонус adena + дроп оружия (основная ценность). Ачивки — доп. буст.
+// Золотой гном: бонус adena + повышенный шанс оружия. Оружие также с обычных (реже). Ачивки — доп. буст.
 function statAt(base, step, plus) { return base + step * plus; }
 
 
@@ -93,6 +93,15 @@ function scrollMaxPlus(scrollId) {
     return typeof DESTRUCTION_MAX_PLUS !== "undefined" ? DESTRUCTION_MAX_PLUS : 15;
   }
   return MAX_PLUS;
+}
+
+/** Кап заточки с учётом типа предмета (бижутерия — до +12). */
+function enchantItemCapPlus(kind, scrollId) {
+  if (kind === "accessory" || kind === "jewelry") {
+    const max = typeof JEWELRY_MAX_PLUS === "number" ? JEWELRY_MAX_PLUS : 12;
+    return max;
+  }
+  return scrollMaxPlus(scrollId);
 }
 // Свечение: +4..+15 — синее (от бледного к яркому), +16 — красное.
 function glowInfo(plus) {

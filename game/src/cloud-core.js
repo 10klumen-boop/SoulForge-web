@@ -892,17 +892,14 @@ async function syncCloudProgress(opts) {
 
   if (!remote.empty) {
     const localSeq = typeof maxStoredSeq === "function" ? maxStoredSeq() : 0;
-    // Не затирать локальный прогресс более старым облаком (типичный откат при 2 вкладках/устройствах).
-    if ((remote.seq || 0) > localSeq) {
+    const remoteSeq = remote.seq || 0;
+    const hasLocal = localSaveHasProgress();
+    // Пустая локаль (в т.ч. «высокий seq без прогресса») всегда берёт облако.
+    // Иначе игрок входит в пустой аккаунт и видит «сейва нет».
+    if (!hasLocal || remoteSeq > localSeq) {
       applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
-    } else if ((remote.seq || 0) < localSeq && localSaveHasProgress()) {
-      // Локаль новее — после lease зальём на сервер.
-    } else if ((remote.seq || 0) === localSeq) {
-      // Равный seq: берём сервер только если локаль пустая.
-      if (!localSaveHasProgress()) {
-        applyCloudSaveData(remote.data, remote.seq, remote.savedAt);
-      }
     }
+    // hasLocal && localSeq >= remoteSeq → оставляем локаль, после lease попробуем залить.
   }
 
   const lease = await acquireWriteLease({
@@ -939,7 +936,8 @@ async function syncCloudProgress(opts) {
       if (up.ok && opts.notify && typeof toast === "function") {
         toast("Прогресс сохранён в облако", "success");
       }
-      return { ok: true, uploaded: true, ...up };
+      // Не перетирать ok:true через ...up (conflict/locked тоже ок для входа).
+      return { ok: true, uploaded: !!up.ok, conflict: !!up.conflict, locked: !!up.locked };
     }
     if (opts.notify && typeof toast === "function") {
       toast("Новый облачный сейв — можно играть", "success");
@@ -951,10 +949,21 @@ async function syncCloudProgress(opts) {
   const localSeqAfter = typeof maxStoredSeq === "function" ? maxStoredSeq() : 0;
   if ((remote.seq || 0) < localSeqAfter && localSaveHasProgress()) {
     const up = await pushCloudSave({ force: true });
-    if (up.ok && opts.notify && typeof toast === "function") {
-      toast("Локальный прогресс новее — отправлен в облако", "success");
+    if (up.ok) {
+      if (opts.notify && typeof toast === "function") {
+        toast("Локальный прогресс новее — отправлен в облако", "success");
+      }
+      return { ok: true, uploaded: true, summary: remote.summary };
     }
-    return { ok: true, uploaded: true, summary: remote.summary, ...up };
+    // 409 + applied: сервер вернул актуальный сейв — вход успешен.
+    if (up.applied) {
+      return { ok: true, downloaded: true, conflict: true, summary: remote.summary };
+    }
+    // Пуш не вышел, но играть с локальным прогрессом можно — не срываем логин.
+    if (opts.notify && typeof toast === "function") {
+      toast(up.error || "Облако не обновилось — играем с локального прогресса", "warn");
+    }
+    return { ok: true, localOnly: true, pushError: up.error || null, summary: remote.summary };
   }
 
   if (opts.notify && typeof toast === "function") {
@@ -975,6 +984,7 @@ let _cloudPushAgain = false;
 const CLOUD_GATED_SCREENS = new Set([
   "home", "menu", "characters", "leaderboard",
   "inv", "ench", "shop", "mine", "acc", "ach", "avatar", "quests", "pvp-arena",
+  "party", "clan",
 ]);
 
 function cloudMainMenuAllowed(opts) {

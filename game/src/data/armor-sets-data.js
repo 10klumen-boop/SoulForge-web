@@ -1,4 +1,4 @@
-// ===== Броня и сеты (P3): все D/C HF-сеты (без Clan Oath) + крафт =====
+﻿// ===== Броня и сеты (P3): все D/C HF-сеты (без Clan Oath) + крафт =====
 // Иконки: masterwork.wiki texture-set (armor_tXX_*) → descriptive names via tools/fetch_armor_set_icons.py.
 // Wiki-паттерн: Material (piece) + crystals + ore → кусок. Def даёт sustain (HP golden/boss).
 // cc — crystal count при кристаллизации (Interlude / l2api; см. game/tools/armor_crystal_counts.json).
@@ -10,28 +10,42 @@ const FEATURE_ARMOR_UI = true;
 const ARMOR_SLOT_IDS = ["helmet", "chest", "legs", "gloves", "boots"];
 
 /**
- * Side-зоны фарма фрагментов: zoneId → список setId (в зоне падают куски нескольких сетов).
- * D ≈ гл. I–II, C ≈ гл. II–III; без квестов. Clan Oath не включаем.
+ * Side-зоны фарма фрагментов: zoneId → список setId.
+ * Сеты разведены по охотничьим локациям (не всё в wasteland/coal).
  */
 const ARMOR_FRAG_ZONES = {
-  scrap_field: ["bone", "brigandine", "manticore", "reinforced", "elven_mithril", "knowledge"],
-  mithril_forge: [
-    "mithril",
-    "chain",
-    "tempered",
-    "theca",
-    "plated",
-    "drake",
-    "composite",
-    "full_plate",
-    "karmian",
-    "divine",
-    "demon",
-  ],
+  // —— D ——
+  wasteland: ["bone", "brigandine"],
+  abandoned_camp: ["brigandine"],
+  orc_barracks_hunt: ["bone"],
+  langk_lizardman: ["manticore"],
+  bee_hive: ["manticore"],
+  dion_hills: ["reinforced"],
+  maille_lizardman: ["reinforced"],
+  fellmere_harvesting: ["reinforced"],
+  elven_ruins_hunt: ["elven_mithril"],
+  ruins_despair: ["elven_mithril"],
+  school_of_dark_arts: ["knowledge"],
+  evil_hunting_grounds: ["knowledge"],
+  ruins_agony: ["brigandine"],
+  abandoned_coal_low: ["mithril", "chain"],
+  // —— C ——
+  floran_agricultural: ["tempered", "theca"],
+  cruma_marshlands: ["tempered"],
+  gorgon_flower_garden: ["theca"],
+  ant_nest: ["plated", "drake"],
+  breka_stronghold: ["plated", "drake"],
+  execution_grounds: ["composite", "full_plate"],
+  death_pass: ["composite"],
+  cruma_tower_entrance: ["full_plate"],
+  enchanted_valley: ["karmian", "divine"],
+  sea_of_spores: ["karmian", "divine"],
+  dragon_valley_entrance: ["demon"],
+  blazing_swamp: ["demon"],
 };
 
 /** @deprecated используй ARMOR_FRAG_ZONES */
-const ARMOR_FRAG_ZONE_ID = "mithril_forge";
+const ARMOR_FRAG_ZONE_ID = "abandoned_coal_low";
 
 const ARMOR = [
   // —— Bone (D, heavy) ——
@@ -76,19 +90,19 @@ const ARMOR = [
   { id: "knowledge_gloves", name: "Gloves of Knowledge", slot: "gloves", grade: "D", setId: "knowledge", pdef: 2, mdef: 4, cc: 92, icon: "icons/armor_gloves_of_knowledge_i00.png", glow: "#9b8fd4" },
   { id: "knowledge_boots", name: "Boots of Knowledge", slot: "boots", grade: "D", setId: "knowledge", pdef: 2, mdef: 4, cc: 92, icon: "icons/armor_boots_of_knowledge_i00.png", glow: "#9b8fd4" },
 
-  // —— Mithril (C, heavy) — в SoulForge C-пул (фарм кузницы) ——
-  { id: "mithril_helmet", name: "Mithril Helmet", slot: "helmet", grade: "C", setId: "mithril", pdef: 8, mdef: 4, cc: 214, icon: "icons/armor_helmet_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_breastplate", name: "Mithril Breastplate", slot: "chest", grade: "C", setId: "mithril", pdef: 18, mdef: 8, cc: 332, icon: "icons/armor_mithril_breastplate_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_gaiters", name: "Mithril Gaiters", slot: "legs", grade: "C", setId: "mithril", pdef: 12, mdef: 6, cc: 230, icon: "icons/armor_mithril_gaiters_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_gloves", name: "Mithril Gloves", slot: "gloves", grade: "C", setId: "mithril", pdef: 6, mdef: 3, cc: 98, icon: "icons/armor_mithril_gloves_i00.png", glow: "#7fd1ff" },
-  { id: "mithril_boots", name: "Mithril Boots", slot: "boots", grade: "C", setId: "mithril", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_mithril_boots_i00.png", glow: "#7fd1ff" },
+  // —— Mithril (D, heavy) — канон L2 D; фарм Угольных шахт ≤20 ——
+  { id: "mithril_helmet", name: "Mithril Helmet", slot: "helmet", grade: "D", setId: "mithril", pdef: 8, mdef: 4, cc: 214, icon: "icons/armor_helmet_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_breastplate", name: "Mithril Breastplate", slot: "chest", grade: "D", setId: "mithril", pdef: 18, mdef: 8, cc: 332, icon: "icons/armor_mithril_breastplate_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_gaiters", name: "Mithril Gaiters", slot: "legs", grade: "D", setId: "mithril", pdef: 12, mdef: 6, cc: 230, icon: "icons/armor_mithril_gaiters_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_gloves", name: "Mithril Gloves", slot: "gloves", grade: "D", setId: "mithril", pdef: 6, mdef: 3, cc: 98, icon: "icons/armor_mithril_gloves_i00.png", glow: "#7fd1ff" },
+  { id: "mithril_boots", name: "Mithril Boots", slot: "boots", grade: "D", setId: "mithril", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_mithril_boots_i00.png", glow: "#7fd1ff" },
 
-  // —— Chain (C, heavy) ——
-  { id: "chain_helmet", name: "Chain Helmet", slot: "helmet", grade: "C", setId: "chain", pdef: 8, mdef: 4, cc: 59, icon: "icons/armor_helmet_i02.png", glow: "#a8b8c8" },
-  { id: "chain_mail", name: "Chain Mail Shirt", slot: "chest", grade: "C", setId: "chain", pdef: 17, mdef: 7, cc: 202, icon: "icons/armor_chain_mail_shirt_i00.png", glow: "#a8b8c8" },
-  { id: "chain_gaiters", name: "Chain Gaiters", slot: "legs", grade: "C", setId: "chain", pdef: 12, mdef: 5, cc: 126, icon: "icons/armor_chain_gaiters_i00.png", glow: "#a8b8c8" },
-  { id: "chain_gloves", name: "Chain Gloves", slot: "gloves", grade: "C", setId: "chain", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_chain_gloves_i00.png", glow: "#a8b8c8" },
-  { id: "chain_boots", name: "Chain Boots", slot: "boots", grade: "C", setId: "chain", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_chain_boots_i00.png", glow: "#a8b8c8" },
+  // —— Chain (D, heavy) ——
+  { id: "chain_helmet", name: "Chain Helmet", slot: "helmet", grade: "D", setId: "chain", pdef: 8, mdef: 4, cc: 59, icon: "icons/armor_helmet_i02.png", glow: "#a8b8c8" },
+  { id: "chain_mail", name: "Chain Mail Shirt", slot: "chest", grade: "D", setId: "chain", pdef: 17, mdef: 7, cc: 202, icon: "icons/armor_chain_mail_shirt_i00.png", glow: "#a8b8c8" },
+  { id: "chain_gaiters", name: "Chain Gaiters", slot: "legs", grade: "D", setId: "chain", pdef: 12, mdef: 5, cc: 126, icon: "icons/armor_chain_gaiters_i00.png", glow: "#a8b8c8" },
+  { id: "chain_gloves", name: "Chain Gloves", slot: "gloves", grade: "D", setId: "chain", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_chain_gloves_i00.png", glow: "#a8b8c8" },
+  { id: "chain_boots", name: "Chain Boots", slot: "boots", grade: "D", setId: "chain", pdef: 6, mdef: 3, cc: 50, icon: "icons/armor_chain_boots_i00.png", glow: "#a8b8c8" },
 
   // —— Tempered Mithril (C, light) — wiki t45 ——
   { id: "tempered_helmet", name: "Tempered Mithril Helmet", slot: "helmet", grade: "C", setId: "tempered", pdef: 6, mdef: 5, cc: 82, icon: "icons/armor_leather_helmet_i02.png", glow: "#6ec8c0" },
@@ -317,7 +331,7 @@ const ARMOR_SETS = {
     grade: "D",
     kind: "heavy",
     pieces: ["bone_helmet", "bone_breastplate", "bone_gaiters", "bone_gloves", "bone_boots"],
-    farmZoneId: "scrap_field",
+    farmZoneId: "wasteland",
     bonuses: { 2: { armorSustain: 0.03 }, 4: { armorSustain: 0.02 }, 5: { bossResist: 0.06, pvpDef: 0.03 } },
   },
   brigandine: {
@@ -326,7 +340,7 @@ const ARMOR_SETS = {
     grade: "D",
     kind: "heavy",
     pieces: ["brigandine_helmet", "brigandine_breastplate", "brigandine_gaiters", "brigandine_gloves", "brigandine_boots"],
-    farmZoneId: "scrap_field",
+    farmZoneId: "abandoned_camp",
     bonuses: { 2: { mineAdena: 0.04 }, 4: { mineAdena: 0.04 }, 5: { armorSustain: 0.03, pvpHp: 18 } },
   },
   manticore: {
@@ -335,7 +349,7 @@ const ARMOR_SETS = {
     grade: "D",
     kind: "light",
     pieces: ["manticore_helmet", "manticore_mail", "manticore_gaiters", "manticore_gloves", "manticore_boots"],
-    farmZoneId: "scrap_field",
+    farmZoneId: "langk_lizardman",
     bonuses: { 2: { mineXp: 0.05 }, 4: { mineXp: 0.05 }, 5: { mineAdena: 0.04, pvpAtk: 0.03 } },
   },
   reinforced: {
@@ -344,7 +358,7 @@ const ARMOR_SETS = {
     grade: "D",
     kind: "light",
     pieces: ["reinforced_helmet", "reinforced_shirt", "reinforced_gaiters", "reinforced_gloves", "reinforced_boots"],
-    farmZoneId: "scrap_field",
+    farmZoneId: "dion_hills",
     bonuses: { 2: { mineXp: 0.04 }, 4: { armorSustain: 0.03 }, 5: { mineAdena: 0.03, pvpAtk: 0.025 } },
   },
   elven_mithril: {
@@ -353,7 +367,7 @@ const ARMOR_SETS = {
     grade: "D",
     kind: "robe",
     pieces: ["elven_mithril_circlet", "elven_mithril_tunic", "elven_mithril_hose", "elven_mithril_gloves", "elven_mithril_boots"],
-    farmZoneId: "scrap_field",
+    farmZoneId: "elven_ruins_hunt",
     bonuses: { 2: { enchant: 0.0007 }, 4: { mineXp: 0.05 }, 5: { enchant: 0.0005, pvpAtk: 0.03 } },
   },
   knowledge: {
@@ -362,17 +376,17 @@ const ARMOR_SETS = {
     grade: "D",
     kind: "robe",
     pieces: ["knowledge_circlet", "knowledge_tunic", "knowledge_hose", "knowledge_gloves", "knowledge_boots"],
-    farmZoneId: "scrap_field",
+    farmZoneId: "school_of_dark_arts",
     // меньше стека enchant → часть силы в арену
     bonuses: { 2: { enchant: 0.001 }, 4: { pvpAtk: 0.03 }, 5: { mineXp: 0.06 } },
   },
   mithril: {
     id: "mithril",
     name: "Mithril Set",
-    grade: "C",
+    grade: "D",
     kind: "heavy",
     pieces: ["mithril_helmet", "mithril_breastplate", "mithril_gaiters", "mithril_gloves", "mithril_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "abandoned_coal_low",
     // 5pc: убран enchant-комбайн; идентичность — арена-танк + boss/xp
     bonuses: {
       2: { armorSustain: 0.04 },
@@ -383,10 +397,10 @@ const ARMOR_SETS = {
   chain: {
     id: "chain",
     name: "Chain Set",
-    grade: "C",
+    grade: "D",
     kind: "heavy",
     pieces: ["chain_helmet", "chain_mail", "chain_gaiters", "chain_gloves", "chain_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "abandoned_coal_low",
     bonuses: { 2: { armorSustain: 0.04 }, 4: { bossResist: 0.08 }, 5: { armorSustain: 0.03, mineAdena: 0.04, pvpDef: 0.04 } },
   },
   tempered: {
@@ -395,7 +409,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "light",
     pieces: ["tempered_helmet", "tempered_shirt", "tempered_gaiters", "tempered_gloves", "tempered_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "floran_agricultural",
     bonuses: { 2: { mineXp: 0.05 }, 4: { mineAdena: 0.05 }, 5: { armorSustain: 0.04, pvpAtk: 0.04 } },
   },
   theca: {
@@ -404,7 +418,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "light",
     pieces: ["theca_helmet", "theca_mail", "theca_gaiters", "theca_gloves", "theca_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "gorgon_flower_garden",
     bonuses: { 2: { armorSustain: 0.035 }, 4: { armorSustain: 0.025 }, 5: { mineAdena: 0.05, pvpAtk: 0.035 } },
   },
   plated: {
@@ -413,7 +427,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "light",
     pieces: ["plated_helmet", "plated_mail", "plated_gaiters", "plated_gloves", "plated_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "ant_nest",
     bonuses: { 2: { mineAdena: 0.05 }, 4: { mineXp: 0.05 }, 5: { bossResist: 0.07, pvpAtk: 0.04 } },
   },
   drake: {
@@ -422,7 +436,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "light",
     pieces: ["drake_helmet", "drake_mail", "drake_gaiters", "drake_gloves", "drake_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "breka_stronghold",
     bonuses: { 2: { bossResist: 0.05 }, 4: { armorSustain: 0.04 }, 5: { bossResist: 0.05, mineXp: 0.05, pvpAtk: 0.035 } },
   },
   composite: {
@@ -431,7 +445,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "heavy",
     pieces: ["composite_helmet", "composite_armor", "composite_gaiters", "composite_gloves", "composite_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "execution_grounds",
     bonuses: {
       2: { armorSustain: 0.045 },
       4: { mineAdena: 0.05 },
@@ -444,7 +458,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "heavy",
     pieces: ["full_plate_helmet", "full_plate_armor", "full_plate_gaiters", "full_plate_gloves", "full_plate_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "cruma_tower_entrance",
     bonuses: { 2: { armorSustain: 0.05 }, 4: { armorSustain: 0.03 }, 5: { bossResist: 0.12, pvpDef: 0.06, pvpHp: 36 } },
   },
   karmian: {
@@ -453,7 +467,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "robe",
     pieces: ["karmian_circlet", "karmian_tunic", "karmian_hose", "karmian_gloves", "karmian_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "enchanted_valley",
     bonuses: { 2: { enchant: 0.001 }, 4: { mineXp: 0.06 }, 5: { bossResist: 0.06, pvpAtk: 0.05 } },
   },
   divine: {
@@ -462,7 +476,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "robe",
     pieces: ["divine_circlet", "divine_tunic", "divine_hose", "divine_gloves", "divine_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "sea_of_spores",
     bonuses: {
       2: { armorSustain: 0.03 },
       4: { enchant: 0.001 },
@@ -475,7 +489,7 @@ const ARMOR_SETS = {
     grade: "C",
     kind: "robe",
     pieces: ["demon_circlet", "demon_tunic", "demon_hose", "demon_gloves", "demon_boots"],
-    farmZoneId: "mithril_forge",
+    farmZoneId: "blazing_swamp",
     bonuses: { 2: { enchant: 0.001 }, 4: { mineXp: 0.05 }, 5: { bossResist: 0.05, pvpAtk: 0.055 } },
   },
 };

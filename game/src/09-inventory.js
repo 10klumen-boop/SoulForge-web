@@ -11,12 +11,13 @@ const INV_TABS = [
   { id: "armor", label: "Броня" },
   { id: "accessory", label: "Бижутерия" },
   { id: "frag", label: "Куски" },
+  { id: "scroll", label: "Свитки" },
   { id: "shot", label: "Соски" },
   { id: "crystal", label: "Кристаллы" },
   { id: "ore", label: "Руда" },
 ];
 
-const INV_RESOURCE_TABS = { frag: 1, shot: 1, crystal: 1, ore: 1 };
+const INV_RESOURCE_TABS = { frag: 1, scroll: 1, shot: 1, crystal: 1, ore: 1 };
 
 function isInvResourceTab(tabId) {
   return !!INV_RESOURCE_TABS[tabId];
@@ -47,7 +48,11 @@ function inventoryItemGradeKey(it) {
     const def = invItemDef(it);
     return def?.grade || "C";
   }
-  if (isAccessoryItem(it)) return "epic";
+  if (isAccessoryItem(it)) {
+    const def = typeof accessoryDef === "function" ? accessoryDef(it) : (typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[it.id] : null);
+    if (def?.epic) return "epic";
+    return def?.grade || "epic";
+  }
   const def = invItemDef(it);
   if (!def) return null;
   if (def.grade === "NG" || (typeof isNoGradeWeapon === "function" && isNoGradeWeapon(def))) return "NG";
@@ -57,6 +62,8 @@ function inventoryItemGradeKey(it) {
 function inventoryItemMatchesTab(it, tabId) {
   if (tabId === "all") return true;
   if (isInvResourceTab(tabId)) return false;
+  // Осколки бижу — во вкладке «Куски» (resource), не в «Бижутерия».
+  if (typeof isShardItem === "function" && isShardItem(it)) return false;
   return inventoryItemKind(it) === tabId;
 }
 
@@ -73,13 +80,42 @@ function listArmorFragStacks() {
     Object.keys(ARMOR_FRAGS).forEach((id) => {
       const def = ARMOR_FRAGS[id];
       const qty = (state.materials && state.materials[id]) || 0;
-      if (qty > 0) out.push({ id, def, qty });
+      if (qty > 0) out.push({ id, def, qty, kind: "armor" });
     });
   }
-  // Осколки бижутерии теперь в сумке (kind: shard), не в materials.
   return out.sort((a, b) =>
     String(a.def?.name || a.id).localeCompare(String(b.def?.name || b.id), "ru", { sensitivity: "base" })
   );
+}
+
+/** Куски бижутерии в сумке (kind: shard). */
+function listJewelryFragStacks() {
+  const byId = {};
+  (state.inventory || []).forEach((it) => {
+    if (typeof isShardItem !== "function" || !isShardItem(it)) return;
+    const def = typeof shardItemDef === "function" ? shardItemDef(it) : null;
+    if (!def) return;
+    const qty = Math.max(0, Math.floor(Number(it.qty) || 0));
+    if (qty <= 0) return;
+    if (!byId[it.id]) {
+      byId[it.id] = { id: it.id, def, qty: 0, kind: "jewelry" };
+    }
+    byId[it.id].qty += qty;
+  });
+  return Object.keys(byId)
+    .map((k) => byId[k])
+    .sort((a, b) =>
+      String(a.def?.name || a.id).localeCompare(String(b.def?.name || b.id), "ru", { sensitivity: "base" })
+    );
+}
+
+/** Броня (materials) + бижутерия (inventory shards). */
+function listFragStacks() {
+  return listArmorFragStacks()
+    .concat(listJewelryFragStacks())
+    .sort((a, b) =>
+      String(a.def?.name || a.id).localeCompare(String(b.def?.name || b.id), "ru", { sensitivity: "base" })
+    );
 }
 
 function listShotStacks() {
@@ -132,7 +168,12 @@ function listOreStacks() {
 }
 
 function countInvResourceTabItems(tabId) {
-  if (tabId === "frag") return listArmorFragStacks().length;
+  if (tabId === "frag") {
+    return typeof listFragStacks === "function" ? listFragStacks().length : listArmorFragStacks().length;
+  }
+  if (tabId === "scroll") {
+    return typeof listScrollStacks === "function" ? listScrollStacks().length : 0;
+  }
   if (tabId === "shot") return listShotStacks().length;
   if (tabId === "crystal") return listCrystalStacks().length;
   if (tabId === "ore") return listOreStacks().length;
@@ -501,7 +542,7 @@ function addCollectibleToInventory(collectibleId) {
   const def = COLLECTIBLES[collectibleId];
   if (!def) return null;
   if (!state.inventory) state.inventory = [];
-  const it = { uid: uid(), id: collectibleId, kind: "accessory" };
+  const it = { uid: uid(), id: collectibleId, kind: "accessory", plus: 0, spent: 0 };
   if (isInventoryFull()) {
     if (typeof enqueueOverflowLoot === "function" && enqueueOverflowLoot(it, { source: "accessory" })) {
       return it;
@@ -565,6 +606,8 @@ function normalizeInvItem(it) {
   }
   if (typeof isArmorItem === "function" && isArmorItem(it)) {
     it.kind = "armor";
+    if (it.plus == null) it.plus = 0;
+    if (it.spent == null) it.spent = 0;
     return it;
   }
   if (isAccessoryItem(it)) return it;

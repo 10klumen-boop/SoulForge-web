@@ -52,6 +52,9 @@ $("#invTile").onclick = openInventory;
 if (typeof wireAccountStorage === "function") wireAccountStorage();
 if (typeof wirePlayerMail === "function") wirePlayerMail();
 if (typeof wirePartyUi === "function") wirePartyUi();
+if (typeof bindClanMenuTile === "function") bindClanMenuTile();
+if (typeof bindAdenMapBack === "function") bindAdenMapBack();
+if (typeof syncClanTileMeta === "function") syncClanTileMeta();
 $("#shopTile").onclick = () => openWorkshop();
 if (typeof bindMarketUi === "function") bindMarketUi();
 if (typeof bindPvpArenaUi === "function") bindPvpArenaUi();
@@ -65,7 +68,6 @@ $("#accFunpayBtn").onclick = () => { Audio2.click(); funpayAccessory(); };
 
 $("#enchBtn").onclick = doEnchant;
 $("#newBtn").onclick = newWeapon;
-$("#sellBtn").onclick = sellWeapon;
 document.querySelectorAll(".back").forEach((b) => { if (b.dataset.to) b.onclick = () => { Audio2.click(); show(b.dataset.to); }; });
 $("#settMute").onclick = () => { Audio2.click(); toggleMute(); };
 $("#resetBtn").onclick = async () => {
@@ -86,8 +88,6 @@ $("#resetBtn").onclick = async () => {
 };
 document.addEventListener("keydown", (e) => {
   const modalOpen = document.getElementById("modalBackdrop") && !document.getElementById("modalBackdrop").hidden;
-  const achModalOpen = document.getElementById("achModalBackdrop") && !document.getElementById("achModalBackdrop").hidden;
-  const achRewardOpen = document.getElementById("achRewardBackdrop") && !document.getElementById("achRewardBackdrop").hidden;
   const storyOpen = document.getElementById("storyBackdrop") && !document.getElementById("storyBackdrop").hidden;
   const avatarSetupOpen = document.getElementById("avatarSetupBackdrop") && !document.getElementById("avatarSetupBackdrop").hidden;
   const avatarEquipOpen = document.getElementById("avatarEquipBackdrop") && !document.getElementById("avatarEquipBackdrop").hidden;
@@ -97,11 +97,10 @@ document.addEventListener("keydown", (e) => {
     if (typeof avatarSetupBack === "function") avatarSetupBack();
     return;
   }
-  if (modalOpen || achModalOpen || achRewardOpen || storyOpen || avatarSetupOpen || avatarEquipOpen) return;
+  if (modalOpen || storyOpen || avatarSetupOpen || avatarEquipOpen) return;
   if ($("#screen-ench").classList.contains("active")) {
     if (e.code === "Space") { e.preventDefault(); doEnchant(); }
     else if (e.key.toLowerCase() === "n") newWeapon();
-    else if (e.key.toLowerCase() === "s") sellWeapon();
     else if (e.key === "Escape") { Audio2.click(); goInventory(); }
   } else if ($("#screen-acc").classList.contains("active")) {
     if (e.key === "Escape") { Audio2.click(); curAcc = null; goInventory(); }
@@ -117,7 +116,17 @@ document.addEventListener("keydown", (e) => {
     show(to);
   }
   else if (e.key === "Escape" && ($("#screen-characters").classList.contains("active") || $("#screen-leaderboard")?.classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
-  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active"))) { show("menu"); }
+  else if (e.key === "Escape" && $("#screen-aden-map")?.classList.contains("active")) {
+    Audio2.click();
+    if (typeof closeAdenMapScreen === "function") closeAdenMapScreen();
+    else show("clan");
+  }
+  else if (e.key === "Escape" && ($("#screen-clan-grounds")?.classList.contains("active") || $("#screen-clan-warehouse")?.classList.contains("active") || $("#screen-clan-buffs")?.classList.contains("active"))) {
+    Audio2.click();
+    if (typeof openClanScreen === "function") openClanScreen();
+    else show("clan");
+  }
+  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
 

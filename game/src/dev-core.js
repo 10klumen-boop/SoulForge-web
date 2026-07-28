@@ -36,3 +36,60 @@ function devGrantAdena(amount) {
   toast("Dev: +" + fmtAdena(add) + " adena", "gold");
 }
 
+function devGrantScrollPack(kind) {
+  if (!FEATURE_DEV_PANEL) return;
+  if (typeof addScroll !== "function") {
+    toast("scroll-core не загружен", "warn");
+    return;
+  }
+  const packs = {
+    d: [
+      ["weapon", "regular", "D", 30],
+      ["weapon", "blessed", "D", 8],
+      ["armor", "regular", "D", 30],
+      ["armor", "blessed", "D", 8],
+    ],
+    c: [
+      ["weapon", "regular", "C", 20],
+      ["weapon", "blessed", "C", 6],
+      ["weapon", "destruction", "C", 3],
+      ["armor", "regular", "C", 20],
+      ["armor", "blessed", "C", 6],
+      ["armor", "destruction", "C", 3],
+    ],
+    crystal: [
+      ["weapon", "crystal", "D", 2],
+      ["armor", "crystal", "D", 2],
+      ["weapon", "crystal", "C", 1],
+      ["armor", "crystal", "C", 1],
+    ],
+  };
+  const rows = packs[kind] || packs.d;
+  rows.forEach((r) => addScroll(r[0], r[1], r[2], r[3]));
+  save();
+  if (typeof renderInventory === "function") renderInventory();
+  Audio2.coin();
+  toast("Dev: свитки выданы (" + kind + ")", "loot");
+}
+
+function devGrantScroll(target, typeId, grade, qty) {
+  if (!FEATURE_DEV_PANEL) return;
+  if (typeof addScroll !== "function") {
+    toast("scroll-core не загружен", "warn");
+    return;
+  }
+  const n = Math.max(1, Math.min(999, Math.floor(Number(qty) || 1)));
+  if (!addScroll(target, typeId, grade, n)) {
+    toast("Не удалось выдать свиток", "warn");
+    return;
+  }
+  save();
+  if (typeof renderInventory === "function") renderInventory();
+  Audio2.coin();
+  const label =
+    typeof scrollLabel === "function"
+      ? scrollLabel(target, typeId, grade)
+      : typeId + " " + grade;
+  toast("Dev: +" + n + " × " + label, "loot");
+}
+

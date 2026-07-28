@@ -1479,7 +1479,13 @@
   .app:has(#screen-ench.active),
   .app:has(#screen-acc.active),
   .app:has(#screen-market.active),
-  .app:has(#screen-pvp-arena.active) { overflow: hidden; }
+  .app:has(#screen-pvp-arena.active),
+  .app:has(#screen-party.active),
+  .app:has(#screen-clan.active),
+  .app:has(#screen-clan-grounds.active),
+  .app:has(#screen-clan-warehouse.active),
+  .app:has(#screen-clan-buffs.active),
+  .app:has(#screen-clan-raid.active) { overflow: hidden; }
   .screen { display: none; }
   .screen.active { display: block; animation: screenIn .34s ease; }
   .screen.is-leaving {
@@ -1523,7 +1529,19 @@
   #screen-market.active,
   #screen-market.is-leaving,
   #screen-pvp-arena.active,
-  #screen-pvp-arena.is-leaving {
+  #screen-pvp-arena.is-leaving,
+  #screen-party.active,
+  #screen-party.is-leaving,
+  #screen-clan.active,
+  #screen-clan.is-leaving,
+  #screen-clan-grounds.active,
+  #screen-clan-grounds.is-leaving,
+  #screen-clan-warehouse.active,
+  #screen-clan-warehouse.is-leaving,
+  #screen-clan-buffs.active,
+  #screen-clan-buffs.is-leaving,
+  #screen-clan-raid.active,
+  #screen-clan-raid.is-leaving {
     flex: 1;
     min-height: 0;
     display: flex;
@@ -1542,7 +1560,44 @@
   #screen-acc .panel-head,
   #screen-market .panel-head,
   #screen-market .market-tabs,
-  #screen-pvp-arena .panel-head { flex-shrink: 0; }
+  #screen-pvp-arena .panel-head,
+  #screen-party .panel-head,
+  #screen-clan .panel-head,
+  #screen-clan .sf-screen-hero,
+  #screen-clan-grounds .panel-head,
+  #screen-clan-grounds .sf-screen-hero,
+  #screen-clan-warehouse .panel-head,
+  #screen-clan-warehouse .sf-screen-hero,
+  #screen-clan-buffs .panel-head,
+  #screen-clan-buffs .sf-screen-hero,
+  #screen-clan-raid .panel-head,
+  #screen-clan-raid .sf-screen-hero { flex-shrink: 0; }
+  #screen-clan .sf-screen-hero,
+  #screen-clan-grounds .sf-screen-hero,
+  #screen-clan-warehouse .sf-screen-hero,
+  #screen-clan-raid .sf-screen-hero {
+    margin: 0 6px 10px;
+    min-height: 110px;
+  }
+  #screen-clan-buffs .sf-screen-hero {
+    margin: 0 6px 6px;
+    min-height: 64px;
+  }
+  #screen-clan-buffs .sf-screen-hero-body h3 {
+    font-size: 16px;
+    margin: 0 0 2px;
+  }
+  #screen-clan-buffs .sf-screen-hero-body p {
+    font-size: 12px;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  #screen-clan-buffs .clan-sub-panel {
+    padding: 10px 12px;
+  }
   #screen-ach .ach-scroll,
   #screen-avatar .avatar-screen,
   #screen-quests .quest-journal-list,
@@ -1553,11 +1608,27 @@
   #screen-ench .ench,
   #screen-acc .acc-panel,
   #screen-market .market-body,
-  #screen-pvp-arena .pvp-arena-body {
+  #screen-pvp-arena .pvp-arena-body,
+  #screen-party .party-screen-body,
+  #screen-clan .clan-screen-body,
+  #screen-clan-grounds .clan-sub-screen-body,
+  #screen-clan-warehouse .clan-sub-screen-body,
+  #screen-clan-buffs .clan-sub-screen-body,
+  #screen-clan-raid .clan-sub-screen-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+  }
+  /* Баффы: компактная вёрстка без скролла */
+  #screen-clan-buffs .clan-sub-screen-body {
+    overflow: hidden;
+  }
+  /* Угодья: скролл только внутри списка, не всей страницы */
+  #screen-clan-grounds .clan-sub-screen-body {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   #screen-pvp-arena .pvp-arena-body.is-fight,
   #screen-pvp-arena .pvp-arena-body.is-result {
@@ -1939,6 +2010,10 @@
     image-rendering: auto;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
     display: block;
+  }
+  #clanTile .tile-ico {
+    filter: sepia(0.45) hue-rotate(-28deg) saturate(1.25) brightness(1.05)
+      drop-shadow(0 2px 4px rgba(0,0,0,.5));
   }
   #avatarTile:hover .tile-ico,
   #questTile:hover .tile-ico,
@@ -2561,6 +2636,14 @@
     user-select: none;
   }
   .inv-slot img { inset:4px; width:calc(100% - 8px); height:calc(100% - 8px); object-fit:contain; image-rendering:auto; }
+  /* Свитки — квадратные edge-to-edge, как оружие/броня */
+  .inv-slot.inv-scroll img {
+    inset: 2px;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    object-fit: contain;
+    transform: none;
+  }
   .inv-slot .ip { right:2px; bottom:0; left:auto; top:auto; width:auto; height:auto; font-size:12px; font-weight:800; color:#ffe9a8; text-shadow:0 1px 2px #000,0 0 4px #000; }
   .inv-slot.dragging { opacity:.35; }
   .inv-slot.dragover { outline:2px dashed var(--gold); outline-offset:1px; border-color: var(--gold); }
@@ -2744,8 +2827,62 @@
   .scroll-opt { display:flex; align-items:center; gap: 12px; cursor:var(--cursor-l2); background: var(--panel2); border:1px solid var(--edge); border-radius: 12px; padding: 11px 12px; transition:.15s; }
   .scroll-opt:hover { border-color: var(--gold); }
   .scroll-opt.sel { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; background: rgba(217,178,74,.08); }
-  .scroll-opt .si { width: 48px; height: 48px; flex-shrink: 0; display:flex; align-items:center; justify-content:center; }
-  .scroll-opt .si img { width: 44px; height: 44px; object-fit: contain; image-rendering: auto; }
+  .scroll-opt.is-empty { opacity: 0.55; }
+  .scroll-target-badge {
+    display: inline-block;
+    font-size: 0.72em;
+    padding: 1px 6px;
+    margin-right: 4px;
+    border-radius: 4px;
+    border: 1px solid var(--edge);
+    color: var(--gold-soft);
+    vertical-align: middle;
+  }
+  .scroll-opt .sc { display:flex; flex-direction:column; align-items:flex-end; gap:2px; min-width:72px; font-weight:700; }
+  .scroll-opt .sc small { font-weight:500; opacity:.7; font-size:.72em; }
+  .scroll-opt .scroll-adena { color: var(--gold-soft); font-size:.92em; }
+  .dev-scrolls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-end;
+    margin: 10px 0 12px;
+  }
+  .dev-scrolls-row label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.82em;
+    color: var(--muted, #aaa);
+  }
+  .dev-scrolls-row select,
+  .dev-scrolls-row input {
+    min-width: 88px;
+    background: var(--panel2);
+    border: 1px solid var(--edge);
+    color: inherit;
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+  .dev-scrolls-form .dev-wrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .dev-scrolls-form .dev-wrow img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+  .scroll-opt .si img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    image-rendering: auto;
+    transform: none;
+  }
   .scroll-tier-1 .si img { filter: saturate(0.88) brightness(0.94); }
   .scroll-tier-2 .si img { filter: saturate(1.12) brightness(1.06) drop-shadow(0 0 5px rgba(255, 196, 80, .55)); }
   .scroll-tier-3 .si img { filter: saturate(1.2) brightness(1.04) drop-shadow(0 0 7px rgba(235, 50, 80, .6)); }
@@ -2756,8 +2893,6 @@
   .scroll-opt .sm { flex:1; }
   .scroll-opt .st { font-weight:700; font-size: 14px; }
   .scroll-opt .sd { font-size: 11px; color: var(--txt-dim); }
-  .scroll-opt .sc { font-size: 12px; color: var(--gold); font-weight:700; text-align:right; }
-  .scroll-opt .sc small { display:block; color: var(--txt-dim); font-weight:400; }
   .odds { text-align:center; font-size: 13px; color: var(--txt-dim); }
   .odds b { color: var(--gold-soft); }
   .actions { display:flex; gap: 10px; }
@@ -2769,6 +2904,17 @@
   .btn-ghost:hover { border-color: var(--gold); color: var(--gold-soft); }
   .btn-sell { width:100%; background: linear-gradient(180deg,#2a6b3e,#1d4f2d); color:#dffbe6; border:1px solid #3a8a52; }
   .btn-sell:hover:not(:disabled){ filter:brightness(1.1); border-color:#58d977; }
+  .ench-market-note {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--txt-dim);
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(201, 168, 106, 0.28);
+    background: rgba(18, 12, 8, 0.45);
+  }
   .hint { text-align:center; font-size: 11px; color: var(--txt-dim); }
   .particle { position:absolute; z-index:3; pointer-events:none; border-radius:50%; }
   .particle.spark { box-shadow: 0 0 6px currentColor; }
@@ -2964,137 +3110,150 @@
   }
   .modal-funpay-risk { color:var(--red); font-weight:700; }
 
-  .ach-modal-backdrop {
-    position: fixed; inset: 0; z-index: 130;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 24px 24px 96px;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    background: rgba(0,0,0,.82); animation: modalIn .2s ease;
+  .ach-toast-host {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    width: min(420px, 52vw);
+    pointer-events: none;
+    z-index: 70;
   }
-  .ach-modal-backdrop::-webkit-scrollbar { display: none; width: 0; height: 0; }
-  .ach-modal-backdrop[hidden] { display: none; }
-  body.game-paused .app,
-  body.game-paused .game-log,
-  body.game-paused .game-chat,
-  body.game-paused .shell > aside.dev-panel { pointer-events: none; user-select: none; }
-  .ach-modal-box {
-    position: relative; width: min(420px, 100%); text-align: center;
-    flex-shrink: 0;
-    padding: 28px 26px 22px; overflow: hidden;
-    background: linear-gradient(180deg, #3a2e1c 0%, #1a1208 55%, #100a04 100%);
-    border: 2px solid #c9a86a; border-radius: 16px;
-    box-shadow: 0 0 48px rgba(201,168,106,.35), 0 24px 64px rgba(0,0,0,.75), inset 0 0 0 1px rgba(255,230,180,.08);
-    animation: achModalIn .35s cubic-bezier(.2,1.15,.35,1);
+  .ach-toast-host:empty { display: none; }
+  .ach-toast {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 280px;
+    padding: 5px 12px 5px 6px;
+    overflow: hidden;
+    pointer-events: auto;
+    cursor: pointer;
+    background: linear-gradient(135deg, #3d3020 0%, #1a1208 48%, #120c06 100%);
+    border: 1px solid #c9a86a;
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgba(255, 230, 180, .08) inset,
+      0 0 18px rgba(201, 168, 106, .3),
+      0 8px 20px rgba(0, 0, 0, .5);
+    opacity: 0;
+    transform: translateX(14px) scale(.96);
+    transition: opacity .24s ease, transform .3s cubic-bezier(.2, 1.15, .35, 1);
   }
-  @keyframes achModalIn {
-    from { opacity: 0; transform: translateY(18px) scale(.94); }
-    to { opacity: 1; transform: none; }
+  .ach-toast.ach-toast--in {
+    opacity: 1;
+    transform: none;
   }
-  .ach-modal-rays {
+  .ach-toast.ach-toast--out {
+    opacity: 0;
+    transform: translateX(12px) scale(.97);
+    transition: opacity .24s ease, transform .24s ease;
+  }
+  .ach-toast-rays {
     position: absolute; inset: 0; pointer-events: none; z-index: 0;
     border-radius: inherit;
-    background: radial-gradient(ellipse 90% 65% at 50% 18%, rgba(255,196,80,.16), transparent 68%);
-    animation: achGlowPulse 2.8s ease-in-out infinite alternate;
+    background:
+      radial-gradient(ellipse 80% 70% at 12% 40%, rgba(255, 196, 80, .22), transparent 62%),
+      radial-gradient(ellipse 70% 60% at 88% 20%, rgba(255, 160, 40, .12), transparent 55%);
+    animation: achGlowPulse 2.4s ease-in-out infinite alternate;
+  }
+  .ach-toast-shine {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 236, 180, .28) 48%, transparent 62%);
+    transform: translateX(-120%);
+    animation: achToastShine 1.1s ease-out .12s both;
+  }
+  @keyframes achToastShine {
+    to { transform: translateX(120%); }
   }
   @keyframes achGlowPulse {
     from { opacity: .55; }
     to { opacity: 1; }
   }
-  .ach-modal-badge { font-size: 36px; line-height: 1; margin-bottom: 8px; position: relative; }
-  .ach-modal-ico {
-    width: 72px; height: 72px; object-fit: contain; margin: 0 auto 14px; display: block; position: relative;
-    background: linear-gradient(160deg,#0f0a06,#1d140b); border: 2px solid #5a4528; border-radius: 10px; padding: 6px;
-    box-shadow: 0 8px 20px rgba(0,0,0,.55), 0 0 20px rgba(201,168,106,.25);
+  .ach-toast-ico {
+    position: relative; z-index: 2;
+    width: 30px; height: 30px; flex-shrink: 0;
+    object-fit: contain;
+    background: linear-gradient(160deg, #0f0a06, #1d140b);
+    border: 1px solid #5a4528;
+    border-radius: 6px;
+    padding: 2px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.45), 0 0 10px rgba(201,168,106,.25);
   }
-  .ach-modal-kicker {
-    font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--gold); margin-bottom: 6px; position: relative;
+  .ach-toast-body {
+    position: relative; z-index: 2;
+    min-width: 0; flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 14px;
+    row-gap: 0;
+    align-items: center;
   }
-  .ach-modal-title {
-    font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff;
-    margin: 0 0 10px; line-height: 1.25; position: relative;
+  .ach-toast-kicker {
+    grid-column: 1; grid-row: 1;
+    font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--gold); line-height: 1.1;
   }
-  .ach-modal-desc { font-size: 14px; line-height: 1.45; color: var(--txt-dim); margin: 0 0 14px; position: relative; }
-  .ach-modal-reward {
-    font-size: 14px; font-weight: 700; color: var(--gold-soft); margin-bottom: 16px; position: relative;
-    padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,.28); border: 1px solid var(--edge2);
+  .ach-toast-title {
+    grid-column: 1; grid-row: 2;
+    font-family: var(--font-display); font-size: 13px; font-weight: 800;
+    color: #fff; line-height: 1.15;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .ach-modal-reward:empty { display: none; }
-  .ach-modal-queue { font-size: 12px; color: var(--txt-dim); margin-bottom: 10px; position: relative; }
-  .ach-modal-actions {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1;
-    display: flex; justify-content: center;
-    padding: 14px 20px max(14px, env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .55) 28%, rgba(8, 5, 2, .92));
-    border-top: 1px solid rgba(201, 168, 106, .22);
-    pointer-events: none;
+  .ach-toast-reward {
+    grid-column: 2; grid-row: 1 / -1;
+    font-size: 11px; font-weight: 700; color: var(--gold-soft);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-align: right; max-width: 46%;
   }
-  .ach-modal-actions .ach-modal-btn {
-    width: min(420px, 100%); padding: 12px 16px; font-size: 15px; position: relative;
-    pointer-events: auto;
-    transition: opacity .2s ease, filter .2s ease;
+  .ach-toast.secret {
+    border-color: #9b6fd4;
+    box-shadow:
+      0 0 0 1px rgba(200, 160, 255, .1) inset,
+      0 0 18px rgba(155, 111, 212, .35),
+      0 8px 20px rgba(0, 0, 0, .5);
   }
-  .ach-modal-btn--locked {
-    opacity: .42; filter: saturate(.65);
-    cursor: not-allowed; pointer-events: none;
+  .ach-toast.secret .ach-toast-kicker { color: #c9a0ff; }
+  .ach-toast.secret .ach-toast-rays {
+    background:
+      radial-gradient(ellipse 80% 70% at 12% 40%, rgba(176, 107, 255, .28), transparent 62%),
+      radial-gradient(ellipse 70% 60% at 88% 20%, rgba(120, 80, 200, .16), transparent 55%);
   }
-  .ach-modal-box.secret .ach-modal-kicker { color: #c9a0ff; }
-  .ach-modal-box.secret { border-color: #9b6fd4; box-shadow: 0 0 48px rgba(155,111,212,.3), 0 24px 64px rgba(0,0,0,.75); }
+  .ach-toast.secret .ach-toast-shine {
+    background: linear-gradient(105deg, transparent 35%, rgba(220, 190, 255, .32) 48%, transparent 62%);
+  }
+  .ach-toast--reward {
+    flex-direction: column;
+    align-items: stretch;
+    width: min(320px, 52vw);
+    min-width: 0;
+    padding: 8px 10px;
+  }
+  .ach-toast--reward .ach-toast-body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+  .ach-toast-reward-img {
+    width: 100%; max-height: 96px; object-fit: contain;
+    margin-top: 4px; border-radius: 6px;
+    background: #000; border: 1px solid rgba(155, 111, 212, .4);
+  }
 
-  .ach-reward-backdrop {
-    position: fixed; inset: 0; z-index: 140;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 20px 20px 96px;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    background: rgba(0,0,0,.88); animation: modalIn .2s ease;
-  }
-  .ach-reward-backdrop::-webkit-scrollbar { display: none; width: 0; height: 0; }
-  .ach-reward-backdrop[hidden] { display: none; }
-  .ach-reward-box {
-    width: min(520px, 100%); max-height: none;
-    flex-shrink: 0;
-    display: flex; flex-direction: column; gap: 14px;
-    overflow: visible;
-    padding: 20px 20px 16px;
-    background: linear-gradient(180deg, #2e2418, #120c06);
-    border: 2px solid #9b6fd4; border-radius: 14px;
-    box-shadow: 0 0 40px rgba(155,111,212,.35), 0 24px 64px rgba(0,0,0,.8);
-    animation: achModalIn .3s cubic-bezier(.2,1.1,.35,1);
-  }
-  .ach-reward-head { text-align: center; }
-  .ach-reward-kicker { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #c9a0ff; margin-bottom: 6px; }
-  .ach-reward-title { margin: 0 0 6px; font-family: var(--font-display); font-size: 20px; color: #fff; }
-  .ach-reward-desc { margin: 0; font-size: 13px; color: var(--txt-dim); line-height: 1.4; }
-  .ach-reward-frame {
-    flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;
-    border-radius: 10px; overflow: hidden; background: #000;
-    border: 1px solid rgba(155,111,212,.45);
-    box-shadow: inset 0 0 24px rgba(0,0,0,.65);
-  }
-  .ach-reward-img {
-    width: 100%; max-height: min(52vh, 560px); object-fit: contain; display: block;
-  }
-  .ach-reward-actions {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1;
-    display: flex; justify-content: center;
-    padding: 14px 20px max(14px, env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .55) 28%, rgba(8, 5, 2, .92));
-    border-top: 1px solid rgba(155, 111, 212, .28);
-    pointer-events: none;
-  }
-  .ach-reward-actions .ach-reward-btn {
-    width: min(520px, 100%); padding: 12px 16px; font-size: 15px;
-    pointer-events: auto;
-    transition: opacity .2s ease, filter .2s ease;
-  }
-  .ach-reward-btn--locked {
-    opacity: .42; filter: saturate(.65);
-    cursor: not-allowed; pointer-events: none;
-  }
+  body.game-paused .app,
+  body.game-paused .game-log,
+  body.game-paused .game-chat,
+  body.game-paused .shell > aside.dev-panel { pointer-events: none; user-select: none; }
 
   .corner-bar {
     display: flex;
@@ -3281,6 +3440,7 @@
   .mine-banner > div:not(.mb-go) { flex: 1; min-width: 0; }
 
   .mine-hud { display:flex; gap:18px; align-items:center; padding: 10px 20px; border-bottom:1px solid var(--edge); flex-wrap:wrap; }
+  .mine-hud[hidden] { display: none !important; }
   .mine-hud .mh { font-size:12px; color:var(--txt-dim); }
   .mine-hud .mh b { color: var(--gold-soft); font-size:15px; }
   .mine-hud .mine-shot-toggle {
@@ -3745,8 +3905,16 @@
     pointer-events: none;
   }
   .gnome.mine-solo.mob-sprite-kind.golden .mine-solo-unit { width: 204px; }
-  .gnome.mine-solo.mob-sprite-kind.boss .mine-solo-unit { width: 220px; }
-  .gnome.mine-solo.mob-sprite-kind.boss.world-boss-mob .mine-solo-unit { width: 340px; }
+  .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss {
+    left: 50% !important;
+    top: 56% !important;
+  }
+  .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss .mine-solo-unit { width: 420px; }
+  .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss .mob-sprite-stage { height: 400px; }
+  .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss .mob-sprite-img {
+    max-width: 380px;
+    filter: drop-shadow(0 12px 22px rgba(0,0,0,.7));
+  }
   .gnome.mine-solo.mob-sprite-kind .mob-timer-wrap {
     align-self: stretch;
     width: 100%;
@@ -3773,6 +3941,7 @@
   .gnome.mine-solo.mob-sprite-kind.boss .mob-sprite-stage { height: 204px; }
   .gnome.mine-solo.mob-sprite-kind.boss.world-boss-mob .mob-sprite-stage { height: 340px; }
   .gnome.mine-solo.mob-sprite-kind.boss.world-boss-mob .mob-timer-wrap { display: none; }
+  .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss .mob-timer-wrap { display: none; }
   .gnome.mine-solo.mob-sprite-kind .mob-sprite-img {
     position: relative;
     z-index: 2;
@@ -5682,6 +5851,14 @@
     border-radius: 12px;
     border: 1px solid rgba(201,168,106,.2);
     background: rgba(8,6,4,.45);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+  #screen-menu[data-hub-mode="farm"] .farm-field {
+    max-height: 100%;
   }
   #worldBossField.farm-field {
     border-color: rgba(61, 158, 140, 0.35);
@@ -5858,36 +6035,258 @@
     margin: 14px 4px 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
     color: var(--gold-soft); font-weight: 700;
   }
-  .ws-hub { padding: 8px 4px 16px; }
+  .ws-hub {
+    position: relative;
+    padding: 16px 12px 18px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(201, 168, 106, 0.34);
+    background:
+      linear-gradient(180deg, rgba(10, 8, 6, 0.55) 0%, rgba(8, 6, 4, 0.78) 100%),
+      url("../assets/ui/ws-hub-underlay.jpg?v=1") center 42% / cover no-repeat;
+    box-shadow:
+      inset 0 1px 0 rgba(232, 207, 149, 0.08),
+      0 12px 28px rgba(0, 0, 0, 0.28);
+  }
   .ws-hub-lead {
-    margin: 0 0 14px; text-align: center; font-size: 13px; color: var(--txt-dim);
+    margin: 0 0 12px;
+    text-align: center;
+    font-size: 13px;
+    color: rgba(232, 220, 190, 0.88);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75);
   }
   .ws-hub-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
   }
   .ws-hub-card {
-    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
-    padding: 14px 14px 16px; min-height: 148px; text-align: left;
-    border-radius: 12px; font: inherit; color: inherit; cursor: var(--cursor-l2);
-    border: 1px solid rgba(201,168,106,.28);
-    background: linear-gradient(160deg, rgba(28,20,12,.92), rgba(10,8,5,.9));
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 12px;
+    min-height: 0;
+    height: 100%;
+    text-align: left;
+    border-radius: 12px;
+    font: inherit;
+    color: inherit;
+    cursor: var(--cursor-l2);
+    border: 1px solid rgba(201,168,106,.42);
+    background:
+      linear-gradient(165deg, rgba(48, 36, 22, 0.55) 0%, transparent 42%),
+      linear-gradient(160deg, rgba(22,16,10,.96), rgba(8,6,4,.94));
+    box-shadow:
+      inset 0 1px 0 rgba(232, 207, 149, 0.12),
+      inset 0 -18px 28px rgba(0, 0, 0, 0.28),
+      0 8px 18px rgba(0,0,0,.35);
     transition: border-color .15s, transform .15s, box-shadow .15s;
+    overflow: hidden;
+  }
+  .ws-hub-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 55% at 18% 28%, rgba(201, 168, 106, 0.1), transparent 62%);
+    opacity: .85;
   }
   .ws-hub-card:hover {
-    border-color: rgba(232,207,149,.65);
+    border-color: rgba(232,207,149,.72);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+    box-shadow:
+      inset 0 1px 0 rgba(232, 207, 149, 0.18),
+      inset 0 -18px 28px rgba(0, 0, 0, 0.22),
+      0 10px 24px rgba(0,0,0,.42),
+      0 0 18px rgba(201, 168, 106, 0.12);
+  }
+  .ws-hub-card-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+  }
+  .ws-hub-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+  }
+  .ws-hub-ico-plate {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    border: 1px solid rgba(201, 168, 106, 0.45);
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255, 220, 150, 0.12), transparent 55%),
+      linear-gradient(160deg, #2a2014 0%, #100c08 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 180, 0.1),
+      inset 0 0 12px rgba(0, 0, 0, 0.55),
+      0 4px 12px rgba(0, 0, 0, 0.4);
   }
   .ws-hub-ico-img {
-    width: 72px; height: 72px;
-    object-fit: contain; border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 0;
     image-rendering: auto;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.55));
+  }
+  .ws-hub-card > .ws-hub-ico-img,
+  .ws-armor-kind-card .ws-hub-ico-img,
+  .ws-armor-set-card .ws-hub-ico-img {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+    border-radius: 10px;
     filter: drop-shadow(0 2px 8px rgba(0,0,0,.55));
   }
-  .ws-hub-card strong { font-size: 16px; color: var(--gold-soft); }
-  .ws-hub-card small { font-size: 11px; color: var(--txt-dim); line-height: 1.35; }
+  .ws-hub-card strong {
+    font-size: 15px;
+    color: var(--gold-soft);
+    line-height: 1.2;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.65);
+  }
+  .ws-hub-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .ws-hub-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px 3px 4px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.25;
+    color: #efe4c8;
+    border: 1px solid rgba(201, 168, 106, 0.38);
+    background:
+      linear-gradient(180deg, rgba(56, 42, 26, 0.95) 0%, rgba(18, 12, 8, 0.92) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 180, 0.08),
+      0 2px 6px rgba(0, 0, 0, 0.35);
+    white-space: nowrap;
+    transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+  }
+  .ws-hub-chip-art {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+    border: 1px solid rgba(201, 168, 106, 0.35);
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255, 230, 180, 0.14), transparent 60%),
+      linear-gradient(160deg, #2a2014, #100c08);
+    box-shadow: inset 0 1px 0 rgba(255, 230, 180, 0.08), 0 1px 4px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+  .ws-hub-chip-art img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    image-rendering: auto;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
+  }
+  .ws-hub-chip-art--sec {
+    margin-left: -10px;
+    z-index: 1;
+    box-shadow: -2px 0 0 rgba(8, 6, 4, 0.85), inset 0 1px 0 rgba(255, 230, 180, 0.08);
+  }
+  .ws-hub-chip-lbl { position: relative; z-index: 1; }
+  .ws-hub-chip--grade {
+    color: #f0e6c8;
+    border-color: rgba(212, 175, 90, 0.55);
+    background:
+      linear-gradient(180deg, rgba(90, 68, 28, 0.95) 0%, rgba(36, 24, 10, 0.95) 100%);
+  }
+  .ws-hub-chip--grade .ws-hub-chip-art {
+    border-color: rgba(110, 170, 230, 0.55);
+    box-shadow: inset 0 0 8px rgba(80, 150, 255, 0.18), 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  .ws-hub-chip--grade-c .ws-hub-chip-art {
+    border-color: rgba(90, 200, 110, 0.55);
+    box-shadow: inset 0 0 8px rgba(80, 200, 100, 0.18), 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  .ws-hub-chip--shot {
+    color: #d8ecff;
+    border-color: rgba(110, 160, 220, 0.5);
+    background:
+      linear-gradient(180deg, rgba(36, 52, 78, 0.95) 0%, rgba(12, 18, 28, 0.95) 100%);
+  }
+  .ws-hub-chip--shot .ws-hub-chip-art {
+    border-color: rgba(120, 180, 255, 0.5);
+    box-shadow: inset 0 0 10px rgba(90, 160, 255, 0.22), 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  .ws-hub-chip--spirit {
+    color: #d8ffe8;
+    border-color: rgba(100, 190, 140, 0.5);
+    background:
+      linear-gradient(180deg, rgba(28, 52, 40, 0.95) 0%, rgba(10, 18, 14, 0.95) 100%);
+  }
+  .ws-hub-chip--spirit .ws-hub-chip-art {
+    border-color: rgba(110, 210, 150, 0.5);
+    box-shadow: inset 0 0 10px rgba(80, 200, 130, 0.2), 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  .ws-hub-chip--epic {
+    color: #f0d8ff;
+    border-color: rgba(176, 107, 255, 0.5);
+    background:
+      linear-gradient(180deg, rgba(62, 36, 84, 0.95) 0%, rgba(22, 12, 32, 0.95) 100%);
+  }
+  .ws-hub-chip--epic .ws-hub-chip-art {
+    border-color: rgba(190, 130, 255, 0.55);
+    box-shadow: inset 0 0 10px rgba(160, 100, 255, 0.25), 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  .ws-hub-chip--action {
+    color: #ffe9b0;
+    border-color: rgba(232, 180, 80, 0.55);
+    background:
+      linear-gradient(180deg, rgba(78, 54, 18, 0.98) 0%, rgba(28, 18, 8, 0.95) 100%);
+  }
+  .ws-hub-chip--action .ws-hub-chip-art {
+    border-color: rgba(232, 180, 80, 0.55);
+    box-shadow: inset 0 0 10px rgba(255, 190, 80, 0.18), 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  .ws-hub-chip--mat {
+    color: #d2c8b0;
+    border-color: rgba(140, 120, 90, 0.45);
+    background:
+      linear-gradient(180deg, rgba(40, 34, 26, 0.95) 0%, rgba(14, 12, 10, 0.95) 100%);
+  }
+  .ws-hub-card:hover .ws-hub-chip {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 180, 0.14),
+      0 2px 8px rgba(0, 0, 0, 0.4),
+      0 0 10px rgba(201, 168, 106, 0.12);
+  }
+  .ws-hub-card:hover .ws-hub-chip-art {
+    filter: brightness(1.08);
+  }
+  .ws-hub-card:hover .ws-hub-ico-plate {
+    border-color: rgba(232, 207, 149, 0.7);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 180, 0.16),
+      inset 0 0 14px rgba(0, 0, 0, 0.5),
+      0 0 14px rgba(201, 168, 106, 0.2);
+  }
   .ws-armor-hub-hint { margin: -6px 0 14px; text-align: center; }
   .ws-armor-set-grid,
   .ws-armor-kind-grid {
@@ -5933,8 +6332,15 @@
     font-weight: 600;
   }
   .ws-armor-def-hint { margin-top: 2px; }
+  @media (max-width: 720px) {
+    .ws-hub-grid {
+      grid-template-columns: 1fr;
+    }
+    .ws-hub-card-top {
+      align-items: center;
+    }
+  }
   @media (max-width: 560px) {
-    .ws-hub-grid,
     .farm-hub-entry { grid-template-columns: 1fr; }
   }
 
@@ -6343,6 +6749,7 @@
     pointer-events: none;
     line-height: 1.25;
   }
+  .instance-hud[hidden] { display: none !important; }
   .instance-hud-title { font-weight: 700; color: var(--gold); font-size: 13px; }
   .instance-hud-meta { font-size: 11px; color: var(--txt-dim); margin-top: 2px; }
   .instance-hud-top {
@@ -6984,6 +7391,273 @@
     gap: 12px;
     margin-bottom: 12px;
   }
+  .farm-zone-list--by-city {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(52vh, 520px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    margin-bottom: 10px;
+  }
+  .farm-hub-city-hint {
+    margin: 0;
+    font-size: 12px;
+    color: var(--txt-dim);
+    line-height: 1.4;
+    flex: 0 0 auto;
+  }
+  .farm-level-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 0 0 auto;
+    margin: 0 0 2px;
+  }
+  .farm-level-filters[hidden] {
+    display: none !important;
+  }
+  .farm-level-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 11px;
+    border-radius: 9px;
+    cursor: pointer;
+    color: var(--txt-dim);
+    border: 1px solid transparent;
+    background: rgba(0, 0, 0, 0.35);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .farm-level-chip b {
+    font-weight: 800;
+    color: inherit;
+  }
+  .farm-level-chip small {
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.75;
+  }
+  .farm-level-chip:hover {
+    color: #e8dcc0;
+    border-color: rgba(201, 168, 106, 0.35);
+  }
+  .farm-level-chip.is-on {
+    color: #f3e2b8;
+    border-color: rgba(201, 168, 106, 0.55);
+    background: linear-gradient(180deg, rgba(201, 168, 106, 0.28), rgba(80, 55, 24, 0.45));
+    box-shadow: 0 0 14px rgba(201, 168, 106, 0.18);
+  }
+  .farm-zone-tip {
+    position: fixed;
+    z-index: 1400;
+    width: max-content;
+    max-width: min(340px, calc(100vw - 16px));
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(201, 168, 106, 0.5);
+    background:
+      linear-gradient(165deg, rgba(28, 22, 16, 0.97), rgba(10, 8, 6, 0.98));
+    box-shadow:
+      0 12px 28px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 220, 160, 0.1);
+    color: #e8dcc0;
+    font-size: 12px;
+    line-height: 1.35;
+    pointer-events: none;
+  }
+  .farm-zone-tip[hidden] {
+    display: none !important;
+  }
+  .farm-zone-tip-title {
+    display: block;
+    font-family: var(--font-display, inherit);
+    font-size: 14px;
+    color: #f2e6c8;
+    margin: 0 0 2px;
+  }
+  .farm-zone-tip-meta {
+    color: var(--txt-dim);
+    font-size: 11px;
+    margin: 0 0 8px;
+  }
+  .farm-zone-tip-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .farm-zone-tip-table th,
+  .farm-zone-tip-table td {
+    padding: 3px 0;
+    vertical-align: top;
+    border-top: 1px solid rgba(201, 168, 106, 0.14);
+  }
+  .farm-zone-tip-table tr:first-child th,
+  .farm-zone-tip-table tr:first-child td {
+    border-top: none;
+    padding-top: 0;
+  }
+  .farm-zone-tip-table th {
+    width: 38%;
+    padding-right: 10px;
+    font-weight: 700;
+    color: rgba(232, 220, 192, 0.72);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .farm-zone-tip-table td {
+    color: #f2e6c8;
+    word-break: break-word;
+  }
+
+  /* Item tooltip (inventory + gear) */
+  .item-tip {
+    position: fixed;
+    z-index: 1500;
+    width: max-content;
+    min-width: 200px;
+    max-width: min(320px, calc(100vw - 16px));
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(201, 168, 106, 0.55);
+    background:
+      linear-gradient(165deg, rgba(30, 24, 16, 0.98), rgba(10, 8, 6, 0.99));
+    box-shadow:
+      0 14px 32px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 220, 160, 0.12);
+    color: #e8dcc0;
+    font-size: 12px;
+    line-height: 1.35;
+    pointer-events: none;
+  }
+  .item-tip[hidden] {
+    display: none !important;
+  }
+  .item-tip-head {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .item-tip-ico {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  }
+  .item-tip-head-text {
+    min-width: 0;
+    flex: 1;
+  }
+  .item-tip-title {
+    font-family: var(--font-display, inherit);
+    font-size: 14px;
+    color: #f2e6c8;
+    font-weight: 700;
+  }
+  .item-tip-plus {
+    margin-left: 6px;
+    color: var(--gold-soft, #e0c878);
+  }
+  .item-tip-sub {
+    font-size: 11px;
+    color: var(--txt-dim);
+    margin-top: 1px;
+  }
+  .item-tip-grade {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(201, 168, 106, 0.35);
+    background: rgba(0, 0, 0, 0.35);
+  }
+  .item-tip-stats {
+    display: grid;
+    gap: 3px;
+    padding: 6px 0;
+    border-top: 1px solid rgba(201, 168, 106, 0.18);
+    border-bottom: 1px solid rgba(201, 168, 106, 0.18);
+  }
+  .item-tip-stat {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .item-tip-stat span {
+    color: rgba(232, 220, 192, 0.7);
+  }
+  .item-tip-stat b {
+    color: #f2e6c8;
+    font-variant-numeric: tabular-nums;
+  }
+  .item-tip-meta {
+    margin-top: 6px;
+    display: grid;
+    gap: 2px;
+  }
+  .item-tip-meta-line {
+    font-size: 11px;
+    color: rgba(232, 220, 192, 0.82);
+  }
+  .item-tip-actions {
+    margin-top: 6px;
+    display: grid;
+    gap: 1px;
+  }
+  .item-tip-action {
+    font-size: 11px;
+    color: var(--txt-dim);
+  }
+  .farm-hub-city-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 12px;
+    padding: 6px 4px 2px;
+    border-bottom: 1px solid rgba(201, 168, 106, 0.28);
+    flex: 0 0 auto;
+  }
+  .farm-hub-city-head strong {
+    font-family: var(--font-display, inherit);
+    font-size: 15px;
+    color: var(--gold-soft, #e8dcc0);
+  }
+  .farm-hub-city-head small {
+    font-size: 11px;
+    color: var(--txt-dim);
+  }
+  .farm-hub-city-grid,
+  .farm-catalog-zone-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 0;
+  }
+  #screen-menu[data-hub-mode="farm"] .farm-catalog-zone-grid {
+    flex: 1 1 auto;
+    min-height: 160px;
+    max-height: min(48vh, 480px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    align-content: start;
+  }
+  .farm-field-head-row,
+  .farm-hub-play {
+    flex: 0 0 auto;
+  }
   .farm-zone-chip {
     position: relative;
     isolation: isolate;
@@ -7003,9 +7677,11 @@
   }
   .farm-zone-chip:hover {
     border-color: rgba(201,168,106,.55);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(0,0,0,.4);
+    box-shadow:
+      0 10px 22px rgba(0,0,0,.4),
+      inset 0 0 0 1px rgba(201,168,106,.28);
   }
+  /* Frameless hunting chips = full-bleed. Legacy story chips have baked bronze frame → crop via scale. */
   .farm-zone-chip-art {
     position: absolute;
     inset: 0;
@@ -7013,10 +7689,14 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 40%;
+    object-position: center 42%;
     pointer-events: none;
-    transform: scale(1.22);
+    transform: none;
     image-rendering: auto;
+  }
+  .farm-zone-chip.is-framed-art .farm-zone-chip-art {
+    transform: scale(1.22);
+    object-position: center 40%;
   }
   .farm-zone-chip-veil {
     position: absolute;
@@ -7067,6 +7747,9 @@
     box-shadow: 0 0 14px rgba(201,168,106,.18);
   }
   .farm-zone-chip.rec strong::after { content: " \2605"; color: var(--gold); font-size: 11px; } /* ★ */
+  .farm-zone-chip.clan-mine { box-shadow: inset 0 0 0 1px rgba(120, 180, 100, 0.35); }
+  .farm-zone-chip.clan-held { box-shadow: inset 0 0 0 1px rgba(180, 90, 70, 0.3); }
+  .farm-zone-chip.clan-neutral { box-shadow: inset 0 0 0 1px rgba(201, 168, 106, 0.22); }
   .farm-zone-chip.lock .farm-zone-chip-veil {
     background:
       linear-gradient(180deg, rgba(8,6,5,.45) 0%, rgba(8,6,5,.72) 45%, rgba(8,6,5,.92) 100%);
@@ -8392,6 +9075,11 @@
     .actions { flex-direction: column; }
     .actions .btn { width: 100%; flex: none; }
     .btn-sell { width: 100%; min-height: 44px; }
+    .ench-market-note {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+    #screen-ench .hint { display: none; }
     .wplus { font-size: 20px; }
 
     /* Mine ? ?????? ???? + ???????? HUD */
@@ -8552,14 +9240,20 @@
       width: 240px;
       max-width: min(78vw, 280px);
     }
+    .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss .mine-solo-unit {
+      width: 280px;
+      max-width: min(86vw, 320px);
+    }
     .gnome.mine-solo.mob-sprite-kind .mob-sprite-stage { height: 108px; }
     .gnome.mine-solo.mob-sprite-kind.golden .mob-sprite-stage { height: 116px; }
     .gnome.mine-solo.mob-sprite-kind.boss .mob-sprite-stage { height: 124px; }
     .gnome.mine-solo.mob-sprite-kind.boss.world-boss-mob .mob-sprite-stage { height: 240px; }
+    .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss .mob-sprite-stage { height: 270px; }
     .gnome.mine-solo.mob-sprite-kind .mob-sprite-img { max-width: 102px; }
     .gnome.mine-solo.mob-sprite-kind.golden .mob-sprite-img { max-width: 110px; }
     .gnome.mine-solo.mob-sprite-kind.boss .mob-sprite-img { max-width: 118px; }
     .gnome.mine-solo.mob-sprite-kind.boss.world-boss-mob .mob-sprite-img { max-width: 230px; }
+    .gnome.mine-solo.mob-sprite-kind.boss.clan-raid-boss .mob-sprite-img { max-width: 260px; }
     .gnome.mine-solo .mob-solo-name { font-size: 11px; }
     .gnome.mine-solo.mob-sprite-kind .mob-solo-name { font-size: 11px; }
 
@@ -8707,14 +9401,19 @@
       padding-left: max(12px, env(safe-area-inset-left, 0px));
       padding-right: max(12px, env(safe-area-inset-right, 0px));
     }
-    .ach-modal-backdrop,
-    .ach-reward-backdrop {
-      padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-      align-items: flex-start;
-      justify-content: flex-start;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+    .ach-toast-host {
+      width: min(300px, 58vw);
+      margin-right: 6px;
     }
+    .ach-toast {
+      min-width: 0;
+      padding: 4px 8px 4px 5px;
+      gap: 6px;
+    }
+    .ach-toast-ico { width: 26px; height: 26px; }
+    .ach-toast-title { font-size: 12px; }
+    .ach-toast-reward { font-size: 10px; max-width: 42%; }
+    .ach-toast-body { column-gap: 8px; }
     .story-title { font-size: 22px; }
     .story-actions .btn,
     .story-actions .story-ok,
@@ -8732,8 +9431,7 @@
       overscroll-behavior: contain;
       touch-action: pan-y;
     }
-    .modal-box,
-    .ach-modal {
+    .modal-box {
       width: min(100%, 420px);
       max-height: none;
       margin: 0 auto 24px;
@@ -8879,6 +9577,30 @@
     font-size: 10px;
     font-weight: 700;
     color: #5fa8ff;
+  }
+  .account-storage-slot .inv-stack-qty {
+    position: absolute;
+    right: 2px;
+    bottom: 1px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 2px #000;
+    pointer-events: none;
+  }
+  .account-storage-slot .inv-stack-badge {
+    position: absolute;
+    left: 2px;
+    top: 1px;
+    font-size: 9px;
+    font-weight: 800;
+    color: #ffe9a8;
+    text-shadow: 0 1px 2px #000;
+    pointer-events: none;
+  }
+  .account-storage-subhead {
+    margin: 14px 0 6px;
+    font-size: 14px;
   }
   .account-mail-section {
     margin-bottom: 16px;
@@ -10118,6 +10840,11 @@
     --sf-card-ach: url("../assets/ui/sf-card-ach.png");
     --sf-card-quests: url("../assets/ui/sf-card-quests.png");
     --sf-card-shop: url("../assets/ui/sf-card-shop.png");
+    --sf-card-clan: url("../assets/ui/sf-card-clan.png?v=1");
+    --sf-card-clan-grounds: url("../assets/ui/sf-card-clan-grounds.png?v=1");
+    --sf-card-clan-warehouse: url("../assets/ui/sf-card-clan-warehouse.png?v=1");
+    --sf-card-clan-buffs: url("../assets/ui/sf-card-clan-buffs.png?v=1");
+    --sf-card-clan-raid: url("../assets/locations/clan-raid-oathkeeper.jpg?v=1");
   }
 
   .sf-layout {
@@ -10385,6 +11112,21 @@
   .sf-screen-hero--shop {
     background: var(--sf-card-shop) center 40% / cover no-repeat;
   }
+  .sf-screen-hero--clan {
+    background: var(--sf-card-clan) center 38% / cover no-repeat;
+  }
+  .sf-screen-hero--clan-grounds {
+    background: var(--sf-card-clan-grounds) center 42% / cover no-repeat;
+  }
+  .sf-screen-hero--clan-warehouse {
+    background: var(--sf-card-clan-warehouse) center 40% / cover no-repeat;
+  }
+  .sf-screen-hero--clan-buffs {
+    background: var(--sf-card-clan-buffs) center 45% / cover no-repeat;
+  }
+  .sf-screen-hero--clan-raid {
+    background: var(--sf-card-clan-raid) center 40% / cover no-repeat;
+  }
   .sf-screen-hero-veil {
     position: absolute;
     inset: 0;
@@ -10567,3 +11309,2079 @@
   }
 
 
+
+/* ===== Clan screen / Aden map (A+F0) — layout как у «Группа» ===== */
+.clan-screen-body,
+.clan-sub-screen-body {
+  padding: 10px 6px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  flex: 1;
+  box-sizing: border-box;
+}
+/* Единый каркас: хаб и подэкраны одной ширины */
+.clan-shell {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.clan-sub-panel {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.clan-sub-card {
+  /* legacy alias — теперь оболочка clan-shell + party-screen-card */
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 16px 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 168, 106, 0.42);
+  background:
+    linear-gradient(165deg, rgba(28, 22, 16, 0.92), rgba(10, 8, 6, 0.94));
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 236, 190, 0.08);
+  overflow: visible;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.clan-sub-card-grounds {
+  max-width: 1040px;
+}
+.clan-layout {
+  align-items: stretch;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.party-layout.clan-layout {
+  align-items: stretch;
+}
+.clan-layout .party-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.clan-layout .party-screen-card {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.clan-layout .party-screen-card-roster .party-panel-invite {
+  margin-top: auto;
+}
+.clan-layout .party-screen-card-roster .party-panel-invite + .party-panel-hint {
+  margin-top: 8px;
+}
+.clan-layout .party-screen-card-roster .party-panel-actions {
+  margin-top: 8px;
+}
+.clan-layout .party-screen-card-roster:not(:has(.party-panel-invite)) .party-panel-actions {
+  margin-top: auto;
+}
+.clan-hub-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.clan-hub-nav-btn {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 106, 0.48);
+  background-color: #100c08;
+  background-size: cover;
+  background-position: center 40%;
+  background-repeat: no-repeat;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 220, 160, 0.1),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.clan-hub-nav-btn--grounds {
+  background-image: var(--sf-card-clan-grounds);
+}
+.clan-hub-nav-btn--warehouse {
+  background-image: var(--sf-card-clan-warehouse);
+}
+.clan-hub-nav-btn--buffs {
+  background-image: var(--sf-card-clan-buffs);
+}
+.clan-hub-nav-btn--raid {
+  background-image: var(--sf-card-clan-raid);
+}
+.clan-hub-nav--4 .clan-hub-nav-btn {
+  flex: 0 0 auto;
+  min-height: 72px;
+}
+.clan-hub-nav-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(100deg, rgba(8, 6, 4, 0.88) 0%, rgba(8, 6, 4, 0.62) 48%, rgba(8, 6, 4, 0.78) 100%),
+    linear-gradient(180deg, rgba(20, 14, 8, 0.2), rgba(0, 0, 0, 0.45));
+}
+.clan-hub-nav-btn:hover {
+  border-color: rgba(232, 200, 130, 0.78);
+  filter: brightness(1.06);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(201, 168, 106, 0.18),
+    inset 0 1px 0 rgba(255, 230, 180, 0.14);
+}
+.clan-hub-nav-btn:active {
+  transform: scale(0.99);
+  filter: brightness(0.98);
+}
+.clan-hub-nav-btn b {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  grid-row: 1;
+  font-family: var(--font-display, inherit);
+  color: #f2e6c8;
+  font-size: 17px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+}
+.clan-hub-nav-btn small {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  grid-row: 2;
+  color: rgba(210, 195, 160, 0.86);
+  font-size: 12px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+.clan-hub-nav-go {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-size: 24px;
+  color: rgba(232, 200, 130, 0.9);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+.clan-cap-hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt-dim);
+  letter-spacing: 0;
+}
+.clan-create-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.clan-create-row .party-panel-nick-input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.clan-create-row .party-panel-btn {
+  flex: 0 0 auto;
+}
+.clan-right-tabs {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.clan-role-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: rgba(201, 168, 106, 0.9);
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  background: rgba(40, 32, 20, 0.55);
+  min-width: 62px;
+  text-align: center;
+  flex: 0 0 auto;
+}
+.clan-role-tag--leader {
+  color: #f0d78a;
+  border-color: rgba(220, 180, 90, 0.55);
+  background: rgba(90, 60, 16, 0.55);
+}
+.clan-role-tag--officer {
+  color: #d8c4a0;
+  border-color: rgba(170, 140, 90, 0.45);
+}
+.clan-roster-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+}
+@media (min-width: 420px) {
+  .clan-roster-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.clan-roster-stat {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  min-width: 0;
+}
+.clan-roster-stat b {
+  font-size: 13px;
+  color: #f0e2c0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-roster-stat small {
+  font-size: 10px;
+  color: var(--txt-dim);
+  text-transform: lowercase;
+}
+.clan-member-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.clan-member-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 28px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 106, 0.22);
+  background:
+    linear-gradient(135deg, rgba(36, 28, 18, 0.2), rgba(0, 0, 0, 0.36)),
+    url("../assets/ui/clan-role-plate-member.png?v=1") right -20px center / 80px 80px no-repeat;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.04);
+  min-width: 0;
+}
+.clan-member-row.is-leader {
+  border-color: rgba(220, 180, 90, 0.45);
+  background:
+    linear-gradient(135deg, rgba(90, 60, 16, 0.28), rgba(0, 0, 0, 0.36)),
+    url("../assets/ui/clan-role-plate-leader.png?v=1") right -18px center / 96px 96px no-repeat;
+}
+.clan-member-row.is-officer {
+  border-color: rgba(150, 165, 195, 0.4);
+  background:
+    linear-gradient(135deg, rgba(40, 48, 64, 0.28), rgba(0, 0, 0, 0.36)),
+    url("../assets/ui/clan-role-plate-officer.png?v=1") right -18px center / 88px 88px no-repeat;
+}
+.clan-member-row.is-me {
+  border-color: rgba(201, 168, 106, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(201, 168, 106, 0.18);
+}
+.clan-member-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 16px;
+  color: #f0e2c0;
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  background:
+    linear-gradient(160deg, rgba(70, 52, 28, 0.9), rgba(20, 14, 8, 0.95));
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.clan-member-avatar--leader {
+  border-color: rgba(220, 180, 90, 0.65);
+  background-image: url("../assets/ui/clan-role-plate-leader.png?v=1");
+  box-shadow:
+    0 0 10px rgba(201, 150, 60, 0.25),
+    inset 0 0 0 1px rgba(255, 220, 140, 0.18);
+}
+.clan-member-avatar--officer {
+  border-color: rgba(160, 175, 200, 0.55);
+  background-image: url("../assets/ui/clan-role-plate-officer.png?v=1");
+}
+.clan-member-avatar--member {
+  border-color: rgba(150, 130, 100, 0.45);
+  background-image: url("../assets/ui/clan-role-plate-member.png?v=1");
+}
+.clan-member-portrait {
+  width: 78%;
+  height: 78%;
+  object-fit: cover;
+  object-position: center 18%;
+  border-radius: 6px;
+  display: block;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+.clan-member-avatar-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+}
+.clan-member-avatar.is-fallback .clan-member-avatar-fallback {
+  display: inline-flex;
+}
+.clan-member-avatar.is-fallback .clan-member-portrait {
+  display: none;
+}
+.clan-member-body {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.clan-member-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.clan-member-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #efe4cc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-member-row.is-leader .clan-member-name { color: var(--gold, #c9a86a); }
+.clan-member-you {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 11px;
+  color: rgba(201, 168, 106, 0.9);
+  margin-left: 2px;
+}
+.clan-member-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 11px;
+  color: var(--txt-dim);
+  line-height: 1.35;
+}
+.clan-member-nick { color: rgba(220, 200, 160, 0.75); }
+.clan-member-role-hint { opacity: 0.9; }
+.clan-member-joined { opacity: 0.85; }
+.clan-member-kick { align-self: center; }
+.clan-member-role-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.clan-role-act {
+  appearance: none;
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  background: rgba(20, 16, 10, 0.7);
+  color: #e8d7b0;
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.clan-role-act:hover {
+  border-color: rgba(220, 190, 120, 0.55);
+  color: #fff4d8;
+}
+.clan-role-act.is-promote {
+  border-color: rgba(180, 140, 60, 0.55);
+  color: #f0d090;
+}
+.clan-member-empty {
+  padding: 14px;
+  text-align: center;
+  color: var(--txt-dim);
+  border: 1px dashed rgba(201, 168, 106, 0.28);
+  border-radius: 10px;
+}
+.clan-hub-nav-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+.clan-hub-nav-head strong {
+  font-family: var(--font-display, inherit);
+  color: var(--gold-soft);
+  font-size: 16px;
+}
+.clan-hub-glance {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 4px 0 6px;
+}
+.clan-hub-glance-item {
+  display: grid;
+  gap: 2px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 168, 106, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  text-align: center;
+  min-width: 0;
+}
+.clan-hub-glance-item span {
+  font-size: 10px;
+  color: var(--txt-dim);
+}
+.clan-hub-glance-item b {
+  font-size: 12px;
+  color: #f0e2c0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-invite-pending-hint {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  background:
+    linear-gradient(160deg, rgba(70, 48, 18, 0.45), rgba(0, 0, 0, 0.35));
+}
+.clan-invite-pending-hint strong {
+  color: var(--gold-soft, #e8dcc0);
+  font-family: var(--font-display, inherit);
+}
+.clan-invite-modal {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+  padding: 4px 2px 2px;
+}
+.clan-invite-modal-kicker {
+  margin: 0;
+  font-size: 12px;
+  color: var(--txt-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.clan-invite-modal-clan {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold, #c9a86a);
+  line-height: 1.2;
+}
+.clan-invite-modal-from {
+  margin: 0;
+  font-size: 14px;
+  color: #efe4cc;
+}
+.clan-invite-modal-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--txt-dim);
+  line-height: 1.4;
+}
+.clan-slot {
+  grid-template-columns: 22px auto 1fr 28px;
+}
+.clan-stub-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  background: rgba(0, 0, 0, 0.28);
+}
+.clan-stub-card strong {
+  font-family: var(--font-display, inherit);
+  color: var(--gold-soft);
+  font-size: 15px;
+}
+.clan-warehouse {
+  display: grid;
+  gap: 12px;
+}
+.clan-warehouse-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.38);
+  background: #0a0806;
+  aspect-ratio: 16 / 9;
+  max-height: 240px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 10px 28px rgba(0, 0, 0, 0.35);
+}
+.clan-warehouse-hero-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  pointer-events: none;
+  user-select: none;
+}
+.clan-warehouse-panel {
+  display: grid;
+  gap: 10px;
+}
+.clan-warehouse-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(201, 168, 106, 0.22);
+}
+.clan-warehouse-head strong {
+  font-family: var(--font-display, inherit);
+  color: var(--gold-soft);
+  font-size: 16px;
+}
+.clan-warehouse-adena {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f3e2b8;
+  font-variant-numeric: tabular-nums;
+}
+.clan-warehouse-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--txt-dim);
+}
+.clan-warehouse-note--rent {
+  color: #b8e0a8;
+}
+.clan-warehouse-balance {
+  font-size: 13px;
+  color: rgba(232, 220, 190, 0.88);
+}
+.clan-warehouse-balance b {
+  color: #f3e2b8;
+  font-variant-numeric: tabular-nums;
+}
+.clan-warehouse-field {
+  display: grid;
+  gap: 5px;
+}
+.clan-warehouse-field-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 106, 0.75);
+  font-weight: 700;
+}
+.clan-warehouse-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f3e2b8;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.42);
+  background: linear-gradient(180deg, rgba(18, 14, 10, 0.95), rgba(8, 6, 4, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 230, 180, 0.06);
+  outline: none;
+}
+.clan-warehouse-input::placeholder {
+  color: rgba(180, 160, 130, 0.45);
+  font-weight: 500;
+}
+.clan-warehouse-input:focus {
+  border-color: rgba(201, 168, 106, 0.75);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.08),
+    0 0 0 2px rgba(201, 168, 106, 0.18);
+}
+.clan-warehouse-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.clan-warehouse-btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 11px 14px;
+  border-radius: 10px;
+  cursor: var(--cursor-l2, pointer);
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  transition: border-color 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+.clan-warehouse-btn--deposit {
+  color: #2a1c0c;
+  background: linear-gradient(180deg, #e8c878, #b8893a);
+  border-color: rgba(232, 200, 120, 0.7);
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.35);
+}
+.clan-warehouse-btn--deposit:hover {
+  filter: brightness(1.06);
+}
+.clan-warehouse-btn--withdraw {
+  color: #e8dcc0;
+  background: linear-gradient(180deg, rgba(48, 38, 28, 0.95), rgba(22, 16, 12, 0.98));
+}
+.clan-warehouse-btn--withdraw:hover:not(:disabled) {
+  border-color: rgba(201, 168, 106, 0.7);
+}
+.clan-warehouse-btn:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+.clan-warehouse-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.clan-wh-preset {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 6px;
+  border-radius: 8px;
+  cursor: var(--cursor-l2, pointer);
+  color: #e8dcc0;
+  border: 1px solid rgba(201, 168, 106, 0.32);
+  background: rgba(0, 0, 0, 0.38);
+  text-align: center;
+}
+.clan-wh-preset:hover {
+  border-color: rgba(201, 168, 106, 0.65);
+  background: rgba(201, 168, 106, 0.12);
+}
+.clan-wh-preset--all {
+  grid-column: span 1;
+  color: #f3e2b8;
+  border-color: rgba(201, 168, 106, 0.5);
+}
+.clan-warehouse-holdings {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.25);
+  background: rgba(0, 0, 0, 0.28);
+}
+.clan-warehouse-holdings ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--txt-dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+@media (max-width: 520px) {
+  .clan-warehouse-hero {
+    max-height: 160px;
+    aspect-ratio: 2 / 1;
+  }
+  .clan-warehouse-presets {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .clan-warehouse-actions {
+    grid-template-columns: 1fr;
+  }
+}
+.clan-buffs { display: grid; gap: 12px; }
+.clan-level-block {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  background: rgba(0, 0, 0, 0.28);
+}
+.clan-level-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.clan-level-head strong {
+  font-family: var(--font-display, inherit);
+  color: var(--gold-soft);
+  font-size: 15px;
+}
+.clan-level-head span {
+  font-size: 11px;
+  color: var(--txt-dim);
+  font-variant-numeric: tabular-nums;
+}
+.clan-level-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(201, 168, 106, 0.22);
+  overflow: hidden;
+}
+.clan-level-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8a6a2e, #d4b15a 55%, #f0e2b0);
+  box-shadow: 0 0 8px rgba(212, 177, 90, 0.35);
+}
+.clan-level-hint {
+  margin: 0;
+  font-size: 11px;
+}
+.clan-buffs--compact {
+  gap: 8px;
+}
+.clan-buffs--compact .clan-warehouse-head {
+  margin: 0;
+  padding: 0 0 2px;
+  gap: 6px;
+}
+.clan-buffs--compact .clan-warehouse-head strong {
+  font-size: 14px;
+}
+.clan-buffs--compact .clan-warehouse-head span {
+  font-size: 11px;
+}
+.clan-buff-section {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 106, 0.25);
+  background: rgba(0, 0, 0, 0.28);
+}
+.clan-buffs--compact .clan-buff-section {
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.clan-buff-section > strong {
+  font-family: var(--font-display, inherit);
+  color: var(--gold-soft);
+  font-size: 15px;
+}
+.clan-buff-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+.clan-buff-section-head strong {
+  font-family: var(--font-display, inherit);
+  color: var(--gold-soft);
+  font-size: 14px;
+}
+.clan-buff-section-head span {
+  color: var(--txt-dim);
+  font-size: 11px;
+}
+.clan-buff-section-head span b {
+  color: #e8dcc0;
+}
+.clan-buff-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  overflow: hidden;
+}
+.clan-buff-bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(201, 168, 106, 0.55), rgba(120, 180, 100, 0.7));
+}
+.clan-buff-tiers { display: grid; gap: 6px; }
+.clan-buff-tier {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(201, 168, 106, 0.2);
+  background: rgba(0, 0, 0, 0.28);
+  opacity: 0.55;
+}
+.clan-buff-tier.is-on { opacity: 1; }
+.clan-buff-tier.is-current {
+  border-color: rgba(201, 168, 106, 0.55);
+  background: rgba(201, 168, 106, 0.12);
+}
+.clan-buff-tier span { color: #f3e2b8; font-weight: 700; font-size: 12px; }
+.clan-buff-tier small { color: var(--txt-dim); font-size: 11px; }
+.clan-study-list { display: grid; gap: 8px; }
+.clan-study-branch {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(201, 168, 106, 0.2);
+}
+.clan-study-branch:first-child {
+  margin-top: 4px;
+  padding-top: 0;
+  border-top: none;
+}
+.clan-study-branch > strong {
+  font-size: 13px;
+  color: #f0e2c0;
+}
+.clan-study-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.22);
+  background: rgba(0, 0, 0, 0.32);
+  min-width: 0;
+}
+.clan-study-row.is-studied {
+  border-color: rgba(120, 180, 110, 0.35);
+  background: rgba(40, 70, 36, 0.22);
+}
+.clan-study-row.is-ready {
+  border-color: rgba(201, 168, 106, 0.5);
+}
+.clan-study-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.clan-study-info b {
+  color: #f0e2c0;
+  font-size: 13px;
+}
+.clan-study-info small {
+  color: var(--txt-dim);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.clan-study-cost {
+  font-size: 11px;
+  color: rgba(230, 200, 140, 0.9);
+}
+.clan-study-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b8e0a8;
+  white-space: nowrap;
+}
+.clan-study-lock {
+  font-size: 11px;
+  color: var(--txt-dim);
+  text-align: right;
+  max-width: 120px;
+  line-height: 1.3;
+}
+.clan-boss-card {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(180, 90, 70, 0.4);
+  background: linear-gradient(160deg, rgba(60, 28, 20, 0.45), rgba(12, 10, 8, 0.75));
+}
+.clan-boss-card strong {
+  font-family: var(--font-display, inherit);
+  color: #f0c8a8;
+  font-size: 15px;
+}
+.clan-buff-tile-grid {
+  margin-top: 4px;
+}
+.clan-buff-ico-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-top: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.clan-buff-ico-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 0;
+}
+.clan-buff-buy-slot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  margin-left: auto;
+}
+.clan-buff-buy-btn {
+  min-width: 0;
+  padding: 6px 10px;
+  line-height: 1.2;
+  text-align: center;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.clan-buff-buy-btn small {
+  display: inline;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.clan-buff-buy-status {
+  max-width: 110px;
+  text-align: right;
+  font-size: 10px;
+  line-height: 1.25;
+}
+.clan-buff-ico {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: help;
+  user-select: none;
+}
+.clan-buff-ico-frame {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  background: #0c0906;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  pointer-events: none;
+}
+.clan-buff-ico-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  image-rendering: auto;
+}
+.clan-buff-ico small {
+  display: none;
+}
+.clan-buff-ico.is-off .clan-buff-ico-frame {
+  filter: grayscale(0.45) brightness(0.72);
+  opacity: 0.72;
+}
+.clan-buff-ico.is-on .clan-buff-ico-frame,
+.clan-buff-ico.is-ready .clan-buff-ico-frame {
+  filter: none;
+  opacity: 1;
+}
+.clan-buff-ico.is-ready .clan-buff-ico-frame {
+  border-color: rgba(201, 168, 106, 0.7);
+}
+.clan-buff-ico:hover .clan-buff-ico-frame {
+  border-color: rgba(232, 200, 130, 0.75);
+  filter: brightness(1.06);
+}
+.clan-buff-tip {
+  position: fixed;
+  z-index: 1400;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 16px));
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.5);
+  background:
+    linear-gradient(165deg, rgba(28, 22, 16, 0.97), rgba(10, 8, 6, 0.98));
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 220, 160, 0.1);
+  color: #e8dcc0;
+  font-size: 12px;
+  line-height: 1.35;
+  pointer-events: none;
+}
+.clan-buff-tip[hidden] {
+  display: none !important;
+}
+.clan-buff-tip-title {
+  display: block;
+  font-family: var(--font-display, inherit);
+  font-size: 13px;
+  color: #f2e6c8;
+  margin: 0 0 4px;
+}
+.clan-buff-tip-line {
+  margin: 0 0 2px;
+  color: rgba(232, 220, 192, 0.88);
+}
+.clan-buff-ico-mark {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  z-index: 2;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: #d8c49a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+.clan-buff-ico-mark.is-now,
+.clan-buff-ico-mark.is-ready {
+  color: #f0c878;
+}
+.clan-buff-ico-mark.is-ok {
+  color: #9dcc8a;
+}
+.clan-buff-branch {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(201, 168, 106, 0.2);
+}
+.clan-buff-branch:first-child {
+  margin-top: 2px;
+  padding-top: 0;
+  border-top: none;
+}
+.clan-buff-branch > strong {
+  font-size: 13px;
+  color: #f0e2c0;
+}
+.clan-buff-branch-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 8px;
+}
+.clan-buff-branch-head strong {
+  font-size: 12px;
+  color: #f0e2c0;
+}
+.clan-buff-branch-head span {
+  font-size: 10px;
+  color: var(--txt-dim);
+}
+.clan-raid {
+  display: grid;
+  gap: 12px;
+}
+.clan-raid-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  min-height: 120px;
+}
+.clan-raid-hero-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.clan-raid-hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(8, 6, 4, 0.2) 0%, rgba(8, 6, 4, 0.75) 100%),
+    linear-gradient(90deg, rgba(40, 16, 10, 0.45), transparent 55%);
+}
+.clan-raid-hero-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  min-height: 120px;
+  padding: 14px 14px 12px;
+  box-sizing: border-box;
+}
+.clan-raid-hero-body strong {
+  font-family: var(--font-display, inherit);
+  color: #f2e6c8;
+  font-size: 18px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+}
+.clan-raid-hero-body small {
+  color: rgba(232, 200, 170, 0.9);
+  font-size: 12px;
+}
+.clan-raid-card {
+  margin-top: 0;
+}
+.clan-boss-hud {
+  border-color: rgba(180, 90, 70, 0.45) !important;
+}
+.clan-map-shell { display: grid; gap: 8px; }
+.clan-map-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  justify-content: space-between;
+}
+.clan-map-title {
+  font-family: var(--font-display, inherit);
+  font-weight: 800; letter-spacing: 0.08em;
+  color: var(--gold-soft); text-transform: uppercase; font-size: 13px;
+}
+.clan-map-filters {
+  display: inline-flex; gap: 4px; padding: 3px;
+  border-radius: 10px; background: rgba(0,0,0,.35);
+  border: 1px solid rgba(201,168,106,.25);
+}
+.clan-map-filter {
+  font: inherit; font-size: 11px; font-weight: 800;
+  padding: 6px 10px; border-radius: 8px; cursor: var(--cursor-l2, pointer);
+  border: 1px solid transparent; background: transparent; color: var(--txt-dim);
+}
+.clan-map-filter.sel {
+  color: #f3e2b8;
+  border-color: rgba(201,168,106,.5);
+  background: linear-gradient(180deg, rgba(201,168,106,.28), rgba(80,55,24,.45));
+}
+.clan-map-zoom-btns { display: inline-flex; gap: 4px; }
+.clan-map-zoom-btns .party-panel-btn { padding: 4px 10px; min-width: 32px; }
+.clan-map-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 820px) {
+  .clan-map-wrap { grid-template-columns: 1.7fr 0.55fr; }
+}
+.clan-map-viewport {
+  position: relative;
+  min-height: 420px;
+  height: min(74vh, 680px);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 106, 0.42);
+  background: #070806;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+.clan-map-viewport.is-dragging,
+.clan-map-viewport:active { cursor: grabbing; }
+.clan-map-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.clan-map-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: saturate(0.94) contrast(1.04);
+}
+.clan-map-pins { position: absolute; inset: 0; }
+.clan-map-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 32px; height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(201, 168, 106, 0.65);
+  background: rgba(14, 12, 9, 0.92);
+  color: #e8d7a8;
+  cursor: var(--cursor-l2, pointer);
+  box-shadow: 0 2px 10px rgba(0,0,0,.45);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+.clan-map-pin-dot {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  font-size: 13px; line-height: 1;
+}
+.clan-map-pin-tip {
+  position: absolute;
+  left: 50%; top: calc(100% + 6px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px;
+  background: rgba(0,0,0,.78);
+  border: 1px solid rgba(201,168,106,.35);
+  color: #e8d7a8;
+  opacity: 0; pointer-events: none;
+  transition: opacity .12s ease;
+}
+.clan-map-pin:hover .clan-map-pin-tip,
+.clan-map-pin.is-sel .clan-map-pin-tip { opacity: 1; }
+.clan-map-pin:hover,
+.clan-map-pin.is-sel {
+  border-color: rgba(243, 226, 184, 0.9);
+  box-shadow: 0 0 14px rgba(201, 168, 106, 0.35);
+  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 3;
+}
+.clan-map-pin.is-neutral { border-color: rgba(180, 170, 140, 0.55); }
+.clan-map-pin.is-owned {
+  border-color: var(--pin-accent, rgba(180, 90, 70, 0.7));
+  background: color-mix(in srgb, var(--pin-accent, #8a5038) 35%, rgba(10,8,6,.9));
+}
+.clan-map-pin.is-mine {
+  border-color: rgba(120, 180, 100, 0.85);
+  box-shadow: 0 0 0 2px rgba(120, 180, 100, 0.25), 0 2px 10px rgba(0,0,0,.45);
+}
+.clan-map-pin.siege {
+  box-shadow: 0 0 0 2px rgba(180, 40, 40, 0.4), 0 2px 10px rgba(0,0,0,.45);
+}
+.clan-map-pin.is-mvp {
+  animation: clan-map-mvp-pulse 2.4s ease-in-out infinite;
+}
+@keyframes clan-map-mvp-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+}
+.clan-map-pin.kind-city .clan-map-pin-dot { font-size: 14px; }
+.clan-map-detail {
+  padding: 12px;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 200px;
+}
+.clan-map-detail h4 {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  color: var(--gold-soft);
+  font-size: 16px;
+}
+.clan-map-detail p { margin: 0; }
+.clan-map-portrait {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(201,168,106,.3);
+}
+.clan-map-legend { margin: 0; }
+.clan-map-legend-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--txt-dim);
+}
+.clan-map-swatch {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(180,170,140,.55);
+  background: rgba(14,12,9,.9);
+}
+.clan-map-swatch.is-mine { border-color: rgba(120,180,100,.85); }
+.clan-map-swatch.is-owned { border-color: rgba(180,90,70,.7); }
+.clan-map-swatch.siege { box-shadow: 0 0 0 2px rgba(180,40,40,.35); }
+
+/* Fullscreen Aden map screen */
+#screen-aden-map.active {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+#screen-aden-map .panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+#screen-aden-map .panel-head h2 { flex: 1; margin: 0; }
+#adenMapStatus:not([hidden]) {
+  margin: 0;
+  max-width: 280px;
+  font-size: 12px;
+}
+.aden-map-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px 12px;
+}
+.aden-map-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+.aden-map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.aden-map-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+@media (min-width: 900px) {
+  .aden-map-wrap {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  }
+}
+.aden-map-viewport.clan-map-viewport {
+  min-height: 480px;
+  height: min(78vh, 820px);
+  width: 100%;
+}
+.aden-map-detail.clan-map-detail {
+  max-height: min(78vh, 820px);
+  overflow: auto;
+}
+.aden-map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+.aden-map-region {
+  pointer-events: auto;
+  fill-opacity: 1;
+  stroke-width: 0.22;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 0.7 0.65;
+  cursor: var(--cursor-l2, pointer);
+  transition: fill 0.15s ease, stroke-width 0.12s ease, filter 0.12s ease;
+}
+.aden-map-region:hover {
+  filter: brightness(1.08);
+  stroke-width: 0.28;
+}
+.aden-map-region.is-sel {
+  stroke-width: 0.34;
+  stroke-dasharray: 0.75 0.6;
+  filter: brightness(1.12);
+  paint-order: stroke fill;
+}
+.aden-map-shell.is-editing .aden-map-region {
+  stroke-width: 0.28;
+}
+.aden-map-shell.is-editing .clan-map-pins {
+  pointer-events: none;
+  opacity: 0.35;
+}
+.aden-map-edit-verts {
+  pointer-events: auto;
+}
+.aden-map-vert {
+  fill: #f0d090;
+  stroke: #1a140c;
+  stroke-width: 0.35;
+  cursor: grab;
+  pointer-events: auto;
+}
+.aden-map-vert.is-sel {
+  fill: #fff3c8;
+  stroke: #c9a86a;
+  stroke-width: 0.5;
+}
+.aden-map-editor-panel {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(201, 168, 106, 0.28);
+}
+.aden-map-edit-select {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--txt, #e8dcc0);
+}
+.aden-map-edit-actions {
+  flex-wrap: wrap;
+}
+.aden-map-edit-toggle.sel {
+  color: #f3e2b8;
+  border-color: rgba(201, 168, 106, 0.55);
+  background: linear-gradient(180deg, rgba(201, 168, 106, 0.3), rgba(80, 55, 24, 0.5));
+}
+.aden-map-route {
+  fill: none;
+  stroke: rgba(220, 190, 120, 0.7);
+  stroke-width: 0.45;
+  stroke-dasharray: 1.2 0.9;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.aden-map-route.sea {
+  stroke: rgba(120, 170, 210, 0.65);
+  stroke-dasharray: 0.6 0.8;
+}
+.aden-map-region-nodes {
+  flex-wrap: wrap;
+}
+.clan-map-launch .party-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.clan-map-launch a.party-panel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.clan-map-launch-holdings {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--txt-dim);
+  font-size: 13px;
+}
+.clan-map-pins { z-index: 3; }
+.mine-clan-territory {
+  margin-left: auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  background: rgba(0, 0, 0, 0.35);
+  color: #d8c49a !important;
+  font-size: 11px !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.mine-clan-territory.is-mine {
+  border-color: rgba(120, 180, 100, 0.55);
+  background: rgba(40, 70, 35, 0.4);
+  color: #b8e0a8 !important;
+}
+.mine-clan-territory.is-held {
+  border-color: rgba(180, 90, 70, 0.45);
+  color: #e0b0a0 !important;
+}
+.mine-clan-territory.is-neutral {
+  border-color: rgba(160, 150, 130, 0.35);
+  color: #b8ae98 !important;
+}
+.hunting-cta-modal p { margin: 8px 0; line-height: 1.45; }
+
+/* Clan grounds: city → hunting list (no map) */
+.clan-layout .party-col-right {
+  min-width: 0;
+}
+.clan-layout .party-screen-card-board {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.clan-sub-panel.party-screen-card-board {
+  overflow: visible;
+}
+#screen-clan-grounds .clan-shell,
+#screen-clan-grounds .clan-sub-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#screen-clan-grounds .clan-sub-panel.party-screen-card-board {
+  overflow: hidden;
+}
+.clan-grounds {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.clan-warehouse,
+.clan-buffs {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.clan-grounds-viewport {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.clan-grounds-track {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transform: translateX(0);
+  transition: transform 0.3s cubic-bezier(0.22, 0.9, 0.28, 1);
+  will-change: transform;
+}
+.clan-grounds[data-view="farms"] .clan-grounds-track {
+  transform: translateX(-50%);
+}
+.clan-grounds-pane {
+  flex: 0 0 50%;
+  width: 50%;
+  min-width: 0;
+  max-width: 50%;
+  height: 100%;
+  box-sizing: border-box;
+  padding-right: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+.clan-grounds-pane-farms {
+  padding-left: 2px;
+  padding-right: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .clan-grounds-track { transition: none; }
+}
+.clan-grounds-intro {
+  min-width: 0;
+  flex: 0 0 auto;
+}
+.clan-grounds-intro strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--gold, #c9a86a);
+}
+.clan-grounds-holdings {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--txt-dim);
+}
+.clan-grounds-nav {
+  margin-bottom: 0;
+  flex: 0 0 auto;
+}
+.clan-grounds-footer {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+.clan-grounds-city-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.clan-grounds-farm-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.clan-grounds-city-btn {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 100%;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 106, 0.48);
+  background: #100c08;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 220, 160, 0.1),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.clan-grounds-city-btn.is-held {
+  border-color: rgba(120, 180, 110, 0.55);
+}
+.clan-grounds-city-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  pointer-events: none;
+  image-rendering: auto;
+}
+.clan-grounds-city-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(100deg, rgba(8, 6, 4, 0.86) 0%, rgba(8, 6, 4, 0.55) 52%, rgba(8, 6, 4, 0.78) 100%),
+    linear-gradient(180deg, rgba(16, 12, 8, 0.15), rgba(0, 0, 0, 0.42));
+}
+.clan-grounds-city-btn:hover {
+  border-color: rgba(232, 200, 130, 0.78);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(201, 168, 106, 0.16),
+    inset 0 1px 0 rgba(255, 230, 180, 0.14);
+}
+.clan-grounds-city-btn:active {
+  transform: scale(0.99);
+  filter: brightness(0.98);
+}
+.clan-grounds-city-name {
+  position: relative;
+  z-index: 2;
+  grid-column: 1;
+  font-weight: 700;
+  color: #f2e6c8;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-family: var(--font-display, inherit);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+}
+.clan-grounds-city-meta {
+  position: relative;
+  z-index: 2;
+  grid-column: 2;
+  min-width: 0;
+  max-width: 48vw;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(210, 195, 160, 0.88);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+.clan-grounds-city-go {
+  position: relative;
+  z-index: 2;
+  grid-column: 3;
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
+  color: rgba(232, 200, 130, 0.9);
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+.clan-grounds-farm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+  min-width: 0;
+}
+.clan-grounds-tile {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  min-height: 118px;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  background: #0c0906;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.clan-grounds-tile:hover {
+  border-color: rgba(201, 168, 106, 0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+}
+.clan-grounds-tile.is-sel {
+  border-color: rgba(230, 196, 120, 0.85);
+  box-shadow:
+    0 0 0 1px rgba(230, 196, 120, 0.35),
+    0 8px 18px rgba(0, 0, 0, 0.45);
+}
+.clan-grounds-tile.is-soon {
+  opacity: 0.72;
+}
+.clan-grounds-tile.is-siege {
+  border-color: rgba(180, 90, 70, 0.5);
+}
+.clan-grounds-tile.is-mine {
+  border-color: rgba(120, 180, 110, 0.55);
+}
+.clan-grounds-tile.is-held:not(.is-mine) {
+  border-color: rgba(180, 120, 70, 0.45);
+}
+.clan-grounds-tile-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  pointer-events: none;
+  image-rendering: auto;
+}
+.clan-grounds-tile.is-framed-art .clan-grounds-tile-art {
+  transform: scale(1.22);
+  object-position: center 40%;
+}
+.clan-grounds-tile-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(6, 4, 3, 0.12) 0%, rgba(6, 4, 3, 0.4) 45%, rgba(6, 4, 3, 0.9) 100%),
+    linear-gradient(90deg, rgba(6, 4, 3, 0.45) 0%, rgba(6, 4, 3, 0.1) 55%, rgba(6, 4, 3, 0.3) 100%);
+}
+.clan-grounds-tile-flags {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+}
+.clan-grounds-tile-flag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 106, 0.4);
+  background: rgba(8, 6, 4, 0.72);
+  color: #d8c49a;
+}
+.clan-grounds-tile-flag.siege {
+  border-color: rgba(180, 90, 70, 0.6);
+  color: #e8b0a0;
+}
+.clan-grounds-tile-flag.soon {
+  border-color: rgba(140, 140, 140, 0.45);
+  color: #a8a090;
+}
+.clan-grounds-tile-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  min-height: 118px;
+  padding: 10px 9px 8px;
+  box-sizing: border-box;
+}
+.clan-grounds-tile-body strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.25;
+  color: #f2e6c8;
+  font-family: var(--font-display, inherit);
+  font-weight: 600;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-grounds-tile-body small {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(220, 205, 170, 0.82);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-grounds-detail {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 106, 0.36);
+  background:
+    linear-gradient(165deg, rgba(32, 24, 16, 0.94), rgba(10, 8, 6, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.08),
+    0 6px 16px rgba(0, 0, 0, 0.28);
+  min-width: 0;
+  box-sizing: border-box;
+}
+.clan-grounds-detail.is-empty {
+  padding: 8px 12px;
+}
+.clan-grounds-detail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.clan-grounds-detail-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+.clan-grounds-detail-info b {
+  display: block;
+  color: #e8dcc0;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-grounds-farm-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--txt-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-grounds-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.clan-grounds-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  color: #d8c49a;
+}
+.clan-grounds-badge.siege {
+  border-color: rgba(180, 90, 70, 0.55);
+  color: #e0a090;
+}
+.clan-grounds-badge.soon {
+  border-color: rgba(140, 140, 140, 0.4);
+  color: #a8a090;
+}
+.clan-grounds-owner {
+  flex: 0 1 30%;
+  max-width: 38%;
+  font-size: 12px;
+  color: var(--txt-dim);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clan-grounds-owner.is-mine {
+  color: #b8e0a8;
+  font-weight: 700;
+}
+.clan-grounds-farm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.clan-grounds-claim-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--txt-dim);
+}
+.clan-grounds .party-panel-actions {
+  margin-top: 14px;
+}
+.clan-grounds .party-panel-actions .party-panel-btn {
+  flex: 1 1 auto;
+  min-height: 42px;
+  border-radius: 10px;
+  border-color: rgba(201, 168, 106, 0.5);
+  background:
+    linear-gradient(180deg, rgba(201, 168, 106, 0.22), rgba(28, 20, 12, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 170, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.28);
+}
+.clan-grounds .clan-siege-power {
+  margin-top: 10px;
+}
+.clan-grounds-farm-actions .party-panel-btn {
+  min-height: 40px;
+  padding: 10px 14px;
+}
+@media (max-width: 520px) {
+  .clan-grounds-farm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .clan-grounds-tile,
+  .clan-grounds-tile-body {
+    min-height: 104px;
+  }
+  .clan-grounds-city-meta {
+    max-width: 42vw;
+  }
+}
+
+
+/* Clan siege power */
+.clan-siege-power {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 168, 106, 0.38);
+  background:
+    linear-gradient(165deg, rgba(36, 28, 18, 0.92), rgba(12, 10, 8, 0.94)),
+    radial-gradient(ellipse at 80% 20%, rgba(201, 168, 106, 0.12), transparent 55%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.08),
+    0 6px 16px rgba(0, 0, 0, 0.28);
+}
+.clan-siege-power-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.clan-siege-power-head strong { color: #c9a86a; }
+.clan-siege-power-total {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f0e0b0;
+}
+.clan-siege-power-break {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--txt-dim);
+  line-height: 1.45;
+}
+.clan-siege-power-break b { color: #e8dcc0; }
+.clan-siege-power-note { color: #8a8070; }
+.clan-siege-power.is-compact {
+  margin-top: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.clan-siege-power.is-compact .clan-siege-power-head {
+  margin-bottom: 2px;
+}
+.clan-siege-power.is-compact .clan-siege-power-total {
+  font-size: 17px;
+}
+.clan-siege-power-break-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 11px;
+  color: var(--txt-dim);
+  line-height: 1.35;
+}
+.clan-siege-power-break-inline b {
+  color: #e8dcc0;
+}

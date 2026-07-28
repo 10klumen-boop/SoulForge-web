@@ -3,8 +3,18 @@
 // и pure builders (mob, mobPool, l2Bg, mineAssetUrl) вынесены в data/mine-visuals-data.js.
 
 
+function mineVisualZoneId(zoneId) {
+  let id = zoneId || (typeof currentMineZoneId === "function" ? currentMineZoneId() : state.farmZone) || "banana_mine";
+  if (typeof resolveFarmZoneId === "function") id = resolveFarmZoneId(id);
+  const VISUAL_ALIAS = {
+    scrap_field: "wasteland",
+    mithril_forge: "abandoned_coal_low",
+  };
+  return VISUAL_ALIAS[id] || id;
+}
+
 function mineStageVisual(zoneId, race) {
-  zoneId = zoneId || (typeof currentMineZoneId === "function" ? currentMineZoneId() : state.farmZone) || "banana_mine";
+  zoneId = mineVisualZoneId(zoneId);
   race = race || (typeof currentAvatarRace === "function" ? currentAvatarRace() : state.avatar?.raceId) || "human";
   const pack = MINE_STAGE_VISUALS[zoneId]?.[race] || MINE_STAGE_VISUALS[zoneId]?.human;
   if (!pack) {

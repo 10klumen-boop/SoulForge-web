@@ -69,7 +69,15 @@ function ensureStoryProgress() {
 }
 
 function farmZoneById(id) {
-  return FARM_ZONES.find((z) => z.id === id) || FARM_ZONES[0];
+  const resolved = typeof resolveFarmZoneId === "function" ? resolveFarmZoneId(id) : id;
+  const zones = typeof FARM_ZONES !== "undefined" ? FARM_ZONES : [];
+  const direct = zones.find((z) => z.id === resolved);
+  if (direct) return direct;
+  // migrateFrom[] на зоне (сейвы со старым id до alias-таблицы)
+  const viaMigrate = zones.find(
+    (z) => Array.isArray(z.migrateFrom) && z.migrateFrom.includes(String(id || ""))
+  );
+  return viaMigrate || zones[0];
 }
 
 /** Сюжетные зоны Prelude (без side-фарма и party). */

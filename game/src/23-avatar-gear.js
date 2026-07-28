@@ -59,6 +59,7 @@ function invPaperdollLayout() {
 function renderGearPaperdoll(rootEl) {
   const root = rootEl || document.getElementById("invPaperdoll");
   if (!root) return;
+  if (typeof hideItemTip === "function") hideItemTip();
   const gear = typeof ensureAvatarGear === "function" ? ensureAvatarGear() : {};
   root.innerHTML = "";
   const title = document.createElement("div");
@@ -123,6 +124,12 @@ function formatEquippedJewelryBonusHtml() {
       if (!c || !c.slot) return;
       const parts = [];
       const b = c.bonuses || {};
+      if (typeof formatJewelryBonusLines === "function") {
+        formatJewelryBonusLines(c).forEach((line) => parts.push(line));
+      } else {
+        if (b.mdef) parts.push("+" + b.mdef + " M.Def");
+        if (b.pdef) parts.push("+" + b.pdef + " P.Def");
+      }
       if (b.pvpAtk) parts.push("+" + Math.round(b.pvpAtk * 1000) / 10 + "% ATK арены");
       if (b.enchant) {
         parts.push(
@@ -133,15 +140,69 @@ function formatEquippedJewelryBonusHtml() {
       }
       if (b.mineAdena) parts.push("+" + Math.round(b.mineAdena * 100) + "% adena");
       if (b.avatarXp) parts.push("+" + Math.round(b.avatarXp * 100) + "% XP души");
-      if (b.mdef) parts.push("+" + b.mdef + " M.Def");
-      if (b.pdef) parts.push("+" + b.pdef + " P.Def");
       jewelryLines.push(
         '<li class="on">✓ ' + (c.name || item.id) + (parts.length ? ": " + parts.join(" · ") : "") + "</li>"
       );
     });
   }
-  if (!jewelryLines.length) return "";
-  return '<div class="inv-set-bonus-head">Бижутерия</div><ul>' + jewelryLines.join("") + "</ul>";
+  let setHtml = "";
+  if (typeof avatarJewelrySetBonuses === "function" && typeof JEWELRY_SETS !== "undefined") {
+    const counts = typeof equippedJewelrySetCounts === "function" ? equippedJewelrySetCounts() : {};
+    const setIds = Object.keys(counts).filter((id) => (counts[id] || 0) > 0);
+    if (setIds.length) {
+      setHtml += '<div class="inv-set-bonus-head">Сеты бижутерии</div><ul>';
+      setIds.forEach((setId) => {
+        const set = JEWELRY_SETS[setId];
+        const n = counts[setId] || 0;
+        const tiers = set?.bonuses || {};
+        setHtml +=
+          '<li class="on"><b>' +
+          (set?.name || setId) +
+          "</b> · " +
+          n +
+          "/5</li>";
+        [3, 5].forEach((th) => {
+          if (!tiers[th]) return;
+          const on = n >= th;
+          const preview =
+            typeof jewelrySetBonusPreviewLines === "function"
+              ? jewelrySetBonusPreviewLines(setId, th).find((ln) => ln.indexOf(th + " шт.") === 0)
+              : null;
+          const line =
+            preview ||
+            th +
+              " шт.: " +
+              (typeof formatJewelryBonusLines === "function"
+                ? formatJewelryBonusLines({ bonuses: tiers[th] }).join(", ")
+                : "—");
+          setHtml +=
+            '<li class="' +
+            (on ? "on" : "off") +
+            '">' +
+            (on ? "✓ " : "○ ") +
+            line +
+            "</li>";
+        });
+      });
+      setHtml += "</ul>";
+      const cd =
+        typeof avatarJewelrySkillCdMult === "function" ? avatarJewelrySkillCdMult() : 1;
+      const resist =
+        typeof avatarJewelryDebuffResist === "function" ? avatarJewelryDebuffResist() : 0;
+      if (cd < 1 || resist > 0) {
+        const bits = [];
+        if (cd < 1) bits.push("КД скиллов −" + Math.round((1 - cd) * 1000) / 10 + "%");
+        if (resist > 0) bits.push("резист дебаффов +" + Math.round(resist * 1000) / 10 + "%");
+        setHtml += '<p class="inv-set-bonus-def"><b>Бижу итого:</b> ' + bits.join(" · ") + "</p>";
+      }
+    }
+  }
+  if (!jewelryLines.length && !setHtml) return "";
+  return (
+    (jewelryLines.length
+      ? '<div class="inv-set-bonus-head">Бижутерия</div><ul>' + jewelryLines.join("") + "</ul>"
+      : "") + setHtml
+  );
 }
 
 function buildInvSetBonusPanel() {
@@ -200,10 +261,26 @@ function buildGearStubEl(cell) {
   const el = document.createElement("div");
   el.className = "inv-gear-slot is-stub";
   el.dataset.slot = cell.id;
-  el.title = (cell.label || "Слот") + " — скоро";
+  const plain = (cell.label || "Слот") + " — скоро";
   el.innerHTML =
     '<span class="inv-gear-slot-lbl">' + (cell.label || "") + "</span>" +
     '<img class="inv-gear-slot-ph" src="' + (cell.placeholder || "") + '" alt="" draggable="false">';
+  if (typeof wireItemTooltip === "function") {
+    wireItemTooltip(
+      el,
+      () =>
+        typeof itemTipShellHtml === "function"
+          ? itemTipShellHtml({
+              title: cell.label || "Слот",
+              subtitle: "Экипировка",
+              meta: ["Скоро"],
+            })
+          : "",
+      plain
+    );
+  } else {
+    el.title = plain;
+  }
   return el;
 }
 
@@ -216,7 +293,6 @@ function buildGearSlotEl(slot, item) {
     (item ? " filled" : "") +
     (def?.epic ? " g-epic" : item && def?.grade ? " g-" + def.grade : "");
   btn.dataset.slot = slot.id;
-  btn.title = slot.label + (item && def ? ": " + def.name + (item.plus ? " +" + item.plus : "") : " — пусто");
   let inner = '<span class="inv-gear-slot-lbl">' + slot.label + "</span>";
   if (item && def) {
     inner += '<img src="' + def.icon + '" alt="" draggable="false">';
@@ -226,6 +302,22 @@ function buildGearSlotEl(slot, item) {
   }
   btn.innerHTML = inner;
   btn.onclick = () => openAvatarEquipPicker(slot.id);
+  if (typeof wireItemTooltip === "function") {
+    wireItemTooltip(
+      btn,
+      () =>
+        typeof itemTooltipHtmlFromGearSlot === "function"
+          ? itemTooltipHtmlFromGearSlot(slot.label, item)
+          : "",
+      typeof itemTooltipPlainFromGearSlot === "function"
+        ? itemTooltipPlainFromGearSlot(slot.label, item)
+        : slot.label
+    );
+  } else {
+    btn.title =
+      slot.label +
+      (item && def ? ": " + def.name + (item.plus ? " +" + item.plus : "") : " — пусто");
+  }
   return btn;
 }
 
@@ -259,9 +351,25 @@ function openAvatarEquipPicker(slotId) {
   if (unequipBtn) unequipBtn.hidden = !gear[slotId];
   const enchBtn = document.getElementById("avatarEquipEnchant");
   if (enchBtn) {
-    const wItem = slotId === "weapon" ? gear.weapon : null;
-    const wDef = wItem && typeof WMAP !== "undefined" ? WMAP[wItem.id] : null;
-    const canEnch = !!(wItem && wDef && !(typeof isNoGradeWeapon === "function" && isNoGradeWeapon(wDef)));
+    const gearItem = gear[slotId];
+    let canEnch = false;
+    if (slotId === "weapon" && gearItem) {
+      const wDef = typeof WMAP !== "undefined" ? WMAP[gearItem.id] : null;
+      canEnch = !!(wDef && !(typeof isNoGradeWeapon === "function" && isNoGradeWeapon(wDef)));
+    } else if (slot?.armor && gearItem) {
+      const aDef =
+        typeof armorItemDef === "function"
+          ? armorItemDef(gearItem)
+          : typeof AMAP !== "undefined"
+            ? AMAP[gearItem.id]
+            : null;
+      canEnch = !!(aDef && aDef.grade && aDef.grade !== "NG");
+    } else if (slot?.jewelry && gearItem) {
+      canEnch =
+        typeof jewelryCanEnchant === "function"
+          ? jewelryCanEnchant(gearItem)
+          : !!(typeof accessoryDef === "function" && accessoryDef(gearItem)?.grade);
+    }
     enchBtn.hidden = !canEnch;
   }
   syncAvatarEquipFilterUi(slotId);
@@ -309,13 +417,22 @@ function renderAvatarEquipList() {
       !isAccessoryItem(it);
     btn.className =
       "avatar-equip-opt" +
-      (isAccessoryItem(it) ? " g-epic" : " g-" + def.grade) +
+      (isAccessoryItem(it)
+        ? def.epic
+          ? " g-epic"
+          : def.grade
+            ? " g-" + def.grade
+            : " g-epic"
+        : " g-" + def.grade) +
       (isBest ? " is-best" : "");
     const plus = it.plus ? " +" + it.plus : "";
     const badge = isBest ? '<em class="avatar-equip-best">лучшее</em>' : "";
     let sub = "";
-    if (isAccessoryItem(it)) sub = def.desc || "Эпический аксессуар";
-    else if (isArmor) sub = "P.Def " + (def.pdef || 0) + " · M.Def " + (def.mdef || 0);
+    if (isAccessoryItem(it)) {
+      const lines =
+        typeof formatJewelryBonusLines === "function" ? formatJewelryBonusLines(def) : [];
+      sub = lines.length ? lines.join(" · ") : def.desc || (def.epic ? "Эпический аксессуар" : "Бижутерия");
+    } else if (isArmor) sub = "P.Def " + (def.pdef || 0) + " · M.Def " + (def.mdef || 0);
     else sub = typeof weaponEquipStatLabel === "function" ? weaponEquipStatLabel(def, it.plus || 0) : "P.Atk " + fmt(statAt(def.patk, def.ps, it.plus || 0));
     btn.innerHTML =
       '<img src="' + def.icon + '" alt="">' +
@@ -346,11 +463,13 @@ function wireAvatarGear() {
     }
     if (enchBtn) {
       enchBtn.onclick = () => {
-        const it = typeof equippedWeaponItem === "function" ? equippedWeaponItem() : null;
+        if (!_avatarEquipSlot) return;
+        const gear = typeof ensureAvatarGear === "function" ? ensureAvatarGear() : state.avatar?.gear;
+        const it = gear && gear[_avatarEquipSlot];
         if (!it || typeof openEnchant !== "function") return;
         Audio2.click();
         setAvatarEquipOpen(false);
-        openEnchant(it, { equipped: true });
+        openEnchant(it, { equipped: true, gearSlot: _avatarEquipSlot });
       };
     }
     backdrop.addEventListener("click", (e) => {

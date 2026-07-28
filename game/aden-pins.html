@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SoulForge — каталог городов и угодий</title>
+  <link rel="stylesheet" href="styles/aden-pins.css?v=2" />
+</head>
+<body>
+  <div class="ap-app">
+    <header class="ap-head">
+      <div>
+        <strong>Города → угодья</strong>
+        <span>каталог без карты · черновики в браузере → копируй в data-файл</span>
+      </div>
+      <div class="ap-head-actions">
+        <a href="index.html">← В игру</a>
+      </div>
+    </header>
+
+    <aside class="ap-side">
+      <h2>Города / хабы</h2>
+      <ul class="ap-hub-list" id="apHubList"></ul>
+      <button type="button" class="ap-btn" id="apNewHub">+ Город</button>
+    </aside>
+
+    <main class="ap-main">
+      <div class="ap-toolbar" id="apFarmHead">
+        <strong id="apHubTitle">Выбери город</strong>
+        <button type="button" class="ap-btn ap-btn-primary" id="apNewFarm" disabled>+ Угодье</button>
+        <button type="button" class="ap-btn" id="apCopyHub" disabled>Копировать угодья хаба</button>
+      </div>
+      <div class="ap-table-wrap">
+        <table class="ap-table">
+          <thead>
+            <tr>
+              <th>Название</th>
+              <th>id</th>
+              <th>farmZoneId</th>
+              <th>статус</th>
+              <th>захват</th>
+              <th>осада</th>
+            </tr>
+          </thead>
+          <tbody id="apFarmBody"></tbody>
+        </table>
+      </div>
+
+      <section class="ap-edit" id="apEdit" hidden>
+        <h2>Правка угодья</h2>
+        <div class="ap-row">
+          <label class="ap-field">id<input id="apId" type="text" /></label>
+          <label class="ap-field">Название<input id="apLabel" type="text" /></label>
+        </div>
+        <div class="ap-row">
+          <label class="ap-field">L2<input id="apLabelL2" type="text" /></label>
+          <label class="ap-field">farmZoneId<input id="apFarmZone" type="text" /></label>
+        </div>
+        <label class="ap-field">Статус
+          <select id="apStatus">
+            <option value="planned">planned</option>
+            <option value="draft">draft</option>
+            <option value="live">live</option>
+          </select>
+        </label>
+        <label class="ap-check"><input id="apCapturable" type="checkbox" /> capturable</label>
+        <label class="ap-check"><input id="apSiege" type="checkbox" /> siegeEnabled</label>
+        <div class="ap-btns ap-btns-row">
+          <button type="button" class="ap-btn ap-btn-primary" id="apSave">Сохранить черновик</button>
+          <button type="button" class="ap-btn" id="apCopyOne">Копировать объект</button>
+          <button type="button" class="ap-btn" id="apDelete">Удалить черновик</button>
+        </div>
+        <p class="ap-status" id="apStatusLine"></p>
+      </section>
+    </main>
+  </div>
+
+  <script src="src/data/clan-territories-data.js?v=5"></script>
+  <script src="src/data/clan-hunting-catalog-data.js?v=2"></script>
+  <script src="src/aden-pins.js?v=2"></script>
+</body>
+</html>

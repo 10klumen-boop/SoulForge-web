@@ -7,14 +7,47 @@ const MAIL_MAX_PENDING_PER_CHAR = 30;
 const MAIL_INV_CAP = 120;
 const MAIL_MAX_ADENA = 50_000_000_000;
 const MAIL_GEAR_KINDS = new Set(["weapon", "armor", "accessory"]);
-const MAIL_STACK_KINDS = new Set(["adena", "crystal", "material", "shot", "armor_piece"]);
+const MAIL_STACK_KINDS = new Set(["adena", "crystal", "material", "shot", "armor_piece", "jewelry_piece", "scroll"]);
 const MAIL_KINDS = new Set([...MAIL_GEAR_KINDS, ...MAIL_STACK_KINDS]);
 const GRADES = new Set(["D", "C", "B", "A"]);
 const ORES = new Set(["soul", "spirit"]);
+const SCROLL_TARGETS = new Set(["weapon", "armor"]);
+const SCROLL_TYPE_IDS = new Set(["regular", "blessed", "destruction", "crystal"]);
+
+function emptyScrollGradeMap() {
+  return { D: 0, C: 0, B: 0, A: 0 };
+}
+function emptyScrollTypeMap() {
+  return {
+    regular: emptyScrollGradeMap(),
+    blessed: emptyScrollGradeMap(),
+    destruction: emptyScrollGradeMap(),
+    crystal: emptyScrollGradeMap(),
+  };
+}
+function ensureMailScrolls(progress) {
+  if (!progress.scrolls || typeof progress.scrolls !== "object") {
+    progress.scrolls = { weapon: emptyScrollTypeMap(), armor: emptyScrollTypeMap() };
+  }
+  ["weapon", "armor"].forEach((t) => {
+    if (!progress.scrolls[t]) progress.scrolls[t] = emptyScrollTypeMap();
+    SCROLL_TYPE_IDS.forEach((ty) => {
+      if (!progress.scrolls[t][ty]) progress.scrolls[t][ty] = emptyScrollGradeMap();
+    });
+  });
+  return progress.scrolls;
+}
 
 function isArmorPieceId(fragId) {
   const id = String(fragId || "");
   if (id.length < 8 || id.length > 80) return false;
+  return /^[a-z0-9_]+_piece$/i.test(id);
+}
+
+function isJewelryPieceId(fragId) {
+  const id = String(fragId || "");
+  if (id.length < 6 || id.length > 80) return false;
+  if (/^[a-z0-9_]+_shard$/i.test(id)) return true;
   return /^[a-z0-9_]+_piece$/i.test(id);
 }
 
@@ -73,6 +106,7 @@ function ensureProgress(slot) {
   }
   if (!p.shots.soul) p.shots.soul = { D: 0, C: 0, B: 0, A: 0 };
   if (!p.shots.spirit) p.shots.spirit = { D: 0, C: 0, B: 0, A: 0 };
+  ensureMailScrolls(p);
   return p;
 }
 
@@ -82,7 +116,7 @@ function syncActiveRoot(data) {
   if (!slot?.progress) return data;
   const p = slot.progress;
   const keys = [
-    "avatar", "adena", "farmZone", "inventory", "crystals", "materials", "shots",
+    "avatar", "adena", "farmZone", "inventory", "crystals", "materials", "shots", "scrolls",
     "autoShots", "equipped", "records", "totals", "achievements", "questProgress",
     "storyProgress", "storySeen", "collectibles", "passiveIncome", "autoClicker",
   ];
@@ -128,7 +162,7 @@ function sanitizeGearItem(it) {
   const uid = String(it.uid || "").slice(0, 64);
   if (!id || !uid) return null;
   const out = { kind, uid, id };
-  if (kind === "weapon") {
+  if (kind === "weapon" || kind === "armor") {
     out.plus = Math.max(0, Math.floor(Number(it.plus) || 0));
     out.spent = Math.max(0, Math.floor(Number(it.spent) || 0));
   }
@@ -160,8 +194,11 @@ function giveGearToProgress(progress, item) {
     return { ok: false, error: "Инвентарь полон (" + MAIL_INV_CAP + ")" };
   }
   const row = { uid: snap.uid, id: snap.id };
-  if (snap.kind === "armor") row.kind = "armor";
-  else if (snap.kind === "accessory") row.kind = "accessory";
+  if (snap.kind === "armor") {
+    row.kind = "armor";
+    row.plus = snap.plus || 0;
+    row.spent = snap.spent || 0;
+  } else if (snap.kind === "accessory") row.kind = "accessory";
   else {
     row.plus = snap.plus || 0;
     row.spent = snap.spent || 0;
@@ -247,6 +284,88 @@ function giveArmorPiece(progress, fragId, qty) {
   return { ok: true };
 }
 
+function takeJewelryPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isJewelryPieceId(fid)) return { ok: false, error: "Неверный кусок бижутерии" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!Array.isArray(progress.inventory)) progress.inventory = [];
+  let left = n;
+  const next = [];
+  for (const it of progress.inventory) {
+    if (!it || it.kind !== "shard" || String(it.id) !== fid) {
+      next.push(it);
+      continue;
+    }
+    const have = Math.max(0, Math.floor(Number(it.qty) || 0));
+    if (left <= 0) {
+      next.push(it);
+      continue;
+    }
+    if (have <= left) {
+      left -= have;
+      continue;
+    }
+    next.push(Object.assign({}, it, { qty: have - left }));
+    left = 0;
+  }
+  if (left > 0) return { ok: false, error: "Не хватает кусков бижутерии" };
+  progress.inventory = next;
+  return { ok: true, item: { kind: "jewelry_piece", fragId: fid }, qty: n };
+}
+
+function giveJewelryPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isJewelryPieceId(fid)) return { ok: false, error: "Неверный кусок бижутерии" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!Array.isArray(progress.inventory)) progress.inventory = [];
+  const idx = progress.inventory.findIndex((it) => it && it.kind === "shard" && String(it.id) === fid);
+  if (idx >= 0) {
+    const cur = progress.inventory[idx];
+    progress.inventory[idx] = Object.assign({}, cur, {
+      qty: Math.max(0, Math.floor(Number(cur.qty) || 0)) + n,
+    });
+  } else {
+    if (progress.inventory.length >= MAIL_INV_CAP) {
+      return { ok: false, error: "Инвентарь полон (" + MAIL_INV_CAP + ")" };
+    }
+    progress.inventory.push({
+      uid: "sh_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      id: fid,
+      kind: "shard",
+      qty: n,
+    });
+  }
+  return { ok: true };
+}
+
+function takeScrollMail(progress, target, typeId, grade, qty) {
+  const t = String(target || "").toLowerCase();
+  const ty = String(typeId || "").toLowerCase();
+  const g = String(grade || "").toUpperCase();
+  if (!SCROLL_TARGETS.has(t)) return { ok: false, error: "Неверная цель свитка" };
+  if (!SCROLL_TYPE_IDS.has(ty)) return { ok: false, error: "Неверный тип свитка" };
+  if (!GRADES.has(g)) return { ok: false, error: "Неверный грейд" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  ensureMailScrolls(progress);
+  const have = Math.max(0, Math.floor(Number(progress.scrolls[t][ty][g]) || 0));
+  if (have < n) return { ok: false, error: "Не хватает свитков" };
+  progress.scrolls[t][ty][g] = have - n;
+  return { ok: true, item: { kind: "scroll", target: t, typeId: ty, scrollType: ty, grade: g }, qty: n };
+}
+
+function giveScrollMail(progress, target, typeId, grade, qty) {
+  const t = String(target || "").toLowerCase();
+  const ty = String(typeId || "").toLowerCase();
+  const g = String(grade || "").toUpperCase();
+  if (!SCROLL_TARGETS.has(t) || !SCROLL_TYPE_IDS.has(ty) || !GRADES.has(g)) {
+    return { ok: false, error: "Неверный свиток" };
+  }
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  ensureMailScrolls(progress);
+  progress.scrolls[t][ty][g] = Math.max(0, Math.floor(Number(progress.scrolls[t][ty][g]) || 0)) + n;
+  return { ok: true };
+}
+
 function takeShot(progress, shotKind, grade, qty) {
   const sk = String(shotKind || "").toLowerCase();
   const g = String(grade || "").toUpperCase();
@@ -282,6 +401,18 @@ function takeMailFromProgress(progress, body) {
   if (kind === "armor_piece") {
     return takeArmorPiece(progress, body.fragId || body.frag_id || body.id, body.qty);
   }
+  if (kind === "jewelry_piece") {
+    return takeJewelryPiece(progress, body.fragId || body.frag_id || body.id, body.qty);
+  }
+  if (kind === "scroll") {
+    return takeScrollMail(
+      progress,
+      body.target,
+      body.typeId || body.scrollType || body.scroll_type,
+      body.grade,
+      body.qty
+    );
+  }
   if (kind === "shot") {
     return takeShot(progress, body.shotKind || body.shot_kind, body.grade, body.qty);
   }
@@ -297,6 +428,18 @@ function giveMailToProgress(progress, item, qty) {
   if (kind === "material") return giveMaterial(progress, item.ore, n);
   if (kind === "armor_piece") {
     return giveArmorPiece(progress, item.fragId || item.frag_id || item.id, n);
+  }
+  if (kind === "jewelry_piece") {
+    return giveJewelryPiece(progress, item.fragId || item.frag_id || item.id, n);
+  }
+  if (kind === "scroll") {
+    return giveScrollMail(
+      progress,
+      item.target,
+      item.typeId || item.scrollType || item.scroll_type,
+      item.grade,
+      n
+    );
   }
   if (kind === "shot") return giveShot(progress, item.shotKind || item.shot_kind, item.grade, n);
   return { ok: false, error: "Неизвестный тип предмета" };

@@ -87,6 +87,12 @@ function ensureChatSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_chat_clan_members_clan
       ON chat_clan_members(clan_id);
   `);
+
+  // Фаза A: роли в клане
+  const clanMemberCols = db.prepare("PRAGMA table_info(chat_clan_members)").all().map((c) => c.name);
+  if (!clanMemberCols.includes("role")) {
+    db.exec(`ALTER TABLE chat_clan_members ADD COLUMN role TEXT NOT NULL DEFAULT 'member'`);
+  }
 }
 
 function sanitizeChatBody(raw) {
@@ -211,15 +217,21 @@ function attachChatMethods(db, store) {
     INSERT INTO chat_clans (id, name, leader_user_id, created_at) VALUES (?, ?, ?, ?)
   `);
   const stmtClanMemberInsert = db.prepare(`
-    INSERT INTO chat_clan_members (clan_id, user_id, joined_at) VALUES (?, ?, ?)
+    INSERT INTO chat_clan_members (clan_id, user_id, joined_at, role) VALUES (?, ?, ?, ?)
   `);
   const stmtClanMemberDelete = db.prepare(`DELETE FROM chat_clan_members WHERE user_id = ?`);
   const stmtClanMembers = db.prepare(`
-    SELECT m.user_id, u.nick, m.joined_at
+    SELECT m.user_id, u.nick, m.joined_at, m.role
     FROM chat_clan_members m
     JOIN users u ON u.id = m.user_id
     WHERE m.clan_id = ?
     ORDER BY m.joined_at ASC
+  `);
+  const stmtClanMemberRole = db.prepare(`
+    SELECT role FROM chat_clan_members WHERE clan_id = ? AND user_id = ?
+  `);
+  const stmtClanSetRole = db.prepare(`
+    UPDATE chat_clan_members SET role = ? WHERE clan_id = ? AND user_id = ?
   `);
   const stmtClanDeleteIfEmpty = db.prepare(`
     DELETE FROM chat_clans
@@ -254,6 +266,9 @@ function attachChatMethods(db, store) {
   const PARTY_INVITE_TTL_MS = 5 * 60 * 1000;
   /** @type {Map<string, object>} inviteId → pending invite */
   const partyPendingInvites = new Map();
+  const clanPendingInvites = new Map();
+  const CLAN_INVITE_TTL_MS = 10 * 60 * 1000;
+  const CLAN_MAX_MEMBERS = 40;
 
   function prunePartyInvites(now) {
     const t = Number(now) || Date.now();
@@ -357,11 +372,17 @@ function attachChatMethods(db, store) {
         id: clanId,
         name: c?.name || null,
         leaderUserId: c?.leader_user_id || null,
-        members: members.map((m) => ({
-          userId: m.user_id,
-          nick: m.nick,
-          name: memberDisplayName(m.user_id, m.nick),
-        })),
+        members: members.map((m) => {
+          let role = m.role || "member";
+          if (m.user_id === c?.leader_user_id) role = "leader";
+          return {
+            userId: m.user_id,
+            nick: m.nick,
+            name: memberDisplayName(m.user_id, m.nick),
+            role,
+            joinedAt: m.joined_at || null,
+          };
+        }),
       };
     }
     return { party, clan };
@@ -685,12 +706,42 @@ function attachChatMethods(db, store) {
     const id = newSocialId("c");
     const tx = db.transaction(() => {
       stmtClanInsert.run(id, name, user.id, now);
-      stmtClanMemberInsert.run(id, user.id, now);
+      stmtClanMemberInsert.run(id, user.id, now, "leader");
     });
     tx();
     logChatAudit(user, "chat_clan_create", { clanId: id, name }, opts.charName);
     return { ok: true, ...socialSnapshot(user.id) };
   };
+
+  function pruneClanInvites(now) {
+    const t = Number(now) || Date.now();
+    for (const [id, inv] of clanPendingInvites) {
+      if (!inv || inv.expiresAt < t) clanPendingInvites.delete(id);
+    }
+  }
+
+  function listClanInvitesFor(userId) {
+    pruneClanInvites(Date.now());
+    return [...clanPendingInvites.values()]
+      .filter((inv) => inv && inv.toUserId === userId)
+      .map((inv) => ({
+        id: inv.id,
+        clanId: inv.clanId,
+        clanName: inv.clanName,
+        fromUserId: inv.fromUserId,
+        fromNick: inv.fromNick,
+        fromName: inv.fromName,
+        createdAt: inv.createdAt,
+        expiresAt: inv.expiresAt,
+      }));
+  }
+
+  function clanMemberRole(clanId, userId) {
+    const clan = stmtClanGet.get(clanId);
+    if (clan && clan.leader_user_id === userId) return "leader";
+    const row = stmtClanMemberRole.get(clanId, userId);
+    return row?.role || "member";
+  }
 
   store.chatLeaveClan = function chatLeaveClan(user, opts = {}) {
     const clanId = getClanId(user.id);
@@ -704,7 +755,10 @@ function attachChatMethods(db, store) {
         stmtClanDeleteIfEmpty.run(clanId, clanId);
       } else if (clan && clan.leader_user_id === user.id) {
         const next = stmtClanMembers.all(clanId)[0];
-        if (next) stmtClanSetLeader.run(next.user_id, clanId);
+        if (next) {
+          stmtClanSetLeader.run(next.user_id, clanId);
+          stmtClanSetRole.run("leader", clanId, next.user_id);
+        }
       }
     });
     tx();
@@ -712,19 +766,39 @@ function attachChatMethods(db, store) {
     return { ok: true, leftAt: now, ...socialSnapshot(user.id) };
   };
 
+  /** Приглашение — pending, пока цель не примет. Лидер или офицер. По имени персонажа (как party). */
   store.chatInviteClan = function chatInviteClan(user, opts = {}) {
-    const nick = String(opts.nick || "").trim();
-    if (!NICK_RE.test(nick)) {
-      return { ok: false, error: "nick", message: "Ник: 2–16 латинских букв" };
+    const raw = String(opts.charName || opts.name || opts.nick || "")
+      .trim()
+      .slice(0, 48);
+    if (raw.length < 2) {
+      return { ok: false, error: "name", message: "Укажи имя персонажа (2–16)" };
     }
     const clanId = getClanId(user.id);
     if (!clanId) return { ok: false, error: "none", message: "Сначала создайте клан" };
     const clan = stmtClanGet.get(clanId);
-    if (!clan || clan.leader_user_id !== user.id) {
-      return { ok: false, error: "leader", message: "Приглашать может только лидер" };
+    const role = clanMemberRole(clanId, user.id);
+    if (role !== "leader" && role !== "officer") {
+      return { ok: false, error: "leader", message: "Приглашать может лидер или офицер" };
     }
-    const target = store.getUserByNick(nick);
-    if (!target) return { ok: false, error: "not_found", message: "Игрок не найден" };
+
+    let target = null;
+    let invitedLabel = raw;
+    if (typeof store.mailResolveName === "function") {
+      const dest = store.mailResolveName(raw);
+      if (!dest.ok) {
+        return {
+          ok: false,
+          error: "not_found",
+          message: dest.error || dest.message || "Персонаж «" + raw + "» не найден",
+        };
+      }
+      target = store.getUserById(dest.userId);
+      invitedLabel = dest.name || raw;
+    }
+    if (!target) {
+      return { ok: false, error: "not_found", message: "Персонаж «" + raw + "» не найден" };
+    }
     if (target.id === user.id) {
       return { ok: false, error: "self", message: "Нельзя пригласить себя" };
     }
@@ -732,16 +806,223 @@ function attachChatMethods(db, store) {
       return { ok: false, error: "busy", message: "Игрок уже в клане" };
     }
     const count = Number(stmtClanCount.get(clanId)?.n || 0);
-    if (count >= 40) return { ok: false, error: "full", message: "Клан полон (40)" };
+    pruneClanInvites(opts.now || Date.now());
+    const pending = [...clanPendingInvites.values()].filter((i) => i && i.clanId === clanId).length;
+    if (count + pending >= CLAN_MAX_MEMBERS) {
+      return { ok: false, error: "full", message: "Клан полон (" + CLAN_MAX_MEMBERS + ")" };
+    }
+    for (const [id, inv] of clanPendingInvites) {
+      if (inv && inv.clanId === clanId && inv.toUserId === target.id) clanPendingInvites.delete(id);
+    }
     const now = Number(opts.now) || Date.now();
-    stmtClanMemberInsert.run(clanId, target.id, now);
+    const inviteId = newSocialId("ci");
+    clanPendingInvites.set(inviteId, {
+      id: inviteId,
+      clanId,
+      clanName: clan.name,
+      fromUserId: user.id,
+      fromNick: user.nick,
+      fromName: memberDisplayName(user.id, user.nick),
+      toUserId: target.id,
+      toName: invitedLabel,
+      createdAt: now,
+      expiresAt: Date.now() + CLAN_INVITE_TTL_MS,
+    });
     logChatAudit(
       user,
       "chat_clan_invite",
-      { clanId, name: clan.name, invited: target.nick, invitedUserId: target.id },
+      {
+        clanId,
+        name: clan.name,
+        invited: invitedLabel,
+        invitedUserId: target.id,
+        invitedNick: target.nick,
+        inviteId,
+        pending: true,
+      },
       opts.charName
     );
-    return { ok: true, invited: target.nick, ...socialSnapshot(user.id) };
+    return {
+      ok: true,
+      pending: true,
+      invited: invitedLabel,
+      inviteId,
+      ...socialSnapshot(user.id),
+    };
+  };
+
+  store.chatListClanInvites = function chatListClanInvites(user) {
+    return { ok: true, invites: listClanInvitesFor(user.id) };
+  };
+
+  store.chatRespondClanInvite = function chatRespondClanInvite(user, opts = {}) {
+    pruneClanInvites(opts.now || Date.now());
+    const inviteId = String(opts.inviteId || "");
+    const inv = inviteId ? clanPendingInvites.get(inviteId) : null;
+    if (!inv || inv.toUserId !== user.id) {
+      return { ok: false, error: "invite", message: "Приглашение не найдено" };
+    }
+    clanPendingInvites.delete(inviteId);
+    if (!opts.accept) {
+      return { ok: true, accepted: false, ...socialSnapshot(user.id) };
+    }
+    if (getClanId(user.id)) {
+      return { ok: false, error: "busy", message: "Вы уже в клане" };
+    }
+    const count = Number(stmtClanCount.get(inv.clanId)?.n || 0);
+    if (count >= CLAN_MAX_MEMBERS) {
+      return { ok: false, error: "full", message: "Клан полон" };
+    }
+    const now = Number(opts.now) || Date.now();
+    stmtClanMemberInsert.run(inv.clanId, user.id, now, "member");
+    logChatAudit(user, "chat_clan_join", { clanId: inv.clanId, inviteId }, opts.charName);
+    return { ok: true, accepted: true, ...socialSnapshot(user.id) };
+  };
+
+  store.chatKickClan = function chatKickClan(user, opts = {}) {
+    const raw = String(opts.charName || opts.name || opts.nick || "")
+      .trim()
+      .slice(0, 48);
+    if (raw.length < 2) {
+      return { ok: false, error: "name", message: "Укажи имя персонажа" };
+    }
+    const clanId = getClanId(user.id);
+    if (!clanId) return { ok: false, error: "none", message: "Вы не в клане" };
+    if (clanMemberRole(clanId, user.id) !== "leader") {
+      return { ok: false, error: "leader", message: "Кикать может только лидер" };
+    }
+
+    let target = null;
+    let kickedLabel = raw;
+    if (typeof store.mailResolveName === "function") {
+      const dest = store.mailResolveName(raw);
+      if (dest.ok) {
+        target = store.getUserById(dest.userId);
+        kickedLabel = dest.name || raw;
+      }
+    }
+    if (!target) {
+      const members = stmtClanMembers.all(clanId);
+      const needle = raw.toLowerCase();
+      const hit = members.find((m) => {
+        const cn = String(memberDisplayName(m.user_id, m.nick) || "").toLowerCase();
+        const nk = String(m.nick || "").toLowerCase();
+        return cn === needle || nk === needle;
+      });
+      if (hit) {
+        target = store.getUserById(hit.user_id);
+        kickedLabel = memberDisplayName(hit.user_id, hit.nick);
+      }
+    }
+    if (!target) {
+      return { ok: false, error: "not_found", message: "Персонаж не найден в клане" };
+    }
+    if (target.id === user.id) {
+      return { ok: false, error: "self", message: "Нельзя кикнуть себя — выйдите из клана" };
+    }
+    if (getClanId(target.id) !== clanId) {
+      return { ok: false, error: "member", message: "Игрок не в вашем клане" };
+    }
+    const clan = stmtClanGet.get(clanId);
+    if (clan && Number(clan.leader_user_id) === Number(target.id)) {
+      return { ok: false, error: "leader", message: "Нельзя кикнуть лидера" };
+    }
+    stmtClanMemberDelete.run(target.id);
+    logChatAudit(
+      user,
+      "chat_clan_kick",
+      {
+        clanId,
+        kicked: kickedLabel,
+        kickedUserId: target.id,
+        kickedNick: target.nick,
+      },
+      opts.charName
+    );
+    return { ok: true, kicked: kickedLabel, ...socialSnapshot(user.id) };
+  };
+
+  const CLAN_MAX_OFFICERS = 5;
+
+  /** Лидер назначает / снимает офицера по имени персонажа. */
+  store.chatSetClanRole = function chatSetClanRole(user, opts = {}) {
+    const raw = String(opts.charName || opts.name || opts.nick || "")
+      .trim()
+      .slice(0, 48);
+    const nextRole = String(opts.role || "").trim().toLowerCase();
+    if (raw.length < 2) {
+      return { ok: false, error: "name", message: "Укажи имя персонажа" };
+    }
+    if (nextRole !== "officer" && nextRole !== "member") {
+      return { ok: false, error: "role", message: "Роль: officer или member" };
+    }
+    const clanId = getClanId(user.id);
+    if (!clanId) return { ok: false, error: "none", message: "Вы не в клане" };
+    if (clanMemberRole(clanId, user.id) !== "leader") {
+      return { ok: false, error: "leader", message: "Назначает только лидер" };
+    }
+
+    let target = null;
+    let label = raw;
+    if (typeof store.mailResolveName === "function") {
+      const dest = store.mailResolveName(raw);
+      if (dest.ok) {
+        target = store.getUserById(dest.userId);
+        label = dest.name || raw;
+      }
+    }
+    if (!target) {
+      const members = stmtClanMembers.all(clanId);
+      const needle = raw.toLowerCase();
+      const hit = members.find((m) => {
+        const cn = String(memberDisplayName(m.user_id, m.nick) || "").toLowerCase();
+        const nk = String(m.nick || "").toLowerCase();
+        return cn === needle || nk === needle;
+      });
+      if (hit) {
+        target = store.getUserById(hit.user_id);
+        label = memberDisplayName(hit.user_id, hit.nick);
+      }
+    }
+    if (!target) {
+      return { ok: false, error: "not_found", message: "Персонаж не найден в клане" };
+    }
+    if (getClanId(target.id) !== clanId) {
+      return { ok: false, error: "member", message: "Игрок не в вашем клане" };
+    }
+    const clan = stmtClanGet.get(clanId);
+    if (clan && Number(clan.leader_user_id) === Number(target.id)) {
+      return { ok: false, error: "leader", message: "Лидера нельзя назначить офицером" };
+    }
+    if (nextRole === "officer") {
+      const officers = stmtClanMembers
+        .all(clanId)
+        .filter((m) => m.role === "officer" && Number(m.user_id) !== Number(target.id)).length;
+      if (officers >= CLAN_MAX_OFFICERS) {
+        return {
+          ok: false,
+          error: "cap",
+          message: "Лимит офицеров: " + CLAN_MAX_OFFICERS,
+        };
+      }
+    }
+    stmtClanSetRole.run(nextRole, clanId, target.id);
+    logChatAudit(
+      user,
+      "chat_clan_role",
+      { clanId, targetUserId: target.id, target: label, role: nextRole },
+      opts.charName
+    );
+    return {
+      ok: true,
+      role: nextRole,
+      member: label,
+      message:
+        nextRole === "officer"
+          ? label + " теперь офицер"
+          : label + " снова участник",
+      ...socialSnapshot(user.id),
+    };
   };
 
   store.chatListMessages = function chatListMessages(user, opts = {}) {

@@ -1,7 +1,7 @@
 const CATEGORIES = window.CATEGORIES || [];
 const WEAPONS = window.WEAPONS || [];
 /** Версия клиента — патчноут, главное меню, cloud API */
-const GAME_VERSION = "0.56.4";
+const GAME_VERSION = "0.58.22";
 /** Кэш фона главного меню (assets/ui/home_bg.png) */
 const HOME_BG_VER = 1;
 const WMAP = {}; WEAPONS.forEach((w) => { WMAP[w.id] = w; });
@@ -16,10 +16,12 @@ function uid() {
 function starterInventory() { return []; }
 
 // Свитки заточки — тирные иконки (game/icons/scrolls/, build_scroll_tier_icons.py).
-const SCROLL_TIER_VER = 2;
+const SCROLL_TIER_VER = 5;
 const SCROLL_TIER = { regular: 1, blessed: 2, destruction: 3, crystal: 4 };
-function scrollTierIcon(typeId, grade) {
-  return "icons/scrolls/" + typeId + "_" + grade + ".png?v=" + SCROLL_TIER_VER;
+/** @param {"weapon"|"armor"} [target] */
+function scrollTierIcon(typeId, grade, target) {
+  const prefix = target === "armor" ? "armor_" : "";
+  return "icons/scrolls/" + prefix + typeId + "_" + grade + ".png?v=" + SCROLL_TIER_VER;
 }
 // Legacy wiki refs (источники для build_scroll_tier_icons.py)
 const SCROLL_ICON = {
@@ -27,6 +29,12 @@ const SCROLL_ICON = {
   C: "icons/etc_scroll_of_enchant_weapon_i02.png",
   B: "icons/etc_scroll_of_enchant_weapon_i03.png",
   A: "icons/etc_scroll_of_enchant_weapon_i04.png",
+};
+const SCROLL_ARMOR_ICON = {
+  D: "icons/etc_scroll_of_enchant_armor_i01.png",
+  C: "icons/etc_scroll_of_enchant_armor_i02.png",
+  B: "icons/etc_scroll_of_enchant_armor_i03.png",
+  A: "icons/etc_scroll_of_enchant_armor_i04.png",
 };
 const BLESSED_ICON = {
   D: "icons/etc_blessed_scrl_of_ench_wp_d_i01.png",
@@ -47,11 +55,21 @@ const GRADE_BASE_PRICE = { D: 50_000, C: 280_000, B: 1_100_000, A: 4_500_000 };
 const DESTRUCTION_MAX_PLUS = 15;
 // типы свитков: множитель цены и поведение при провале
 const SCROLL_TYPES = [
-  { id:"regular", name:"Свиток заточки",        mult:1,  behavior:"break",       desc:"Провал на +3 и выше — оружие рассыпается в кристаллы" },
-  { id:"blessed", name:"Благословенный свиток",  mult:4,  behavior:"reset",       desc:"Провал — заточка сбрасывается до +0, оружие цело" },
-  { id:"destruction", name:"Свиток разрушения",  mult:30, behavior:"destruction", desc:"Низкий шанс до +15 — провал не ломает оружие" },
-  { id:"crystal", name:"Кристальный свиток",     mult:150, behavior:"guarantee", desc:"100% успех на любом уровне, но очень дорого" },
+  { id:"regular", name:"Свиток заточки оружия", nameArmor:"Свиток заточки брони", mult:1,  behavior:"break",
+    desc:"Провал на +3 и выше — оружие рассыпается в кристаллы",
+    descArmor:"Провал на +3 и выше — броня / бижутерия рассыпается в кристаллы" },
+  { id:"blessed", name:"Благ. свиток оружия", nameArmor:"Благ. свиток брони", mult:4,  behavior:"reset",
+    desc:"Провал — заточка сбрасывается до +0, оружие цело",
+    descArmor:"Провал — заточка сбрасывается до +0, броня / бижутерия цела" },
+  { id:"destruction", name:"Свиток разрушения оружия", nameArmor:"Свиток разрушения брони", mult:30, behavior:"destruction",
+    desc:"Низкий шанс до +15 — провал не ломает оружие",
+    descArmor:"Низкий шанс — провал не ломает (броня до +15, бижу до +12)" },
+  { id:"crystal", name:"Кристальный свиток оружия", nameArmor:"Кристальный свиток брони", mult:150, behavior:"guarantee",
+    desc:"100% успех на любом уровне",
+    descArmor:"100% успех (броня до +16, бижутерия до +12)" },
 ];
+/** Макс. заточка бижутерии (свиток брони). */
+const JEWELRY_MAX_PLUS = 12;
 const SAFE_LEVEL = 3;
 const START_ADENA_BASE = 25_000;
 /** Множитель adena-дохода. 1 = релизный баланс (без плейтест-наценки). */

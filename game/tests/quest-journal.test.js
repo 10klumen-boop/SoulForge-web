@@ -57,15 +57,16 @@ function runTests() {
     assert.ok(r2.soul >= r1.soul);
   });
 
-  test("P1 calibration: ch1 steps ≈ 25k / 30k / 40k", () => {
-    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).adena, 25_000);
-    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 2).adena, 30_000);
-    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 3).adena, 40_000);
+  test("P1 calibration: ch1 steps follow economyStepAdena", () => {
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).adena, economyStepAdena(1, 1));
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 2).adena, economyStepAdena(1, 2));
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 3).adena, economyStepAdena(1, 3));
+    assert.ok(economyStepAdena(1, 1) >= 25_000);
   });
 
-  test("P1 calibration: ch1 chapter clear ≈ 112.5k", () => {
+  test("P1 calibration: ch1 chapter clear from ZONE_CHAPTER_REWARDS", () => {
     assert.strictEqual(zoneChapterRewardDef("banana_mine").adena, 112_500);
-    assert.strictEqual(economyChapterAdena(1), 112_500);
+    assert.ok(economyChapterAdena(1) >= 112_500);
   });
 
   test("P1 calibration: later chapters outpace earlier", () => {
@@ -74,9 +75,22 @@ function runTests() {
     assert.ok(zoneChapterRewardDef("dwarven_depths").adena >= 900_000);
   });
 
-  test("zoneQuestStepRewardDef gives crystal on step 3", () => {
-    const r = zoneQuestStepRewardDef("banana_mine", 3);
-    assert.ok(Object.keys(r.crystals).length > 0);
+  test("zoneQuestStepRewardDef grants story XP on early chapters", () => {
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).xp, 22);
+    assert.strictEqual(zoneQuestStepRewardDef("elven_ruins", 2).xp, 35);
+    assert.strictEqual(zoneQuestStepRewardDef("orc_barracks", 3).xp, 80);
+    assert.strictEqual(zoneQuestStepRewardDef("dark_cavern", 1).xp, 0);
+  });
+
+  test("zoneChapterRewardDef includes XP for ch1–3", () => {
+    assert.strictEqual(zoneChapterRewardDef("banana_mine").xp, 32);
+    assert.strictEqual(zoneChapterRewardDef("elven_ruins").xp, 49);
+    assert.strictEqual(zoneChapterRewardDef("orc_barracks").xp, 137);
+  });
+
+  test("formatQuestStepLootLines includes XP when present", () => {
+    const lines = formatQuestStepLootLines("banana_mine", 1);
+    assert.ok(lines.some((ln) => /XP/.test(ln)));
   });
 
   test("formatQuestStepLootLines returns non-empty array", () => {

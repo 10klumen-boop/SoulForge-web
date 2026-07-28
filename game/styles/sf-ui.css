@@ -17,6 +17,10 @@
   --sf-card-ach: url("../assets/ui/sf-card-ach.png");
   --sf-card-quests: url("../assets/ui/sf-card-quests.png");
   --sf-card-shop: url("../assets/ui/sf-card-shop.png");
+  --sf-card-clan: url("../assets/ui/sf-card-clan.png?v=1");
+  --sf-card-clan-grounds: url("../assets/ui/sf-card-clan-grounds.png?v=1");
+  --sf-card-clan-warehouse: url("../assets/ui/sf-card-clan-warehouse.png?v=1");
+  --sf-card-clan-buffs: url("../assets/ui/sf-card-clan-buffs.png?v=1");
   --sf-frame-login: url("../assets/ui/sf-frame-login.png?v=13");
   --sf-frame-home: url("../assets/ui/sf-frame-home.png?v=13");
   --sf-frame-dialog: url("../assets/ui/sf-frame-dialog.png?v=9");

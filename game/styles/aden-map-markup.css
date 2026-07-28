@@ -1,0 +1,305 @@
+/* SoulForge — отдельная страница разметки угодий Aden */
+
+:root {
+  --amm-bg: #0c0b09;
+  --amm-panel: #16130f;
+  --amm-line: rgba(201, 168, 106, 0.35);
+  --amm-gold: #c9a86a;
+  --amm-txt: #e8dcc0;
+  --amm-dim: #9a8f78;
+  --amm-font: "Segoe UI", Tahoma, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--amm-bg);
+  color: var(--amm-txt);
+  font-family: var(--amm-font);
+}
+
+.amm-app {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.amm-head {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--amm-line);
+  background: linear-gradient(180deg, #1a1612, #120f0c);
+}
+
+.amm-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+}
+.amm-brand strong {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--amm-gold);
+}
+.amm-brand span { font-size: 12px; color: var(--amm-dim); }
+
+.amm-modes { display: inline-flex; gap: 4px; }
+.amm-mode {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(0,0,0,.35);
+  color: var(--amm-dim);
+  cursor: pointer;
+}
+.amm-mode.sel {
+  color: #f3e2b8;
+  border-color: rgba(201,168,106,.55);
+  background: linear-gradient(180deg, rgba(201,168,106,.28), rgba(80,55,24,.45));
+}
+
+.amm-zoom { display: inline-flex; gap: 4px; }
+.amm-zoom button, .amm-btn, .amm-back {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--amm-line);
+  background: rgba(0,0,0,.4);
+  color: var(--amm-txt);
+  cursor: pointer;
+  text-decoration: none;
+}
+.amm-zoom button { min-width: 36px; }
+.amm-back { margin-left: auto; }
+.amm-btn:hover, .amm-zoom button:hover, .amm-back:hover, .amm-mode:hover {
+  border-color: var(--amm-gold);
+}
+.amm-btn-primary {
+  border-color: rgba(201,168,106,.6);
+  background: linear-gradient(180deg, rgba(201,168,106,.32), rgba(90,60,25,.5));
+  color: #f3e2b8;
+}
+
+.amm-side {
+  overflow: auto;
+  border-right: 1px solid var(--amm-line);
+  background: var(--amm-panel);
+  padding: 10px 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.amm-block h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amm-gold);
+}
+.amm-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--amm-dim);
+}
+.amm-hint code { color: #d4c4a0; font-size: 11px; }
+.amm-meta {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.amm-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.amm-list button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(201,168,106,.2);
+  background: rgba(0,0,0,.3);
+  color: var(--amm-txt);
+  cursor: pointer;
+}
+.amm-list button.sel {
+  border-color: rgba(201,168,106,.65);
+  background: rgba(201,168,106,.18);
+}
+.amm-list button small {
+  display: block;
+  color: var(--amm-dim);
+  font-size: 11px;
+  margin-top: 2px;
+}
+.amm-list button.is-draft::after {
+  content: " *";
+  color: var(--amm-gold);
+}
+
+.amm-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.amm-btn-row .amm-btn { flex: 1 1 auto; }
+.amm-tools .amm-btn { width: 100%; margin-bottom: 6px; }
+
+.amm-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.amm-viewport {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: #070806;
+  cursor: grab;
+  touch-action: none;
+}
+.amm-viewport.is-dragging { cursor: grabbing; }
+.amm-viewport.is-draw { cursor: crosshair; }
+.amm-viewport.is-edit { cursor: default; }
+.amm-viewport.is-pin { cursor: crosshair; }
+/* В режиме Пины метки не перехватывают клик — иначе постановка невозможна */
+.amm-viewport.is-pin .amm-pin {
+  pointer-events: none;
+  opacity: 0.92;
+}
+.amm-viewport.is-draw .amm-pin {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.amm-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.amm-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: saturate(0.92) contrast(1.05);
+}
+.amm-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.amm-region {
+  pointer-events: none;
+  fill-opacity: 1;
+  stroke-width: 0.22;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 0.7 0.65;
+}
+.amm-region.is-sel {
+  stroke-width: 0.32;
+  filter: brightness(1.12);
+}
+.amm-region-open {
+  fill: none !important;
+  stroke-width: 0.25;
+  stroke-dasharray: 0.55 0.5;
+}
+.amm-route {
+  fill: none;
+  stroke: rgba(220, 190, 120, 0.45);
+  stroke-width: 0.22;
+  stroke-dasharray: 0.7 0.65;
+  pointer-events: none;
+}
+.amm-vert {
+  fill: #f0d090;
+  stroke: #1a140c;
+  stroke-width: 0.18;
+  pointer-events: auto;
+  cursor: grab;
+}
+.amm-vert.is-sel {
+  fill: #fff6d0;
+  stroke: #c9a86a;
+  stroke-width: 0.28;
+}
+
+.amm-pins { position: absolute; inset: 0; pointer-events: none; }
+.amm-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 14px;
+  border: 2px solid rgba(201, 168, 106, 0.7);
+  background: rgba(12, 10, 8, 0.92);
+  color: #e8d7a8;
+  font: 700 11px/24px var(--amm-font);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+.amm-pin.is-farm { border-color: rgba(180, 140, 70, 0.9); }
+.amm-pin.is-city { border-color: rgba(140, 170, 200, 0.85); }
+.amm-pin.is-new { border-color: rgba(120, 200, 120, 0.95); box-shadow: 0 0 0 1px rgba(120, 200, 120, 0.35); }
+.amm-pin.is-sel { outline: 2px solid #f0d090; outline-offset: 2px; }
+.amm-viewport.is-draw .amm-pin {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.amm-status {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--amm-dim);
+  border-top: 1px solid var(--amm-line);
+  background: #120f0c;
+}
+
+@media (max-width: 860px) {
+  .amm-app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+  }
+  .amm-side {
+    max-height: 40vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--amm-line);
+  }
+}

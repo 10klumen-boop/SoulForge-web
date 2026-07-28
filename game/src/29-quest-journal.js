@@ -128,7 +128,7 @@ function renderQuestJournal() {
     if (zone.side) {
       const hint = document.createElement("p");
       hint.className = "qj-farm-hint";
-      hint.textContent = "Только фарм: фрагменты брони с поля → крафт в Мастерской. Без квестов и босса главы.";
+      hint.textContent = "Только фарм: куски брони и бижутерии с поля → крафт в Мастерской. Без квестов и босса главы.";
       card.appendChild(hint);
     } else {
     const steps = typeof zoneQuestSteps === "function" ? zoneQuestSteps(zone.id) : [];

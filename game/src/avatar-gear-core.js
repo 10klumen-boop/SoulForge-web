@@ -64,9 +64,15 @@ function ensureAvatarGear() {
 function avatarGearSnapshot(it) {
   if (!it) return null;
   if (typeof isArmorItem === "function" && isArmorItem(it)) {
-    return { uid: it.uid, id: it.id, kind: "armor" };
+    return {
+      uid: it.uid,
+      id: it.id,
+      kind: "armor",
+      plus: it.plus || 0,
+      spent: it.spent || 0,
+    };
   }
-  if (isAccessoryItem(it)) return { uid: it.uid, id: it.id, kind: "accessory" };
+  if (isAccessoryItem(it)) return { uid: it.uid, id: it.id, kind: "accessory", plus: it.plus || 0, spent: it.spent || 0 };
   const def = WMAP[it.id];
   const starter = !!it.starter || (def && typeof isNoGradeWeapon === "function" && isNoGradeWeapon(def));
   return { uid: it.uid, id: it.id, plus: it.plus || 0, spent: it.spent || 0, kind: "weapon", starter };
@@ -77,12 +83,14 @@ function avatarGearItemDef(item) {
   if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) {
     return typeof armorItemDef === "function" ? armorItemDef(item) : (AMAP && AMAP[item.id]) || null;
   }
-  if (item.kind === "accessory" || isAccessoryItem(item)) return COLLECTIBLES[item.id];
+  if (item.kind === "accessory" || isAccessoryItem(item)) {
+    return typeof accessoryDef === "function" ? accessoryDef(item) : COLLECTIBLES[item.id];
+  }
   return WMAP[item.id] || null;
 }
 
 function accessorySlotType(item) {
-  const def = COLLECTIBLES[item?.id];
+  const def = typeof accessoryDef === "function" ? accessoryDef(item) : COLLECTIBLES[item?.id];
   return def?.slot || null;
 }
 
@@ -127,9 +135,21 @@ function returnGearToInventory(item) {
   const inv = (state.inventory || []).slice();
   if (isInventoryFull()) return false;
   if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) {
-    inv.push({ uid: item.uid, id: item.id, kind: "armor" });
+    inv.push({
+      uid: item.uid,
+      id: item.id,
+      kind: "armor",
+      plus: item.plus || 0,
+      spent: item.spent || 0,
+    });
   } else if (item.kind === "accessory" || isAccessoryItem(item)) {
-    inv.push({ uid: item.uid, id: item.id, kind: "accessory" });
+    inv.push({
+      uid: item.uid,
+      id: item.id,
+      kind: "accessory",
+      plus: item.plus || 0,
+      spent: item.spent || 0,
+    });
   } else {
     inv.push({
       uid: item.uid,
@@ -285,10 +305,23 @@ function avatarGearBonusSummary() {
   }
   const accPvp = avatarAccessoryPvpAtk();
   if (accPvp > 0) lines.push("+" + Math.round(accPvp * 1000) / 10 + "% ATK арены (бижутерия)");
+  if (typeof avatarJewelrySkillCdMult === "function") {
+    const cd = avatarJewelrySkillCdMult();
+    if (cd < 1) lines.push("КД скиллов −" + Math.round((1 - cd) * 1000) / 10 + "% (бижутерия)");
+  }
+  if (typeof avatarJewelryDebuffResist === "function") {
+    const dr = avatarJewelryDebuffResist();
+    if (dr > 0) lines.push("Резист дебаффов +" + Math.round(dr * 1000) / 10 + "% (бижутерия)");
+  }
+  if (typeof avatarJewelrySetBonuses === "function") {
+    (avatarJewelrySetBonuses().sets || []).forEach((s) => {
+      lines.push("Бижу-сет «" + s.name + "»: " + s.pieces + "/5");
+    });
+  }
   iterEquippedGear().forEach(({ item }) => {
     if (!item || item.kind === "weapon" || item.kind === "armor") return;
     if (typeof isArmorItem === "function" && isArmorItem(item)) return;
-    const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
+    const def = typeof accessoryDef === "function" ? accessoryDef(item) : (typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null);
     if (def?.name) lines.push("Надето: " + def.name);
   });
   if (typeof avatarArmorSustainPct === "function") {

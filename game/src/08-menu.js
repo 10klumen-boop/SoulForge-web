@@ -46,6 +46,7 @@ function renderMenu() {
   if (typeof renderAvatarHub === "function") renderAvatarHub();
   if (typeof syncMenuTileIcons === "function") syncMenuTileIcons();
   if (typeof syncPartyTileMeta === "function") syncPartyTileMeta();
+  if (typeof syncClanTileMeta === "function") syncClanTileMeta();
   if (typeof syncCloudUI === "function") syncCloudUI();
   const tileMeta = document.getElementById("avatarTileMeta");
   if (tileMeta) {
@@ -57,4 +58,5 @@ function renderMenu() {
     }
   }
   if (typeof syncMenuHubMode === "function") syncMenuHubMode();
+  if (typeof clanHydrateWorldState === "function") clanHydrateWorldState(false);
 }

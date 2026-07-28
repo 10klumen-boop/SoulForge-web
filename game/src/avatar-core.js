@@ -249,6 +249,10 @@ function grantAvatarXp(amount, opts) {
   if (!amount || amount <= 0) return;
   migrateAvatar();
   if (!state.avatar.created) return;
+  if (!opts.noClanBuff && typeof clanBuffXpPct === "function") {
+    const xpPct = clanBuffXpPct();
+    if (xpPct > 0) amount = Math.round(amount * (1 + xpPct / 100));
+  }
   if (typeof avatarGearXpMult === "function") amount = Math.round(amount * avatarGearXpMult());
   let leveled = false;
   ProgressStore.update("avatar", (a) => {
@@ -281,6 +285,7 @@ function grantAvatarXp(amount, opts) {
   }
   if (leveled) save();
   if (leveled && typeof notifyFarmZoneUnlocks === "function") notifyFarmZoneUnlocks();
+  if (leveled && typeof maybeShowHuntingGraduation === "function") maybeShowHuntingGraduation();
   if (leveled && typeof renderMenuFarmHub === "function") renderMenuFarmHub();
   if (leveled && typeof canChooseProfession === "function" && canChooseProfession(state.avatar)) {
     if (typeof toast === "function") {
@@ -311,8 +316,11 @@ function onEnchantAvatarXp(win, plus, behavior, broken) {
 function onMineAvatarXp(golden) {
   if (!state.avatar?.created) return;
   const zone = typeof farmZoneById === "function" ? farmZoneById(state.farmZone || "banana_mine") : { chapter: 1 };
-  const ch = zone.chapter || 1;
-  // Чуть выше, чтобы киллы главы подводили к reqLevel следующей зоны
+  const ch =
+    typeof farmZoneProgressChapter === "function"
+      ? farmZoneProgressChapter(zone)
+      : zone.chapter || 1;
+  // Сюжет: chapter; охота: банд reqLevel — киллы ведут к гейтам без golden-такса
   let amt = golden ? 10 + ch * 3 : 3 + ch * 2;
   if (typeof passiveEffectMult === "function") {
     amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar));

@@ -20,7 +20,9 @@ function marketListingTitle(listing) {
   }
   if (kind === "armor") {
     const a = typeof AMAP !== "undefined" ? AMAP[item.id] : null;
-    return a?.name || item.id || "Броня";
+    const name = a?.name || item.id || "Броня";
+    const plus = Math.max(0, Number(item.plus) || 0);
+    return name + (plus ? " +" + plus : "");
   }
   if (kind === "accessory") {
     const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
@@ -30,6 +32,14 @@ function marketListingTitle(listing) {
     const fid = item.fragId || item.id;
     const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
     return frag?.name || fid || "Кусок брони";
+  }
+  if (kind === "jewelry_piece") {
+    const fid = item.fragId || item.id;
+    const frag =
+      (typeof ACCESSORY_FRAGS !== "undefined" && ACCESSORY_FRAGS[fid]) ||
+      (typeof JEWELRY_FRAGS !== "undefined" && JEWELRY_FRAGS[fid]) ||
+      null;
+    return frag?.name || fid || "Кусок бижутерии";
   }
   if (kind === "crystal") {
     return "Кристалл " + (item.grade || "?");
@@ -42,6 +52,12 @@ function marketListingTitle(listing) {
     const sk = item.shotKind || item.shot_kind;
     const label = typeof SHOT_TYPE !== "undefined" ? SHOT_TYPE[sk]?.label : sk;
     return (label || "Заряд") + " " + (item.grade || "");
+  }
+  if (kind === "scroll") {
+    const target = item.target || "weapon";
+    const typeId = item.typeId || item.scrollType || item.scroll_type || "regular";
+    if (typeof scrollLabel === "function") return scrollLabel(target, typeId, item.grade);
+    return "Свиток " + (target === "armor" ? "брони" : "оружия") + " " + (item.grade || "");
   }
   return "Лот";
 }
@@ -66,6 +82,14 @@ function marketListingIcon(listing) {
     const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
     return frag?.icon || "icons/etc_crystal_white_i00.png";
   }
+  if (kind === "jewelry_piece") {
+    const fid = item.fragId || item.id;
+    const frag =
+      (typeof ACCESSORY_FRAGS !== "undefined" && ACCESSORY_FRAGS[fid]) ||
+      (typeof JEWELRY_FRAGS !== "undefined" && JEWELRY_FRAGS[fid]) ||
+      null;
+    return frag?.icon || "icons/etc_broken_crystal_silver_i00.png";
+  }
   if (kind === "crystal") {
     const map = typeof CRYSTAL_ICON !== "undefined" ? CRYSTAL_ICON : null;
     return (map && map[item.grade]) || "icons/etc_crystal_blue_i00.png";
@@ -76,6 +100,15 @@ function marketListingIcon(listing) {
   if (kind === "shot") {
     const sk = item.shotKind || item.shot_kind;
     return (typeof SHOT_ICON !== "undefined" && SHOT_ICON[sk]?.[item.grade]) || "icons/etc_spirit_bullet_blue_i00.png";
+  }
+  if (kind === "scroll") {
+    const typeId = item.typeId || item.scrollType || item.scroll_type || "regular";
+    const grade = item.grade || "D";
+    const target = item.target === "armor" || item.target === "jewelry" ? "armor" : "weapon";
+    if (typeof scrollTierIcon === "function") return scrollTierIcon(typeId, grade, target);
+    return target === "armor"
+      ? "icons/etc_scroll_of_enchant_armor_i01.png"
+      : "icons/etc_scroll_of_enchant_weapon_i01.png";
   }
   return "icons/weapon_generic.png";
 }
@@ -100,6 +133,20 @@ function marketListingGrade(listing) {
     const frag = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS[fid] : null;
     const armorId = frag?.armorId;
     if (armorId && typeof AMAP !== "undefined") return AMAP[armorId]?.grade || "";
+    return "";
+  }
+  if (kind === "jewelry_piece") {
+    const fid = item.fragId || item.id;
+    const frag =
+      (typeof ACCESSORY_FRAGS !== "undefined" && ACCESSORY_FRAGS[fid]) ||
+      (typeof JEWELRY_FRAGS !== "undefined" && JEWELRY_FRAGS[fid]) ||
+      null;
+    const accId = frag?.accessoryId;
+    if (accId && typeof COLLECTIBLES !== "undefined") {
+      const c = COLLECTIBLES[accId];
+      if (c?.epic) return "epic";
+      return c?.grade || "";
+    }
     return "";
   }
   return item.grade || "";
@@ -283,6 +330,26 @@ function marketStackOptions() {
       });
     });
   }
+  if (typeof ACCESSORY_FRAGS !== "undefined" && ACCESSORY_FRAGS) {
+    Object.keys(ACCESSORY_FRAGS).forEach((fragId) => {
+      const n =
+        typeof inventoryShardCount === "function"
+          ? inventoryShardCount(fragId)
+          : 0;
+      if (n <= 0) return;
+      const frag = ACCESSORY_FRAGS[fragId];
+      const acc = frag?.accessoryId && typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[frag.accessoryId] : null;
+      const grade = acc?.epic ? "epic" : acc?.grade || "";
+      out.push({
+        kind: "jewelry_piece",
+        fragId,
+        max: n,
+        grade,
+        label: (frag?.name || fragId) + " ×" + n,
+        icon: frag?.icon || "",
+      });
+    });
+  }
   const shots = state.shots || {};
   ["soul", "spirit"].forEach((sk) => {
     ["D", "C", "B", "A"].forEach((g) => {
@@ -293,5 +360,19 @@ function marketStackOptions() {
       }
     });
   });
+  if (typeof listScrollStacks === "function") {
+    listScrollStacks().forEach((st) => {
+      out.push({
+        kind: "scroll",
+        target: st.target,
+        typeId: st.typeId,
+        grade: st.grade,
+        max: st.qty,
+        label: st.name + " ×" + st.qty,
+        icon: st.icon,
+        estimate: st.estimate,
+      });
+    });
+  }
   return out;
 }

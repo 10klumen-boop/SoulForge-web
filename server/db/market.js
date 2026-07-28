@@ -7,13 +7,58 @@ const MARKET_MIN_PRICE = 1000;
 const MARKET_MAX_PRICE = 50_000_000_000;
 const MARKET_LISTING_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MARKET_MAX_LISTINGS = 10;
-const MARKET_KINDS = new Set(["weapon", "crystal", "material", "shot", "armor", "armor_piece", "accessory"]);
+const MARKET_KINDS = new Set([
+  "weapon",
+  "crystal",
+  "material",
+  "shot",
+  "armor",
+  "armor_piece",
+  "accessory",
+  "jewelry_piece",
+  "scroll",
+]);
 const GRADES = new Set(["D", "C", "B", "A"]);
 const ORES = new Set(["soul", "spirit"]);
+const SCROLL_TARGETS = new Set(["weapon", "armor"]);
+const SCROLL_TYPES = new Set(["regular", "blessed", "destruction", "crystal"]);
+
+function emptyScrollGradeMap() {
+  return { D: 0, C: 0, B: 0, A: 0 };
+}
+
+function emptyScrollTypeMap() {
+  return {
+    regular: emptyScrollGradeMap(),
+    blessed: emptyScrollGradeMap(),
+    destruction: emptyScrollGradeMap(),
+    crystal: emptyScrollGradeMap(),
+  };
+}
+
+function ensureScrollsProgress(progress) {
+  if (!progress.scrolls || typeof progress.scrolls !== "object") {
+    progress.scrolls = { weapon: emptyScrollTypeMap(), armor: emptyScrollTypeMap() };
+  }
+  ["weapon", "armor"].forEach((t) => {
+    if (!progress.scrolls[t]) progress.scrolls[t] = emptyScrollTypeMap();
+    SCROLL_TYPES.forEach((ty) => {
+      if (!progress.scrolls[t][ty]) progress.scrolls[t][ty] = emptyScrollGradeMap();
+    });
+  });
+  return progress.scrolls;
+}
 
 function isArmorPieceId(fragId) {
   const id = String(fragId || "");
   if (id.length < 8 || id.length > 80) return false;
+  return /^[a-z0-9_]+_piece$/i.test(id);
+}
+
+function isJewelryPieceId(fragId) {
+  const id = String(fragId || "");
+  if (id.length < 6 || id.length > 80) return false;
+  if (/^[a-z0-9_]+_shard$/i.test(id)) return true;
   return /^[a-z0-9_]+_piece$/i.test(id);
 }
 
@@ -89,6 +134,7 @@ function ensureProgress(slot) {
   }
   if (!p.shots.soul) p.shots.soul = { D: 0, C: 0, B: 0, A: 0 };
   if (!p.shots.spirit) p.shots.spirit = { D: 0, C: 0, B: 0, A: 0 };
+  ensureScrollsProgress(p);
   if (!p.avatar || typeof p.avatar !== "object") p.avatar = {};
   if (!p.avatar.gear || typeof p.avatar.gear !== "object") p.avatar.gear = {};
   if (p.adena == null) p.adena = 0;
@@ -103,7 +149,7 @@ function syncActiveRoot(data) {
   if (!slot?.progress) return data;
   const p = slot.progress;
   const keys = [
-    "avatar", "adena", "farmZone", "inventory", "crystals", "materials", "shots",
+    "avatar", "adena", "farmZone", "inventory", "crystals", "materials", "shots", "scrolls",
     "autoShots", "equipped", "records", "totals", "achievements", "questProgress",
     "storyProgress", "storySeen", "collectibles", "passiveIncome", "autoClicker",
   ];
@@ -170,7 +216,13 @@ function sanitizeArmorItem(it) {
   const id = String(it.id || "").slice(0, 64);
   const uid = String(it.uid || "").slice(0, 64);
   if (!id || !uid) return null;
-  return { kind: "armor", uid, id };
+  return {
+    kind: "armor",
+    uid,
+    id,
+    plus: Math.max(0, Math.floor(Number(it.plus) || 0)),
+    spent: Math.max(0, Math.floor(Number(it.spent) || 0)),
+  };
 }
 
 function takeArmor(progress, uid) {
@@ -201,6 +253,8 @@ function giveArmor(progress, item) {
     uid: snap.uid,
     id: snap.id,
     kind: "armor",
+    plus: snap.plus || 0,
+    spent: snap.spent || 0,
   });
   return { ok: true };
 }
@@ -270,6 +324,70 @@ function giveArmorPiece(progress, fragId, qty) {
   return { ok: true };
 }
 
+function inventoryShardQty(progress, shardId) {
+  let n = 0;
+  (progress.inventory || []).forEach((it) => {
+    if (it && it.kind === "shard" && String(it.id) === String(shardId)) {
+      n += Math.max(0, Math.floor(Number(it.qty) || 0));
+    }
+  });
+  return n;
+}
+
+function takeJewelryPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isJewelryPieceId(fid)) return { ok: false, error: "Неверный кусок бижутерии" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!Array.isArray(progress.inventory)) progress.inventory = [];
+  let left = n;
+  const next = [];
+  for (const it of progress.inventory) {
+    if (!it || it.kind !== "shard" || String(it.id) !== fid) {
+      next.push(it);
+      continue;
+    }
+    const have = Math.max(0, Math.floor(Number(it.qty) || 0));
+    if (left <= 0) {
+      next.push(it);
+      continue;
+    }
+    if (have <= left) {
+      left -= have;
+      continue;
+    }
+    next.push(Object.assign({}, it, { qty: have - left }));
+    left = 0;
+  }
+  if (left > 0) return { ok: false, error: "Не хватает кусков бижутерии" };
+  progress.inventory = next;
+  return { ok: true, item: { kind: "jewelry_piece", fragId: fid }, qty: n };
+}
+
+function giveJewelryPiece(progress, fragId, qty) {
+  const fid = String(fragId || "");
+  if (!isJewelryPieceId(fid)) return { ok: false, error: "Неверный кусок бижутерии" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!Array.isArray(progress.inventory)) progress.inventory = [];
+  const idx = progress.inventory.findIndex((it) => it && it.kind === "shard" && String(it.id) === fid);
+  if (idx >= 0) {
+    const cur = progress.inventory[idx];
+    progress.inventory[idx] = Object.assign({}, cur, {
+      qty: Math.max(0, Math.floor(Number(cur.qty) || 0)) + n,
+    });
+  } else {
+    if (progress.inventory.length >= 120) {
+      return { ok: false, error: "Инвентарь покупателя полон" };
+    }
+    progress.inventory.push({
+      uid: "sh_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      id: fid,
+      kind: "shard",
+      qty: n,
+    });
+  }
+  return { ok: true };
+}
+
 function takeCrystal(progress, grade, qty) {
   const g = String(grade || "").toUpperCase();
   if (!GRADES.has(g)) return { ok: false, error: "Неверный грейд" };
@@ -329,6 +447,34 @@ function giveShot(progress, shotKind, grade, qty) {
   return { ok: true };
 }
 
+function takeScroll(progress, target, typeId, grade, qty) {
+  const t = String(target || "").toLowerCase();
+  const ty = String(typeId || "").toLowerCase();
+  const g = String(grade || "").toUpperCase();
+  if (!SCROLL_TARGETS.has(t)) return { ok: false, error: "Неверная цель свитка" };
+  if (!SCROLL_TYPES.has(ty)) return { ok: false, error: "Неверный тип свитка" };
+  if (!GRADES.has(g)) return { ok: false, error: "Неверный грейд" };
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  ensureScrollsProgress(progress);
+  const have = Math.max(0, Math.floor(Number(progress.scrolls[t][ty][g]) || 0));
+  if (have < n) return { ok: false, error: "Не хватает свитков" };
+  progress.scrolls[t][ty][g] = have - n;
+  return { ok: true, item: { kind: "scroll", target: t, typeId: ty, scrollType: ty, grade: g }, qty: n };
+}
+
+function giveScroll(progress, target, typeId, grade, qty) {
+  const t = String(target || "").toLowerCase();
+  const ty = String(typeId || "").toLowerCase();
+  const g = String(grade || "").toUpperCase();
+  if (!SCROLL_TARGETS.has(t) || !SCROLL_TYPES.has(ty) || !GRADES.has(g)) {
+    return { ok: false, error: "Неверный свиток" };
+  }
+  const n = Math.max(1, Math.floor(Number(qty) || 0));
+  ensureScrollsProgress(progress);
+  progress.scrolls[t][ty][g] = Math.max(0, Math.floor(Number(progress.scrolls[t][ty][g]) || 0)) + n;
+  return { ok: true };
+}
+
 function takeFromProgress(progress, body) {
   const kind = String(body.kind || "").toLowerCase();
   if (!MARKET_KINDS.has(kind)) return { ok: false, error: "Неизвестный тип лота" };
@@ -338,8 +484,20 @@ function takeFromProgress(progress, body) {
   if (kind === "crystal") return takeCrystal(progress, body.grade, body.qty);
   if (kind === "material") return takeMaterial(progress, body.ore, body.qty);
   if (kind === "shot") return takeShot(progress, body.shotKind || body.shot_kind, body.grade, body.qty);
+  if (kind === "scroll") {
+    return takeScroll(
+      progress,
+      body.target,
+      body.typeId || body.scrollType || body.scroll_type,
+      body.grade,
+      body.qty
+    );
+  }
   if (kind === "armor_piece") {
     return takeArmorPiece(progress, body.fragId || body.frag_id || body.id, body.qty);
+  }
+  if (kind === "jewelry_piece") {
+    return takeJewelryPiece(progress, body.fragId || body.frag_id || body.id, body.qty);
   }
   return { ok: false, error: "Неизвестный тип лота" };
 }
@@ -353,7 +511,17 @@ function giveToProgress(progress, item, qty) {
   if (kind === "crystal") return giveCrystal(progress, item.grade, n);
   if (kind === "material") return giveMaterial(progress, item.ore, n);
   if (kind === "shot") return giveShot(progress, item.shotKind || item.shot_kind, item.grade, n);
+  if (kind === "scroll") {
+    return giveScroll(
+      progress,
+      item.target,
+      item.typeId || item.scrollType || item.scroll_type,
+      item.grade,
+      n
+    );
+  }
   if (kind === "armor_piece") return giveArmorPiece(progress, item.fragId || item.frag_id || item.id, n);
+  if (kind === "jewelry_piece") return giveJewelryPiece(progress, item.fragId || item.frag_id || item.id, n);
   return { ok: false, error: "Неизвестный тип предмета" };
 }
 

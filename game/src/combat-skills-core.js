@@ -236,6 +236,15 @@ function applyDirectMobHit(g, mult, opts) {
     }
     return true;
   }
+  // Клан-рейд: урон через сервер + float
+  if (g._clanBossEncounter && typeof clanBossHandleHit === "function") {
+    clanBossHandleHit(g, {
+      skillMult: mult || 1,
+      bySkill: true,
+      color: opts.color || "#9ad4ff",
+    });
+    return true;
+  }
   if (g._instanceEncounter && typeof instanceHandleHit === "function") {
     instanceHandleHit(g, { skillMult: mult || 1, bySkill: true });
     return true;
@@ -287,7 +296,10 @@ function useCombatSkill(skillId) {
     return false;
   }
   let cdMs = skill.cdMs;
-  if (typeof passiveEffectMult === "function") cdMs = Math.max(500, Math.round(cdMs * passiveEffectMult("skillCdMult", state.avatar)));
+  let cdMult = 1;
+  if (typeof passiveEffectMult === "function") cdMult *= passiveEffectMult("skillCdMult", state.avatar);
+  if (typeof avatarJewelrySkillCdMult === "function") cdMult *= avatarJewelrySkillCdMult();
+  cdMs = Math.max(500, Math.round(cdMs * Math.max(0.5, cdMult)));
   mineSkillRuntime.cds[skillId] = Date.now() + cdMs;
   if (typeof Audio2 !== "undefined") Audio2.click();
   if (skill.effect === "nextHit") {
@@ -435,9 +447,14 @@ function nudgeMineSkillBarScale(dir) {
 function combatSkillEffectiveCdMs(skill) {
   if (!skill) return 1;
   let cdMs = Number(skill.cdMs) || 1;
+  let cdMult = 1;
   if (typeof passiveEffectMult === "function") {
-    cdMs = Math.max(500, Math.round(cdMs * passiveEffectMult("skillCdMult", state.avatar)));
+    cdMult *= passiveEffectMult("skillCdMult", state.avatar);
   }
+  if (typeof avatarJewelrySkillCdMult === "function") {
+    cdMult *= avatarJewelrySkillCdMult();
+  }
+  cdMs = Math.max(500, Math.round(cdMs * Math.max(0.5, cdMult)));
   return Math.max(1, cdMs);
 }
 

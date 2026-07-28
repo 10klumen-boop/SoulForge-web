@@ -7,7 +7,7 @@
 const CHARACTER_PROGRESS_KEYS = [
   "avatar", "adena", "farmZone", "storyProgress", "questProgress",
   "records", "totals", "storySeen", "inventory", "crystals",
-  "collectibles", "equipped", "materials", "shots", "autoShots", "achievements",
+  "collectibles", "equipped", "materials", "shots", "scrolls", "autoShots", "achievements",
   "passiveIncome", "autoClicker", "resourceFavorites",
   "partyFarm", "instanceLocks", "overflowLoot",
 ];

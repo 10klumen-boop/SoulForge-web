@@ -1,12 +1,12 @@
-// ===== Unit: story chaptersSeen не считает side-фарм =====
+﻿// ===== Unit: story chaptersSeen не считает side-фарм =====
 const assert = require("assert");
 const { loadScripts } = require("./setup");
 
 global.FARM_ZONES = [
   { id: "banana_mine", chapter: 1, active: true },
   { id: "elven_ruins", chapter: 2, active: true },
-  { id: "scrap_field", chapter: 1, side: true, active: true },
-  { id: "mithril_forge", chapter: 2, side: true, active: true },
+  { id: "wasteland", chapter: 1, side: true, active: true },
+  { id: "abandoned_coal_low", chapter: 2, side: true, active: true },
   { id: "orc_barracks", chapter: 3, active: true },
   { id: "dark_cavern", chapter: 4, active: true },
   { id: "dwarven_depths", chapter: 5, active: true },
@@ -21,11 +21,11 @@ global.state = {
   storyProgress: {
     chaptersSeen: {
       banana_mine: true,
-      scrap_field: true,
-      mithril_forge: true,
+      wasteland: true,
+      abandoned_coal_low: true,
       elven_ruins: true,
     },
-    unlocksShown: { scrap_field: true },
+    unlocksShown: { wasteland: true },
   },
 };
 global.ProgressStore = {
@@ -58,15 +58,15 @@ function run() {
 
   test("ensureStoryProgress strips side chaptersSeen", () => {
     ensureStoryProgress();
-    assert.ok(!state.storyProgress.chaptersSeen.scrap_field);
-    assert.ok(!state.storyProgress.chaptersSeen.mithril_forge);
+    assert.ok(!state.storyProgress.chaptersSeen.wasteland);
+    assert.ok(!state.storyProgress.chaptersSeen.abandoned_coal_low);
     assert.ok(state.storyProgress.chaptersSeen.banana_mine);
     assert.ok(state.storyProgress.chaptersSeen.elven_ruins);
   });
 
   test("markStoryChapterSeen ignores side zones", () => {
-    markStoryChapterSeen("scrap_field");
-    assert.ok(!state.storyProgress.chaptersSeen.scrap_field);
+    markStoryChapterSeen("wasteland");
+    assert.ok(!state.storyProgress.chaptersSeen.wasteland);
     markStoryChapterSeen("orc_barracks");
     assert.ok(state.storyProgress.chaptersSeen.orc_barracks);
   });

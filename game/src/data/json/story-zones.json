@@ -217,66 +217,66 @@
     },
     "mithril_forge": {
       "human": {
-        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
-        "questRef": "Фарм C-кусков · все C-сеты",
+        "lead": "Кузница гудит — C-доспехи и бижутерия в одном жаре.",
+        "questRef": "Фарм C-кусков · броня + бижу",
         "targets": "кузнечные мародёры",
-        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии C-грейда."
       },
       "elf": {
-        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
-        "questRef": "Фарм C-кусков · все C-сеты",
+        "lead": "Кузница гудит — C-доспехи и бижутерия в одном жаре.",
+        "questRef": "Фарм C-кусков · броня + бижу",
         "targets": "кузнечные мародёры",
-        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии C-грейда."
       },
       "dark_elf": {
-        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
-        "questRef": "Фарм C-кусков · все C-сеты",
+        "lead": "Кузница гудит — C-доспехи и бижутерия в одном жаре.",
+        "questRef": "Фарм C-кусков · броня + бижу",
         "targets": "кузнечные мародёры",
-        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии C-грейда."
       },
       "orc": {
-        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
-        "questRef": "Фарм C-кусков · все C-сеты",
+        "lead": "Кузница гудит — C-доспехи и бижутерия в одном жаре.",
+        "questRef": "Фарм C-кусков · броня + бижу",
         "targets": "кузнечные мародёры",
-        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии C-грейда."
       },
       "dwarf": {
-        "lead": "Кузница гудит — Mithril, Chain и Karmian в одном жаре.",
-        "questRef": "Фарм C-кусков · все C-сеты",
+        "lead": "Кузница гудит — C-доспехи и бижутерия в одном жаре.",
+        "questRef": "Фарм C-кусков · броня + бижу",
         "targets": "кузнечные мародёры",
-        "mechanic": "Бей цели — с них сыпятся Material разных C-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии C-грейда."
       }
     },
     "scrap_field": {
       "human": {
-        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
-        "questRef": "Фарм D-кусков · все D-сеты",
+        "lead": "Свалка скрипит железом — D-доспехи и бижутерия в одной куче.",
+        "questRef": "Фарм D-кусков · броня + бижу",
         "targets": "падальщики свалки",
-        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии D-грейда."
       },
       "elf": {
-        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
-        "questRef": "Фарм D-кусков · все D-сеты",
+        "lead": "Свалка скрипит железом — D-доспехи и бижутерия в одной куче.",
+        "questRef": "Фарм D-кусков · броня + бижу",
         "targets": "падальщики свалки",
-        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии D-грейда."
       },
       "dark_elf": {
-        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
-        "questRef": "Фарм D-кусков · все D-сеты",
+        "lead": "Свалка скрипит железом — D-доспехи и бижутерия в одной куче.",
+        "questRef": "Фарм D-кусков · броня + бижу",
         "targets": "падальщики свалки",
-        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии D-грейда."
       },
       "orc": {
-        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
-        "questRef": "Фарм D-кусков · все D-сеты",
+        "lead": "Свалка скрипит железом — D-доспехи и бижутерия в одной куче.",
+        "questRef": "Фарм D-кусков · броня + бижу",
         "targets": "падальщики свалки",
-        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии D-грейда."
       },
       "dwarf": {
-        "lead": "Свалка звенит пластинами и костью — Material D-сетов.",
-        "questRef": "Фарм D-кусков · все D-сеты",
+        "lead": "Свалка скрипит железом — D-доспехи и бижутерия в одной куче.",
+        "questRef": "Фарм D-кусков · броня + бижу",
         "targets": "падальщики свалки",
-        "mechanic": "Бей цели — с них сыпятся Material разных D-сетов."
+        "mechanic": "Бей цели — сыпятся Material брони и бижутерии D-грейда."
       }
     }
   },
@@ -526,230 +526,4035 @@
       }
     },
     {
-      "id": "scrap_field",
+      "id": "wasteland",
       "chapter": 1,
       "side": true,
-      "name": "Свалка доспехов",
-      "desc": "Куски всех D-сетов брони",
-      "storyTag": "Фарм · D-куски",
-      "reqPower": 30,
-      "reqLevel": 2,
-      "targetPower": 50,
+      "l2Name": "Wasteland",
+      "hubId": "gludio",
+      "lvlMin": 20,
+      "lvlMax": 35,
+      "migrateFrom": [
+        "scrap_field"
+      ],
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "jewelry_d",
+        "scroll_d"
+      ],
+      "name": "Пустошь",
+      "desc": "Gludio · L2 20–30 · D · броня · бижа · свитки D",
+      "storyTag": "Охота · Пустошь",
+      "reqPower": 93,
+      "reqLevel": 17,
+      "targetPower": 124,
       "icon": "icons/armor_brigandine_i00.png",
       "active": true,
       "mine": {
         "bgs": [
-          "assets/locations/scrap-field.jpg",
-          "assets/locations/scrap-field-2.jpg"
+          "assets/locations/wasteland.jpg",
+          "assets/locations/wasteland-2.jpg"
         ],
         "overlay": "mine-zone-start",
         "spawnMs": 1020,
         "goldenChance": 0.052,
-        "rewardScale": 0.9
+        "rewardScale": 1
       },
       "raceSkin": {
         "human": {
-          "name": "Свалка доспехов",
-          "desc": "Material D-grade",
-          "storyTag": "Фарм · Куски",
+          "name": "Пустошь",
+          "desc": "Material D: броня + бижу",
+          "storyTag": "Охота · Gludio",
           "mine": {
-            "title": "Свалка доспехов",
-            "hint": "Куски D-сетов — в Мастерскую!"
+            "title": "Пустошь",
+            "hint": "Куски D и свитки — в Мастерскую"
           },
           "story": {
-            "title": "Свалка доспехов",
-            "eyebrow": "Свободный фарм",
-            "cta": "На поле",
+            "title": "Пустошь Глудио",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На пустошь",
             "paragraphs": [
-              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+              "Каноническая hunting-зона <b>Wasteland</b> (Gludio). Здесь падают <b>Material D</b> брони и бижутерии, свитки D.",
+              "Свободный фарм: клан может оспаривать узел позже, соло всегда доступен по уровню и силе."
             ]
           }
         },
         "elf": {
-          "name": "Свалка доспехов",
-          "desc": "Material D-grade",
-          "storyTag": "Фарм · Куски",
+          "name": "Пустошь",
+          "desc": "Material D: броня + бижу",
+          "storyTag": "Охота · Gludio",
           "mine": {
-            "title": "Свалка доспехов",
-            "hint": "Куски D-сетов — в Мастерскую!"
+            "title": "Пустошь",
+            "hint": "Куски D и свитки — в Мастерскую"
           },
           "story": {
-            "title": "Свалка доспехов",
-            "eyebrow": "Свободный фарм",
-            "cta": "На поле",
+            "title": "Пустошь Глудио",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На пустошь",
             "paragraphs": [
-              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+              "Каноническая hunting-зона <b>Wasteland</b> (Gludio). Здесь падают <b>Material D</b> брони и бижутерии, свитки D.",
+              "Свободный фарм: клан может оспаривать узел позже, соло всегда доступен по уровню и силе."
             ]
           }
         },
         "dark_elf": {
-          "name": "Свалка доспехов",
-          "desc": "Material D-grade",
-          "storyTag": "Фарм · Куски",
+          "name": "Пустошь",
+          "desc": "Material D: броня + бижу",
+          "storyTag": "Охота · Gludio",
           "mine": {
-            "title": "Свалка доспехов",
-            "hint": "Куски D-сетов — в Мастерскую!"
+            "title": "Пустошь",
+            "hint": "Куски D и свитки — в Мастерскую"
           },
           "story": {
-            "title": "Свалка доспехов",
-            "eyebrow": "Свободный фарм",
-            "cta": "На поле",
+            "title": "Пустошь Глудио",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На пустошь",
             "paragraphs": [
-              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+              "Каноническая hunting-зона <b>Wasteland</b> (Gludio). Здесь падают <b>Material D</b> брони и бижутерии, свитки D.",
+              "Свободный фарм: клан может оспаривать узел позже, соло всегда доступен по уровню и силе."
             ]
           }
         },
         "orc": {
-          "name": "Свалка доспехов",
-          "desc": "Material D-grade",
-          "storyTag": "Фарм · Куски",
+          "name": "Пустошь",
+          "desc": "Material D: броня + бижу",
+          "storyTag": "Охота · Gludio",
           "mine": {
-            "title": "Свалка доспехов",
-            "hint": "Куски D-сетов — в Мастерскую!"
+            "title": "Пустошь",
+            "hint": "Куски D и свитки — в Мастерскую"
           },
           "story": {
-            "title": "Свалка доспехов",
-            "eyebrow": "Свободный фарм",
-            "cta": "На поле",
+            "title": "Пустошь Глудио",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На пустошь",
             "paragraphs": [
-              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+              "Каноническая hunting-зона <b>Wasteland</b> (Gludio). Здесь падают <b>Material D</b> брони и бижутерии, свитки D.",
+              "Свободный фарм: клан может оспаривать узел позже, соло всегда доступен по уровню и силе."
             ]
           }
         },
         "dwarf": {
-          "name": "Свалка доспехов",
-          "desc": "Material D-grade",
-          "storyTag": "Фарм · Куски",
+          "name": "Пустошь",
+          "desc": "Material D: броня + бижу",
+          "storyTag": "Охота · Gludio",
           "mine": {
-            "title": "Свалка доспехов",
-            "hint": "Куски D-сетов — в Мастерскую!"
+            "title": "Пустошь",
+            "hint": "Куски D и свитки — в Мастерскую"
           },
           "story": {
-            "title": "Свалка доспехов",
-            "eyebrow": "Свободный фарм",
-            "cta": "На поле",
+            "title": "Пустошь Глудио",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На пустошь",
             "paragraphs": [
-              "На свалке валяются <b>заготовки всех D-сетов</b> (Bone, Brigandine, Manticore, Reinforced Leather, Elven Mithril, Knowledge). Готовой брони почти нет — с поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы D и Soul Ore, затем крафти нужный сет в <b>Мастерской</b>."
+              "Каноническая hunting-зона <b>Wasteland</b> (Gludio). Здесь падают <b>Material D</b> брони и бижутерии, свитки D.",
+              "Свободный фарм: клан может оспаривать узел позже, соло всегда доступен по уровню и силе."
             ]
           }
         }
       }
     },
     {
-      "id": "mithril_forge",
-      "chapter": 2,
+      "id": "race_outskirts",
+      "chapter": 1,
       "side": true,
-      "name": "Кузница сплавов",
-      "desc": "Куски всех C-сетов брони",
-      "storyTag": "Фарм · C-куски",
-      "reqPower": 90,
+      "l2Name": "Race Village Outskirts",
+      "hubId": "race",
+      "lvlMin": 1,
+      "lvlMax": 15,
+      "capturable": false,
+      "siegeEnabled": false,
+      "lootTags": [
+        "scroll_d"
+      ],
+      "name": "Окраина деревни",
+      "desc": "Старт расы · L2≤20 · D · свитки D",
+      "storyTag": "Охота · Старт",
+      "reqPower": 36,
       "reqLevel": 4,
-      "targetPower": 106,
-      "icon": "icons/armor_mithril_breastplate_i00.png",
+      "targetPower": 55,
+      "icon": "icons/weapon_small_sword_i00.png",
       "active": true,
       "mine": {
         "bgs": [
-          "assets/locations/mithril-forge.jpg",
-          "assets/locations/mithril-forge-2.jpg"
+          "assets/locations/race-outskirts.jpg",
+          "assets/locations/race-outskirts-2.jpg"
         ],
-        "overlay": "mine-zone-elven",
-        "spawnMs": 1140,
-        "goldenChance": 0.055,
-        "rewardScale": 1
+        "overlay": "mine-zone-start",
+        "spawnMs": 980,
+        "goldenChance": 0.048,
+        "rewardScale": 0.85
       },
       "raceSkin": {
         "human": {
-          "name": "Кузница мифрила",
-          "desc": "Material C-grade",
-          "storyTag": "Фарм · C-куски",
+          "name": "Запад ТИ",
+          "desc": "Talking Island Western",
+          "storyTag": "Охота · ТИ",
           "mine": {
-            "title": "Кузница сплавов",
-            "hint": "Куски C-сетов — хватай!"
+            "title": "Запад острова",
+            "hint": "Мягкий старт · адена"
           },
           "story": {
-            "title": "Кузница сплавов",
-            "eyebrow": "Свободный фарм",
-            "cta": "К кузнице",
+            "title": "Запад Говорящего острова",
+            "eyebrow": "Охота",
+            "cta": "На запад",
             "paragraphs": [
-              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+              "Окраины <b>Talking Island</b> — мягкий hunting после обучения."
             ]
           }
         },
         "elf": {
-          "name": "Жила у руин",
-          "desc": "Material C-grade",
-          "storyTag": "Фарм · C-куски",
+          "name": "Опушка Эльмора",
+          "desc": "Elven Forest outskirts",
+          "storyTag": "Охота · Эльфы",
           "mine": {
-            "title": "Кузница сплавов",
-            "hint": "Куски C-сетов — хватай!"
+            "title": "Опушка",
+            "hint": "Мягкий старт · адена"
           },
           "story": {
-            "title": "Кузница сплавов",
-            "eyebrow": "Свободный фарм",
-            "cta": "К кузнице",
+            "title": "Опушка эльфийского леса",
+            "eyebrow": "Охота",
+            "cta": "На опушку",
             "paragraphs": [
-              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+              "Hunting у <b>Elven Village</b>."
             ]
           }
         },
         "dark_elf": {
-          "name": "Чужая кузница",
-          "desc": "Material C-grade",
-          "storyTag": "Фарм · C-куски",
+          "name": "Тёмная опушка",
+          "desc": "Dark Forest edge",
+          "storyTag": "Охота · Тёмные",
           "mine": {
-            "title": "Кузница сплавов",
-            "hint": "Куски C-сетов — хватай!"
+            "title": "Опушка тьмы",
+            "hint": "Мягкий старт · адена"
           },
           "story": {
-            "title": "Кузница сплавов",
-            "eyebrow": "Свободный фарм",
-            "cta": "К кузнице",
+            "title": "Край Тёмного леса",
+            "eyebrow": "Охота",
+            "cta": "В чащу",
             "paragraphs": [
-              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+              "Hunting у <b>Dark Elven Village</b>."
             ]
           }
         },
         "orc": {
-          "name": "Огненная жила",
-          "desc": "Material C-grade",
-          "storyTag": "Фарм · C-куски",
+          "name": "Низ плато",
+          "desc": "Immortal Plateau low",
+          "storyTag": "Охота · Орки",
           "mine": {
-            "title": "Кузница сплавов",
-            "hint": "Куски C-сетов — хватай!"
+            "title": "Низ плато",
+            "hint": "Мягкий старт · адена"
           },
           "story": {
-            "title": "Кузница сплавов",
-            "eyebrow": "Свободный фарм",
-            "cta": "К кузнице",
+            "title": "Подножие плато",
+            "eyebrow": "Охота",
+            "cta": "На плато",
             "paragraphs": [
-              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+              "Hunting у <b>Orc Village</b>."
             ]
           }
         },
         "dwarf": {
-          "name": "Чужая наковальня",
-          "desc": "Material C-grade",
-          "storyTag": "Фарм · C-куски",
+          "name": "Жила у Мамира",
+          "desc": "Spine mines low",
+          "storyTag": "Охота · Гномы",
           "mine": {
-            "title": "Кузница сплавов",
-            "hint": "Куски C-сетов — хватай!"
+            "title": "Жила",
+            "hint": "Мягкий старт · адена"
           },
           "story": {
-            "title": "Кузница сплавов",
-            "eyebrow": "Свободный фарм",
-            "cta": "К кузнице",
+            "title": "Жила у Мамира",
+            "eyebrow": "Охота",
+            "cta": "К жиле",
             "paragraphs": [
-              "В кузнице варят сплавы <b>всех C-сетов</b> (Mithril, Chain, Tempered, Theca, Plated, Drake, Composite, Full Plate, Karmian, Divine, Demon). С поля падают только <b>Material</b>.",
-              "Собери фрагменты, кристаллы C и Soul Ore — крафт в <b>Мастерской</b>. Основная цепочка квестов от кузницы не зависит."
+              "Hunting у <b>Dwarven Village</b>."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "abandoned_camp",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Abandoned Camp",
+      "hubId": "gludio",
+      "lvlMin": 20,
+      "lvlMax": 25,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Заброшенный лагерь",
+      "desc": "Gludio · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Лагерь",
+      "reqPower": 80,
+      "reqLevel": 14,
+      "targetPower": 108,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/abandoned-camp.jpg",
+          "assets/locations/abandoned-camp-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1080,
+        "goldenChance": 0.053,
+        "rewardScale": 1.05
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Заброшенный лагерь",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Лагерь",
+          "mine": {
+            "title": "Заброшенный лагерь",
+            "hint": "Адена и свитки D"
+          },
+          "story": {
+            "title": "Заброшенный лагерь",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В лагерь",
+            "paragraphs": [
+              "Hunting <b>Abandoned Camp</b>. Узел клана · захват включён.",
+              "Хороший mid после Пустоши."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Заброшенный лагерь",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Лагерь",
+          "mine": {
+            "title": "Заброшенный лагерь",
+            "hint": "Адена и свитки D"
+          },
+          "story": {
+            "title": "Заброшенный лагерь",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В лагерь",
+            "paragraphs": [
+              "Hunting <b>Abandoned Camp</b>. Узел клана · захват включён.",
+              "Хороший mid после Пустоши."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Заброшенный лагерь",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Лагерь",
+          "mine": {
+            "title": "Заброшенный лагерь",
+            "hint": "Адена и свитки D"
+          },
+          "story": {
+            "title": "Заброшенный лагерь",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В лагерь",
+            "paragraphs": [
+              "Hunting <b>Abandoned Camp</b>. Узел клана · захват включён.",
+              "Хороший mid после Пустоши."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Заброшенный лагерь",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Лагерь",
+          "mine": {
+            "title": "Заброшенный лагерь",
+            "hint": "Адена и свитки D"
+          },
+          "story": {
+            "title": "Заброшенный лагерь",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В лагерь",
+            "paragraphs": [
+              "Hunting <b>Abandoned Camp</b>. Узел клана · захват включён.",
+              "Хороший mid после Пустоши."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Заброшенный лагерь",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Лагерь",
+          "mine": {
+            "title": "Заброшенный лагерь",
+            "hint": "Адена и свитки D"
+          },
+          "story": {
+            "title": "Заброшенный лагерь",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В лагерь",
+            "paragraphs": [
+              "Hunting <b>Abandoned Camp</b>. Узел клана · захват включён.",
+              "Хороший mid после Пустоши."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "ruins_agony",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Ruins of Agony",
+      "hubId": "gludio",
+      "lvlMin": 20,
+      "lvlMax": 30,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Руины Агонии",
+      "desc": "Gludio · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Агония",
+      "reqPower": 88,
+      "reqLevel": 16,
+      "targetPower": 118,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "mine": {
+        "bgs": [
+          "assets/locations/ruins-agony.jpg",
+          "assets/locations/ruins-agony-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1100,
+        "goldenChance": 0.054,
+        "rewardScale": 1.08
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Руины Агонии",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Агония",
+          "mine": {
+            "title": "Руины Агонии",
+            "hint": "Адена · свитки D"
+          },
+          "story": {
+            "title": "Руины Агонии",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В руины",
+            "paragraphs": [
+              "Hunting <b>Ruins of Agony</b>.",
+              "Target capturable later; siege пока выключен."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Руины Агонии",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Агония",
+          "mine": {
+            "title": "Руины Агонии",
+            "hint": "Адена · свитки D"
+          },
+          "story": {
+            "title": "Руины Агонии",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В руины",
+            "paragraphs": [
+              "Hunting <b>Ruins of Agony</b>.",
+              "Target capturable later; siege пока выключен."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Руины Агонии",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Агония",
+          "mine": {
+            "title": "Руины Агонии",
+            "hint": "Адена · свитки D"
+          },
+          "story": {
+            "title": "Руины Агонии",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В руины",
+            "paragraphs": [
+              "Hunting <b>Ruins of Agony</b>.",
+              "Target capturable later; siege пока выключен."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Руины Агонии",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Агония",
+          "mine": {
+            "title": "Руины Агонии",
+            "hint": "Адена · свитки D"
+          },
+          "story": {
+            "title": "Руины Агонии",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В руины",
+            "paragraphs": [
+              "Hunting <b>Ruins of Agony</b>.",
+              "Target capturable later; siege пока выключен."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Руины Агонии",
+          "desc": "Gludio mid hunt",
+          "storyTag": "Охота · Агония",
+          "mine": {
+            "title": "Руины Агонии",
+            "hint": "Адена · свитки D"
+          },
+          "story": {
+            "title": "Руины Агонии",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В руины",
+            "paragraphs": [
+              "Hunting <b>Ruins of Agony</b>.",
+              "Target capturable later; siege пока выключен."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "abandoned_coal_low",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Abandoned Coal Mines",
+      "hubId": "dwarven_village",
+      "lvlMin": 10,
+      "lvlMax": 20,
+      "migrateFrom": [
+        "mithril_forge"
+      ],
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Угольные шахты",
+      "desc": "Гномы · L2 ≤20 · D · броня · свитки D",
+      "storyTag": "Охота · Уголь",
+      "reqPower": 40,
+      "reqLevel": 5,
+      "targetPower": 52,
+      "icon": "icons/armor_mithril_breastplate_i00.png",
+      "active": true,
+      "mine": {
+        "bgs": [
+          "assets/locations/coal-mines-hunt.jpg",
+          "assets/locations/coal-mines-hunt-2.jpg"
+        ],
+        "overlay": "mine-zone-elven",
+        "spawnMs": 1140,
+        "goldenChance": 0.055,
+        "rewardScale": 1.05
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Угольные шахты",
+          "desc": "Material D: Mithril / Chain",
+          "storyTag": "Охота · Гномы",
+          "mine": {
+            "title": "Угольные шахты",
+            "hint": "Куски D и свитки — в Мастерскую"
+          },
+          "story": {
+            "title": "Заброшенные угольные шахты",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В шахты",
+            "paragraphs": [
+              "Низкий tier <b>Abandoned Coal Mines</b> (L2 до 20). Куски Mithril/Chain и свитки D.",
+              "Free hunting для D-материалов; C-лут — на зонах L2 30+."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Угольные шахты",
+          "desc": "Material D: Mithril / Chain",
+          "storyTag": "Охота · Гномы",
+          "mine": {
+            "title": "Угольные шахты",
+            "hint": "Куски D и свитки — в Мастерскую"
+          },
+          "story": {
+            "title": "Заброшенные угольные шахты",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В шахты",
+            "paragraphs": [
+              "Низкий tier <b>Abandoned Coal Mines</b> (L2 до 20). Куски Mithril/Chain и свитки D.",
+              "Free hunting для D-материалов; C-лут — на зонах L2 30+."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Угольные шахты",
+          "desc": "Material D: Mithril / Chain",
+          "storyTag": "Охота · Гномы",
+          "mine": {
+            "title": "Угольные шахты",
+            "hint": "Куски D и свитки — в Мастерскую"
+          },
+          "story": {
+            "title": "Заброшенные угольные шахты",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В шахты",
+            "paragraphs": [
+              "Низкий tier <b>Abandoned Coal Mines</b> (L2 до 20). Куски Mithril/Chain и свитки D.",
+              "Free hunting для D-материалов; C-лут — на зонах L2 30+."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Угольные шахты",
+          "desc": "Material D: Mithril / Chain",
+          "storyTag": "Охота · Гномы",
+          "mine": {
+            "title": "Угольные шахты",
+            "hint": "Куски D и свитки — в Мастерскую"
+          },
+          "story": {
+            "title": "Заброшенные угольные шахты",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В шахты",
+            "paragraphs": [
+              "Низкий tier <b>Abandoned Coal Mines</b> (L2 до 20). Куски Mithril/Chain и свитки D.",
+              "Free hunting для D-материалов; C-лут — на зонах L2 30+."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Угольные шахты",
+          "desc": "Material D: Mithril / Chain",
+          "storyTag": "Охота · Гномы",
+          "mine": {
+            "title": "Угольные шахты",
+            "hint": "Куски D и свитки — в Мастерскую"
+          },
+          "story": {
+            "title": "Заброшенные угольные шахты",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В шахты",
+            "paragraphs": [
+              "Низкий tier <b>Abandoned Coal Mines</b> (L2 до 20). Куски Mithril/Chain и свитки D.",
+              "Free hunting для D-материалов; C-лут — на зонах L2 30+."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "execution_grounds",
+      "chapter": 2,
+      "side": true,
+      "l2Name": "Execution Grounds",
+      "hubId": "dion",
+      "lvlMin": 30,
+      "lvlMax": 38,
+      "capturable": true,
+      "siegeEnabled": true,
+      "partyRecommended": false,
+      "lootTags": [
+        "armor_c",
+        "jewelry_c",
+        "scroll_c"
+      ],
+      "name": "Поле казни",
+      "desc": "Dion · L2 30–40 · C · броня · бижа · свитки C",
+      "storyTag": "Охота · Казнь",
+      "reqPower": 124,
+      "reqLevel": 24,
+      "targetPower": 161,
+      "icon": "icons/armor_mithril_breastplate_i00.png",
+      "active": true,
+      "mine": {
+        "bgs": [
+          "assets/locations/execution-grounds.jpg",
+          "assets/locations/execution-grounds-2.jpg"
+        ],
+        "overlay": "mine-zone-elven",
+        "spawnMs": 1180,
+        "goldenChance": 0.056,
+        "rewardScale": 1.12
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Поле казни",
+          "desc": "Dion · Material C soft",
+          "storyTag": "Охота · Dion",
+          "mine": {
+            "title": "Поле казни",
+            "hint": "C-материалы · нежить"
+          },
+          "story": {
+            "title": "Поле казни",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На казнь",
+            "paragraphs": [
+              "Hunting <b>Execution Grounds</b> (Dion). Потолок MVP и второй siege-узел.",
+              "Лёгкий C-лут + свитки C. Solo без клана ок."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Поле казни",
+          "desc": "Dion · Material C soft",
+          "storyTag": "Охота · Dion",
+          "mine": {
+            "title": "Поле казни",
+            "hint": "C-материалы · нежить"
+          },
+          "story": {
+            "title": "Поле казни",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На казнь",
+            "paragraphs": [
+              "Hunting <b>Execution Grounds</b> (Dion). Потолок MVP и второй siege-узел.",
+              "Лёгкий C-лут + свитки C. Solo без клана ок."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Поле казни",
+          "desc": "Dion · Material C soft",
+          "storyTag": "Охота · Dion",
+          "mine": {
+            "title": "Поле казни",
+            "hint": "C-материалы · нежить"
+          },
+          "story": {
+            "title": "Поле казни",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На казнь",
+            "paragraphs": [
+              "Hunting <b>Execution Grounds</b> (Dion). Потолок MVP и второй siege-узел.",
+              "Лёгкий C-лут + свитки C. Solo без клана ок."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Поле казни",
+          "desc": "Dion · Material C soft",
+          "storyTag": "Охота · Dion",
+          "mine": {
+            "title": "Поле казни",
+            "hint": "C-материалы · нежить"
+          },
+          "story": {
+            "title": "Поле казни",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На казнь",
+            "paragraphs": [
+              "Hunting <b>Execution Grounds</b> (Dion). Потолок MVP и второй siege-узел.",
+              "Лёгкий C-лут + свитки C. Solo без клана ок."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Поле казни",
+          "desc": "Dion · Material C soft",
+          "storyTag": "Охота · Dion",
+          "mine": {
+            "title": "Поле казни",
+            "hint": "C-материалы · нежить"
+          },
+          "story": {
+            "title": "Поле казни",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "На казнь",
+            "paragraphs": [
+              "Hunting <b>Execution Grounds</b> (Dion). Потолок MVP и второй siege-узел.",
+              "Лёгкий C-лут + свитки C. Solo без клана ок."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "windmill_hill",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Windmill Hill",
+      "hubId": "gludin",
+      "lvlMin": 15,
+      "lvlMax": 25,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "jewelry_d",
+        "scroll_d"
+      ],
+      "name": "Ветряной холм",
+      "desc": "Gludin · L2 20–30 · D · бижа · свитки D",
+      "storyTag": "Охота · Холм",
+      "reqPower": 75,
+      "reqLevel": 13,
+      "targetPower": 102,
+      "icon": "icons/weapon_small_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/windmill-hill.jpg",
+          "assets/locations/windmill-hill-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1000,
+        "goldenChance": 0.05,
+        "rewardScale": 0.9
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Ветряной холм",
+          "desc": "Gludin · soft hunt · адена",
+          "storyTag": "Охота · Холм",
+          "mine": {
+            "title": "Ветряной холм",
+            "hint": "Мягкий hunt у Глудина"
+          },
+          "story": {
+            "title": "Ветряной холм",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Windmill Hill</b> у Глудина. Холмы с ветряками, пауки и оборотни.",
+              "Мягкий мост после окраины деревни — адена и свитки D."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Ветряной холм",
+          "desc": "Gludin · soft hunt · адена",
+          "storyTag": "Охота · Холм",
+          "mine": {
+            "title": "Ветряной холм",
+            "hint": "Мягкий hunt у Глудина"
+          },
+          "story": {
+            "title": "Ветряной холм",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Windmill Hill</b> у Глудина. Холмы с ветряками, пауки и оборотни.",
+              "Мягкий мост после окраины деревни — адена и свитки D."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Ветряной холм",
+          "desc": "Gludin · soft hunt · адена",
+          "storyTag": "Охота · Холм",
+          "mine": {
+            "title": "Ветряной холм",
+            "hint": "Мягкий hunt у Глудина"
+          },
+          "story": {
+            "title": "Ветряной холм",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Windmill Hill</b> у Глудина. Холмы с ветряками, пауки и оборотни.",
+              "Мягкий мост после окраины деревни — адена и свитки D."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Ветряной холм",
+          "desc": "Gludin · soft hunt · адена",
+          "storyTag": "Охота · Холм",
+          "mine": {
+            "title": "Ветряной холм",
+            "hint": "Мягкий hunt у Глудина"
+          },
+          "story": {
+            "title": "Ветряной холм",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Windmill Hill</b> у Глудина. Холмы с ветряками, пауки и оборотни.",
+              "Мягкий мост после окраины деревни — адена и свитки D."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Ветряной холм",
+          "desc": "Gludin · soft hunt · адена",
+          "storyTag": "Охота · Холм",
+          "mine": {
+            "title": "Ветряной холм",
+            "hint": "Мягкий hunt у Глудина"
+          },
+          "story": {
+            "title": "Ветряной холм",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Windmill Hill</b> у Глудина. Холмы с ветряками, пауки и оборотни.",
+              "Мягкий мост после окраины деревни — адена и свитки D."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "fellmere_harvesting",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Fellmere Harvesting Grounds",
+      "hubId": "gludin",
+      "lvlMin": 15,
+      "lvlMax": 25,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Жатва Феллмер",
+      "desc": "Gludin · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Феллмер",
+      "reqPower": 75,
+      "reqLevel": 13,
+      "targetPower": 102,
+      "icon": "icons/weapon_small_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/fellmere.jpg",
+          "assets/locations/fellmere-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1020,
+        "goldenChance": 0.05,
+        "rewardScale": 0.95
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Жатва Феллмер",
+          "desc": "Gludin · поля · адена",
+          "storyTag": "Охота · Феллмер",
+          "mine": {
+            "title": "Жатва Феллмер",
+            "hint": "Поля у Глудина"
+          },
+          "story": {
+            "title": "Жатва Феллмер",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Fellmere Harvesting Grounds</b>. Урожайные поля и голодные твари.",
+              "Чуть плотнее Windmill Hill — всё ещё soft Gludin."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Жатва Феллмер",
+          "desc": "Gludin · поля · адена",
+          "storyTag": "Охота · Феллмер",
+          "mine": {
+            "title": "Жатва Феллмер",
+            "hint": "Поля у Глудина"
+          },
+          "story": {
+            "title": "Жатва Феллмер",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Fellmere Harvesting Grounds</b>. Урожайные поля и голодные твари.",
+              "Чуть плотнее Windmill Hill — всё ещё soft Gludin."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Жатва Феллмер",
+          "desc": "Gludin · поля · адена",
+          "storyTag": "Охота · Феллмер",
+          "mine": {
+            "title": "Жатва Феллмер",
+            "hint": "Поля у Глудина"
+          },
+          "story": {
+            "title": "Жатва Феллмер",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Fellmere Harvesting Grounds</b>. Урожайные поля и голодные твари.",
+              "Чуть плотнее Windmill Hill — всё ещё soft Gludin."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Жатва Феллмер",
+          "desc": "Gludin · поля · адена",
+          "storyTag": "Охота · Феллмер",
+          "mine": {
+            "title": "Жатва Феллмер",
+            "hint": "Поля у Глудина"
+          },
+          "story": {
+            "title": "Жатва Феллмер",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Fellmere Harvesting Grounds</b>. Урожайные поля и голодные твари.",
+              "Чуть плотнее Windmill Hill — всё ещё soft Gludin."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Жатва Феллмер",
+          "desc": "Gludin · поля · адена",
+          "storyTag": "Охота · Феллмер",
+          "mine": {
+            "title": "Жатва Феллмер",
+            "hint": "Поля у Глудина"
+          },
+          "story": {
+            "title": "Жатва Феллмер",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Fellmere Harvesting Grounds</b>. Урожайные поля и голодные твари.",
+              "Чуть плотнее Windmill Hill — всё ещё soft Gludin."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "neutral_zone",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Neutral Zone",
+      "hubId": "gludio",
+      "lvlMin": 15,
+      "lvlMax": 25,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "jewelry_d",
+        "scroll_d"
+      ],
+      "name": "Нейтральная зона",
+      "desc": "Gludio · L2 20–30 · D · бижа · свитки D",
+      "storyTag": "Охота · Нейтрал",
+      "reqPower": 75,
+      "reqLevel": 13,
+      "targetPower": 102,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/neutral-zone.jpg",
+          "assets/locations/neutral-zone-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1040,
+        "goldenChance": 0.05,
+        "rewardScale": 0.98
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Нейтральная зона",
+          "desc": "Gludio · переход к эльфам",
+          "storyTag": "Охота · Нейтрал",
+          "mine": {
+            "title": "Нейтральная зона",
+            "hint": "Граница леса"
+          },
+          "story": {
+            "title": "Нейтральная зона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Neutral Zone</b> — полоса между людьми и эльфами.",
+              "Удобный переходный hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Нейтральная зона",
+          "desc": "Gludio · переход к эльфам",
+          "storyTag": "Охота · Нейтрал",
+          "mine": {
+            "title": "Нейтральная зона",
+            "hint": "Граница леса"
+          },
+          "story": {
+            "title": "Нейтральная зона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Neutral Zone</b> — полоса между людьми и эльфами.",
+              "Удобный переходный hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Нейтральная зона",
+          "desc": "Gludio · переход к эльфам",
+          "storyTag": "Охота · Нейтрал",
+          "mine": {
+            "title": "Нейтральная зона",
+            "hint": "Граница леса"
+          },
+          "story": {
+            "title": "Нейтральная зона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Neutral Zone</b> — полоса между людьми и эльфами.",
+              "Удобный переходный hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Нейтральная зона",
+          "desc": "Gludio · переход к эльфам",
+          "storyTag": "Охота · Нейтрал",
+          "mine": {
+            "title": "Нейтральная зона",
+            "hint": "Граница леса"
+          },
+          "story": {
+            "title": "Нейтральная зона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Neutral Zone</b> — полоса между людьми и эльфами.",
+              "Удобный переходный hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Нейтральная зона",
+          "desc": "Gludio · переход к эльфам",
+          "storyTag": "Охота · Нейтрал",
+          "mine": {
+            "title": "Нейтральная зона",
+            "hint": "Граница леса"
+          },
+          "story": {
+            "title": "Нейтральная зона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Neutral Zone</b> — полоса между людьми и эльфами.",
+              "Удобный переходный hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "langk_lizardman",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Langk Lizardman Dwelling",
+      "hubId": "gludio",
+      "lvlMin": 20,
+      "lvlMax": 30,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Жилище ящеров Лангк",
+      "desc": "Gludio · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Лангк",
+      "reqPower": 88,
+      "reqLevel": 16,
+      "targetPower": 118,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/langk.jpg",
+          "assets/locations/langk-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1060,
+        "goldenChance": 0.051,
+        "rewardScale": 1
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Жилище ящеров Лангк",
+          "desc": "Gludio · ящеры · адена",
+          "storyTag": "Охота · Лангк",
+          "mine": {
+            "title": "Жилище ящеров Лангк",
+            "hint": "Ящеры Лангк"
+          },
+          "story": {
+            "title": "Жилище ящеров Лангк",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Langk Lizardman Dwelling</b>. Лагерь ящеров на подступах к Глудио.",
+              "Средний free hunt после soft Gludin."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Жилище ящеров Лангк",
+          "desc": "Gludio · ящеры · адена",
+          "storyTag": "Охота · Лангк",
+          "mine": {
+            "title": "Жилище ящеров Лангк",
+            "hint": "Ящеры Лангк"
+          },
+          "story": {
+            "title": "Жилище ящеров Лангк",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Langk Lizardman Dwelling</b>. Лагерь ящеров на подступах к Глудио.",
+              "Средний free hunt после soft Gludin."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Жилище ящеров Лангк",
+          "desc": "Gludio · ящеры · адена",
+          "storyTag": "Охота · Лангк",
+          "mine": {
+            "title": "Жилище ящеров Лангк",
+            "hint": "Ящеры Лангк"
+          },
+          "story": {
+            "title": "Жилище ящеров Лангк",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Langk Lizardman Dwelling</b>. Лагерь ящеров на подступах к Глудио.",
+              "Средний free hunt после soft Gludin."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Жилище ящеров Лангк",
+          "desc": "Gludio · ящеры · адена",
+          "storyTag": "Охота · Лангк",
+          "mine": {
+            "title": "Жилище ящеров Лангк",
+            "hint": "Ящеры Лангк"
+          },
+          "story": {
+            "title": "Жилище ящеров Лангк",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Langk Lizardman Dwelling</b>. Лагерь ящеров на подступах к Глудио.",
+              "Средний free hunt после soft Gludin."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Жилище ящеров Лангк",
+          "desc": "Gludio · ящеры · адена",
+          "storyTag": "Охота · Лангк",
+          "mine": {
+            "title": "Жилище ящеров Лангк",
+            "hint": "Ящеры Лангк"
+          },
+          "story": {
+            "title": "Жилище ящеров Лангк",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Langk Lizardman Dwelling</b>. Лагерь ящеров на подступах к Глудио.",
+              "Средний free hunt после soft Gludin."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "maille_lizardman",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Maille Lizardman Barracks",
+      "hubId": "gludio",
+      "lvlMin": 20,
+      "lvlMax": 30,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Казарма ящеров Мейл",
+      "desc": "Gludio · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Мейл",
+      "reqPower": 88,
+      "reqLevel": 16,
+      "targetPower": 118,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/maille.jpg",
+          "assets/locations/maille-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1080,
+        "goldenChance": 0.051,
+        "rewardScale": 1.02
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Казарма ящеров Мейл",
+          "desc": "Gludio · Мейл · адена",
+          "storyTag": "Охота · Мейл",
+          "mine": {
+            "title": "Казарма ящеров Мейл",
+            "hint": "Ящеры Мейл"
+          },
+          "story": {
+            "title": "Казарма ящеров Мейл",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Maille Lizardman Barracks</b>. Второй лагерь ящеров Gludio.",
+              "Free mid hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Казарма ящеров Мейл",
+          "desc": "Gludio · Мейл · адена",
+          "storyTag": "Охота · Мейл",
+          "mine": {
+            "title": "Казарма ящеров Мейл",
+            "hint": "Ящеры Мейл"
+          },
+          "story": {
+            "title": "Казарма ящеров Мейл",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Maille Lizardman Barracks</b>. Второй лагерь ящеров Gludio.",
+              "Free mid hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Казарма ящеров Мейл",
+          "desc": "Gludio · Мейл · адена",
+          "storyTag": "Охота · Мейл",
+          "mine": {
+            "title": "Казарма ящеров Мейл",
+            "hint": "Ящеры Мейл"
+          },
+          "story": {
+            "title": "Казарма ящеров Мейл",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Maille Lizardman Barracks</b>. Второй лагерь ящеров Gludio.",
+              "Free mid hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Казарма ящеров Мейл",
+          "desc": "Gludio · Мейл · адена",
+          "storyTag": "Охота · Мейл",
+          "mine": {
+            "title": "Казарма ящеров Мейл",
+            "hint": "Ящеры Мейл"
+          },
+          "story": {
+            "title": "Казарма ящеров Мейл",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Maille Lizardman Barracks</b>. Второй лагерь ящеров Gludio.",
+              "Free mid hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Казарма ящеров Мейл",
+          "desc": "Gludio · Мейл · адена",
+          "storyTag": "Охота · Мейл",
+          "mine": {
+            "title": "Казарма ящеров Мейл",
+            "hint": "Ящеры Мейл"
+          },
+          "story": {
+            "title": "Казарма ящеров Мейл",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Maille Lizardman Barracks</b>. Второй лагерь ящеров Gludio.",
+              "Free mid hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "ruins_despair",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Ruins of Despair",
+      "hubId": "gludio",
+      "lvlMin": 20,
+      "lvlMax": 30,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Руины Отчаяния",
+      "desc": "Gludio · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Отчаяние",
+      "reqPower": 88,
+      "reqLevel": 16,
+      "targetPower": 118,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/ruins-despair.jpg",
+          "assets/locations/ruins-despair-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1100,
+        "goldenChance": 0.052,
+        "rewardScale": 1.05
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Руины Отчаяния",
+          "desc": "Gludio · руины · адена",
+          "storyTag": "Охота · Отчаяние",
+          "mine": {
+            "title": "Руины Отчаяния",
+            "hint": "Руины у Глудио"
+          },
+          "story": {
+            "title": "Руины Отчаяния",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Ruins of Despair</b>. Сестринские руины к Агонии — нежить и развалины.",
+              "Free hunting Gludio mid."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Руины Отчаяния",
+          "desc": "Gludio · руины · адена",
+          "storyTag": "Охота · Отчаяние",
+          "mine": {
+            "title": "Руины Отчаяния",
+            "hint": "Руины у Глудио"
+          },
+          "story": {
+            "title": "Руины Отчаяния",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Ruins of Despair</b>. Сестринские руины к Агонии — нежить и развалины.",
+              "Free hunting Gludio mid."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Руины Отчаяния",
+          "desc": "Gludio · руины · адена",
+          "storyTag": "Охота · Отчаяние",
+          "mine": {
+            "title": "Руины Отчаяния",
+            "hint": "Руины у Глудио"
+          },
+          "story": {
+            "title": "Руины Отчаяния",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Ruins of Despair</b>. Сестринские руины к Агонии — нежить и развалины.",
+              "Free hunting Gludio mid."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Руины Отчаяния",
+          "desc": "Gludio · руины · адена",
+          "storyTag": "Охота · Отчаяние",
+          "mine": {
+            "title": "Руины Отчаяния",
+            "hint": "Руины у Глудио"
+          },
+          "story": {
+            "title": "Руины Отчаяния",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Ruins of Despair</b>. Сестринские руины к Агонии — нежить и развалины.",
+              "Free hunting Gludio mid."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Руины Отчаяния",
+          "desc": "Gludio · руины · адена",
+          "storyTag": "Охота · Отчаяние",
+          "mine": {
+            "title": "Руины Отчаяния",
+            "hint": "Руины у Глудио"
+          },
+          "story": {
+            "title": "Руины Отчаяния",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Ruins of Despair</b>. Сестринские руины к Агонии — нежить и развалины.",
+              "Free hunting Gludio mid."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "evil_hunting_grounds",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Evil Hunting Grounds",
+      "hubId": "gludio",
+      "lvlMin": 20,
+      "lvlMax": 30,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Злые охотничьи угодья",
+      "desc": "Gludio · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Злые",
+      "reqPower": 88,
+      "reqLevel": 16,
+      "targetPower": 118,
+      "icon": "icons/weapon_dark_screamer_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/evil-grounds.jpg",
+          "assets/locations/evil-grounds-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1110,
+        "goldenChance": 0.052,
+        "rewardScale": 1.06
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Злые охотничьи угодья",
+          "desc": "Gludio · тьма · адена",
+          "storyTag": "Охота · Злые",
+          "mine": {
+            "title": "Злые охотничьи угодья",
+            "hint": "Тёмные угодья"
+          },
+          "story": {
+            "title": "Злые охотничьи угодья",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Evil Hunting Grounds</b>. Проклятые поля у Глудио.",
+              "Плотнее обычного mid — готовься к агрессии."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Злые охотничьи угодья",
+          "desc": "Gludio · тьма · адена",
+          "storyTag": "Охота · Злые",
+          "mine": {
+            "title": "Злые охотничьи угодья",
+            "hint": "Тёмные угодья"
+          },
+          "story": {
+            "title": "Злые охотничьи угодья",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Evil Hunting Grounds</b>. Проклятые поля у Глудио.",
+              "Плотнее обычного mid — готовься к агрессии."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Злые охотничьи угодья",
+          "desc": "Gludio · тьма · адена",
+          "storyTag": "Охота · Злые",
+          "mine": {
+            "title": "Злые охотничьи угодья",
+            "hint": "Тёмные угодья"
+          },
+          "story": {
+            "title": "Злые охотничьи угодья",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Evil Hunting Grounds</b>. Проклятые поля у Глудио.",
+              "Плотнее обычного mid — готовься к агрессии."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Злые охотничьи угодья",
+          "desc": "Gludio · тьма · адена",
+          "storyTag": "Охота · Злые",
+          "mine": {
+            "title": "Злые охотничьи угодья",
+            "hint": "Тёмные угодья"
+          },
+          "story": {
+            "title": "Злые охотничьи угодья",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Evil Hunting Grounds</b>. Проклятые поля у Глудио.",
+              "Плотнее обычного mid — готовься к агрессии."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Злые охотничьи угодья",
+          "desc": "Gludio · тьма · адена",
+          "storyTag": "Охота · Злые",
+          "mine": {
+            "title": "Злые охотничьи угодья",
+            "hint": "Тёмные угодья"
+          },
+          "story": {
+            "title": "Злые охотничьи угодья",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Evil Hunting Grounds</b>. Проклятые поля у Глудио.",
+              "Плотнее обычного mid — готовься к агрессии."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "orc_barracks_hunt",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Orc Barracks",
+      "hubId": "gludio",
+      "lvlMin": 25,
+      "lvlMax": 34,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Казарма орков",
+      "desc": "Gludio · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Казарма",
+      "reqPower": 97,
+      "reqLevel": 18,
+      "targetPower": 128,
+      "icon": "icons/weapon_paagrio_hammer_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/orc-barracks-hunt.jpg",
+          "assets/locations/orc-barracks-hunt-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1140,
+        "goldenChance": 0.053,
+        "rewardScale": 1.1
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Казарма орков",
+          "desc": "Gludio · орки · target capturable",
+          "storyTag": "Охота · Казарма",
+          "mine": {
+            "title": "Казарма орков",
+            "hint": "Казарма · не глава III"
+          },
+          "story": {
+            "title": "Казарма орков",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Orc Barracks</b> (Gludio). Не путать с сюжетной главой III.",
+              "Capturable target — осада позже; сейчас free hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Казарма орков",
+          "desc": "Gludio · орки · target capturable",
+          "storyTag": "Охота · Казарма",
+          "mine": {
+            "title": "Казарма орков",
+            "hint": "Казарма · не глава III"
+          },
+          "story": {
+            "title": "Казарма орков",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Orc Barracks</b> (Gludio). Не путать с сюжетной главой III.",
+              "Capturable target — осада позже; сейчас free hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Казарма орков",
+          "desc": "Gludio · орки · target capturable",
+          "storyTag": "Охота · Казарма",
+          "mine": {
+            "title": "Казарма орков",
+            "hint": "Казарма · не глава III"
+          },
+          "story": {
+            "title": "Казарма орков",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Orc Barracks</b> (Gludio). Не путать с сюжетной главой III.",
+              "Capturable target — осада позже; сейчас free hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Казарма орков",
+          "desc": "Gludio · орки · target capturable",
+          "storyTag": "Охота · Казарма",
+          "mine": {
+            "title": "Казарма орков",
+            "hint": "Казарма · не глава III"
+          },
+          "story": {
+            "title": "Казарма орков",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Orc Barracks</b> (Gludio). Не путать с сюжетной главой III.",
+              "Capturable target — осада позже; сейчас free hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Казарма орков",
+          "desc": "Gludio · орки · target capturable",
+          "storyTag": "Охота · Казарма",
+          "mine": {
+            "title": "Казарма орков",
+            "hint": "Казарма · не глава III"
+          },
+          "story": {
+            "title": "Казарма орков",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Orc Barracks</b> (Gludio). Не путать с сюжетной главой III.",
+              "Capturable target — осада позже; сейчас free hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "dion_hills",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Dion Hills",
+      "hubId": "dion",
+      "lvlMin": 20,
+      "lvlMax": 25,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Холмы Диона",
+      "desc": "Dion · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Холмы",
+      "reqPower": 80,
+      "reqLevel": 14,
+      "targetPower": 108,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/dion-hills.jpg",
+          "assets/locations/dion-hills-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1070,
+        "goldenChance": 0.051,
+        "rewardScale": 1
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Холмы Диона",
+          "desc": "Dion · soft · адена",
+          "storyTag": "Охота · Холмы",
+          "mine": {
+            "title": "Холмы Диона",
+            "hint": "Холмы у Диона"
+          },
+          "story": {
+            "title": "Холмы Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Dion Hills</b>. Мягкий вход в Дион.",
+              "Адена и свитки D перед Полем казни."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Холмы Диона",
+          "desc": "Dion · soft · адена",
+          "storyTag": "Охота · Холмы",
+          "mine": {
+            "title": "Холмы Диона",
+            "hint": "Холмы у Диона"
+          },
+          "story": {
+            "title": "Холмы Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Dion Hills</b>. Мягкий вход в Дион.",
+              "Адена и свитки D перед Полем казни."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Холмы Диона",
+          "desc": "Dion · soft · адена",
+          "storyTag": "Охота · Холмы",
+          "mine": {
+            "title": "Холмы Диона",
+            "hint": "Холмы у Диона"
+          },
+          "story": {
+            "title": "Холмы Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Dion Hills</b>. Мягкий вход в Дион.",
+              "Адена и свитки D перед Полем казни."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Холмы Диона",
+          "desc": "Dion · soft · адена",
+          "storyTag": "Охота · Холмы",
+          "mine": {
+            "title": "Холмы Диона",
+            "hint": "Холмы у Диона"
+          },
+          "story": {
+            "title": "Холмы Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Dion Hills</b>. Мягкий вход в Дион.",
+              "Адена и свитки D перед Полем казни."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Холмы Диона",
+          "desc": "Dion · soft · адена",
+          "storyTag": "Охота · Холмы",
+          "mine": {
+            "title": "Холмы Диона",
+            "hint": "Холмы у Диона"
+          },
+          "story": {
+            "title": "Холмы Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Dion Hills</b>. Мягкий вход в Дион.",
+              "Адена и свитки D перед Полем казни."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "bee_hive",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Bee Hive",
+      "hubId": "dion",
+      "lvlMin": 23,
+      "lvlMax": 28,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Улей",
+      "desc": "Dion · L2 20–30 · D · броня · свитки D",
+      "storyTag": "Охота · Улей",
+      "reqPower": 88,
+      "reqLevel": 16,
+      "targetPower": 118,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/bee-hive.jpg",
+          "assets/locations/bee-hive-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1110,
+        "goldenChance": 0.052,
+        "rewardScale": 1.07
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Улей",
+          "desc": "Dion · яд · адена",
+          "storyTag": "Охота · Улей",
+          "mine": {
+            "title": "Улей",
+            "hint": "Пчёлы и яд"
+          },
+          "story": {
+            "title": "Улей",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Bee Hive</b>. Рой и яд — классика Dion.",
+              "Free hunt; эффект яда — flavor (без hard-gate)."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Улей",
+          "desc": "Dion · яд · адена",
+          "storyTag": "Охота · Улей",
+          "mine": {
+            "title": "Улей",
+            "hint": "Пчёлы и яд"
+          },
+          "story": {
+            "title": "Улей",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Bee Hive</b>. Рой и яд — классика Dion.",
+              "Free hunt; эффект яда — flavor (без hard-gate)."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Улей",
+          "desc": "Dion · яд · адена",
+          "storyTag": "Охота · Улей",
+          "mine": {
+            "title": "Улей",
+            "hint": "Пчёлы и яд"
+          },
+          "story": {
+            "title": "Улей",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Bee Hive</b>. Рой и яд — классика Dion.",
+              "Free hunt; эффект яда — flavor (без hard-gate)."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Улей",
+          "desc": "Dion · яд · адена",
+          "storyTag": "Охота · Улей",
+          "mine": {
+            "title": "Улей",
+            "hint": "Пчёлы и яд"
+          },
+          "story": {
+            "title": "Улей",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Bee Hive</b>. Рой и яд — классика Dion.",
+              "Free hunt; эффект яда — flavor (без hard-gate)."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Улей",
+          "desc": "Dion · яд · адена",
+          "storyTag": "Охота · Улей",
+          "mine": {
+            "title": "Улей",
+            "hint": "Пчёлы и яд"
+          },
+          "story": {
+            "title": "Улей",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Bee Hive</b>. Рой и яд — классика Dion.",
+              "Free hunt; эффект яда — flavor (без hard-gate)."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "plains_of_dion",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Plains of Dion",
+      "hubId": "dion",
+      "lvlMin": 23,
+      "lvlMax": 30,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "scroll_d"
+      ],
+      "name": "Равнины Диона",
+      "desc": "Dion · L2 20–30 · D · свитки D",
+      "storyTag": "Охота · Равнины",
+      "reqPower": 88,
+      "reqLevel": 16,
+      "targetPower": 118,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/plains-dion.jpg",
+          "assets/locations/plains-dion-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1120,
+        "goldenChance": 0.052,
+        "rewardScale": 1.08
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Равнины Диона",
+          "desc": "Dion · равнины · адена",
+          "storyTag": "Охота · Равнины",
+          "mine": {
+            "title": "Равнины Диона",
+            "hint": "Равнины Диона"
+          },
+          "story": {
+            "title": "Равнины Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Plains of Dion</b>. Открытые равнины вокруг города.",
+              "Средний Dion free hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Равнины Диона",
+          "desc": "Dion · равнины · адена",
+          "storyTag": "Охота · Равнины",
+          "mine": {
+            "title": "Равнины Диона",
+            "hint": "Равнины Диона"
+          },
+          "story": {
+            "title": "Равнины Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Plains of Dion</b>. Открытые равнины вокруг города.",
+              "Средний Dion free hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Равнины Диона",
+          "desc": "Dion · равнины · адена",
+          "storyTag": "Охота · Равнины",
+          "mine": {
+            "title": "Равнины Диона",
+            "hint": "Равнины Диона"
+          },
+          "story": {
+            "title": "Равнины Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Plains of Dion</b>. Открытые равнины вокруг города.",
+              "Средний Dion free hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Равнины Диона",
+          "desc": "Dion · равнины · адена",
+          "storyTag": "Охота · Равнины",
+          "mine": {
+            "title": "Равнины Диона",
+            "hint": "Равнины Диона"
+          },
+          "story": {
+            "title": "Равнины Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Plains of Dion</b>. Открытые равнины вокруг города.",
+              "Средний Dion free hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Равнины Диона",
+          "desc": "Dion · равнины · адена",
+          "storyTag": "Охота · Равнины",
+          "mine": {
+            "title": "Равнины Диона",
+            "hint": "Равнины Диона"
+          },
+          "story": {
+            "title": "Равнины Диона",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Plains of Dion</b>. Открытые равнины вокруг города.",
+              "Средний Dion free hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "partisans_hideaway",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Partisans Hideaway",
+      "hubId": "dion",
+      "lvlMin": 23,
+      "lvlMax": 34,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "jewelry_d",
+        "scroll_d"
+      ],
+      "name": "Укрытие партизан",
+      "desc": "Dion · L2 20–30 · D · бижа · свитки D",
+      "storyTag": "Охота · Партизаны",
+      "reqPower": 93,
+      "reqLevel": 17,
+      "targetPower": 124,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": true,
+      "mine": {
+        "bgs": [
+          "assets/locations/partisans.jpg",
+          "assets/locations/partisans-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1130,
+        "goldenChance": 0.052,
+        "rewardScale": 1.08
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Укрытие партизан",
+          "desc": "Dion · партизаны · адена",
+          "storyTag": "Охота · Партизаны",
+          "mine": {
+            "title": "Укрытие партизан",
+            "hint": "Укрытие · party-lean"
+          },
+          "story": {
+            "title": "Укрытие партизан",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Partisans Hideaway</b>. Укрытие банд у Диона.",
+              "Solo ок; partyRecommended — flavor."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Укрытие партизан",
+          "desc": "Dion · партизаны · адена",
+          "storyTag": "Охота · Партизаны",
+          "mine": {
+            "title": "Укрытие партизан",
+            "hint": "Укрытие · party-lean"
+          },
+          "story": {
+            "title": "Укрытие партизан",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Partisans Hideaway</b>. Укрытие банд у Диона.",
+              "Solo ок; partyRecommended — flavor."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Укрытие партизан",
+          "desc": "Dion · партизаны · адена",
+          "storyTag": "Охота · Партизаны",
+          "mine": {
+            "title": "Укрытие партизан",
+            "hint": "Укрытие · party-lean"
+          },
+          "story": {
+            "title": "Укрытие партизан",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Partisans Hideaway</b>. Укрытие банд у Диона.",
+              "Solo ок; partyRecommended — flavor."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Укрытие партизан",
+          "desc": "Dion · партизаны · адена",
+          "storyTag": "Охота · Партизаны",
+          "mine": {
+            "title": "Укрытие партизан",
+            "hint": "Укрытие · party-lean"
+          },
+          "story": {
+            "title": "Укрытие партизан",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Partisans Hideaway</b>. Укрытие банд у Диона.",
+              "Solo ок; partyRecommended — flavor."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Укрытие партизан",
+          "desc": "Dion · партизаны · адена",
+          "storyTag": "Охота · Партизаны",
+          "mine": {
+            "title": "Укрытие партизан",
+            "hint": "Укрытие · party-lean"
+          },
+          "story": {
+            "title": "Укрытие партизан",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Partisans Hideaway</b>. Укрытие банд у Диона.",
+              "Solo ок; partyRecommended — flavor."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "floran_agricultural",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Floran Agricultural Area",
+      "hubId": "dion",
+      "lvlMin": 30,
+      "lvlMax": 35,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "jewelry_c",
+        "scroll_c"
+      ],
+      "name": "Флоранские поля",
+      "desc": "Dion · L2 30–40 · C · броня · бижа · свитки C",
+      "storyTag": "Охота · Флоран",
+      "reqPower": 124,
+      "reqLevel": 24,
+      "targetPower": 161,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/floran.jpg",
+          "assets/locations/floran-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1160,
+        "goldenChance": 0.053,
+        "rewardScale": 1.12
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Флоранские поля",
+          "desc": "Dion · Флоран · адена",
+          "storyTag": "Охота · Флоран",
+          "mine": {
+            "title": "Флоранские поля",
+            "hint": "Поля Флорана"
+          },
+          "story": {
+            "title": "Флоранские поля",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Floran Agricultural Area</b>. Сельхозугодья у Диона.",
+              "Выше mid — лёгкий soft C."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Флоранские поля",
+          "desc": "Dion · Флоран · адена",
+          "storyTag": "Охота · Флоран",
+          "mine": {
+            "title": "Флоранские поля",
+            "hint": "Поля Флорана"
+          },
+          "story": {
+            "title": "Флоранские поля",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Floran Agricultural Area</b>. Сельхозугодья у Диона.",
+              "Выше mid — лёгкий soft C."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Флоранские поля",
+          "desc": "Dion · Флоран · адена",
+          "storyTag": "Охота · Флоран",
+          "mine": {
+            "title": "Флоранские поля",
+            "hint": "Поля Флорана"
+          },
+          "story": {
+            "title": "Флоранские поля",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Floran Agricultural Area</b>. Сельхозугодья у Диона.",
+              "Выше mid — лёгкий soft C."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Флоранские поля",
+          "desc": "Dion · Флоран · адена",
+          "storyTag": "Охота · Флоран",
+          "mine": {
+            "title": "Флоранские поля",
+            "hint": "Поля Флорана"
+          },
+          "story": {
+            "title": "Флоранские поля",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Floran Agricultural Area</b>. Сельхозугодья у Диона.",
+              "Выше mid — лёгкий soft C."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Флоранские поля",
+          "desc": "Dion · Флоран · адена",
+          "storyTag": "Охота · Флоран",
+          "mine": {
+            "title": "Флоранские поля",
+            "hint": "Поля Флорана"
+          },
+          "story": {
+            "title": "Флоранские поля",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Floran Agricultural Area</b>. Сельхозугодья у Диона.",
+              "Выше mid — лёгкий soft C."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "cruma_marshlands",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Cruma Marshlands",
+      "hubId": "dion",
+      "lvlMin": 30,
+      "lvlMax": 40,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "jewelry_c",
+        "scroll_c"
+      ],
+      "name": "Болота Крумы",
+      "desc": "Dion · L2 30–40 · C · броня · бижа · свитки C",
+      "storyTag": "Охота · Крума",
+      "reqPower": 128,
+      "reqLevel": 25,
+      "targetPower": 166,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/cruma-marsh.jpg",
+          "assets/locations/cruma-marsh-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1180,
+        "goldenChance": 0.054,
+        "rewardScale": 1.15
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Болота Крумы",
+          "desc": "Dion · болота · soft C",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Болота Крумы",
+            "hint": "Болота у башни"
+          },
+          "story": {
+            "title": "Болота Крумы",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Cruma Marshlands</b>. Топи у Башни Крумы.",
+              "Потолок Dion free до Ant Nest / Tower."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Болота Крумы",
+          "desc": "Dion · болота · soft C",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Болота Крумы",
+            "hint": "Болота у башни"
+          },
+          "story": {
+            "title": "Болота Крумы",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Cruma Marshlands</b>. Топи у Башни Крумы.",
+              "Потолок Dion free до Ant Nest / Tower."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Болота Крумы",
+          "desc": "Dion · болота · soft C",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Болота Крумы",
+            "hint": "Болота у башни"
+          },
+          "story": {
+            "title": "Болота Крумы",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Cruma Marshlands</b>. Топи у Башни Крумы.",
+              "Потолок Dion free до Ant Nest / Tower."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Болота Крумы",
+          "desc": "Dion · болота · soft C",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Болота Крумы",
+            "hint": "Болота у башни"
+          },
+          "story": {
+            "title": "Болота Крумы",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Cruma Marshlands</b>. Топи у Башни Крумы.",
+              "Потолок Dion free до Ant Nest / Tower."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Болота Крумы",
+          "desc": "Dion · болота · soft C",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Болота Крумы",
+            "hint": "Болота у башни"
+          },
+          "story": {
+            "title": "Болота Крумы",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Cruma Marshlands</b>. Топи у Башни Крумы.",
+              "Потолок Dion free до Ant Nest / Tower."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "ant_nest",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "The Ant Nest",
+      "hubId": "dion",
+      "lvlMin": 30,
+      "lvlMax": 40,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "scroll_c"
+      ],
+      "name": "Муравейник",
+      "desc": "Dion · L2 30–40 · C · броня · свитки C",
+      "storyTag": "Охота · Муравейник",
+      "reqPower": 128,
+      "reqLevel": 25,
+      "targetPower": 166,
+      "icon": "icons/weapon_dwarven_hammer_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/ant-nest.jpg",
+          "assets/locations/ant-nest-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1200,
+        "goldenChance": 0.055,
+        "rewardScale": 1.18
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Муравейник",
+          "desc": "Dion · муравьи · capturable target",
+          "storyTag": "Охота · Муравейник",
+          "mine": {
+            "title": "Муравейник",
+            "hint": "Данж-фарм · осада later"
+          },
+          "story": {
+            "title": "Муравейник",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>The Ant Nest</b>. Подземный улей у Диона.",
+              "Capturable target — siege позже; сейчас free high Dion."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Муравейник",
+          "desc": "Dion · муравьи · capturable target",
+          "storyTag": "Охота · Муравейник",
+          "mine": {
+            "title": "Муравейник",
+            "hint": "Данж-фарм · осада later"
+          },
+          "story": {
+            "title": "Муравейник",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>The Ant Nest</b>. Подземный улей у Диона.",
+              "Capturable target — siege позже; сейчас free high Dion."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Муравейник",
+          "desc": "Dion · муравьи · capturable target",
+          "storyTag": "Охота · Муравейник",
+          "mine": {
+            "title": "Муравейник",
+            "hint": "Данж-фарм · осада later"
+          },
+          "story": {
+            "title": "Муравейник",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>The Ant Nest</b>. Подземный улей у Диона.",
+              "Capturable target — siege позже; сейчас free high Dion."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Муравейник",
+          "desc": "Dion · муравьи · capturable target",
+          "storyTag": "Охота · Муравейник",
+          "mine": {
+            "title": "Муравейник",
+            "hint": "Данж-фарм · осада later"
+          },
+          "story": {
+            "title": "Муравейник",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>The Ant Nest</b>. Подземный улей у Диона.",
+              "Capturable target — siege позже; сейчас free high Dion."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Муравейник",
+          "desc": "Dion · муравьи · capturable target",
+          "storyTag": "Охота · Муравейник",
+          "mine": {
+            "title": "Муравейник",
+            "hint": "Данж-фарм · осада later"
+          },
+          "story": {
+            "title": "Муравейник",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>The Ant Nest</b>. Подземный улей у Диона.",
+              "Capturable target — siege позже; сейчас free high Dion."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "cruma_tower_entrance",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Cruma Tower",
+      "hubId": "dion",
+      "lvlMin": 38,
+      "lvlMax": 40,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "scroll_c"
+      ],
+      "name": "Башня Крумы (вход)",
+      "desc": "Dion · L2 30–40 · C · броня · свитки C",
+      "storyTag": "Охота · Крума",
+      "reqPower": 137,
+      "reqLevel": 27,
+      "targetPower": 176,
+      "icon": "icons/weapon_dwarven_hammer_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/cruma-tower.jpg",
+          "assets/locations/cruma-tower-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1240,
+        "goldenChance": 0.055,
+        "rewardScale": 1.22
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Башня Крумы (вход)",
+          "desc": "Dion · потолок v1",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Башня Крумы (вход)",
+            "hint": "Вход в башню"
+          },
+          "story": {
+            "title": "Башня Крумы (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Cruma Tower</b> — потолок vision ≤40.",
+              "Только внешний контур; mid+ башня — later."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Башня Крумы (вход)",
+          "desc": "Dion · потолок v1",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Башня Крумы (вход)",
+            "hint": "Вход в башню"
+          },
+          "story": {
+            "title": "Башня Крумы (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Cruma Tower</b> — потолок vision ≤40.",
+              "Только внешний контур; mid+ башня — later."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Башня Крумы (вход)",
+          "desc": "Dion · потолок v1",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Башня Крумы (вход)",
+            "hint": "Вход в башню"
+          },
+          "story": {
+            "title": "Башня Крумы (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Cruma Tower</b> — потолок vision ≤40.",
+              "Только внешний контур; mid+ башня — later."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Башня Крумы (вход)",
+          "desc": "Dion · потолок v1",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Башня Крумы (вход)",
+            "hint": "Вход в башню"
+          },
+          "story": {
+            "title": "Башня Крумы (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Cruma Tower</b> — потолок vision ≤40.",
+              "Только внешний контур; mid+ башня — later."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Башня Крумы (вход)",
+          "desc": "Dion · потолок v1",
+          "storyTag": "Охота · Крума",
+          "mine": {
+            "title": "Башня Крумы (вход)",
+            "hint": "Вход в башню"
+          },
+          "story": {
+            "title": "Башня Крумы (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Cruma Tower</b> — потолок vision ≤40.",
+              "Только внешний контур; mid+ башня — later."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "school_of_dark_arts",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "School of Dark Arts",
+      "hubId": "dark_elven_village",
+      "lvlMin": 1,
+      "lvlMax": 20,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "jewelry_d",
+        "scroll_d"
+      ],
+      "name": "Школа тёмных искусств",
+      "desc": "Тёмные · L2≤20 · D · броня · бижа · свитки D",
+      "storyTag": "Охота · Школа",
+      "reqPower": 40,
+      "reqLevel": 5,
+      "targetPower": 60,
+      "icon": "icons/weapon_dark_screamer_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/school-dark-hunt.jpg",
+          "assets/locations/school-dark-hunt-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1000,
+        "goldenChance": 0.049,
+        "rewardScale": 0.88
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Школа тёмных искусств",
+          "desc": "Тёмные · soft hunt",
+          "storyTag": "Охота · Школа",
+          "mine": {
+            "title": "Школа тёмных искусств",
+            "hint": "Школа тёмных"
+          },
+          "story": {
+            "title": "Школа тёмных искусств",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>School of Dark Arts</b> у деревни тёмных эльфов.",
+              "Расовый soft start рядом с окраиной."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Школа тёмных искусств",
+          "desc": "Тёмные · soft hunt",
+          "storyTag": "Охота · Школа",
+          "mine": {
+            "title": "Школа тёмных искусств",
+            "hint": "Школа тёмных"
+          },
+          "story": {
+            "title": "Школа тёмных искусств",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>School of Dark Arts</b> у деревни тёмных эльфов.",
+              "Расовый soft start рядом с окраиной."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Школа тёмных искусств",
+          "desc": "Тёмные · soft hunt",
+          "storyTag": "Охота · Школа",
+          "mine": {
+            "title": "Школа тёмных искусств",
+            "hint": "Школа тёмных"
+          },
+          "story": {
+            "title": "Школа тёмных искусств",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>School of Dark Arts</b> у деревни тёмных эльфов.",
+              "Расовый soft start рядом с окраиной."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Школа тёмных искусств",
+          "desc": "Тёмные · soft hunt",
+          "storyTag": "Охота · Школа",
+          "mine": {
+            "title": "Школа тёмных искусств",
+            "hint": "Школа тёмных"
+          },
+          "story": {
+            "title": "Школа тёмных искусств",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>School of Dark Arts</b> у деревни тёмных эльфов.",
+              "Расовый soft start рядом с окраиной."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Школа тёмных искусств",
+          "desc": "Тёмные · soft hunt",
+          "storyTag": "Охота · Школа",
+          "mine": {
+            "title": "Школа тёмных искусств",
+            "hint": "Школа тёмных"
+          },
+          "story": {
+            "title": "Школа тёмных искусств",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>School of Dark Arts</b> у деревни тёмных эльфов.",
+              "Расовый soft start рядом с окраиной."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "elven_ruins_hunt",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Elven Ruins",
+      "hubId": "elven_village",
+      "lvlMin": 1,
+      "lvlMax": 23,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_d",
+        "scroll_d"
+      ],
+      "name": "Руины эльфов (охота)",
+      "desc": "Эльфы · L2≤20 · D · броня · свитки D",
+      "storyTag": "Охота · Руины",
+      "reqPower": 40,
+      "reqLevel": 5,
+      "targetPower": 60,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/elven-ruins-hunt.jpg",
+          "assets/locations/elven-ruins-hunt-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1000,
+        "goldenChance": 0.049,
+        "rewardScale": 0.88
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Руины эльфов (охота)",
+          "desc": "Эльфы · soft hunt",
+          "storyTag": "Охота · Руины",
+          "mine": {
+            "title": "Руины эльфов (охота)",
+            "hint": "Руины · не глава II"
+          },
+          "story": {
+            "title": "Руины эльфов (охота)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Elven Ruins</b> у деревни эльфов. Не путать с сюжетной главой II.",
+              "Расовый soft hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Руины эльфов (охота)",
+          "desc": "Эльфы · soft hunt",
+          "storyTag": "Охота · Руины",
+          "mine": {
+            "title": "Руины эльфов (охота)",
+            "hint": "Руины · не глава II"
+          },
+          "story": {
+            "title": "Руины эльфов (охота)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Elven Ruins</b> у деревни эльфов. Не путать с сюжетной главой II.",
+              "Расовый soft hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Руины эльфов (охота)",
+          "desc": "Эльфы · soft hunt",
+          "storyTag": "Охота · Руины",
+          "mine": {
+            "title": "Руины эльфов (охота)",
+            "hint": "Руины · не глава II"
+          },
+          "story": {
+            "title": "Руины эльфов (охота)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Elven Ruins</b> у деревни эльфов. Не путать с сюжетной главой II.",
+              "Расовый soft hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Руины эльфов (охота)",
+          "desc": "Эльфы · soft hunt",
+          "storyTag": "Охота · Руины",
+          "mine": {
+            "title": "Руины эльфов (охота)",
+            "hint": "Руины · не глава II"
+          },
+          "story": {
+            "title": "Руины эльфов (охота)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Elven Ruins</b> у деревни эльфов. Не путать с сюжетной главой II.",
+              "Расовый soft hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Руины эльфов (охота)",
+          "desc": "Эльфы · soft hunt",
+          "storyTag": "Охота · Руины",
+          "mine": {
+            "title": "Руины эльфов (охота)",
+            "hint": "Руины · не глава II"
+          },
+          "story": {
+            "title": "Руины эльфов (охота)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Elven Ruins</b> у деревни эльфов. Не путать с сюжетной главой II.",
+              "Расовый soft hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "death_pass",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Death Pass",
+      "hubId": "giran",
+      "lvlMin": 30,
+      "lvlMax": 40,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "scroll_c"
+      ],
+      "name": "Ущелье смерти",
+      "desc": "Giran · L2 30–40 · C · броня · свитки C",
+      "storyTag": "Охота · Ущелье",
+      "reqPower": 128,
+      "reqLevel": 25,
+      "targetPower": 166,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/death-pass.jpg",
+          "assets/locations/death-pass-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1180,
+        "goldenChance": 0.054,
+        "rewardScale": 1.16
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Ущелье смерти",
+          "desc": "Giran · ущелье · soft C",
+          "storyTag": "Охота · Ущелье",
+          "mine": {
+            "title": "Ущелье смерти",
+            "hint": "Ущелье к Гирану"
+          },
+          "story": {
+            "title": "Ущелье смерти",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Death Pass</b> — ущелье на пути к Гирану.",
+              "Вход в Giran-лестницу · soft C адена."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Ущелье смерти",
+          "desc": "Giran · ущелье · soft C",
+          "storyTag": "Охота · Ущелье",
+          "mine": {
+            "title": "Ущелье смерти",
+            "hint": "Ущелье к Гирану"
+          },
+          "story": {
+            "title": "Ущелье смерти",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Death Pass</b> — ущелье на пути к Гирану.",
+              "Вход в Giran-лестницу · soft C адена."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Ущелье смерти",
+          "desc": "Giran · ущелье · soft C",
+          "storyTag": "Охота · Ущелье",
+          "mine": {
+            "title": "Ущелье смерти",
+            "hint": "Ущелье к Гирану"
+          },
+          "story": {
+            "title": "Ущелье смерти",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Death Pass</b> — ущелье на пути к Гирану.",
+              "Вход в Giran-лестницу · soft C адена."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Ущелье смерти",
+          "desc": "Giran · ущелье · soft C",
+          "storyTag": "Охота · Ущелье",
+          "mine": {
+            "title": "Ущелье смерти",
+            "hint": "Ущелье к Гирану"
+          },
+          "story": {
+            "title": "Ущелье смерти",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Death Pass</b> — ущелье на пути к Гирану.",
+              "Вход в Giran-лестницу · soft C адена."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Ущелье смерти",
+          "desc": "Giran · ущелье · soft C",
+          "storyTag": "Охота · Ущелье",
+          "mine": {
+            "title": "Ущелье смерти",
+            "hint": "Ущелье к Гирану"
+          },
+          "story": {
+            "title": "Ущелье смерти",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Death Pass</b> — ущелье на пути к Гирану.",
+              "Вход в Giran-лестницу · soft C адена."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "gorgon_flower_garden",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Gorgon Flower Garden",
+      "hubId": "giran",
+      "lvlMin": 30,
+      "lvlMax": 40,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "jewelry_c",
+        "scroll_c"
+      ],
+      "name": "Сад горгон",
+      "desc": "Giran · L2 30–40 · C · броня · бижа · свитки C",
+      "storyTag": "Охота · Горгоны",
+      "reqPower": 128,
+      "reqLevel": 25,
+      "targetPower": 166,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/gorgon-garden.jpg",
+          "assets/locations/gorgon-garden-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1190,
+        "goldenChance": 0.054,
+        "rewardScale": 1.18
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Сад горгон",
+          "desc": "Giran · медузы · адена",
+          "storyTag": "Охота · Горгоны",
+          "mine": {
+            "title": "Сад горгон",
+            "hint": "Сад · гарпии и медузы"
+          },
+          "story": {
+            "title": "Сад горгон",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Gorgon Flower Garden</b>. Цветущий сад, гарпии и медузы.",
+              "Классика Giran mid · free hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Сад горгон",
+          "desc": "Giran · медузы · адена",
+          "storyTag": "Охота · Горгоны",
+          "mine": {
+            "title": "Сад горгон",
+            "hint": "Сад · гарпии и медузы"
+          },
+          "story": {
+            "title": "Сад горгон",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Gorgon Flower Garden</b>. Цветущий сад, гарпии и медузы.",
+              "Классика Giran mid · free hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Сад горгон",
+          "desc": "Giran · медузы · адена",
+          "storyTag": "Охота · Горгоны",
+          "mine": {
+            "title": "Сад горгон",
+            "hint": "Сад · гарпии и медузы"
+          },
+          "story": {
+            "title": "Сад горгон",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Gorgon Flower Garden</b>. Цветущий сад, гарпии и медузы.",
+              "Классика Giran mid · free hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Сад горгон",
+          "desc": "Giran · медузы · адена",
+          "storyTag": "Охота · Горгоны",
+          "mine": {
+            "title": "Сад горгон",
+            "hint": "Сад · гарпии и медузы"
+          },
+          "story": {
+            "title": "Сад горгон",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Gorgon Flower Garden</b>. Цветущий сад, гарпии и медузы.",
+              "Классика Giran mid · free hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Сад горгон",
+          "desc": "Giran · медузы · адена",
+          "storyTag": "Охота · Горгоны",
+          "mine": {
+            "title": "Сад горгон",
+            "hint": "Сад · гарпии и медузы"
+          },
+          "story": {
+            "title": "Сад горгон",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Gorgon Flower Garden</b>. Цветущий сад, гарпии и медузы.",
+              "Классика Giran mid · free hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "breka_stronghold",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Breka's Stronghold",
+      "hubId": "giran",
+      "lvlMin": 31,
+      "lvlMax": 36,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "scroll_c"
+      ],
+      "name": "Крепость Брека",
+      "desc": "Giran · L2 30–40 · C · броня · свитки C",
+      "storyTag": "Охота · Брека",
+      "reqPower": 124,
+      "reqLevel": 24,
+      "targetPower": 161,
+      "icon": "icons/weapon_paagrio_hammer_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/breka.jpg",
+          "assets/locations/breka-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1200,
+        "goldenChance": 0.054,
+        "rewardScale": 1.19
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Крепость Брека",
+          "desc": "Giran · орки Брека",
+          "storyTag": "Охота · Брека",
+          "mine": {
+            "title": "Крепость Брека",
+            "hint": "Орки Брека"
+          },
+          "story": {
+            "title": "Крепость Брека",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Breka's Stronghold</b>. Крепость орков у Гирана.",
+              "Плотный mid Giran · free hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Крепость Брека",
+          "desc": "Giran · орки Брека",
+          "storyTag": "Охота · Брека",
+          "mine": {
+            "title": "Крепость Брека",
+            "hint": "Орки Брека"
+          },
+          "story": {
+            "title": "Крепость Брека",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Breka's Stronghold</b>. Крепость орков у Гирана.",
+              "Плотный mid Giran · free hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Крепость Брека",
+          "desc": "Giran · орки Брека",
+          "storyTag": "Охота · Брека",
+          "mine": {
+            "title": "Крепость Брека",
+            "hint": "Орки Брека"
+          },
+          "story": {
+            "title": "Крепость Брека",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Breka's Stronghold</b>. Крепость орков у Гирана.",
+              "Плотный mid Giran · free hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Крепость Брека",
+          "desc": "Giran · орки Брека",
+          "storyTag": "Охота · Брека",
+          "mine": {
+            "title": "Крепость Брека",
+            "hint": "Орки Брека"
+          },
+          "story": {
+            "title": "Крепость Брека",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Breka's Stronghold</b>. Крепость орков у Гирана.",
+              "Плотный mid Giran · free hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Крепость Брека",
+          "desc": "Giran · орки Брека",
+          "storyTag": "Охота · Брека",
+          "mine": {
+            "title": "Крепость Брека",
+            "hint": "Орки Брека"
+          },
+          "story": {
+            "title": "Крепость Брека",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Breka's Stronghold</b>. Крепость орков у Гирана.",
+              "Плотный mid Giran · free hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "dragon_valley_entrance",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Dragon Valley",
+      "hubId": "giran",
+      "lvlMin": 40,
+      "lvlMax": 45,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "scroll_c"
+      ],
+      "name": "Долина драконов (вход)",
+      "desc": "Giran · L2 40+ · C · броня · свитки C",
+      "storyTag": "Охота · DV",
+      "reqPower": 154,
+      "reqLevel": 31,
+      "targetPower": 197,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": true,
+      "mine": {
+        "bgs": [
+          "assets/locations/dragon-valley.jpg",
+          "assets/locations/dragon-valley-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1260,
+        "goldenChance": 0.056,
+        "rewardScale": 1.25
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Долина драконов (вход)",
+          "desc": "Giran · DV вход · party-lean",
+          "storyTag": "Охота · DV",
+          "mine": {
+            "title": "Долина драконов (вход)",
+            "hint": "Вход в DV"
+          },
+          "story": {
+            "title": "Долина драконов (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Dragon Valley</b>. Только внешний контур.",
+              "Party-lean flavor · mid+ DV later."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Долина драконов (вход)",
+          "desc": "Giran · DV вход · party-lean",
+          "storyTag": "Охота · DV",
+          "mine": {
+            "title": "Долина драконов (вход)",
+            "hint": "Вход в DV"
+          },
+          "story": {
+            "title": "Долина драконов (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Dragon Valley</b>. Только внешний контур.",
+              "Party-lean flavor · mid+ DV later."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Долина драконов (вход)",
+          "desc": "Giran · DV вход · party-lean",
+          "storyTag": "Охота · DV",
+          "mine": {
+            "title": "Долина драконов (вход)",
+            "hint": "Вход в DV"
+          },
+          "story": {
+            "title": "Долина драконов (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Dragon Valley</b>. Только внешний контур.",
+              "Party-lean flavor · mid+ DV later."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Долина драконов (вход)",
+          "desc": "Giran · DV вход · party-lean",
+          "storyTag": "Охота · DV",
+          "mine": {
+            "title": "Долина драконов (вход)",
+            "hint": "Вход в DV"
+          },
+          "story": {
+            "title": "Долина драконов (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Dragon Valley</b>. Только внешний контур.",
+              "Party-lean flavor · mid+ DV later."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Долина драконов (вход)",
+          "desc": "Giran · DV вход · party-lean",
+          "storyTag": "Охота · DV",
+          "mine": {
+            "title": "Долина драконов (вход)",
+            "hint": "Вход в DV"
+          },
+          "story": {
+            "title": "Долина драконов (вход)",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting у входа в <b>Dragon Valley</b>. Только внешний контур.",
+              "Party-lean flavor · mid+ DV later."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "enchanted_valley",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Enchanted Valley",
+      "hubId": "oren",
+      "lvlMin": 40,
+      "lvlMax": 50,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "jewelry_c",
+        "scroll_c"
+      ],
+      "name": "Зачарованная долина",
+      "desc": "Oren · L2 40+ · C · броня · бижа · свитки C",
+      "storyTag": "Охота · Долина",
+      "reqPower": 159,
+      "reqLevel": 32,
+      "targetPower": 203,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/enchanted-valley.jpg",
+          "assets/locations/enchanted-valley-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1250,
+        "goldenChance": 0.055,
+        "rewardScale": 1.24
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Зачарованная долина",
+          "desc": "Oren · долина · 40+",
+          "storyTag": "Охота · Долина",
+          "mine": {
+            "title": "Зачарованная долина",
+            "hint": "Зачарованная долина"
+          },
+          "story": {
+            "title": "Зачарованная долина",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Enchanted Valley</b> у Орена.",
+              "Высокий free hunt · 40+ ladder."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Зачарованная долина",
+          "desc": "Oren · долина · 40+",
+          "storyTag": "Охота · Долина",
+          "mine": {
+            "title": "Зачарованная долина",
+            "hint": "Зачарованная долина"
+          },
+          "story": {
+            "title": "Зачарованная долина",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Enchanted Valley</b> у Орена.",
+              "Высокий free hunt · 40+ ladder."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Зачарованная долина",
+          "desc": "Oren · долина · 40+",
+          "storyTag": "Охота · Долина",
+          "mine": {
+            "title": "Зачарованная долина",
+            "hint": "Зачарованная долина"
+          },
+          "story": {
+            "title": "Зачарованная долина",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Enchanted Valley</b> у Орена.",
+              "Высокий free hunt · 40+ ladder."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Зачарованная долина",
+          "desc": "Oren · долина · 40+",
+          "storyTag": "Охота · Долина",
+          "mine": {
+            "title": "Зачарованная долина",
+            "hint": "Зачарованная долина"
+          },
+          "story": {
+            "title": "Зачарованная долина",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Enchanted Valley</b> у Орена.",
+              "Высокий free hunt · 40+ ladder."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Зачарованная долина",
+          "desc": "Oren · долина · 40+",
+          "storyTag": "Охота · Долина",
+          "mine": {
+            "title": "Зачарованная долина",
+            "hint": "Зачарованная долина"
+          },
+          "story": {
+            "title": "Зачарованная долина",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Enchanted Valley</b> у Орена.",
+              "Высокий free hunt · 40+ ladder."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "sea_of_spores",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Sea of Spores",
+      "hubId": "oren",
+      "lvlMin": 40,
+      "lvlMax": 50,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "jewelry_c",
+        "scroll_c"
+      ],
+      "name": "Море спор",
+      "desc": "Oren · L2 40+ · C · броня · бижа · свитки C",
+      "storyTag": "Охота · Споры",
+      "reqPower": 159,
+      "reqLevel": 32,
+      "targetPower": 203,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/sea-spores-hunt.jpg",
+          "assets/locations/sea-spores-hunt-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1270,
+        "goldenChance": 0.056,
+        "rewardScale": 1.26
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Море спор",
+          "desc": "Oren · споры · 40+",
+          "storyTag": "Охота · Споры",
+          "mine": {
+            "title": "Море спор",
+            "hint": "Море спор"
+          },
+          "story": {
+            "title": "Море спор",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Sea of Spores</b>. Грибные топи у Орена.",
+              "Плотный 40+ free hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Море спор",
+          "desc": "Oren · споры · 40+",
+          "storyTag": "Охота · Споры",
+          "mine": {
+            "title": "Море спор",
+            "hint": "Море спор"
+          },
+          "story": {
+            "title": "Море спор",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Sea of Spores</b>. Грибные топи у Орена.",
+              "Плотный 40+ free hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Море спор",
+          "desc": "Oren · споры · 40+",
+          "storyTag": "Охота · Споры",
+          "mine": {
+            "title": "Море спор",
+            "hint": "Море спор"
+          },
+          "story": {
+            "title": "Море спор",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Sea of Spores</b>. Грибные топи у Орена.",
+              "Плотный 40+ free hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Море спор",
+          "desc": "Oren · споры · 40+",
+          "storyTag": "Охота · Споры",
+          "mine": {
+            "title": "Море спор",
+            "hint": "Море спор"
+          },
+          "story": {
+            "title": "Море спор",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Sea of Spores</b>. Грибные топи у Орена.",
+              "Плотный 40+ free hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Море спор",
+          "desc": "Oren · споры · 40+",
+          "storyTag": "Охота · Споры",
+          "mine": {
+            "title": "Море спор",
+            "hint": "Море спор"
+          },
+          "story": {
+            "title": "Море спор",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Sea of Spores</b>. Грибные топи у Орена.",
+              "Плотный 40+ free hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "alligator_island",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Alligator Island",
+      "hubId": "heine",
+      "lvlMin": 40,
+      "lvlMax": 50,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "jewelry_c",
+        "scroll_c"
+      ],
+      "name": "Остров аллигаторов",
+      "desc": "Heine · L2 40+ · C · бижа · свитки C",
+      "storyTag": "Охота · Аллигаторы",
+      "reqPower": 159,
+      "reqLevel": 32,
+      "targetPower": 203,
+      "icon": "icons/weapon_elven_long_sword_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/alligator-island.jpg",
+          "assets/locations/alligator-island-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1260,
+        "goldenChance": 0.055,
+        "rewardScale": 1.25
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Остров аллигаторов",
+          "desc": "Heine · остров · 40+",
+          "storyTag": "Охота · Аллигаторы",
+          "mine": {
+            "title": "Остров аллигаторов",
+            "hint": "Остров у Хейна"
+          },
+          "story": {
+            "title": "Остров аллигаторов",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Alligator Island</b> у Хейна.",
+              "Водный 40+ free hunt."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Остров аллигаторов",
+          "desc": "Heine · остров · 40+",
+          "storyTag": "Охота · Аллигаторы",
+          "mine": {
+            "title": "Остров аллигаторов",
+            "hint": "Остров у Хейна"
+          },
+          "story": {
+            "title": "Остров аллигаторов",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Alligator Island</b> у Хейна.",
+              "Водный 40+ free hunt."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Остров аллигаторов",
+          "desc": "Heine · остров · 40+",
+          "storyTag": "Охота · Аллигаторы",
+          "mine": {
+            "title": "Остров аллигаторов",
+            "hint": "Остров у Хейна"
+          },
+          "story": {
+            "title": "Остров аллигаторов",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Alligator Island</b> у Хейна.",
+              "Водный 40+ free hunt."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Остров аллигаторов",
+          "desc": "Heine · остров · 40+",
+          "storyTag": "Охота · Аллигаторы",
+          "mine": {
+            "title": "Остров аллигаторов",
+            "hint": "Остров у Хейна"
+          },
+          "story": {
+            "title": "Остров аллигаторов",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Alligator Island</b> у Хейна.",
+              "Водный 40+ free hunt."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Остров аллигаторов",
+          "desc": "Heine · остров · 40+",
+          "storyTag": "Охота · Аллигаторы",
+          "mine": {
+            "title": "Остров аллигаторов",
+            "hint": "Остров у Хейна"
+          },
+          "story": {
+            "title": "Остров аллигаторов",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Alligator Island</b> у Хейна.",
+              "Водный 40+ free hunt."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "blazing_swamp",
+      "chapter": 1,
+      "side": true,
+      "l2Name": "Blazing Swamp",
+      "hubId": "aden",
+      "lvlMin": 50,
+      "lvlMax": 60,
+      "capturable": true,
+      "siegeEnabled": true,
+      "lootTags": [
+        "armor_c",
+        "scroll_c"
+      ],
+      "name": "Пылающее болото",
+      "desc": "Aden · L2 40+ · C · броня · свитки C",
+      "storyTag": "Охота · Болото",
+      "reqPower": 176,
+      "reqLevel": 36,
+      "targetPower": 223,
+      "icon": "icons/weapon_dwarven_hammer_i00.png",
+      "active": true,
+      "partyRecommended": false,
+      "mine": {
+        "bgs": [
+          "assets/locations/blazing-swamp.jpg",
+          "assets/locations/blazing-swamp-2.jpg"
+        ],
+        "overlay": "mine-zone-start",
+        "spawnMs": 1320,
+        "goldenChance": 0.057,
+        "rewardScale": 1.3
+      },
+      "raceSkin": {
+        "human": {
+          "name": "Пылающее болото",
+          "desc": "Aden · огонь · 50+",
+          "storyTag": "Охота · Болото",
+          "mine": {
+            "title": "Пылающее болото",
+            "hint": "Пылающее болото"
+          },
+          "story": {
+            "title": "Пылающее болото",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Blazing Swamp</b> у Адена.",
+              "Потолок текущего каталога · 50+ tease."
+            ]
+          }
+        },
+        "elf": {
+          "name": "Пылающее болото",
+          "desc": "Aden · огонь · 50+",
+          "storyTag": "Охота · Болото",
+          "mine": {
+            "title": "Пылающее болото",
+            "hint": "Пылающее болото"
+          },
+          "story": {
+            "title": "Пылающее болото",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Blazing Swamp</b> у Адена.",
+              "Потолок текущего каталога · 50+ tease."
+            ]
+          }
+        },
+        "dark_elf": {
+          "name": "Пылающее болото",
+          "desc": "Aden · огонь · 50+",
+          "storyTag": "Охота · Болото",
+          "mine": {
+            "title": "Пылающее болото",
+            "hint": "Пылающее болото"
+          },
+          "story": {
+            "title": "Пылающее болото",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Blazing Swamp</b> у Адена.",
+              "Потолок текущего каталога · 50+ tease."
+            ]
+          }
+        },
+        "orc": {
+          "name": "Пылающее болото",
+          "desc": "Aden · огонь · 50+",
+          "storyTag": "Охота · Болото",
+          "mine": {
+            "title": "Пылающее болото",
+            "hint": "Пылающее болото"
+          },
+          "story": {
+            "title": "Пылающее болото",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Blazing Swamp</b> у Адена.",
+              "Потолок текущего каталога · 50+ tease."
+            ]
+          }
+        },
+        "dwarf": {
+          "name": "Пылающее болото",
+          "desc": "Aden · огонь · 50+",
+          "storyTag": "Охота · Болото",
+          "mine": {
+            "title": "Пылающее болото",
+            "hint": "Пылающее болото"
+          },
+          "story": {
+            "title": "Пылающее болото",
+            "eyebrow": "Охотничьи угодья",
+            "cta": "В угодья",
+            "paragraphs": [
+              "Hunting <b>Blazing Swamp</b> у Адена.",
+              "Потолок текущего каталога · 50+ tease."
             ]
           }
         }
@@ -762,7 +4567,7 @@
       "desc": "Третье задание",
       "storyTag": "Глава III",
       "reqPower": 108,
-      "reqLevel": 7,
+      "reqLevel": 6,
       "targetPower": 122,
       "icon": "icons/weapon_elven_long_sword_i00.png",
       "active": true,
@@ -881,7 +4686,7 @@
       "desc": "Четвёртое задание",
       "storyTag": "Глава IV",
       "reqPower": 128,
-      "reqLevel": 10,
+      "reqLevel": 8,
       "targetPower": 140,
       "icon": "icons/weapon_dark_screamer_i00.png",
       "active": true,
@@ -1000,7 +4805,7 @@
       "desc": "Финальное задание",
       "storyTag": "Глава V",
       "reqPower": 148,
-      "reqLevel": 14,
+      "reqLevel": 10,
       "targetPower": 162,
       "icon": "icons/etc_scroll_of_enchant_weapon_i04.png",
       "active": true,
@@ -1139,13 +4944,217 @@
       "dwarf": 0.08,
       "human": 0.04
     },
-    "mithril_forge": {
+    "wasteland": {
+      "human": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "abandoned_coal_low": {
       "dwarf": 0.08,
       "human": 0.04,
       "orc": 0.04
     },
-    "scrap_field": {
+    "abandoned_camp": {
       "human": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "ruins_agony": {
+      "human": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "race_outskirts": {
+      "human": 1,
+      "elf": 1,
+      "dark_elf": 1,
+      "orc": 1,
+      "dwarf": 1
+    },
+    "execution_grounds": {
+      "dwarf": 0.08,
+      "human": 0.04,
+      "orc": 0.04
+    },
+    "windmill_hill": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "fellmere_harvesting": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "neutral_zone": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "langk_lizardman": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "maille_lizardman": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "ruins_despair": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "evil_hunting_grounds": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "orc_barracks_hunt": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "dion_hills": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "bee_hive": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "plains_of_dion": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "partisans_hideaway": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "floran_agricultural": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "cruma_marshlands": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "ant_nest": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "cruma_tower_entrance": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "school_of_dark_arts": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "elven_ruins_hunt": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "death_pass": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "gorgon_flower_garden": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "breka_stronghold": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "dragon_valley_entrance": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "enchanted_valley": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "sea_of_spores": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "alligator_island": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
+      "orc": 0.05,
+      "dwarf": 0.04
+    },
+    "blazing_swamp": {
+      "human": 0.04,
+      "elf": 0.04,
+      "dark_elf": 0.04,
       "orc": 0.05,
       "dwarf": 0.04
     }

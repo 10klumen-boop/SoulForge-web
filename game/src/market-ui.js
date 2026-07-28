@@ -12,10 +12,12 @@ const MARKET_KIND_TABS = [
   { id: "weapon", label: "Оружие", icon: "icons/weapon_elven_sword_i00.png" },
   { id: "armor", label: "Броня", icon: "icons/btn_armor.png" },
   { id: "accessory", label: "Бижутерия", icon: "icons/accessory_earring_of_zaken_i00.png" },
-  { id: "armor_piece", label: "Куски", icon: "icons/etc_crystal_white_i00.png" },
+  { id: "armor_piece", label: "Куски брони", icon: "icons/etc_crystal_white_i00.png" },
+  { id: "jewelry_piece", label: "Куски бижу", icon: "icons/etc_broken_crystal_silver_i00.png" },
   { id: "crystal", label: "Кристаллы", icon: "icons/etc_crystal_blue_i00.png" },
   { id: "material", label: "Руда", icon: "icons/etc_crystal_white_i00.png" },
   { id: "shot", label: "Заряды", icon: "icons/etc_spirit_bullet_blue_i00.png" },
+  { id: "scroll", label: "Свитки", icon: "icons/scrolls/regular_D.png?v=5" },
 ];
 
 const MARKET_GRADE_TABS = [
@@ -24,6 +26,7 @@ const MARKET_GRADE_TABS = [
   { id: "C", label: "C", icon: "icons/etc_crystal_green_i00.png" },
   { id: "B", label: "B", icon: "icons/etc_crystal_red_i00.png" },
   { id: "A", label: "A", icon: "icons/etc_crystal_silver_i00.png" },
+  { id: "epic", label: "Эпик", icon: "icons/accessory_blessed_earring_of_zaken_i00.png" },
 ];
 
 const MARKET_SORT_OPTS = [
@@ -51,7 +54,14 @@ function marketKindTabIcon(tab) {
 }
 
 function marketShowsGradeTabs(kind) {
-  return kind === "weapon" || kind === "armor" || kind === "armor_piece";
+  return (
+    kind === "weapon" ||
+    kind === "armor" ||
+    kind === "armor_piece" ||
+    kind === "accessory" ||
+    kind === "jewelry_piece" ||
+    kind === "scroll"
+  );
 }
 
 function marketGradeTabIcon(tab) {
@@ -112,20 +122,37 @@ function marketSortRows(rows) {
 
 function marketFilterByGrade(rows, grade) {
   if (!grade) return rows || [];
-  const g = String(grade).toUpperCase();
-  return (rows || []).filter((r) => marketListingGrade(r) === g);
+  const g = String(grade);
+  const gUp = g.toUpperCase();
+  return (rows || []).filter((r) => {
+    const lg = marketListingGrade(r);
+    if (g === "epic" || gUp === "EPIC") return lg === "epic";
+    return lg === gUp;
+  });
 }
 
 function marketFilterRows(rows, kind, grade) {
   let list = rows || [];
   if (kind) list = list.filter((r) => r.kind === kind);
-  if (grade && (kind === "weapon" || kind === "armor" || kind === "armor_piece" || kind === "crystal" || kind === "shot" || !kind)) {
-    if (kind === "weapon" || kind === "armor" || kind === "armor_piece" || kind === "crystal" || kind === "shot") {
+  const gradeKinds = {
+    weapon: 1,
+    armor: 1,
+    armor_piece: 1,
+    accessory: 1,
+    jewelry_piece: 1,
+    crystal: 1,
+    shot: 1,
+    scroll: 1,
+  };
+  if (grade && (gradeKinds[kind] || !kind)) {
+    if (gradeKinds[kind]) {
       list = marketFilterByGrade(list, grade);
     } else if (!kind) {
       list = list.filter((r) => {
         if (r.kind === "material") return true;
-        return marketListingGrade(r) === String(grade).toUpperCase();
+        const lg = marketListingGrade(r);
+        if (grade === "epic") return lg === "epic";
+        return lg === String(grade).toUpperCase();
       });
     }
   }
@@ -717,14 +744,22 @@ function renderMarketSell(root) {
     }
 
     if (sellKind === "accessory") {
-      if (!accessories.length) {
+      let list = accessories;
+      if (sellGrade) {
+        list = list.filter((it) => {
+          const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[it.id] : null;
+          if (sellGrade === "epic") return !!c?.epic;
+          return !c?.epic && c?.grade === sellGrade;
+        });
+      }
+      if (!list.length) {
         box.innerHTML = '<p class="market-empty">Нет бижутерии для продажи (сними со слота).</p>';
         return;
       }
-      accessories.forEach((it) => {
+      list.forEach((it) => {
         const c = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[it.id] : null;
         const slotLabel = marketAccessorySlotLabel(c?.slot);
-        const gradeBit = c?.grade ? " · грейд " + c.grade : c?.epic ? " · эпик" : "";
+        const gradeBit = c?.epic ? " · эпик" : c?.grade ? " · грейд " + c.grade : "";
         const row = document.createElement("button");
         row.type = "button";
         row.className = "market-sell-pick";
@@ -752,7 +787,7 @@ function renderMarketSell(root) {
     }
 
     let list = stacks.filter((st) => st.kind === sellKind);
-    if (sellKind === "armor_piece" && sellGrade) {
+    if ((sellKind === "armor_piece" || sellKind === "jewelry_piece" || sellKind === "scroll") && sellGrade) {
       list = list.filter((st) => st.grade === sellGrade);
     }
     if (!list.length) {
@@ -768,8 +803,15 @@ function renderMarketSell(root) {
           ? (typeof CRYSTAL_ICON !== "undefined" && CRYSTAL_ICON[st.grade]) || ""
           : st.kind === "material"
             ? (typeof ORE !== "undefined" && ORE[st.ore]?.icon) || ""
-            : st.kind === "armor_piece"
-              ? st.icon || ""
+            : st.kind === "armor_piece" || st.kind === "jewelry_piece" || st.kind === "scroll"
+              ? st.icon ||
+                (st.kind === "scroll" && typeof scrollTierIcon === "function"
+                  ? scrollTierIcon(
+                      st.typeId,
+                      st.grade,
+                      st.target === "armor" || st.target === "jewelry" ? "armor" : "weapon"
+                    )
+                  : "")
               : (typeof SHOT_ICON !== "undefined" && SHOT_ICON[st.shotKind]?.[st.grade]) || "";
       row.innerHTML =
         (icon ? '<img src="' + icon + '" alt="">' : "") +
@@ -783,14 +825,19 @@ function renderMarketSell(root) {
           title: st.label.replace(/\s*×\d+$/, ""),
           meta: "В наличии: " + st.max,
           maxQty: st.max,
-          suggestPrice: MARKET_MIN_PRICE,
+          suggestPrice: Math.max(MARKET_MIN_PRICE, Math.floor(Number(st.estimate) || MARKET_MIN_PRICE)),
           onConfirm: async ({ qty, priceAdena }) => {
             const payload = { kind: st.kind, qty, priceAdena };
             if (st.kind === "crystal") payload.grade = st.grade;
             if (st.kind === "material") payload.ore = st.ore;
-            if (st.kind === "armor_piece") payload.fragId = st.fragId;
+            if (st.kind === "armor_piece" || st.kind === "jewelry_piece") payload.fragId = st.fragId;
             if (st.kind === "shot") {
               payload.shotKind = st.shotKind;
+              payload.grade = st.grade;
+            }
+            if (st.kind === "scroll") {
+              payload.target = st.target;
+              payload.typeId = st.typeId;
               payload.grade = st.grade;
             }
             await submitMarketList(payload);

@@ -255,6 +255,16 @@ function armorPiecePowerMult(def, avatar) {
   return m;
 }
 
+/** Бонус P.Def от заточки брони (+N). */
+function armorEnchantPdefBonus(plus) {
+  return Math.max(0, plus | 0) * 2;
+}
+
+/** Бонус M.Def от заточки брони (+N). */
+function armorEnchantMdefBonus(plus) {
+  return Math.max(0, plus | 0);
+}
+
 /** P.Def/M.Def от кусков брони (+ legacy set flat) — не в farm power. */
 function avatarArmorDefBonuses() {
   const out = { pdef: 0, mdef: 0 };
@@ -265,8 +275,11 @@ function avatarArmorDefBonuses() {
       const def = armorItemDef(item);
       if (!def) return;
       const mult = armorPiecePowerMult(def, avatar);
-      out.pdef += Math.round((def.pdef || 0) * mult);
-      out.mdef += Math.round((def.mdef || 0) * mult);
+      const plus = item.plus || 0;
+      const pAdd = typeof armorEnchantPdefBonus === "function" ? armorEnchantPdefBonus(plus) : plus * 2;
+      const mAdd = typeof armorEnchantMdefBonus === "function" ? armorEnchantMdefBonus(plus) : plus;
+      out.pdef += Math.round(((def.pdef || 0) + pAdd) * mult);
+      out.mdef += Math.round(((def.mdef || 0) + mAdd) * mult);
     });
   }
   const set = avatarSetBonuses();
@@ -300,9 +313,25 @@ function avatarArmorSustainPct() {
 }
 
 function armorFragIdsForZone(zoneId) {
+  const zid =
+    typeof resolveFarmZoneId === "function" ? resolveFarmZoneId(zoneId) : zoneId;
   const map = typeof ARMOR_FRAG_ZONES !== "undefined" ? ARMOR_FRAG_ZONES : null;
-  if (!map || !map[zoneId]) return [];
-  let setIds = map[zoneId];
+  let setIds = map && map[zid] ? map[zid] : null;
+  // lootTags → пул грейда, если зона не в явной карте
+  if (!setIds) {
+    let zone = null;
+    if (typeof farmZoneById === "function") zone = farmZoneById(zid);
+    else if (typeof FARM_ZONES !== "undefined" && Array.isArray(FARM_ZONES)) {
+      zone = FARM_ZONES.find((x) => x && x.id === zid) || null;
+    }
+    const tags = zone && Array.isArray(zone.lootTags) ? zone.lootTags : [];
+    if (tags.indexOf("armor_c") >= 0 && map && map.abandoned_coal_low) {
+      setIds = map.abandoned_coal_low;
+    } else if (tags.indexOf("armor_d") >= 0 && map && map.wasteland) {
+      setIds = map.wasteland;
+    }
+  }
+  if (!setIds) return [];
   if (typeof setIds === "string") setIds = [setIds];
   if (!Array.isArray(setIds) || !setIds.length) return [];
   if (typeof ARMOR_SETS === "undefined" || !ARMOR_SETS) return [];
