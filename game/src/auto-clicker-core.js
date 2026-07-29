@@ -78,20 +78,35 @@ function autoClickerCanBuyPack(pack, now) {
   return { ok: true, rem, maxMs, room };
 }
 
+/** Множитель цены пакета = live-шкала текущей зоны (та же, что mineProgressAdenaScale). */
+function autoClickerZonePriceMult() {
+  const zoneId = state.farmZone || "banana_mine";
+  if (typeof mineProgressAdenaScale === "function") {
+    return Math.max(0.01, mineProgressAdenaScale(zoneId));
+  }
+  // Fallback без avatar-math: сюжетная глава × lvl (как economyChapterFarmMult).
+  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : { chapter: 1 };
+  const chapter =
+    typeof farmZoneProgressChapter === "function"
+      ? farmZoneProgressChapter(zone)
+      : Math.max(1, zone?.chapter || 1);
+  const chMult =
+    typeof economyChapterFarmMult === "function"
+      ? economyChapterFarmMult(chapter)
+      : 1;
+  const lvl = Math.max(1, Number(state.avatar?.level) || 1);
+  return Math.max(0.01, chMult * (1 + Math.max(0, lvl - 1) * 0.02));
+}
+
+/** @deprecated алиас — цена теперь от live-шкалы зоны, не zone.chapter */
 function autoClickerChapterPriceMult() {
-  const zone = typeof farmZoneById === "function"
-    ? farmZoneById(state.farmZone || "banana_mine")
-    : { chapter: 1 };
-  const chapter = Math.max(1, zone.chapter || 1);
-  const step = typeof tune === "function"
-    ? tune("autoClicker.chapterPriceMultStep", AUTO_CLICKER.chapterPriceMultStep)
-    : AUTO_CLICKER.chapterPriceMultStep;
-  return 1 + (chapter - 1) * step;
+  return autoClickerZonePriceMult();
 }
 
 function autoClickerPackPrice(pack) {
   if (!pack) return 0;
-  return Math.round(pack.price * autoClickerChapterPriceMult());
+  // pack.price уже ≈ 70–75% farm гл.I за длительность; домножаем на live-шкалу зоны.
+  return Math.round(pack.price * autoClickerZonePriceMult());
 }
 
 function autoClickerFreezeForPause() {

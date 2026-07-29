@@ -49,9 +49,22 @@ function runTests() {
     assert.strictEqual(long.price, 6_900_000);
   });
 
-  test("chapter price mult is 1 on chapter 1", () => {
-    assert.ok(Math.abs(autoClickerChapterPriceMult() - 1) < 1e-9);
+  test("zone price mult is 1 without mineProgressAdenaScale", () => {
+    assert.ok(Math.abs(autoClickerZonePriceMult() - 1) < 1e-9);
     assert.strictEqual(autoClickerPackPrice(autoClickerPackById("short")), 1_750_000);
+  });
+
+  test("P0: pack price scales with live zone adena (not zone.chapter)", () => {
+    global.mineProgressAdenaScale = () => 8;
+    const short = autoClickerPackById("short");
+    assert.strictEqual(autoClickerPackPrice(short), 1_750_000 * 8);
+    // Охота с chapter:1 всё равно дороже intro
+    global.FARM_ZONES = [{ id: "blazing_swamp", active: true, side: true, chapter: 1 }];
+    state.farmZone = "blazing_swamp";
+    assert.strictEqual(autoClickerPackPrice(short), 1_750_000 * 8);
+    delete global.mineProgressAdenaScale;
+    state.farmZone = "banana_mine";
+    global.FARM_ZONES = [{ id: "banana_mine", active: true, chapter: 1 }];
   });
 
   test("buyAutoClickerPack extends until and spends adena", () => {

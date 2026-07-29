@@ -1,9 +1,10 @@
 // ===== Данные: автокликер (покупка на время) =====
-// Цены ≈ 70–75% дохода якоря farm за длительность пакета (гл.I).
+// pack.price ≈ 70–75% live farm гл.I за длительность; итоговая цена *= mineProgressAdenaScale(зоны).
 
 const AUTO_CLICKER = {
   intervalMs: 150,
-  chapterPriceMultStep: 0.08,
+  /** Доля live adena/час зоны за длительность пакета (якорь pack.price при scale=1). */
+  priceOfLiveFarm: 0.72,
   /** Максимум накопленного времени автоудара (стак пакетов). */
   maxStackMs: 3 * 60 * 60 * 1000,
   packs: [

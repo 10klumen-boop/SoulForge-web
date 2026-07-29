@@ -340,4 +340,47 @@ test("pvp partyDamageBuff remaps to mild damageBuff", () => {
   assert.strictEqual(f.mult, 1.18);
 });
 
+test("P0: clanPvpAtkPct / clanPvpDefPct apply from sheet without isAvatar", () => {
+  const atk = pvpCreateFighter(sheetFighter({ name: "Atk" }));
+  const def = pvpCreateFighter(sheetFighter({ name: "Def" }));
+  atk.sheet.isAvatar = false;
+  def.sheet.isAvatar = false;
+  const rng = () => 0.5;
+  const base = pvpComputeHitDamage(atk, def, 1, rng).damage;
+  atk.sheet.clanPvpAtkPct = 12;
+  const boosted = pvpComputeHitDamage(atk, def, 1, rng).damage;
+  assert.ok(boosted > base, "atk buff: " + boosted + " > " + base);
+  assert.strictEqual(boosted, Math.max(1, Math.round(base * 1.12)));
+  atk.sheet.clanPvpAtkPct = 0;
+  def.sheet.clanPvpDefPct = 12;
+  const reduced = pvpComputeHitDamage(atk, def, 1, rng).damage;
+  assert.strictEqual(reduced, Math.max(1, Math.round(base * 0.88)));
+});
+
+test("P0: debuffResist on sheet resists atkDebuff without isAvatar", () => {
+  const atk = pvpCreateFighter(
+    sheetFighter({
+      name: "Debuffer",
+      skills: [
+        {
+          id: "test_debuff",
+          name: "Тест",
+          pvpEffect: "atkDebuff",
+          debuffMult: 0.7,
+          debuffRounds: 2,
+          cdRounds: 2,
+          mult: 1,
+          hits: 1,
+        },
+      ],
+    })
+  );
+  const def = pvpCreateFighter(sheetFighter({ name: "Tank" }));
+  def.sheet.isAvatar = false;
+  def.sheet.debuffResist = 1;
+  const events = pvpResolveAction(atk, def, { type: "skill", skillId: "test_debuff" }, () => 0.1);
+  assert.ok(events.some((e) => e.kind === "resist"), JSON.stringify(events));
+  assert.strictEqual(def.buffs.atkDebuffRounds, 0);
+});
+
 console.log("pvp-combat: all tests passed");

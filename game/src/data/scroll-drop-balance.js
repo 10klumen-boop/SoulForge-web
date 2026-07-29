@@ -1,5 +1,6 @@
 ﻿// ===== Свитки заточки: дроп с фарма =====
-// target: weapon | armor (armor = броня + бижутерия); type: regular|blessed|destruction|crystal; grade: D|C|B|A
+// target: weapon | armor (armor = броня + бижутерия); type: regular|blessed|destruction; grade: D|C|B|A
+// Кристальные свитки (guarantee) в поле не дропаются — только рынок / прочие источники.
 
 /** Шанс дропа свитка по типу моба. */
 const SCROLL_DROP_CHANCE = {
@@ -11,11 +12,11 @@ const SCROLL_DROP_CHANCE = {
 /** Множитель шанса свитка в сюжетных главах (только редкий D). */
 const SCROLL_DROP_STORY_MULT = 0.35;
 
-/** Веса типа свитка (crystal почти только с boss/golden). */
+/** Веса типа свитка. crystal = 0: не добывается в поле. */
 const SCROLL_DROP_TYPE_WEIGHTS = {
   normal: { regular: 78, blessed: 18, destruction: 4, crystal: 0 },
-  golden: { regular: 62, blessed: 28, destruction: 8, crystal: 2 },
-  boss: { regular: 48, blessed: 32, destruction: 14, crystal: 6 },
+  golden: { regular: 62, blessed: 28, destruction: 10, crystal: 0 },
+  boss: { regular: 48, blessed: 32, destruction: 20, crystal: 0 },
 };
 
 /** Доля свитков оружия vs брони (броня = броня+бижу). */

@@ -249,7 +249,7 @@ function avatarMinePatkForDamage(weaponPlus) {
   const weaponPatk = avatarWeaponPatkBonus(weaponPlus);
   const basePatk = Math.max(0, s.patk - avatarWeaponPatkBonus());
   const zone = farmZoneById(state.farmZone || "banana_mine");
-  const ch = zone?.chapter || 1;
+  const ch = mineCombatProgressChapter(zone);
   return basePatk + weaponPatk * mineWeaponDamageScale(ch);
 }
 
@@ -258,7 +258,7 @@ function avatarMineMatkForDamage(weaponPlus) {
   const weaponMatk = avatarWeaponMatkBonus(weaponPlus);
   const baseMatk = Math.max(0, s.matk - avatarWeaponMatkBonus());
   const zone = farmZoneById(state.farmZone || "banana_mine");
-  const ch = zone?.chapter || 1;
+  const ch = mineCombatProgressChapter(zone);
   return baseMatk + weaponMatk * mineWeaponDamageScale(ch);
 }
 
@@ -277,7 +277,7 @@ function avatarMineClickRaw(weaponPlus) {
 /** Урон без учёта заточки — для HUD бонуса заточки (HP моба якорится на зону). */
 function avatarMineBaseClickDamage() {
   const zone = farmZoneById(state.farmZone || "banana_mine");
-  const ch = zone?.chapter || 1;
+  const ch = mineCombatProgressChapter(zone);
   const raw = avatarMineClickRaw(0);
   const chapterScale = 1 + (ch - 1) * 0.035;
   return Math.max(4, Math.round((raw * chapterScale) / 4.2));
@@ -286,7 +286,7 @@ function avatarMineBaseClickDamage() {
 /** Урон клика с полной заточкой оружия. */
 function avatarMineClickDamage() {
   const zone = farmZoneById(state.farmZone || "banana_mine");
-  const ch = zone?.chapter || 1;
+  const ch = mineCombatProgressChapter(zone);
   const raw = avatarMineClickRaw();
   const chapterScale = 1 + (ch - 1) * 0.035;
   let dmg = Math.max(4, Math.round((raw * chapterScale) / 4.2));
@@ -308,7 +308,7 @@ function avatarMineEnchantDamageBonus() {
 function mineZoneRefClickDamage(zoneId) {
   zoneId = zoneId || state.farmZone || "banana_mine";
   const zone = farmZoneById(zoneId);
-  const ch = zone?.chapter || 1;
+  const ch = mineCombatProgressChapter(zone);
   const tgt = typeof farmZoneTargetPower === "function" ? farmZoneTargetPower(zone) : zone?.targetPower || 62;
   const k = typeof MINE_REF_POWER_TO_RAW === "number" ? MINE_REF_POWER_TO_RAW : 0.48;
   const step = typeof MINE_REF_CHAPTER_STEP === "number" ? MINE_REF_CHAPTER_STEP : 0.09;
@@ -321,7 +321,7 @@ function mineZoneRefClickDamage(zoneId) {
 function mineHitsToKill(type, zoneId) {
   zoneId = zoneId || state.farmZone || "banana_mine";
   const zone = farmZoneById(zoneId);
-  const ch = zone?.chapter || 1;
+  const ch = mineCombatProgressChapter(zone);
   const ci = Math.min(5, Math.max(1, ch)) - 1;
   const base = {
     normal: [7, 8, 9, 10, 11],
@@ -392,6 +392,15 @@ function expectedFarmPowerAtLevel(level) {
 function farmZoneTargetPower(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
   return zone.targetPower || Math.max(70, zone.reqPower || 70);
+}
+
+/** Глава для эскалации боя: сюжет = narrative chapter; охота = farmZoneProgressChapter (банда). */
+function mineCombatProgressChapter(zoneOrId) {
+  const zone = typeof zoneOrId === "string" ? farmZoneById(zoneOrId) : zoneOrId;
+  if (typeof farmZoneProgressChapter === "function") {
+    return Math.min(5, Math.max(1, farmZoneProgressChapter(zone) || 1));
+  }
+  return Math.min(5, Math.max(1, zone?.chapter || 1));
 }
 
 

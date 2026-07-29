@@ -1,5 +1,6 @@
 // ===== Данные: пассивный доход adeна (оффлайн + кап C+D) =====
-// baseAdenaPerSec ≈ 10% якоря farm/час гл.I (ECONOMY). Кривая глав = economyChapterFarmMult.
+// baseAdenaPerSec ≈ 10% якоря farm/час гл.I (ECONOMY).
+// Live-шкала зоны — mineProgressAdenaScale (охота: L2 mid; сюжет: economyChapterFarmMult).
 
 const PASSIVE_INCOME = {
   /** Fallback, если economy-balance ещё не загружен: 9.6kk/час * 0.1 / 3600. */

@@ -128,7 +128,10 @@ function runTests() {
 
   test("P1: passive rate ≈ 10% of ch1 farm anchor at power 0", () => {
     global.avatarFarmPower = () => 0;
+    state.avatar.level = 1;
     state.farmZone = "banana_mine";
+    // Без mineProgressAdenaScale — fallback chapter mult (=1 для гл.I).
+    delete global.mineProgressAdenaScale;
     const rate = passiveRatePerSec();
     const expected = economyPassiveAdenaPerSec(1);
     assert.ok(Math.abs(rate - expected) < 0.05, "rate=" + rate + " expected=" + expected);
@@ -136,14 +139,32 @@ function runTests() {
 
   test("P1: passive scales with chapter farm mult", () => {
     global.avatarFarmPower = () => 0;
+    state.avatar.level = 1;
     state.farmZone = "e"; // chapter 5
+    delete global.mineProgressAdenaScale;
     const rate = passiveRatePerSec();
     assert.ok(Math.abs(rate - economyPassiveAdenaPerSec(5)) < 0.1, "rate=" + rate);
   });
 
+  test("P0: hunting passive follows mineProgressAdenaScale, not zone.chapter", () => {
+    global.avatarFarmPower = () => 0;
+    state.avatar.level = 1;
+    global.FARM_ZONES.push({ id: "blazing_swamp", active: true, side: true, chapter: 1, reqLevel: 36 });
+    global.mineProgressAdenaScale = (zoneId) => (zoneId === "blazing_swamp" ? 8 : 1);
+    state.farmZone = "blazing_swamp";
+    const rate = passiveRatePerSec();
+    const expected = economyPassiveAdenaPerSec(1) * 8;
+    assert.ok(Math.abs(rate - expected) < 0.1, "rate=" + rate + " expected=" + expected);
+    // chapter=1 на охоте больше не ломает пассив
+    delete global.mineProgressAdenaScale;
+    state.farmZone = "banana_mine";
+  });
+
   test("P2: dwarf offlineIncomeMult +8%", () => {
     global.avatarFarmPower = () => 0;
+    state.avatar.level = 1;
     state.farmZone = "banana_mine";
+    delete global.mineProgressAdenaScale;
     state.avatar.raceId = "human";
     const base = passiveRatePerSec();
     state.avatar.raceId = "dwarf";

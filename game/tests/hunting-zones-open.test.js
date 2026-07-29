@@ -102,6 +102,18 @@ assert.strictEqual(mineDropWeights("blazing_swamp").B, 0);
 assert.strictEqual(mineDropWeights("blazing_swamp").A, 0);
 assert.strictEqual(mineDropWeights("blazing_swamp").D, 0);
 
+// P0: бой охоты эскалирует от банды, не zone.chapter(=1)
+assert.strictEqual(mineCombatProgressChapter(sides.find((z) => z.id === "race_outskirts")), 1);
+assert.strictEqual(mineCombatProgressChapter(sides.find((z) => z.id === "langk_lizardman")), 2);
+assert.strictEqual(mineCombatProgressChapter(sides.find((z) => z.id === "floran_agricultural")), 3);
+assert.strictEqual(mineCombatProgressChapter(sides.find((z) => z.id === "blazing_swamp")), 5);
+assert.strictEqual(mineHitsToKill("normal", "race_outskirts"), 7);
+assert.strictEqual(mineHitsToKill("normal", "blazing_swamp"), 11);
+assert.ok(
+  mineZoneRefClickDamage("blazing_swamp") > mineZoneRefClickDamage("race_outskirts"),
+  "c40p ref dmg > d20"
+);
+
 // SF 20 не входит в L2 30–40 / 40+
 const openAt20 = sides.filter((z) => z.reqLevel <= 20);
 assert.ok(openAt20.every((z) => ((z.lvlMin || 0) + (z.lvlMax || 0)) / 2 < 30));

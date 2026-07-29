@@ -300,9 +300,6 @@ function clanGroundsCitiesPaneHtml(tree, holdLine) {
     "</div>" +
     '<div class="clan-grounds-city-list sf-scroll" role="list">' +
     tree.map(clanGroundsCityBtnHtml).join("") +
-    "</div>" +
-    '<div class="party-panel-actions clan-grounds-footer">' +
-    '<a class="party-panel-btn ghost" href="aden-pins.html" target="_blank" rel="noopener">Каталог (редактор)</a>' +
     "</div>"
   );
 }

@@ -68,10 +68,8 @@ function passiveCapSec() {
 
 function passiveRatePerSec() {
   ensurePassiveIncomeState();
-  const zone = typeof farmZoneById === "function"
-    ? farmZoneById(state.farmZone || "banana_mine")
-    : { chapter: 1 };
-  const chapter = Math.max(1, Math.min(5, zone.chapter || 1));
+  const zoneId = state.farmZone || "banana_mine";
+  // База = 10% якоря farm гл.I; шкала зоны = mineProgressAdenaScale (охота L2 mid, сюжет chapter).
   const baseFallback = PASSIVE_INCOME.baseAdenaPerSec;
   const baseFromEconomy =
     typeof economyPassiveAdenaPerSec === "function" ? economyPassiveAdenaPerSec(1) : baseFallback;
@@ -82,12 +80,22 @@ function passiveRatePerSec() {
     ? tune("passive.powerDiv", PASSIVE_INCOME.powerDiv)
     : PASSIVE_INCOME.powerDiv;
   const power = typeof avatarFarmPower === "function" ? avatarFarmPower() : 0;
-  const mults = PASSIVE_INCOME.chapterMult || [1];
-  const chMult =
-    typeof economyChapterFarmMult === "function"
-      ? economyChapterFarmMult(chapter)
-      : (mults[chapter - 1] || mults[mults.length - 1] || 1);
-  let rate = Math.max(0, base * (1 + power / Math.max(1, powerDiv)) * chMult);
+  let zoneScale = 1;
+  if (typeof mineProgressAdenaScale === "function") {
+    zoneScale = Math.max(0, mineProgressAdenaScale(zoneId));
+  } else {
+    const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : { chapter: 1 };
+    const chapter =
+      typeof farmZoneProgressChapter === "function"
+        ? farmZoneProgressChapter(zone)
+        : Math.max(1, Math.min(5, zone?.chapter || 1));
+    const mults = PASSIVE_INCOME.chapterMult || [1];
+    zoneScale =
+      typeof economyChapterFarmMult === "function"
+        ? economyChapterFarmMult(chapter)
+        : (mults[chapter - 1] || mults[mults.length - 1] || 1);
+  }
+  let rate = Math.max(0, base * (1 + power / Math.max(1, powerDiv)) * zoneScale);
   if (typeof passiveEffectMult === "function") {
     rate *= passiveEffectMult("offlineIncomeMult", state.avatar);
   } else if (typeof racialEffectMult === "function") {

@@ -241,6 +241,30 @@ function buildCombatSheet(input) {
 
   const hpMax = pvpHpMaxFromStats(level, pdef, mdef, passives.add.hp + (input.hpAdd || 0) + setHpAdd);
 
+  // Клановые PvP-% и jewelry debuffResist — числовые поля листа (online sanitize не видит isAvatar).
+  let clanPvpAtkPct = 0;
+  let clanPvpDefPct = 0;
+  let debuffResist = 0;
+  if (liveAvatar) {
+    const atkCap =
+      typeof CLAN_BUFF_CAPS !== "undefined" && CLAN_BUFF_CAPS.pvpPct != null
+        ? CLAN_BUFF_CAPS.pvpPct
+        : 12;
+    const defCap =
+      typeof CLAN_BUFF_CAPS !== "undefined" && CLAN_BUFF_CAPS.pvpDefPct != null
+        ? CLAN_BUFF_CAPS.pvpDefPct
+        : 12;
+    if (typeof clanBuffPvpPct === "function") {
+      clanPvpAtkPct = Math.max(0, Math.min(atkCap, Number(clanBuffPvpPct()) || 0));
+    }
+    if (typeof clanBuffPvpDefPct === "function") {
+      clanPvpDefPct = Math.max(0, Math.min(defCap, Number(clanBuffPvpDefPct()) || 0));
+    }
+    if (typeof avatarJewelryDebuffResist === "function") {
+      debuffResist = Math.max(0, Number(avatarJewelryDebuffResist()) || 0);
+    }
+  }
+
   return {
     name: input.name || avatar.name || "Боец",
     level,
@@ -262,6 +286,9 @@ function buildCombatSheet(input) {
     critChance: passives.add.crit,
     atkMult: passives.mult.atk,
     defMult: passives.mult.def,
+    clanPvpAtkPct,
+    clanPvpDefPct,
+    debuffResist,
     isAvatar: !!liveAvatar,
   };
 }
@@ -321,10 +348,8 @@ function pvpComputeHitDamage(attacker, defender, skillMult, rng) {
   let outgoingDebuff = attacker.buffs.atkDebuffMult || 1;
 
   let clanPvpMult = 1;
-  if (sheetA.isAvatar && typeof clanBuffPvpPct === "function") {
-    const pct = Math.max(0, Number(clanBuffPvpPct()) || 0);
-    if (pct > 0) clanPvpMult = 1 + pct / 100;
-  }
+  const atkPct = Math.max(0, Math.min(12, Number(sheetA.clanPvpAtkPct) || 0));
+  if (atkPct > 0) clanPvpMult = 1 + atkPct / 100;
 
   let combined =
     (skillMult || 1) * buffMult * next * shotMult * outgoingDebuff * clanPvpMult;
@@ -336,11 +361,9 @@ function pvpComputeHitDamage(attacker, defender, skillMult, rng) {
   const raw = atk * scale * combined;
   let damage = Math.max(1, Math.round(raw * (1 - mit) * variance));
 
-  if (sheetB.isAvatar && typeof clanBuffPvpDefPct === "function") {
-    const defPct = Math.max(0, Math.min(90, Number(clanBuffPvpDefPct()) || 0));
-    if (defPct > 0) {
-      damage = Math.max(1, Math.round(damage * (1 - defPct / 100)));
-    }
+  const defPct = Math.max(0, Math.min(12, Number(sheetB.clanPvpDefPct) || 0));
+  if (defPct > 0) {
+    damage = Math.max(1, Math.round(damage * (1 - defPct / 100)));
   }
 
   if (defender.buffs.guarding) {
@@ -450,10 +473,7 @@ function pvpResolveAction(attacker, defender, action, rng) {
       }
 
       if (eff === "atkDebuff") {
-        let resist = 0;
-        if (defender.sheet.isAvatar && typeof avatarJewelryDebuffResist === "function") {
-          resist = avatarJewelryDebuffResist();
-        }
+        let resist = Math.max(0, Math.min(0.32, Number(defender.sheet.debuffResist) || 0));
         const rngFn = typeof rng === "function" ? rng : Math.random;
         if (resist > 0 && rngFn() < resist) {
           events.push({
@@ -556,10 +576,7 @@ function pvpResolveAction(attacker, defender, action, rng) {
             total,
         });
         if (eff === "freezeMulti") {
-          let resist = 0;
-          if (defender.sheet.isAvatar && typeof avatarJewelryDebuffResist === "function") {
-            resist = avatarJewelryDebuffResist();
-          }
+          let resist = Math.max(0, Math.min(0.32, Number(defender.sheet.debuffResist) || 0));
           const rngFn = typeof rng === "function" ? rng : Math.random;
           if (resist > 0 && rngFn() < resist) {
             events.push({

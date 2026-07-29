@@ -78,6 +78,10 @@ function sanitizeSheet(raw) {
     critChance: Math.max(0, Math.min(1, Number(raw.critChance) || 0)),
     atkMult: Math.max(0.5, Math.min(3, Number(raw.atkMult) || 1)),
     defMult: Math.max(0.5, Math.min(3, Number(raw.defMult) || 1)),
+    // Запечённые клановые / jewelry бонусы (капы как CLAN_BUFF_CAPS / JEWELRY_DEBUFF_RESIST_CAP).
+    clanPvpAtkPct: Math.max(0, Math.min(12, Number(raw.clanPvpAtkPct) || 0)),
+    clanPvpDefPct: Math.max(0, Math.min(12, Number(raw.clanPvpDefPct) || 0)),
+    debuffResist: Math.max(0, Math.min(0.32, Number(raw.debuffResist) || 0)),
   };
   if (!sheet.skills.length) {
     // минимальный набор, если клиент не прислал скиллы
