@@ -3,6 +3,7 @@
 let clanBossStateCache = null;
 let clanBossPollTimer = null;
 let clanBossHitBusy = false;
+let clanBossHitQueue = [];
 let clanBossDomMob = null;
 let clanBossSessionActive = false;
 let clanBossEndPrompted = false;
@@ -230,12 +231,16 @@ async function enterClanBossMine(payload) {
   if (typeof renderMineHudStats === "function") renderMineHudStats();
   if (typeof renderMineSkillBar === "function") renderMineSkillBar();
   if (typeof renderAutoClickerHud === "function") renderAutoClickerHud();
+  if (typeof syncMineShotHud === "function") syncMineShotHud();
   const storyBar = document.getElementById("mineStoryBar");
   if (storyBar) storyBar.hidden = true;
   const questHud = document.getElementById("mineQuestHud");
   if (questHud) questHud.hidden = true;
+  // Оставляем HUD для сосок; прячем только фарм-статы сессии.
   const mineHud = document.querySelector("#screen-mine .mine-hud");
-  if (mineHud) mineHud.hidden = true;
+  if (mineHud) mineHud.hidden = false;
+  const farmStats = document.querySelector("#screen-mine .mine-farm-stats");
+  if (farmStats) farmStats.hidden = true;
   const sessionLoot = document.getElementById("mineSessionLoot");
   if (sessionLoot) sessionLoot.hidden = true;
   const resourceFav = document.getElementById("mineResourceFav");
@@ -288,46 +293,169 @@ async function startOrJoinClanBoss() {
   await enterClanBossMine(r);
 }
 
-function finishClanBossSession(r) {
-  stopClanBossPoll();
-  const run = r?.run;
-  if (run?.status === "cleared") {
-    const marks =
-      (run.reward && run.reward.raidMarksEach) ||
-      (r.boss && r.boss.rewardRaidMarks) ||
-      (typeof CLAN_BOSS !== "undefined" ? CLAN_BOSS.rewardRaidMarks : 50);
-    const marksLabel =
-      (run.reward && run.reward.raidMarksLabelRu) ||
-      r.raidMarksLabelRu ||
-      (r.boss && r.boss.rewardRaidMarksLabelRu) ||
-      (typeof CLAN_BOSS !== "undefined" ? CLAN_BOSS.rewardRaidMarksLabelRu : null) ||
-      "Печати Клятвы";
-    const wh =
-      (run.reward && run.reward.warehouseAdena) ||
-      (r.boss && r.boss.rewardAdenaWarehouse) ||
-      0;
-    if (typeof toast === "function") {
-      let msg =
-        "Рейд пройден! +" +
-        (typeof fmt === "function" ? fmt(marks) : marks) +
-        " " +
-        marksLabel;
-      if (wh > 0) {
-        msg +=
-          " · +" +
-          (typeof fmt === "function" ? fmt(wh) : wh) +
-          " adena на склад";
-      }
-      toast(msg, "success");
-    }
-    if (typeof clanRefreshWarehouse === "function") clanRefreshWarehouse();
-    if (typeof clanRefreshBuffs === "function") clanRefreshBuffs();
-  } else if (run?.status === "failed") {
-    if (typeof toast === "function") toast("Время вышло — клан-босс ушёл", "warn");
+function clanBossEscHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function clanBossRewardSummary(r) {
+  const run = r?.run || {};
+  const boss = r?.boss || (typeof CLAN_BOSS !== "undefined" ? CLAN_BOSS : {});
+  const reward = run.reward || {};
+  const marks =
+    reward.raidMarksEach != null
+      ? reward.raidMarksEach
+      : boss.rewardOathSymbol != null
+        ? boss.rewardOathSymbol
+        : boss.rewardRaidMarks != null
+          ? boss.rewardRaidMarks
+          : typeof CLAN_BOSS !== "undefined"
+            ? CLAN_BOSS.rewardRaidMarks
+            : 50;
+  const marksLabel =
+    reward.raidMarksLabelRu ||
+    r?.oathSymbolLabelRu ||
+    r?.raidMarksLabelRu ||
+    boss.rewardRaidMarksLabelRu ||
+    (typeof OATH_SYMBOL !== "undefined" ? OATH_SYMBOL.nameRu : null) ||
+    (typeof CLAN_BOSS !== "undefined" ? CLAN_BOSS.rewardRaidMarksLabelRu : null) ||
+    "Символ Клятвы";
+  const wh =
+    reward.warehouseAdena != null
+      ? reward.warehouseAdena
+      : boss.rewardAdenaWarehouse != null
+        ? boss.rewardAdenaWarehouse
+        : typeof CLAN_BOSS !== "undefined"
+          ? CLAN_BOSS.rewardAdenaWarehouse
+          : 0;
+  const oathIcon =
+    (typeof OATH_SYMBOL !== "undefined" && OATH_SYMBOL.icon) ||
+    "icons/clan/oath_symbol.png?v=1";
+  return {
+    bossName: boss.name || run.bossName || "Клан-босс",
+    marks: Math.max(0, Math.floor(Number(marks) || 0)),
+    marksLabel: String(marksLabel),
+    marksIcon: oathIcon,
+    warehouseAdena: Math.max(0, Math.floor(Number(wh) || 0)),
+    warehouseTotal:
+      reward.warehouseTotal != null ? Math.max(0, Math.floor(Number(reward.warehouseTotal) || 0)) : null,
+    activityScore:
+      reward.activity && reward.activity.added != null
+        ? Math.max(0, Math.floor(Number(reward.activity.added) || 0))
+        : 0,
+  };
+}
+
+function clanBossClearLootHtml(summary) {
+  summary = summary || {};
+  const esc = clanBossEscHtml;
+  const fmtN = typeof fmt === "function" ? fmt : (n) => String(n);
+  const fmtA = typeof fmtAdena === "function" ? fmtAdena : fmtN;
+  const parts = [];
+  parts.push('<p class="clan-boss-clear-lead"><b>' + esc(summary.bossName || "Клан-босс") + "</b> повержен.</p>");
+  parts.push('<div class="clan-boss-clear-loot" role="list">');
+  if (summary.marks > 0) {
+    parts.push(
+      '<div class="clan-boss-drop" role="listitem">' +
+        '<img class="clan-boss-drop-ico" src="' +
+        esc(summary.marksIcon) +
+        '" alt="" draggable="false" />' +
+        '<div class="clan-boss-drop-meta">' +
+        '<div class="clan-boss-drop-name">' +
+        esc(summary.marksLabel) +
+        "</div>" +
+        '<div class="clan-boss-drop-qty">×' +
+        fmtN(summary.marks) +
+        ' <span class="clan-boss-drop-tag">в инвентарь</span></div>' +
+        "</div></div>"
+    );
   }
-  clanBossAfterStopMine();
+  if (summary.warehouseAdena > 0) {
+    parts.push(
+      '<div class="clan-boss-drop" role="listitem">' +
+        '<img class="clan-boss-drop-ico" src="icons/warehouse_chest.png?v=1" alt="" draggable="false" />' +
+        '<div class="clan-boss-drop-meta">' +
+        '<div class="clan-boss-drop-name">Adena · склад клана</div>' +
+        '<div class="clan-boss-drop-qty">+' +
+        fmtA(summary.warehouseAdena) +
+        ' <span class="clan-boss-drop-tag">общий</span></div>' +
+        (summary.warehouseTotal != null
+          ? '<div class="clan-boss-drop-sub">На складе: ' + fmtA(summary.warehouseTotal) + "</div>"
+          : "") +
+        "</div></div>"
+    );
+  }
+  if (summary.activityScore > 0) {
+    parts.push(
+      '<div class="clan-boss-drop clan-boss-drop--soft" role="listitem">' +
+        '<div class="clan-boss-drop-ico clan-boss-drop-ico--glyph" aria-hidden="true">★</div>' +
+        '<div class="clan-boss-drop-meta">' +
+        '<div class="clan-boss-drop-name">Опыт клана</div>' +
+        '<div class="clan-boss-drop-qty">+' +
+        fmtN(summary.activityScore) +
+        "</div></div></div>"
+    );
+  }
+  parts.push("</div>");
+  if (!summary.marks && !summary.warehouseAdena && !summary.activityScore) {
+    parts.push("<p>Награда уже учтена.</p>");
+  }
+  return parts.join("");
+}
+
+function showClanBossClearModal(summary) {
+  summary = summary || {};
+  const backdrop = document.getElementById("storyBackdrop");
+  if (!backdrop || typeof renderStoryPanel !== "function") {
+    if (typeof toast === "function") {
+      toast(
+        "Рейд пройден! +" +
+          (typeof fmt === "function" ? fmt(summary.marks) : summary.marks) +
+          " " +
+          (summary.marksLabel || "Символ Клятвы"),
+        "success"
+      );
+    }
+    leaveClanBossAfterClear();
+    return;
+  }
+  renderStoryPanel({
+    title: "Рейд пройден",
+    eyebrow: summary.bossName || "Клан-босс",
+    lead: "Дроп за победу",
+    chapter: "Клан · рейд",
+    icon: summary.marksIcon || "",
+    bodyHtml: clanBossClearLootHtml(summary),
+    cta: "Забрать",
+  });
+  backdrop.dataset.storyMode = "clan_boss_clear";
+  backdrop.className =
+    "story-backdrop race-" +
+    ((typeof state !== "undefined" && state.avatar && state.avatar.raceId) || "human") +
+    " story-chapter-reward story-clan-boss-clear";
+  backdrop.hidden = false;
+  if (typeof setGamePaused === "function") setGamePaused(true);
+  const btn = document.getElementById("storyOk");
+  if (btn) btn.focus();
+}
+
+function leaveClanBossAfterClear() {
+  if (typeof stopMine === "function") {
+    try {
+      stopMine();
+    } catch (_) {
+      clanBossAfterStopMine();
+    }
+  } else {
+    clanBossAfterStopMine();
+  }
   if (typeof show === "function") show("clan");
-  if (typeof renderClanScreen === "function") {
+  if (typeof clanRefreshWarehouse === "function") clanRefreshWarehouse();
+  if (typeof clanRefreshBuffs === "function") clanRefreshBuffs();
+  if (typeof clanRefreshBoss === "function") {
     clanRefreshBoss().then(() => {
       if (document.getElementById("screen-clan-raid")?.classList.contains("active")) {
         if (typeof renderClanRaidScreen === "function") renderClanRaidScreen();
@@ -335,72 +463,138 @@ function finishClanBossSession(r) {
         renderClanScreen();
       }
     });
+  } else if (typeof renderClanScreen === "function") {
+    renderClanScreen();
   }
+}
+
+function dismissClanBossClearModal() {
+  const backdrop = document.getElementById("storyBackdrop");
+  if (backdrop) {
+    delete backdrop.dataset.storyMode;
+    backdrop.hidden = true;
+  }
+  if (typeof Audio2 !== "undefined") Audio2.click();
+  leaveClanBossAfterClear();
+  if (typeof syncGamePauseState === "function") syncGamePauseState();
+  else if (typeof setGamePaused === "function") setGamePaused(false);
+}
+
+function finishClanBossSession(r) {
+  stopClanBossPoll();
+  clanBossHitQueue.length = 0;
+  const run = r?.run;
+  if (run?.status === "cleared") {
+    if (run.reward && run.reward.mySave && typeof applyClanSave === "function") {
+      applyClanSave(run.reward.mySave);
+    } else if (typeof applyClanSave === "function" && r.save) {
+      applyClanSave(r.save);
+    }
+    clanBossClearDomMob();
+    removeClanBossHud();
+    showClanBossClearModal(clanBossRewardSummary(r));
+    return;
+  }
+  if (run?.status === "failed") {
+    if (typeof toast === "function") toast("Время вышло — клан-босс ушёл", "warn");
+  }
+  leaveClanBossAfterClear();
 }
 
 async function clanBossHandleHit(g, opts) {
   if (!clanBossSessionActive || !g || !g._clanBossEncounter) return true;
   if (clanBossEndPrompted) return true;
-  if (clanBossHitBusy) return true;
+  clanBossHitQueue.push({ g, opts: opts || {} });
+  if (!clanBossHitBusy) flushClanBossHitQueue();
+  return true;
+}
+
+async function flushClanBossHitQueue() {
+  if (clanBossHitBusy) return;
   clanBossHitBusy = true;
   try {
-    const dmgRaw =
-      typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 100;
-    const dmgCap =
-      typeof CLAN_BOSS !== "undefined" && CLAN_BOSS.hitDmgMax != null
-        ? CLAN_BOSS.hitDmgMax
-        : 50000;
-    let dmg = Math.max(1, Math.min(dmgCap, Math.floor(Number(dmgRaw) || 1)));
-    if (opts && opts.skillMult) {
-      dmg = Math.max(1, Math.min(dmgCap, Math.round(dmg * (Number(opts.skillMult) || 1))));
-    }
-    const dropAt =
-      typeof gnomeDropPoint === "function" ? gnomeDropPoint(g) : { x: g._x || 0, y: g._y || 0 };
-    const r = await clanBossApi("/chat/clan/boss/hit", {
-      method: "POST",
-      body: { dmg },
-    });
-    if (r && r.ok && !r.throttled) {
-      clanBossStateCache = r;
-      const st = r.run;
-      if (st && g) {
-        g._maxHp = st.maxHp;
-        g._hp = Math.max(0, st.hp);
-        if (typeof updateMobHpBar === "function") updateMobHpBar(g);
-      }
-      if (typeof Audio2 !== "undefined" && Audio2.mineHit) Audio2.mineHit();
-      g.classList.add("mob-hit");
-      setTimeout(() => g.classList.remove("mob-hit"), 90);
-      const dmgLabel =
-        typeof fmtCombat === "function" ? fmtCombat(dmg) : String(dmg);
-      if (typeof floatText === "function") {
-        floatText(
-          dropAt.x + (Math.random() - 0.5) * 28,
-          dropAt.y - 12 - Math.random() * 18,
-          "-" + dmgLabel,
-          opts && opts.bySkill ? "#9ad4ff" : "#ff9a8a"
-        );
-      }
-      if (typeof mineBurst === "function") {
-        mineBurst(dropAt.x, dropAt.y, opts && opts.bySkill ? "#7eb8ff" : "#c8a882", 5);
-      }
-      syncClanBossHud(r);
-      if (st && st.status !== "active" && !clanBossEndPrompted) {
-        clanBossEndPrompted = true;
-        finishClanBossSession(r);
-      }
-    } else if (r && r.ok) {
-      clanBossStateCache = r;
-      const st = r.run;
-      if (st && g) {
-        g._maxHp = st.maxHp;
-        g._hp = Math.max(0, st.hp);
-        if (typeof updateMobHpBar === "function") updateMobHpBar(g);
-      }
-      syncClanBossHud(r);
+    while (clanBossHitQueue.length && clanBossSessionActive && !clanBossEndPrompted) {
+      const job = clanBossHitQueue.shift();
+      if (!job || !job.g || !job.g._clanBossEncounter) continue;
+      await clanBossSendHit(job.g, job.opts || {});
     }
   } finally {
     clanBossHitBusy = false;
+    if (clanBossHitQueue.length && clanBossSessionActive && !clanBossEndPrompted) {
+      flushClanBossHitQueue();
+    }
+  }
+}
+
+async function clanBossSendHit(g, opts) {
+  const dmgRaw =
+    typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 100;
+  const dmgCap =
+    typeof CLAN_BOSS !== "undefined" && CLAN_BOSS.hitDmgMax != null
+      ? CLAN_BOSS.hitDmgMax
+      : 50000;
+  let dmg = Math.max(1, Math.floor(Number(dmgRaw) || 1));
+  if (!opts.bySkill && typeof mineSkillClickMult === "function") {
+    dmg = Math.max(1, Math.round(dmg * mineSkillClickMult()));
+  }
+  if (typeof passiveEffectMult === "function") {
+    dmg = Math.max(
+      1,
+      Math.round(dmg * passiveEffectMult("farmDamageMult", typeof state !== "undefined" ? state.avatar : null))
+    );
+  }
+  if (opts.skillMult) {
+    dmg = Math.max(1, Math.round(dmg * (Number(opts.skillMult) || 1)));
+  }
+  if (typeof applyMineShotDamageMult === "function") {
+    dmg = applyMineShotDamageMult(dmg);
+  }
+  dmg = Math.max(1, Math.min(dmgCap, Math.floor(dmg)));
+
+  const dropAt =
+    typeof gnomeDropPoint === "function" ? gnomeDropPoint(g) : { x: g._x || 0, y: g._y || 0 };
+  const r = await clanBossApi("/chat/clan/boss/hit", {
+    method: "POST",
+    body: { dmg },
+  });
+  if (r && r.ok && !r.throttled) {
+    clanBossStateCache = r;
+    const st = r.run;
+    if (st && g) {
+      g._maxHp = st.maxHp;
+      g._hp = Math.max(0, st.hp);
+      if (typeof updateMobHpBar === "function") updateMobHpBar(g);
+    }
+    if (typeof Audio2 !== "undefined" && Audio2.mineHit) Audio2.mineHit();
+    g.classList.add("mob-hit");
+    setTimeout(() => g.classList.remove("mob-hit"), 90);
+    const dmgLabel = typeof fmtCombat === "function" ? fmtCombat(dmg) : String(dmg);
+    if (typeof floatText === "function") {
+      floatText(
+        dropAt.x + (Math.random() - 0.5) * 28,
+        dropAt.y - 12 - Math.random() * 18,
+        "-" + dmgLabel,
+        opts && opts.bySkill ? "#9ad4ff" : "#ff9a8a"
+      );
+    }
+    if (typeof mineBurst === "function") {
+      mineBurst(dropAt.x, dropAt.y, opts && opts.bySkill ? "#7eb8ff" : "#c8a882", 5);
+    }
+    syncClanBossHud(r);
+    if (st && st.status !== "active" && !clanBossEndPrompted) {
+      clanBossEndPrompted = true;
+      clanBossHitQueue.length = 0;
+      finishClanBossSession(r);
+    }
+  } else if (r && r.ok) {
+    clanBossStateCache = r;
+    const st = r.run;
+    if (st && g) {
+      g._maxHp = st.maxHp;
+      g._hp = Math.max(0, st.hp);
+      if (typeof updateMobHpBar === "function") updateMobHpBar(g);
+    }
+    syncClanBossHud(r);
   }
   return true;
 }
@@ -408,11 +602,14 @@ async function clanBossHandleHit(g, opts) {
 function clanBossAfterStopMine() {
   clanBossSessionActive = false;
   clanBossEndPrompted = false;
+  clanBossHitQueue.length = 0;
   stopClanBossPoll();
   clanBossClearDomMob();
   removeClanBossHud();
   const mineHud = document.querySelector("#screen-mine .mine-hud");
   if (mineHud) mineHud.hidden = false;
+  const farmStats = document.querySelector("#screen-mine .mine-farm-stats");
+  if (farmStats) farmStats.hidden = false;
   if (typeof clanCloudReady === "function" && clanCloudReady()) {
     clanBossApi("/chat/clan/boss/leave", { method: "POST", body: {} }).catch(() => {});
   }

@@ -446,7 +446,10 @@ async function clanRefreshBuffs() {
     return { ok: false };
   }
   try {
-    const r = await clanApi("/chat/clan/buffs", { method: "GET" });
+    const characterId =
+      typeof clanActiveCharacterId === "function" ? clanActiveCharacterId() : state?.activeCharacterId || "";
+    const q = characterId ? "?characterId=" + encodeURIComponent(characterId) : "";
+    const r = await clanApi("/chat/clan/buffs" + q, { method: "GET" });
     if (r && r.ok) clanBuffState = r;
     return r || { ok: false };
   } catch (_) {
@@ -464,12 +467,8 @@ async function clanStudyBuff(buffId) {
     body: { buffId, characterId },
   });
   if (r && r.ok) {
+    if (r.save) applyClanSave(r.save);
     clanBuffState = r;
-    if (typeof clanRefreshWarehouse === "function") {
-      try {
-        await clanRefreshWarehouse();
-      } catch (_) {}
-    }
   }
   return r || { ok: false };
 }

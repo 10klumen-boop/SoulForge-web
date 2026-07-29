@@ -2,6 +2,64 @@
 
 const path = require("path");
 const { clanUtcWeekId } = require("./clan-buffs");
+const { parseSavePayload, resolveActiveCharacterId } = require("./save-utils");
+
+let OATH_SYMBOL;
+try {
+  OATH_SYMBOL = require(path.join(
+    __dirname,
+    "..",
+    "..",
+    "game",
+    "src",
+    "data",
+    "oath-symbol-data.js"
+  )).OATH_SYMBOL;
+} catch (_) {
+  OATH_SYMBOL = { materialKey: "oath_symbol", nameRu: "Символ Клятвы" };
+}
+const OATH_MAT = OATH_SYMBOL.materialKey || "oath_symbol";
+const OATH_LABEL = () =>
+  (CLAN_BOSS && CLAN_BOSS.rewardRaidMarksLabelRu) || OATH_SYMBOL.nameRu || "Символ Клятвы";
+
+function cloneJson(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+
+function getCharacterSlot(data, characterId) {
+  data = data && typeof data === "object" ? data : {};
+  const cid = String(characterId || "").slice(0, 64);
+  const chars = Array.isArray(data.characters) ? data.characters : [];
+  if (cid) {
+    const hit = chars.find((c) => c && String(c.id) === cid);
+    if (hit) return hit;
+  }
+  const active = resolveActiveCharacterId(data);
+  if (active) {
+    const hit = chars.find((c) => c && String(c.id) === String(active));
+    if (hit) return hit;
+  }
+  return chars[0] || null;
+}
+
+function ensureProgress(slot) {
+  if (!slot.progress || typeof slot.progress !== "object") slot.progress = {};
+  const p = slot.progress;
+  if (!p.materials || typeof p.materials !== "object") p.materials = {};
+  return p;
+}
+
+function syncActiveRoot(data) {
+  const activeId = resolveActiveCharacterId(data);
+  const slot = getCharacterSlot(data, activeId);
+  if (!slot?.progress) return data;
+  const p = slot.progress;
+  if (p.adena !== undefined) data.adena = p.adena;
+  if (p.materials) data.materials = p.materials;
+  data.activeCharacterId = activeId;
+  return data;
+}
+
 
 let CLAN_BOSS;
 try {
@@ -33,7 +91,7 @@ if (!CLAN_BOSS) {
     rewardAdenaWarehouse: 250000,
     rewardActivityScore: 80,
     rewardRaidMarks: 50,
-    rewardRaidMarksLabelRu: "Печати Клятвы",
+    rewardRaidMarksLabelRu: "Символ Клятвы",
   };
 }
 
@@ -45,7 +103,8 @@ function clanBossHpHits(memberCount) {
   );
 }
 
-function attachClanBossMethods(db, store) {
+function attachClanBossMethods(db, store, deps) {
+  deps = deps || {};
   /** @type {Map<string, object>} clanId → run */
   const runs = new Map();
 
@@ -100,16 +159,65 @@ function attachClanBossMethods(db, store) {
       marks = chat_user_raid_marks.marks + excluded.marks,
       updated_at = excluded.updated_at
   `);
+  const stmtUserNick = db.prepare("SELECT id, nick FROM users WHERE id = ?");
 
   function getRaidMarks(userId) {
     return Math.max(0, Math.floor(Number(stmtMarksGet.get(userId)?.marks) || 0));
   }
 
-  function creditRaidMarks(userId, amount, now) {
+  const stmtMarksSet = db.prepare(`
+    INSERT INTO chat_user_raid_marks (user_id, marks, updated_at) VALUES (?, ?, ?)
+    ON CONFLICT(user_id) DO UPDATE SET marks = excluded.marks, updated_at = excluded.updated_at
+  `);
+
+  function creditOathSymbolToUser(userId, amount, now) {
     const add = Math.max(0, Math.floor(Number(amount) || 0));
-    if (!add || !userId) return getRaidMarks(userId);
-    stmtMarksUpsert.run(userId, add, now);
-    return getRaidMarks(userId);
+    if (!add || !userId || !deps.persistPlayerSaveInternal) return { ok: false, total: getRaidMarks(userId) };
+    const row = store.getSave(userId);
+    if (!row) return { ok: false, total: 0 };
+    const data = parseSavePayload(row);
+    if (!data) return { ok: false, total: 0 };
+    const dataClone = cloneJson(data);
+    const slot = getCharacterSlot(dataClone, null);
+    if (!slot) return { ok: false, total: 0 };
+    const progress = ensureProgress(slot);
+    const legacy = getRaidMarks(userId);
+    if (legacy > 0) {
+      progress.materials[OATH_MAT] =
+        Math.max(0, Math.floor(Number(progress.materials[OATH_MAT]) || 0)) + legacy;
+      stmtMarksSet.run(userId, 0, now);
+    }
+    progress.materials[OATH_MAT] =
+      Math.max(0, Math.floor(Number(progress.materials[OATH_MAT]) || 0)) + add;
+    const total = Math.max(0, Math.floor(Number(progress.materials[OATH_MAT]) || 0));
+    syncActiveRoot(dataClone);
+    const nextSeq = Math.max(1, (row.seq || 0) + 1);
+    const savedAt = Date.now();
+    const urow = stmtUserNick.get(userId);
+    deps.persistPlayerSaveInternal(
+      { id: userId, nick: urow?.nick || row.nick || "" },
+      nextSeq,
+      savedAt,
+      null,
+      dataClone
+    );
+    return { ok: true, total, save: { seq: nextSeq, savedAt, data: dataClone } };
+  }
+
+  function readOathSymbolBalance(userId) {
+    const row = store.getSave(userId);
+    let inv = 0;
+    if (row) {
+      const data = parseSavePayload(row);
+      if (data) {
+        const slot = getCharacterSlot(data, null);
+        if (slot) {
+          const progress = ensureProgress(slot);
+          inv = Math.max(0, Math.floor(Number(progress.materials[OATH_MAT]) || 0));
+        }
+      }
+    }
+    return inv + getRaidMarks(userId);
   }
 
   function getClanId(userId) {
@@ -164,6 +272,14 @@ function attachClanBossMethods(db, store) {
               run.reward.raidMarksByUser && run.reward.raidMarksByUser[userId] != null
                 ? run.reward.raidMarksByUser[userId]
                 : null,
+            myOathSymbols:
+              run.reward.raidMarksByUser && run.reward.raidMarksByUser[userId] != null
+                ? run.reward.raidMarksByUser[userId]
+                : null,
+            mySave:
+              run.reward.savesByUser && run.reward.savesByUser[userId]
+                ? run.reward.savesByUser[userId]
+                : null,
           }
         : null,
     };
@@ -208,12 +324,18 @@ function attachClanBossMethods(db, store) {
         { now }
       );
     }
-    const marksEach = Math.max(0, Math.floor(Number(CLAN_BOSS.rewardRaidMarks) || 0));
+    const marksEach = Math.max(
+      0,
+      Math.floor(Number(CLAN_BOSS.rewardOathSymbol ?? CLAN_BOSS.rewardRaidMarks) || 0)
+    );
     const marksByUser = {};
+    const savesByUser = {};
     if (marksEach > 0) {
       for (const m of run.members.values()) {
         if (!m || !m.userId) continue;
-        marksByUser[m.userId] = creditRaidMarks(m.userId, marksEach, now);
+        const credited = creditOathSymbolToUser(m.userId, marksEach, now);
+        marksByUser[m.userId] = credited.total || 0;
+        if (credited.save) savesByUser[m.userId] = credited.save;
       }
     }
     run.reward = {
@@ -221,8 +343,9 @@ function attachClanBossMethods(db, store) {
       warehouseTotal: whAdena,
       activity,
       raidMarksEach: marksEach,
-      raidMarksLabelRu: CLAN_BOSS.rewardRaidMarksLabelRu || "Печати Клятвы",
+      raidMarksLabelRu: OATH_LABEL(),
       raidMarksByUser: marksByUser,
+      savesByUser,
     };
     return run;
   }
@@ -249,7 +372,7 @@ function attachClanBossMethods(db, store) {
         rewardAdenaWarehouse: CLAN_BOSS.rewardAdenaWarehouse,
         rewardActivityScore: CLAN_BOSS.rewardActivityScore,
         rewardRaidMarks: CLAN_BOSS.rewardRaidMarks,
-        rewardRaidMarksLabelRu: CLAN_BOSS.rewardRaidMarksLabelRu || "Печати Клятвы",
+        rewardRaidMarksLabelRu: CLAN_BOSS.rewardRaidMarksLabelRu || "Символ Клятвы",
         mine: CLAN_BOSS.mine,
         mob: CLAN_BOSS.mob,
       },
@@ -276,8 +399,10 @@ function attachClanBossMethods(db, store) {
       role: clanRole(clanId, user.id),
       run: publicRun(run, user.id),
       boss: store.clanBossMeta().boss,
-      myRaidMarks: getRaidMarks(user.id),
-      raidMarksLabelRu: CLAN_BOSS.rewardRaidMarksLabelRu || "Печати Клятвы",
+      myRaidMarks: readOathSymbolBalance(user.id),
+      myOathSymbols: readOathSymbolBalance(user.id),
+      raidMarksLabelRu: OATH_LABEL(),
+      oathSymbolLabelRu: OATH_LABEL(),
     };
   };
 
@@ -293,7 +418,8 @@ function attachClanBossMethods(db, store) {
     let run = runs.get(clanId);
     if (run) expireIfNeeded(run, now);
     if (run && run.status === "active") {
-      return { ok: false, error: "busy", message: "Бой уже идёт — войди в него" };
+      // Уже идёт рейд клана (даже если все вышли) — входим в тот же HP.
+      return store.clanBossJoin(user, opts);
     }
     if (run && (run.status === "cleared" || run.status === "failed")) {
       runs.delete(clanId);
@@ -382,10 +508,9 @@ function attachClanBossMethods(db, store) {
     const now = Number(opts.now) || Date.now();
     const run = runs.get(clanId);
     if (!run) return { ok: true, ...store.clanBossState(user, { now }) };
+    expireIfNeeded(run, now);
     run.members.delete(user.id);
-    if (run.status === "active" && run.members.size === 0) {
-      run.status = "failed";
-    }
+    // Активный рейд клана живёт до таймера/клира — выход не сбрасывает HP.
     if (run.status !== "active" && run.members.size === 0) {
       runs.delete(clanId);
     }

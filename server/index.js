@@ -1335,7 +1335,10 @@ app.get("/chat/clan/buffs", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
   try {
-    const result = store.clanGetBuffs(user, { now: Date.now() });
+    const result = store.clanGetBuffs(user, {
+      now: Date.now(),
+      characterId: req.query.characterId,
+    });
     if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
     res.json(result);
   } catch (e) {

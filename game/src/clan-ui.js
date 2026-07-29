@@ -112,8 +112,30 @@ function renderClanIncomingBlock() {
   );
 }
 
+/** Приглашение в клан — отдельная карточка над составом. */
+function renderClanInviteCard(clan) {
+  if (!clanCanInvite()) return "";
+  const members = clan ? clanSortedMembers(clan) : [];
+  const free = Math.max(0, 40 - members.length);
+  return (
+    '<div class="party-screen-card clan-invite-card">' +
+    '<div class="party-panel-head"><span>Приём в клан</span></div>' +
+    '<div class="party-panel-invite">' +
+    '<input type="text" class="party-panel-nick-input" id="clanInviteNick" maxlength="16" ' +
+    'placeholder="Имя персонажа" spellcheck="false" autocomplete="off" value="' +
+    String(clanInviteDraft || "").replace(/"/g, "&quot;") +
+    '" />' +
+    '<button type="button" class="party-panel-btn" id="clanInviteBtn">Пригласить</button>' +
+    "</div>" +
+    '<p class="party-panel-hint">По имени персонажа · свободно слотов: ' +
+    free +
+    ".</p></div>"
+  );
+}
+
 function renderClanCreateCard() {
   return (
+    '<div class="party-screen-card party-screen-card-roster">' +
     '<div class="party-panel-head"><span>Клан</span><span class="clan-cap-hint">0 / 40</span></div>' +
     '<div class="party-empty clan-empty-create">' +
     "<strong>Основать клан</strong>" +
@@ -126,13 +148,12 @@ function renderClanCreateCard() {
     '<button type="button" class="party-panel-btn party-inst-primary" id="clanCreateBtn">Создать</button>' +
     "</div>" +
     '<p class="party-panel-hint">Создание и управление — только в этом меню (не в чате).</p>' +
-    "</div>"
+    "</div></div>"
   );
 }
 
 function renderClanRosterCard(clan) {
   const role = clanMyRole();
-  const canInv = clanCanInvite();
   const canKick = clanCanKick();
   const canRoles = typeof clanCanSetRoles === "function" ? clanCanSetRoles() : canKick;
   const members = clanSortedMembers(clan);
@@ -224,6 +245,7 @@ function renderClanRosterCard(clan) {
     .join("");
 
   return (
+    '<div class="party-screen-card party-screen-card-roster">' +
     '<div class="party-panel-head clan-roster-head">' +
     "<span>" +
     clanEscHtml(clan.name || "Клан") +
@@ -247,29 +269,15 @@ function renderClanRosterCard(clan) {
     roleRu(role) +
     "</b><small>ваша роль</small></div>" +
     "</div>" +
-    '<ul class="clan-member-list">' +
+    '<ul class="clan-member-list sf-scroll">' +
     (slots || '<li class="clan-member-empty">Пока никого нет</li>') +
     "</ul>" +
     (canRoles
-      ? '<p class="party-panel-hint">Лидер: кнопка «Офицер» / «Участник» у игрока в составе (макс. 5 офицеров). Офицер может приглашать, захватывать и снимать со склада.</p>'
+      ? '<p class="party-panel-hint">Лидер: «Офицер» / «Участник» у игрока (макс. 5 офицеров).</p>'
       : "") +
-    (canInv
-      ? '<div class="party-panel-invite">' +
-        '<input type="text" class="party-panel-nick-input" id="clanInviteNick" maxlength="16" ' +
-        'placeholder="Имя персонажа" spellcheck="false" autocomplete="off" value="' +
-        String(clanInviteDraft || "").replace(/"/g, "&quot;") +
-        '" />' +
-        '<button type="button" class="party-panel-btn" id="clanInviteBtn">Пригласить</button>' +
-        "</div>" +
-        '<p class="party-panel-hint">Приглашение по имени персонажа (как в группе) · слотов свободно: ' +
-        Math.max(0, 40 - members.length) +
-        ".</p>"
-      : '<p class="party-panel-hint">Приглашает лидер или офицер. Вы: ' +
-        roleRu(role) +
-        ".</p>") +
     '<div class="party-panel-actions">' +
     '<button type="button" class="party-panel-btn ghost" id="clanLeaveBtn">Покинуть клан</button>' +
-    "</div>"
+    "</div></div>"
   );
 }
 
@@ -644,17 +652,25 @@ function clanBuffBranchRows(branchId, serverCatalog, buffState) {
     return server.filter((c) => (c.branch || "farm") === branchId);
   }
   const clanLevel = Math.max(1, Math.floor(Number(buffState?.level) || 1));
-  const wh = Math.max(0, Math.floor(Number(buffState?.warehouseAdena) || 0));
+  const oath = Math.max(
+    0,
+    Math.floor(
+      Number(buffState?.myOathSymbols) ||
+        Number(state?.materials?.oath_symbol) ||
+        0
+    )
+  );
   const canRole = !!buffState?.canStudy;
   return local.map((def) => {
     const s = byId.get(def.id);
     if (s) return s;
     const reqLvl = Math.max(1, Math.floor(Number(def.reqClanLevel) || 1));
     const levelOk = clanLevel >= reqLvl;
+    const cost = Math.max(0, Math.floor(Number(def.costOathSymbol) || 0));
     let lockReason = "";
     if (!levelOk) lockReason = "нужен ур." + reqLvl + " клана";
     else if (!canRole) lockReason = "только лидер/офицер";
-    else if (wh < def.costAdena) lockReason = "мало адены на складе";
+    else if (oath < cost) lockReason = "мало Символов Клятвы";
     else lockReason = "нужен перезапуск сервера";
     return {
       id: def.id,
@@ -665,7 +681,8 @@ function clanBuffBranchRows(branchId, serverCatalog, buffState) {
       xpPct: def.xpPct || 0,
       pvpPct: def.pvpPct || 0,
       pvpDefPct: def.pvpDefPct || 0,
-      costAdena: def.costAdena,
+      costOathSymbol: cost,
+      costAdena: 0,
       requires: def.requires,
       reqClanLevel: reqLvl,
       studied: false,
@@ -755,12 +772,13 @@ function clanBuffIconHtml(opts) {
 function clanBuffBranchBuyHtml(rows, fmtAdena) {
   const next = rows.find((c) => c.canStudy);
   if (next) {
+    const cost = Math.max(0, Math.floor(Number(next.costOathSymbol ?? next.costAdena) || 0));
     return (
       '<button type="button" class="party-panel-btn party-inst-primary clan-buff-buy-btn" data-clan-study="' +
       clanEscHtml(next.id) +
       '">Изучить · ' +
-      fmtAdena(next.costAdena || 0) +
-      "</button>"
+      (typeof fmtAdena === "function" ? fmtAdena(cost) : String(cost)) +
+      " симв.</button>"
     );
   }
   const allDone = rows.length && rows.every((c) => c.studied);
@@ -817,7 +835,7 @@ function renderClanBuffsCard() {
     return (
       '<div class="clan-stub-card">' +
       "<strong>Клан-баффы</strong>" +
-      '<p class="party-panel-hint">Автобафф от онлайна + изучение доп. баффов за адену склада. Нужен клан.</p>' +
+      '<p class="party-panel-hint">Автобафф от онлайна + изучение за Символы Клятвы (рейд). Нужен клан.</p>' +
       "</div>"
     );
   }
@@ -884,7 +902,11 @@ function renderClanBuffsCard() {
             art: CLAN_BUFF_ICONS[br.id] || CLAN_BUFF_ICONS.farm,
             tipLines: [
               c.descRu || bonus,
-              "склад: " + fmtAdena(c.costAdena || 0),
+              "стоимость: " +
+                (typeof fmtAdena === "function"
+                  ? fmtAdena(c.costOathSymbol ?? c.costAdena ?? 0)
+                  : String(c.costOathSymbol ?? c.costAdena ?? 0)) +
+                " × Символ Клятвы",
               "нужен ур." + reqLvl + " клана",
               c.studied
                 ? "изучено"
@@ -959,8 +981,10 @@ function renderClanBuffsCard() {
     '<div class="clan-buff-section">' +
     '<div class="clan-buff-section-head">' +
     "<strong>Изучение</strong>" +
-    "<span>склад <b>" +
-    fmtAdena(b.warehouseAdena || 0) +
+    "<span>" +
+    clanEscHtml(b.oathSymbolLabelRu || "Символ Клятвы") +
+    " <b>" +
+    fmtAdena(b.myOathSymbols != null ? b.myOathSymbols : state?.materials?.oath_symbol || 0) +
     "</b> · лидер/офицер</span></div>" +
     (branchBlocks || '<p class="party-panel-hint">Каталог пуст.</p>') +
     "</div>" +
@@ -1020,18 +1044,22 @@ function renderClanBossCard() {
     "</strong>" +
     '<p class="party-panel-hint">1–15 участников · HP ' +
     hpLabel +
-    " · только ручные клики · +" +
+    " · соски и скиллы · +" +
     (typeof fmt === "function" ? fmt(b.rewardRaidMarks || 50) : String(b.rewardRaidMarks || 50)) +
     " " +
-    clanEscHtml(b.rewardRaidMarksLabelRu || "Печати Клятвы") +
-    " участникам" +
+    clanEscHtml(b.rewardRaidMarksLabelRu || "Символ Клятвы") +
+    " участникам · HP общее на клан (не сбрасывается при выходе)" +
     (b.weeklyClears === 0 ? " · без недельного лимита" : " · 1 / неделю") +
     "</p>" +
-    (st && st.myRaidMarks != null
+    (st && (st.myOathSymbols != null || st.myRaidMarks != null)
       ? '<p class="party-panel-hint">У тебя: <b>' +
-        (typeof fmt === "function" ? fmt(st.myRaidMarks) : String(st.myRaidMarks)) +
+        (typeof fmt === "function"
+          ? fmt(st.myOathSymbols ?? st.myRaidMarks)
+          : String(st.myOathSymbols ?? st.myRaidMarks)) +
         "</b> " +
-        clanEscHtml(st.raidMarksLabelRu || b.rewardRaidMarksLabelRu || "Печати Клятвы") +
+        clanEscHtml(
+          st.oathSymbolLabelRu || st.raidMarksLabelRu || b.rewardRaidMarksLabelRu || "Символ Клятвы"
+        ) +
         "</p>"
       : "") +
     (active
@@ -1164,15 +1192,20 @@ function renderClanScreen() {
   const clan = getChatClan();
   const incoming = renderClanIncomingBlock();
   const leftInner = !clan
-    ? incoming + renderClanCreateCard()
-    : incoming + renderClanRosterCard(clan);
+    ? (incoming
+        ? '<div class="party-screen-card clan-invite-card">' +
+          '<div class="party-panel-head"><span>Приём в клан</span></div>' +
+          incoming +
+          "</div>"
+        : "") + renderClanCreateCard()
+    : renderClanInviteCard(clan) + renderClanRosterCard(clan);
 
   const statusClass =
     "party-panel-status" + (clanStatusWarn ? " is-warn" : "") + (clanStatusText ? "" : " is-empty");
 
   el.innerHTML =
     '<div class="party-layout clan-layout">' +
-    '<div class="party-col party-col-left"><div class="party-screen-card party-screen-card-roster">' +
+    '<div class="party-col party-col-left">' +
     leftInner +
     '<p class="' +
     statusClass +
@@ -1181,7 +1214,7 @@ function renderClanScreen() {
     ">" +
     (clanStatusText || "") +
     "</p>" +
-    "</div></div>" +
+    "</div>" +
     '<div class="party-col party-col-right"><div class="party-screen-card party-screen-card-wide party-screen-card-board">' +
     renderClanHubNav() +
     "</div></div></div>";

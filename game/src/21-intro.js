@@ -101,6 +101,10 @@ function dismissIntro(fromFirstRun) {
     if (typeof dismissWorldBossResultModal === "function") dismissWorldBossResultModal();
     return;
   }
+  if (mode === "clan_boss_clear") {
+    if (typeof dismissClanBossClearModal === "function") dismissClanBossClearModal();
+    return;
+  }
   if (mode === "prelude_finale") {
     if (typeof dismissPreludeFinale === "function") dismissPreludeFinale();
     return;

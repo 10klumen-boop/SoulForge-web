@@ -20,6 +20,7 @@ const MARKET_KINDS = new Set([
 ]);
 const GRADES = new Set(["D", "C", "B", "A"]);
 const ORES = new Set(["soul", "spirit"]);
+const TRADE_MATERIALS = new Set(["soul", "spirit", "oath_symbol"]);
 const SCROLL_TARGETS = new Set(["weapon", "armor"]);
 const SCROLL_TYPES = new Set(["regular", "blessed", "destruction", "crystal"]);
 
@@ -408,18 +409,20 @@ function giveCrystal(progress, grade, qty) {
 
 function takeMaterial(progress, ore, qty) {
   const o = String(ore || "").toLowerCase();
-  if (!ORES.has(o)) return { ok: false, error: "Неверная руда" };
+  if (!TRADE_MATERIALS.has(o)) return { ok: false, error: "Неверный материал" };
   const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!progress.materials || typeof progress.materials !== "object") progress.materials = {};
   const have = Math.max(0, Math.floor(Number(progress.materials[o]) || 0));
-  if (have < n) return { ok: false, error: "Не хватает руды" };
+  if (have < n) return { ok: false, error: "Не хватает материала" };
   progress.materials[o] = have - n;
   return { ok: true, item: { kind: "material", ore: o }, qty: n };
 }
 
 function giveMaterial(progress, ore, qty) {
   const o = String(ore || "").toLowerCase();
-  if (!ORES.has(o)) return { ok: false, error: "Неверная руда" };
+  if (!TRADE_MATERIALS.has(o)) return { ok: false, error: "Неверный материал" };
   const n = Math.max(1, Math.floor(Number(qty) || 0));
+  if (!progress.materials || typeof progress.materials !== "object") progress.materials = {};
   progress.materials[o] = Math.max(0, Math.floor(Number(progress.materials[o]) || 0)) + n;
   return { ok: true };
 }

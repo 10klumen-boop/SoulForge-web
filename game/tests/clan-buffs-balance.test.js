@@ -79,7 +79,10 @@ assert.strictEqual(clanXpToNext(3500).need, 0);
 assert.strictEqual(clanXpToNext(100).into, 100);
 assert.strictEqual(clanXpToNext(100).span, 200);
 
-assert.strictEqual(clanStudyBuffDef("greed_1").reqClanLevel, 1);
+assert.strictEqual(clanStudyBuffDef("greed_1").costOathSymbol, 5);
+assert.strictEqual(clanStudyBuffDef("greed_2").costOathSymbol, 15);
+assert.strictEqual(clanStudyBuffDef("unity_2").costOathSymbol, 80);
+
 assert.strictEqual(clanStudyBuffDef("greed_2").reqClanLevel, 2);
 assert.strictEqual(clanStudyBuffDef("greed_3").reqClanLevel, 3);
 assert.strictEqual(clanStudyBuffDef("unity_1").reqClanLevel, 3);

@@ -1849,8 +1849,8 @@ function createSqliteStore(opts) {
   attachWorldBossMethods(db, store);
   attachPartyLfgMethods(db, store);
   attachClanEconomyMethods(db, store, persistDeps);
-  attachClanBuffMethods(db, store);
-  attachClanBossMethods(db, store);
+  attachClanBuffMethods(db, store, persistDeps);
+  attachClanBossMethods(db, store, persistDeps);
 
   return store;
 }

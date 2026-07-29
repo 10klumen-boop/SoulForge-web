@@ -222,7 +222,8 @@ function clearExclusiveMineOverlays(mode) {
     if (
       sm === "instance_clear" ||
       sm === "instance_fail" ||
-      sm === "world_boss_result"
+      sm === "world_boss_result" ||
+      sm === "clan_boss_clear"
     ) {
       delete backdrop.dataset.storyMode;
       backdrop.hidden = true;

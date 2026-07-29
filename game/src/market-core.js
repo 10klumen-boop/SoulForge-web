@@ -45,8 +45,11 @@ function marketListingTitle(listing) {
     return "Кристалл " + (item.grade || "?");
   }
   if (kind === "material") {
+    if (item.ore === "oath_symbol" && typeof OATH_SYMBOL !== "undefined") {
+      return OATH_SYMBOL.nameRu || "Символ Клятвы";
+    }
     const ore = typeof ORE !== "undefined" ? ORE[item.ore] : null;
-    return (ore?.name || item.ore || "Руда");
+    return ore?.name || item.ore || "Руда";
   }
   if (kind === "shot") {
     const sk = item.shotKind || item.shot_kind;
@@ -95,6 +98,9 @@ function marketListingIcon(listing) {
     return (map && map[item.grade]) || "icons/etc_crystal_blue_i00.png";
   }
   if (kind === "material") {
+    if (item.ore === "oath_symbol" && typeof OATH_SYMBOL !== "undefined") {
+      return OATH_SYMBOL.icon || "icons/clan/oath_symbol.png?v=1";
+    }
     return (typeof ORE !== "undefined" && ORE[item.ore]?.icon) || "icons/etc_crystal_white_i00.png";
   }
   if (kind === "shot") {
@@ -314,6 +320,21 @@ function marketStackOptions() {
       out.push({ kind: "material", ore, max: n, label: name + " ×" + n });
     }
   });
+  {
+    const n = Math.max(0, Math.floor(Number(mats.oath_symbol) || 0));
+    if (n > 0) {
+      const name =
+        (typeof OATH_SYMBOL !== "undefined" && OATH_SYMBOL.nameRu) || "Символ Клятвы";
+      const icon = (typeof OATH_SYMBOL !== "undefined" && OATH_SYMBOL.icon) || "";
+      out.push({
+        kind: "material",
+        ore: "oath_symbol",
+        max: n,
+        label: name + " ×" + n,
+        icon,
+      });
+    }
+  }
   if (typeof ARMOR_FRAGS !== "undefined" && ARMOR_FRAGS) {
     Object.keys(ARMOR_FRAGS).forEach((fragId) => {
       const n = Math.max(0, Math.floor(Number(mats[fragId]) || 0));

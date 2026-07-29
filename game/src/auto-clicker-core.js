@@ -251,7 +251,7 @@ function toggleAutoClickerEnabled() {
 }
 
 function autoClickerBlockedInCurrentMine() {
-  // Инстансы, мировой босс и клан-рейд — только ручные клики.
+  // Инстансы, мировой босс и клан-рейд — без автоудара (скиллы/соски в рейде ок).
   if (typeof mineSession !== "undefined" && mineSession && mineSession.instance) return true;
   if (typeof mineSession !== "undefined" && mineSession && mineSession.worldBoss) return true;
   if (typeof mineSession !== "undefined" && mineSession && mineSession.clanBoss) return true;

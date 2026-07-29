@@ -2,6 +2,78 @@
 
 /** Mirror game/src/data/clan-buffs-balance.js */
 
+const path = require("path");
+const { parseSavePayload, resolveActiveCharacterId } = require("./save-utils");
+
+let OATH_SYMBOL;
+try {
+  OATH_SYMBOL = require(path.join(
+    __dirname,
+    "..",
+    "..",
+    "game",
+    "src",
+    "data",
+    "oath-symbol-data.js"
+  )).OATH_SYMBOL;
+} catch (_) {
+  OATH_SYMBOL = {
+    id: "oath_symbol",
+    materialKey: "oath_symbol",
+    nameRu: "Символ Клятвы",
+  };
+}
+
+const OATH_MAT = OATH_SYMBOL.materialKey || "oath_symbol";
+const OATH_LABEL = OATH_SYMBOL.nameRu || "Символ Клятвы";
+
+function cloneJson(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+
+function getCharacterSlot(data, characterId) {
+  data = data && typeof data === "object" ? data : {};
+  const cid = String(characterId || "").slice(0, 64);
+  const chars = Array.isArray(data.characters) ? data.characters : [];
+  if (cid) {
+    const hit = chars.find((c) => c && String(c.id) === cid);
+    if (hit) return hit;
+  }
+  const active = resolveActiveCharacterId(data);
+  if (active) {
+    const hit = chars.find((c) => c && String(c.id) === String(active));
+    if (hit) return hit;
+  }
+  return chars[0] || null;
+}
+
+function ensureProgress(slot) {
+  if (!slot.progress || typeof slot.progress !== "object") slot.progress = {};
+  const p = slot.progress;
+  if (!p.materials || typeof p.materials !== "object") p.materials = {};
+  return p;
+}
+
+function syncActiveRoot(data) {
+  const activeId = resolveActiveCharacterId(data);
+  const slot = getCharacterSlot(data, activeId);
+  if (!slot?.progress) return data;
+  const p = slot.progress;
+  if (p.adena !== undefined) data.adena = p.adena;
+  if (p.materials) data.materials = p.materials;
+  data.activeCharacterId = activeId;
+  return data;
+}
+
+function studyCost(def) {
+  return Math.max(0, Math.floor(Number(def?.costOathSymbol ?? def?.costAdena) || 0));
+}
+
+function materialsOathCount(progress) {
+  const mats = progress?.materials;
+  return Math.max(0, Math.floor(Number(mats?.[OATH_MAT]) || 0));
+}
+
 const CLAN_LEVELS = [
   { level: 1, minXp: 0, labelRu: "Новичок" },
   { level: 2, minXp: 200, labelRu: "Отряд" },
@@ -26,7 +98,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+2% адены с фарма",
     adenaPct: 2,
     xpPct: 0,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -37,7 +109,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+3% адены с фарма",
     adenaPct: 3,
     xpPct: 0,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "greed_1",
     reqClanLevel: 2,
   },
@@ -48,7 +120,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+4% адены с фарма",
     adenaPct: 4,
     xpPct: 0,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "greed_2",
     reqClanLevel: 3,
   },
@@ -59,7 +131,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+2% XP",
     adenaPct: 0,
     xpPct: 2,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -70,7 +142,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+3% XP",
     adenaPct: 0,
     xpPct: 3,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "wisdom_1",
     reqClanLevel: 2,
   },
@@ -81,7 +153,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+4% XP",
     adenaPct: 0,
     xpPct: 4,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "wisdom_2",
     reqClanLevel: 3,
   },
@@ -92,7 +164,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+2% адены и +2% XP",
     adenaPct: 2,
     xpPct: 2,
-    costAdena: 100_000_000,
+    costOathSymbol: 25,
     requires: ["greed_1", "wisdom_1"],
     reqClanLevel: 3,
   },
@@ -103,7 +175,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+3% адены и +3% XP",
     adenaPct: 3,
     xpPct: 3,
-    costAdena: 500_000_000,
+    costOathSymbol: 80,
     requires: ["greed_2", "wisdom_2", "unity_1"],
     reqClanLevel: 5,
   },
@@ -115,7 +187,7 @@ const CLAN_STUDY_BUFFS = [
     adenaPct: 0,
     xpPct: 0,
     pvpPct: 2,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -127,7 +199,7 @@ const CLAN_STUDY_BUFFS = [
     adenaPct: 0,
     xpPct: 0,
     pvpPct: 3,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "valor_1",
     reqClanLevel: 2,
   },
@@ -139,7 +211,7 @@ const CLAN_STUDY_BUFFS = [
     adenaPct: 0,
     xpPct: 0,
     pvpPct: 4,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "valor_2",
     reqClanLevel: 3,
   },
@@ -152,7 +224,7 @@ const CLAN_STUDY_BUFFS = [
     xpPct: 0,
     pvpPct: 0,
     pvpDefPct: 2,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -165,7 +237,7 @@ const CLAN_STUDY_BUFFS = [
     xpPct: 0,
     pvpPct: 0,
     pvpDefPct: 3,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "aegis_1",
     reqClanLevel: 2,
   },
@@ -178,7 +250,7 @@ const CLAN_STUDY_BUFFS = [
     xpPct: 0,
     pvpPct: 0,
     pvpDefPct: 4,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "aegis_2",
     reqClanLevel: 3,
   },
@@ -325,7 +397,8 @@ function clanBuffTotalsFromParts(onlineTier, studiedList) {
   };
 }
 
-function attachClanBuffMethods(db, store) {
+function attachClanBuffMethods(db, store, deps) {
+  deps = deps || {};
   db.exec(`
     CREATE TABLE IF NOT EXISTS chat_clan_week_score (
       clan_id TEXT NOT NULL,
@@ -473,17 +546,32 @@ function attachClanBuffMethods(db, store) {
     const progress = clanProgressFields(clanId);
     const clanLevel = progress.level;
 
+    let myOathSymbols = 0;
+    if (opts.userId != null) {
+      const loaded = (() => {
+        const row = store.getSave(opts.userId);
+        if (!row) return null;
+        const data = parseSavePayload(row);
+        return data ? { data } : null;
+      })();
+      if (loaded) {
+        const slot = getCharacterSlot(loaded.data, opts.characterId);
+        if (slot) myOathSymbols = materialsOathCount(ensureProgress(slot));
+      }
+    }
+
     const catalog = CLAN_STUDY_BUFFS.map((def) => {
       const already = studiedIds.includes(def.id);
       const reqOk = clanStudyRequiresMet(def, studiedIds);
       const levelOk = clanStudyLevelMet(def, clanLevel);
       const reqLvl = Math.max(1, Math.floor(Number(def.reqClanLevel) || 1));
+      const cost = studyCost(def);
       let lockReason = "";
       if (already) lockReason = "изучено";
       else if (!levelOk) lockReason = "нужен ур." + reqLvl + " клана";
       else if (!reqOk) lockReason = "нужны предыдущие";
       else if (!canStudy) lockReason = "только лидер/офицер";
-      else if (warehouseAdena < def.costAdena) lockReason = "мало адены на складе";
+      else if (myOathSymbols < cost) lockReason = "мало Символов Клятвы";
       return {
         id: def.id,
         branch: def.branch || "farm",
@@ -493,11 +581,12 @@ function attachClanBuffMethods(db, store) {
         xpPct: def.xpPct,
         pvpPct: def.pvpPct || 0,
         pvpDefPct: def.pvpDefPct || 0,
-        costAdena: def.costAdena,
+        costOathSymbol: cost,
+        costAdena: 0,
         requires: def.requires,
         reqClanLevel: reqLvl,
         studied: already,
-        canStudy: !already && levelOk && reqOk && canStudy && warehouseAdena >= def.costAdena,
+        canStudy: !already && levelOk && reqOk && canStudy && myOathSymbols >= cost,
         lockReason,
       };
     });
@@ -529,6 +618,8 @@ function attachClanBuffMethods(db, store) {
       studied,
       catalog,
       warehouseAdena,
+      myOathSymbols,
+      oathSymbolLabelRu: OATH_LABEL,
       canStudy,
       caps: CLAN_BUFF_CAPS,
       adenaPct: totals.adenaPct,
@@ -593,7 +684,11 @@ function attachClanBuffMethods(db, store) {
   store.clanGetBuffs = function clanGetBuffs(user, opts = {}) {
     const clanId = getClanId(user.id);
     if (!clanId) return { ok: false, error: "clan", message: "Нужен клан" };
-    return buildBuffsPayload(clanId, { now: opts.now, userId: user.id });
+    return buildBuffsPayload(clanId, {
+      now: opts.now,
+      userId: user.id,
+      characterId: opts.characterId,
+    });
   };
 
   store.clanStudyBuff = function clanStudyBuff(user, opts = {}) {
@@ -606,6 +701,8 @@ function attachClanBuffMethods(db, store) {
     if (role !== "leader" && role !== "officer") {
       return { ok: false, error: "role", message: "Изучает лидер или офицер" };
     }
+    const characterId = String(opts.characterId || "").slice(0, 64);
+    if (!characterId) return { ok: false, error: "character", message: "Нужен characterId" };
     const now = Number(opts.now) || Date.now();
     if (stmtStudiedHas.get(clanId, buffId)) {
       return { ok: false, error: "studied", message: "Уже изучено" };
@@ -623,25 +720,51 @@ function attachClanBuffMethods(db, store) {
     if (!clanStudyRequiresMet(def, studiedIds)) {
       return { ok: false, error: "requires", message: "Сначала изучите предыдущие баффы" };
     }
+    const cost = studyCost(def);
+    if (!deps.persistPlayerSaveInternal) {
+      return { ok: false, error: "server", message: "Сохранение недоступно" };
+    }
 
     return db.transaction(() => {
-      const have = Math.max(0, Math.floor(Number(stmtWhGet.get(clanId)?.adena) || 0));
-      if (have < def.costAdena) {
+      const row = store.getSave(user.id);
+      if (!row) return { ok: false, error: "need_save", message: "Нет облачного сейва" };
+      const data = parseSavePayload(row);
+      if (!data) return { ok: false, error: "bad_save", message: "Повреждённый сейв" };
+      const dataClone = cloneJson(data);
+      const slot = getCharacterSlot(dataClone, characterId);
+      if (!slot) return { ok: false, error: "character", message: "Персонаж не найден" };
+      const charProgress = ensureProgress(slot);
+      const have = materialsOathCount(charProgress);
+      if (have < cost) {
         return {
           ok: false,
           error: "funds",
-          message: "На складе нужно " + def.costAdena.toLocaleString("ru-RU") + " adena",
+          message: "Нужно " + cost + " × " + OATH_LABEL,
         };
       }
-      const next = have - def.costAdena;
-      stmtWhUpsert.run(clanId, next, now);
-      stmtWhLog.run(clanId, user.id, "study_buff", def.costAdena, buffId, now);
+      charProgress.materials[OATH_MAT] = have - cost;
+      stmtWhLog.run(clanId, user.id, "study_buff", cost, buffId, now);
       stmtStudiedInsert.run(clanId, buffId, now, user.id);
-      const payload = buildBuffsPayload(clanId, { now, userId: user.id });
+      syncActiveRoot(dataClone);
+      const nextSeq = Math.max(1, (row.seq || 0) + 1);
+      const savedAt = Date.now();
+      const result = deps.persistPlayerSaveInternal(user, nextSeq, savedAt, null, dataClone);
+      const payload = buildBuffsPayload(clanId, {
+        now,
+        userId: user.id,
+        characterId,
+      });
       return {
         ok: true,
         studiedId: buffId,
-        spent: def.costAdena,
+        spent: cost,
+        spentOathSymbol: cost,
+        save: {
+          seq: nextSeq,
+          savedAt,
+          data: dataClone,
+          summary: result?.summary,
+        },
         ...payload,
       };
     })();

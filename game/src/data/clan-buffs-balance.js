@@ -1,6 +1,6 @@
 // ===== Clan buffs =====
 // 1) Авто: tier от числа онлайн участников (write lease).
-// 2) Доп.: изучаются за адену клан-склада (лидер/офицер), гейт — уровень клана.
+// 2) Доп.: изучаются за Символы Клятвы (рейд) (лидер/офицер), гейт — уровень клана.
 // 3) Уровень клана: накопительный XP (вклад/угодья/рейд) — параллельно недельному score осады.
 
 /** Накопительный уровень клана (XP не сбрасывается). */
@@ -21,7 +21,7 @@ const CLAN_ONLINE_BUFF_TIERS = [
   { tier: 4, minOnline: 12, adenaPct: 6, xpPct: 4, labelRu: "Полный строй" },
 ];
 
-/** Каталог изучаемых баффов (стоимость — со склада клана). branch: farm | xp | combo */
+/** Каталог изучаемых баффов (стоимость — Символы Клятвы с рейда). branch: farm | xp | combo */
 const CLAN_STUDY_BUFFS = [
   // —— +фарм (адена с online mine) ——
   {
@@ -31,7 +31,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+2% адены с фарма",
     adenaPct: 2,
     xpPct: 0,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -42,7 +42,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+3% адены с фарма",
     adenaPct: 3,
     xpPct: 0,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "greed_1",
     reqClanLevel: 2,
   },
@@ -53,7 +53,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+4% адены с фарма",
     adenaPct: 4,
     xpPct: 0,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "greed_2",
     reqClanLevel: 3,
   },
@@ -65,7 +65,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+2% XP",
     adenaPct: 0,
     xpPct: 2,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -76,7 +76,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+3% XP",
     adenaPct: 0,
     xpPct: 3,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "wisdom_1",
     reqClanLevel: 2,
   },
@@ -87,7 +87,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+4% XP",
     adenaPct: 0,
     xpPct: 4,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "wisdom_2",
     reqClanLevel: 3,
   },
@@ -99,7 +99,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+2% адены и +2% XP",
     adenaPct: 2,
     xpPct: 2,
-    costAdena: 100_000_000,
+    costOathSymbol: 25,
     requires: ["greed_1", "wisdom_1"],
     reqClanLevel: 3,
   },
@@ -110,7 +110,7 @@ const CLAN_STUDY_BUFFS = [
     descRu: "+3% адены и +3% XP",
     adenaPct: 3,
     xpPct: 3,
-    costAdena: 500_000_000,
+    costOathSymbol: 80,
     requires: ["greed_2", "wisdom_2", "unity_1"],
     reqClanLevel: 5,
   },
@@ -123,7 +123,7 @@ const CLAN_STUDY_BUFFS = [
     adenaPct: 0,
     xpPct: 0,
     pvpPct: 2,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -135,7 +135,7 @@ const CLAN_STUDY_BUFFS = [
     adenaPct: 0,
     xpPct: 0,
     pvpPct: 3,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "valor_1",
     reqClanLevel: 2,
   },
@@ -147,7 +147,7 @@ const CLAN_STUDY_BUFFS = [
     adenaPct: 0,
     xpPct: 0,
     pvpPct: 4,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "valor_2",
     reqClanLevel: 3,
   },
@@ -161,7 +161,7 @@ const CLAN_STUDY_BUFFS = [
     xpPct: 0,
     pvpPct: 0,
     pvpDefPct: 2,
-    costAdena: 10_000_000,
+    costOathSymbol: 5,
     requires: null,
     reqClanLevel: 1,
   },
@@ -174,7 +174,7 @@ const CLAN_STUDY_BUFFS = [
     xpPct: 0,
     pvpPct: 0,
     pvpDefPct: 3,
-    costAdena: 50_000_000,
+    costOathSymbol: 15,
     requires: "aegis_1",
     reqClanLevel: 2,
   },
@@ -187,7 +187,7 @@ const CLAN_STUDY_BUFFS = [
     xpPct: 0,
     pvpPct: 0,
     pvpDefPct: 4,
-    costAdena: 250_000_000,
+    costOathSymbol: 40,
     requires: "aegis_2",
     reqClanLevel: 3,
   },

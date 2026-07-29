@@ -154,7 +154,7 @@ function listCrystalStacks() {
 function listOreStacks() {
   if (typeof ensureWorkshopState === "function") ensureWorkshopState();
   const mats = state.materials || {};
-  return ["soul", "spirit"]
+  const rows = ["soul", "spirit"]
     .map((ty) => {
       const o = typeof ORE !== "undefined" ? ORE[ty] : null;
       return {
@@ -165,6 +165,17 @@ function listOreStacks() {
       };
     })
     .filter((row) => row.qty > 0);
+  const oathQty = Math.max(0, Math.floor(Number(mats.oath_symbol) || 0));
+  if (oathQty > 0) {
+    rows.push({
+      id: "oath_symbol",
+      qty: oathQty,
+      name: (typeof OATH_SYMBOL !== "undefined" && OATH_SYMBOL.nameRu) || "Символ Клятвы",
+      icon: (typeof OATH_SYMBOL !== "undefined" && OATH_SYMBOL.icon) || "icons/clan/oath_symbol.png?v=1",
+      tip: (typeof OATH_SYMBOL !== "undefined" && OATH_SYMBOL.descRu) || "",
+    });
+  }
+  return rows;
 }
 
 function countInvResourceTabItems(tabId) {

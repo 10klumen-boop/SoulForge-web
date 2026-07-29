@@ -1,5 +1,5 @@
 // ===== Clan boss / Рейд клана =====
-// Shared HP hit-loop · участникам — Печати Клятвы (+ adena на склад).
+// Shared HP hit-loop · участникам — Символы Клятвы (+ adena на склад).
 // Временно: без недельного lockout (weeklyClears: 0), HP = 1_000_000.
 
 const CLAN_BOSS = {
@@ -20,15 +20,16 @@ const CLAN_BOSS = {
   hitDmgMax: 50_000,
   rewardAdenaWarehouse: 250000,
   rewardActivityScore: 80,
-  /** Личная валюта участникам боя (клановый магазин later). */
+  /** Символы Клятвы в инвентарь каждого участника (изучение баффов / рынок). */
   rewardRaidMarks: 50,
-  rewardRaidMarksLabelRu: "Печати Клятвы",
+  rewardRaidMarksLabelRu: "Символ Клятвы",
+  rewardOathSymbol: 50,
   mob: "clan-oathkeeper",
   mine: {
     bgs: ["assets/locations/clan-raid-oathkeeper.jpg?v=1"],
     overlay: "mine-zone-elven",
     title: "Рейд клана",
-    hint: "Только ручные клики · награда: Печати Клятвы участникам",
+    hint: "Соски и скиллы работают · автоудар выкл · HP общее на клан",
   },
 };
 

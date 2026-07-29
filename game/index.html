@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m241" />
+<link rel="stylesheet" href="styles/main.css?v=m245" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d18" />
 <link rel="stylesheet" href="styles/sf-ui.css?v=49" />
 <script src="cloud-config.js"></script>
@@ -277,6 +277,9 @@
       <div class="patch-body sf-scroll sub-screen-body">
         <p class="patch-ver">v0.58.22</p>
         <ul>
+          <li><b>Клан-рейд · дроп</b> — после убийства босса модалка с наградой (Символы Клятвы + адена на склад)</li>
+          <li><b>Символ Клятвы</b> — валюта с клан-рейда; изучение баффов за символы (не склад); в инвентаре и на рынке</li>
+          <li><b>Клан-рейд</b> — соски и скиллы; HP общее на клан и не сбрасывается при выходе</li>
           <li><b>Клан · уровень</b> — накопительный XP (склад / угодья / рейд); изучение баффов по ур.1–5</li>
           <li><b>Клан · PvP-баффы</b> — Доблесть (+урон) и Эгида (−входящий) на арене</li>
           <li><b>Заточка</b> — обычная продажа оружия/брони/бижи убрана; продажа на рынке</li>
@@ -359,7 +362,7 @@
         <ul>
           <li><b>Охота по городам</b> — вкладка Фарм: полный стек угодий каталога, группы по хабам; live — играть, draft/planned — «скоро»</li>
           <li><b>Угодья Gludio+</b> — захват: Заброшенный лагерь (+3%, рента 45k) и Руины Агонии (+4%, 55k); лимит клана по-прежнему 2 farm</li>
-          <li><b>Клан-баффы</b> — авто от онлайна + изучение доп. баффов за адену склада</li>
+          <li><b>Клан-баффы</b> — авто от онлайна + изучение за Символы Клятвы (награда рейда)</li>
         </ul>
         <p class="patch-ver">v0.58.3</p>
         <ul>
@@ -1202,7 +1205,7 @@
           <p>Состав, угодья, склад и клятва силы — всё под одним знаменем.</p>
         </div>
       </div>
-      <div class="clan-screen-body party-screen-body" id="clanScreenBody"></div>
+      <div class="clan-screen-body party-screen-body sf-scroll" id="clanScreenBody"></div>
     </section>
 
     <section class="screen" id="screen-clan-grounds">
@@ -1244,7 +1247,7 @@
         <div class="sf-screen-hero-veil"></div>
         <div class="sf-screen-hero-body">
           <h3>Клятва и баффы</h3>
-          <p>Авто от онлайна + изучение за адену склада. Сила осады — здесь же.</p>
+          <p>Авто от онлайна + изучение за Символы Клятвы. Сила осады — здесь же.</p>
         </div>
       </div>
       <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanBuffsScreenBody"></div>
@@ -1259,7 +1262,7 @@
         <div class="sf-screen-hero-veil"></div>
         <div class="sf-screen-hero-body">
           <h3>Рейд клана</h3>
-          <p>Общий босс · 1 000 000 HP · без недельного лимита (временно).</p>
+          <p>Общий босс · 1 000 000 HP · награда: Символ Клятвы · без недельного лимита (временно).</p>
         </div>
       </div>
       <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanRaidScreenBody"></div>
@@ -1598,13 +1601,14 @@
 <script src="src/data/clan-territories-data.js?v=14"></script>
 <script src="src/data/clan-hunting-catalog-data.js?v=7"></script>
 <script src="src/data/clan-map-regions-data.js?v=4"></script>
-<script src="src/data/clan-buffs-balance.js?v=7"></script>
+<script src="src/data/clan-buffs-balance.js?v=8"></script>
 <script src="src/data/clan-siege-power-balance.js?v=1"></script>
-<script src="src/data/clan-boss-data.js?v=4"></script>
+<script src="src/data/oath-symbol-data.js?v=1"></script>
+<script src="src/data/clan-boss-data.js?v=6"></script>
 <script src="src/data/scroll-drop-balance.js?v=7"></script>
 <script src="src/scroll-core.js?v=8"></script>
 <script src="src/08-menu.js?v=9"></script>
-<script src="src/09-inventory.js?v=69"></script>
+<script src="src/09-inventory.js?v=70"></script>
 <script src="src/enchant-ui.js?v=8"></script>
 <script src="src/item-tooltip-ui.js?v=1"></script>
 <script src="src/inventory-ui.js?v=22"></script>
@@ -1614,21 +1618,21 @@
 <script src="src/dev-core.js?v=4"></script>
 <script src="src/11-enchant.js?v=18"></script>
 <script src="src/mine-ui.js?v=4"></script>
-<script src="src/mine-core.js?v=30"></script>
+<script src="src/mine-core.js?v=31"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js?v=7"></script>
 <script src="src/cloud-ui.js?v=4"></script>
-<script src="src/market-core.js?v=9"></script>
+<script src="src/market-core.js?v=10"></script>
 <script src="src/market-ui.js?v=13"></script>
 <script src="src/player-mail-core.js?v=8"></script>
 <script src="src/player-mail-ui.js?v=6"></script>
 <script src="src/chat-core.js?v=15"></script>
-<script src="src/clan-core.js?v=18"></script>
+<script src="src/clan-core.js?v=19"></script>
 <script src="src/clan-siege-power-core.js?v=2"></script>
-<script src="src/clan-boss-core.js?v=12"></script>
+<script src="src/clan-boss-core.js?v=15"></script>
 <script src="src/clan-map-ui.js?v=12"></script>
 <script src="src/clan-grounds-ui.js?v=16"></script>
-<script src="src/clan-ui.js?v=36"></script>
+<script src="src/clan-ui.js?v=40"></script>
 <script src="src/chat-ui.js?v=5"></script>
 <script src="src/data/party-content-data.js?v=22"></script>
 <script src="src/party-core.js?v=14"></script>
@@ -1647,7 +1651,7 @@
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js"></script>
 <script src="src/intro-core.js"></script>
-<script src="src/21-intro.js?v=9"></script>
+<script src="src/21-intro.js?v=10"></script>
 <script src="src/33-ui-icons.js?v=25"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=5"></script>
