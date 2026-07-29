@@ -1459,6 +1459,12 @@
   .app > .card:has(#screen-acc.active),
   .app > .card:has(#screen-market.active),
   .app > .card:has(#screen-pvp-arena.active),
+  .app > .card:has(#screen-party.active),
+  .app > .card:has(#screen-clan.active),
+  .app > .card:has(#screen-clan-grounds.active),
+  .app > .card:has(#screen-clan-warehouse.active),
+  .app > .card:has(#screen-clan-buffs.active),
+  .app > .card:has(#screen-clan-raid.active),
   .app.sub-screen > .card {
     flex: 1;
     min-height: 0;
@@ -1597,6 +1603,31 @@
   }
   #screen-clan-buffs .clan-sub-panel {
     padding: 10px 12px;
+    min-height: 0;
+    height: auto;
+    flex: 0 0 auto;
+    display: block;
+    overflow: visible;
+  }
+  #screen-clan-buffs .clan-shell {
+    flex: 0 0 auto;
+    min-height: 0;
+    height: auto;
+    display: block;
+  }
+  /* Баффы: явный скролл (desktop windowed + mobile/iOS) */
+  #screen-clan-buffs .clan-sub-screen-body {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+  #screen-clan-buffs .clan-buffs {
+    flex: none;
+    min-height: 0;
+    height: auto;
   }
   #screen-ach .ach-scroll,
   #screen-avatar .avatar-screen,
@@ -1619,10 +1650,6 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-  }
-  /* Баффы: компактная вёрстка без скролла */
-  #screen-clan-buffs .clan-sub-screen-body {
-    overflow: hidden;
   }
   /* Угодья: скролл только внутри списка, не всей страницы */
   #screen-clan-grounds .clan-sub-screen-body {
@@ -8693,6 +8720,25 @@
     }
     .app > .card {
       max-height: none;
+    }
+    /* Клан-баффы: скролл жестом на телефоне */
+    #screen-clan-buffs .clan-sub-screen-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    }
+    #screen-clan-buffs .clan-shell,
+    #screen-clan-buffs .clan-sub-panel,
+    #screen-clan-buffs .clan-buffs {
+      height: auto;
+      max-height: none;
+      min-height: 0;
+      overflow: visible;
     }
 
     /* Title / login / home full-bleed */
