@@ -208,3 +208,75 @@ function glossaryResetIndex() {
   _glossaryById = null;
   _glossaryAliasList = null;
 }
+
+/**
+ * Apply server/editor payload onto bundled GLOSSARY_* arrays (mutate in place).
+ * @param {{ categories?: object, entries?: object[] }} data
+ * @returns {boolean}
+ */
+function applyGlossaryPayload(data) {
+  if (!data || !Array.isArray(data.entries)) return false;
+  if (typeof GLOSSARY_ENTRIES !== "undefined" && Array.isArray(GLOSSARY_ENTRIES)) {
+    GLOSSARY_ENTRIES.length = 0;
+    for (let i = 0; i < data.entries.length; i++) {
+      GLOSSARY_ENTRIES.push(data.entries[i]);
+    }
+  } else if (typeof window !== "undefined") {
+    window.GLOSSARY_ENTRIES = data.entries.slice();
+  } else {
+    return false;
+  }
+  if (data.categories && typeof data.categories === "object") {
+    if (typeof GLOSSARY_CATEGORIES !== "undefined" && GLOSSARY_CATEGORIES && typeof GLOSSARY_CATEGORIES === "object") {
+      Object.keys(GLOSSARY_CATEGORIES).forEach((k) => {
+        delete GLOSSARY_CATEGORIES[k];
+      });
+      Object.assign(GLOSSARY_CATEGORIES, data.categories);
+    } else if (typeof window !== "undefined") {
+      window.GLOSSARY_CATEGORIES = Object.assign({}, data.categories);
+    }
+  }
+  glossaryResetIndex();
+  return true;
+}
+
+/**
+ * Fetch live glossary from server; keep bundled data on failure.
+ * @returns {Promise<{ ok: boolean, count?: number, updatedAt?: string|null, offline?: boolean, status?: number }>}
+ */
+async function loadGlossaryFromServer() {
+  let url = "/glossary";
+  try {
+    if (typeof cloudApiUrl === "function") url = cloudApiUrl("/glossary");
+  } catch (_) {}
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return { ok: false, status: res.status };
+    const data = await res.json().catch(() => null);
+    if (!data || !Array.isArray(data.entries)) return { ok: false, status: res.status };
+    if (!applyGlossaryPayload(data)) return { ok: false };
+    if (typeof renderGlossaryScreen === "function") {
+      try {
+        const screen = document.getElementById("screen-glossary");
+        if (screen && screen.classList.contains("active")) renderGlossaryScreen();
+      } catch (_) {}
+    }
+    if (typeof renderMenu === "function") {
+      try { renderMenu(); } catch (_) {}
+    }
+    return {
+      ok: true,
+      count: data.entries.length,
+      updatedAt: data.updatedAt || null,
+    };
+  } catch (e) {
+    return { ok: false, offline: true };
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.applyGlossaryPayload = applyGlossaryPayload;
+  window.loadGlossaryFromServer = loadGlossaryFromServer;
+  window.glossaryResetIndex = window.glossaryResetIndex || glossaryResetIndex;
+}
+

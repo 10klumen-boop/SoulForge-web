@@ -23,6 +23,13 @@ function syncSettingsUI() {
     muteBtn.textContent = state.muted ? "Выкл" : "Вкл";
     muteBtn.classList.toggle("on", !state.muted);
   }
+  const topMute = $("#topMuteBtn");
+  if (topMute) {
+    topMute.classList.toggle("is-muted", !!state.muted);
+    topMute.setAttribute("aria-pressed", state.muted ? "true" : "false");
+    topMute.title = state.muted ? "Звук выкл (M)" : "Звук вкл (M)";
+    topMute.setAttribute("aria-label", state.muted ? "Включить звук" : "Выключить звук");
+  }
 
   if (typeof syncChatMobileSettingUi === "function") syncChatMobileSettingUi();
 

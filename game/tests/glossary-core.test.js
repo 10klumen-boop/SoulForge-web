@@ -40,4 +40,16 @@ assert.ok(!boundary.includes('data-glossary="shilen"'), "word boundary");
 const latin = glossaryLinkifyHtml("Buy Soulshot now");
 assert.ok(latin.includes('data-glossary="soulshot"'), "latin case: " + latin);
 
+assert.ok(typeof applyGlossaryPayload === "function", "applyGlossaryPayload");
+const swapped = applyGlossaryPayload({
+  categories: { lore: "Лор", game: "Игра" },
+  entries: [
+    { id: "unit_only", title: "UnitOnly", category: "game", aliases: ["UnitOnly"], short: "Тест hot-swap" },
+  ],
+});
+assert.ok(swapped, "apply ok");
+glossaryResetIndex();
+assert.ok(glossaryGet("unit_only"), "hot-swapped term");
+assert.ok(!glossaryGet("shilen"), "old terms replaced");
+
 console.log("glossary-core.test.js OK");

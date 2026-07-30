@@ -1339,6 +1339,22 @@
   .iconbtn { background: linear-gradient(180deg,#3a2c1a,#241a10); border: 1px solid var(--edge2); color: var(--gold-soft); width: 38px; height: 38px; border-radius: 8px; cursor: var(--cursor-l2); font-size: 16px; transition: .15s; box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
   .iconbtn:hover { border-color: var(--gold); filter: brightness(1.15); }
   .iconbtn.dev-toggle.on { border-color: var(--purple); box-shadow: 0 0 12px rgba(176,107,255,.35); }
+  .topbar-mute {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .topbar-mute-ico { width: 18px; height: 18px; display: block; }
+  .topbar-mute .topbar-mute-ico--off { display: none; }
+  .topbar-mute.is-muted .topbar-mute-ico--on { display: none; }
+  .topbar-mute.is-muted .topbar-mute-ico--off { display: block; }
+  .topbar-mute.is-muted {
+    color: var(--txt-dim);
+    border-color: var(--edge);
+    opacity: .85;
+  }
   .topbar-actions { display: flex; gap: 10px; align-items: center; position: relative; flex-wrap: wrap; justify-content: flex-end; }
   .topbar-hub-meta {
     position: relative;
@@ -9046,6 +9062,7 @@
   }
   .app.title-screen .wallet,
   .app.title-screen #resetBtn,
+  .app.title-screen #topMuteBtn,
   .app.title-screen .avatar-hub,
   .app.title-screen .topbar-hub-meta,
   .app.title-screen .topbar-xp { display: none !important; }
@@ -9985,6 +10002,11 @@
     .topbar-hub-meta,
     #resetBtn,
     #devToggle { display: none !important; }
+    .topbar-mute {
+      width: 32px;
+      height: 32px;
+    }
+    .topbar-mute-ico { width: 16px; height: 16px; }
     .wallet {
       padding: 4px 8px;
       margin-left: 0;

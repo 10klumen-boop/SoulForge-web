@@ -8,6 +8,7 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const { createStore } = require("./db");
+const { createGlossaryStore } = require("./db/glossary");
 const { maxPlusFromRecords, parseSavePayload, resolveActiveCharacterId, summarizeSaveData } = require("./db/save-utils");
 
 const PORT = Number(process.env.PORT || 8787);
@@ -35,6 +36,7 @@ function worldBossDevAllowed() {
 
 const store = createStore({ dataDir: DATA_DIR, dbPath: DB_PATH });
 const dbInfo = store.info();
+const glossaryStore = createGlossaryStore({ dataDir: DATA_DIR, gameDir: GAME_DIR });
 
 function normalizeWriterId(raw) {
   const id = String(raw || "").trim().slice(0, 96);
@@ -1733,8 +1735,56 @@ app.get("/admin/enabled", (_req, res) => {
   res.json({ ok: true, enabled: !!ADMIN_KEY });
 });
 
+app.get("/glossary", (_req, res) => {
+  try {
+    const doc = glossaryStore.getGlossary();
+    res.json({
+      ok: true,
+      categories: doc.categories,
+      entries: doc.entries,
+      updatedAt: doc.updatedAt || null,
+    });
+  } catch (e) {
+    console.error("GET /glossary", e);
+    return jsonError(res, 500, "Ошибка глоссария");
+  }
+});
+
 const admin = express.Router();
 admin.use(requireAdmin);
+
+admin.get("/glossary", (_req, res) => {
+  try {
+    const doc = glossaryStore.getGlossary();
+    res.json({
+      ok: true,
+      categories: doc.categories,
+      entries: doc.entries,
+      updatedAt: doc.updatedAt || null,
+      file: path.basename(glossaryStore.filePath),
+    });
+  } catch (e) {
+    console.error("GET /admin/glossary", e);
+    return jsonError(res, 500, "Ошибка глоссария");
+  }
+});
+
+admin.put("/glossary", (req, res) => {
+  try {
+    const result = glossaryStore.putGlossary(req.body || {});
+    if (!result.ok) return jsonError(res, 400, result.error || "Ошибка валидации");
+    res.json({
+      ok: true,
+      categories: result.categories,
+      entries: result.entries,
+      updatedAt: result.updatedAt,
+      count: (result.entries || []).length,
+    });
+  } catch (e) {
+    console.error("PUT /admin/glossary", e);
+    return jsonError(res, 500, "Ошибка сохранения глоссария");
+  }
+});
 
 admin.get("/overview", (_req, res) => {
   const counts = store.getOverviewCounts(Date.now());
@@ -2029,6 +2079,12 @@ app.use("/admin", admin);
 
 if (fs.existsSync(ADMIN_DIR)) {
   app.use("/db-admin", express.static(ADMIN_DIR, { index: "index.html" }));
+  const glossaryEditorPage = path.join(ADMIN_DIR, "glossary.html");
+  if (fs.existsSync(glossaryEditorPage)) {
+    app.get(["/glossary-editor", "/glossary-editor.html"], (_req, res) => {
+      res.sendFile(glossaryEditorPage);
+    });
+  }
 }
 
 if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
@@ -2044,7 +2100,9 @@ if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
       req.path.startsWith("/chat") ||
       req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/admin") ||
-      req.path.startsWith("/db-admin")
+      req.path.startsWith("/db-admin") ||
+      req.path.startsWith("/glossary-editor") ||
+      req.path.startsWith("/glossary")
     ) {
       return next();
     }
@@ -2058,7 +2116,10 @@ app.listen(PORT, HOST, () => {
   const shown = HOST === "0.0.0.0" ? "localhost" : HOST;
   console.log(`SoulForge cloud http://${shown}:${PORT} (bind ${HOST})`);
   console.log(`DB: ${dbInfo.driver} · ${dbInfo.path}`);
-  if (ADMIN_KEY) console.log("Admin console: /db-admin/ (header X-Soulforge-Admin)");
+  if (ADMIN_KEY) {
+    console.log("Admin console: /db-admin/ (header X-Soulforge-Admin)");
+    console.log("Glossary editor: /glossary-editor");
+  }
   else console.log("Admin API: disabled (set SOULFORGE_ADMIN_KEY to enable)");
   if (SERVE_GAME && fs.existsSync(GAME_DIR)) {
     console.log(`Static game: ${GAME_DIR}`);

@@ -8,6 +8,11 @@
     if (typeof toast === "function") toast("Не удалось загрузить данные игры", "warn");
   }
   try {
+    if (typeof loadGlossaryFromServer === "function") await loadGlossaryFromServer();
+  } catch (e) {
+    console.warn("loadGlossaryFromServer failed:", e);
+  }
+  try {
     if (typeof hydrateDesktopSave === "function") await hydrateDesktopSave();
   } catch (e) {
     console.error("hydrateDesktopSave failed:", e);
@@ -81,6 +86,8 @@ $("#enchBtn").onclick = doEnchant;
 $("#newBtn").onclick = newWeapon;
 document.querySelectorAll(".back").forEach((b) => { if (b.dataset.to) b.onclick = () => { Audio2.click(); show(b.dataset.to); }; });
 $("#settMute").onclick = () => { Audio2.click(); toggleMute(); };
+const topMuteBtn = $("#topMuteBtn");
+if (topMuteBtn) topMuteBtn.onclick = () => { Audio2.click(); toggleMute(); };
 $("#resetBtn").onclick = async () => {
   if (!await showConfirm({
     title: "Сброс прогресса",

@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m275" />
+<link rel="stylesheet" href="styles/main.css?v=m276" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d18" />
 <link rel="stylesheet" href="styles/sf-ui.css?v=51" />
 <link rel="stylesheet" href="styles/banana-casino.css?v=16" />
@@ -89,6 +89,10 @@
       </div>
       <div class="topbar-hub-meta" id="hubCorner"></div>
       <div class="wallet"><img src="icons/etc_adena_i00.png" alt="" class="wallet-ico"><div><div class="lbl">Adena</div><div class="coin"><span id="adena">0</span></div></div></div>
+      <button type="button" class="iconbtn topbar-mute" id="topMuteBtn" title="Звук вкл (M)" aria-label="Звук" aria-pressed="false">
+        <svg class="topbar-mute-ico topbar-mute-ico--on" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.74 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        <svg class="topbar-mute-ico topbar-mute-ico--off" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.5 12c0-1.77-1-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+      </button>
 <input type="file" id="saveFileInput" accept=".sfsave,application/octet-stream" hidden />
       <button class="iconbtn" id="resetBtn" title="Сброс прогресса">⟲</button>
     </div>
@@ -239,9 +243,9 @@
         <div class="settings-divider">Справка</div>
         <div class="settings-row">
           <span>Редактор глоссария</span>
-          <a class="sett-toggle" id="settGlossaryEditor" href="content/GLOSSARY_EDITOR.html" target="_blank" rel="noopener">Открыть</a>
+          <a class="sett-toggle" id="settGlossaryEditor" href="/glossary-editor" target="_blank" rel="noopener">Онлайн</a>
         </div>
-        <div class="sett-hint">Словарь в игре — плитка «Глоссарий» в меню. Редактор: черновик в браузере, скачать JS/JSON.</div>
+        <div class="sett-hint">Отдельный вход по админ-ключу (без админ-панели). Офлайн: <a href="content/GLOSSARY_EDITOR.html" target="_blank" rel="noopener">локальный редактор</a>.</div>
         <div class="settings-divider">Отладка</div>
         <div class="settings-row">
           <span>Отчёт об ошибках</span>
@@ -282,6 +286,11 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.60.1</p>
+        <ul>
+          <li><b>Глоссарий · онлайн-редактор</b> — отдельный вход по админ-ключу (<code>/glossary-editor</code>); правки сразу у игроков.</li>
+          <li><b>Звук</b> — кнопка вкл/выкл в топбаре (и клавиша M).</li>
+        </ul>
         <p class="patch-ver">v0.60</p>
         <ul>
           <li><b>Мировые боссы</b> — Королева Муравьёв (чётные часы МСК) и Закен (нечётные); окно 5 мин с начала часа.</li>
@@ -1738,12 +1747,12 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=494"></script>
+<script src="src/01-constants.js?v=495"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
 <script src="src/02-state.js?v=53"></script>
 <script src="src/data/audio-data.js?v=2"></script>
 <script src="src/03-audio.js?v=3"></script>
-<script src="src/04-settings.js"></script>
+<script src="src/04-settings.js?v=2"></script>
 <script src="src/05-dom.js?v=58"></script>
 <script src="src/data/enchant-balance.js?v=10"></script>
 <script src="src/data/armor-sets-data.js?v=14"></script>
@@ -1808,7 +1817,7 @@
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js?v=2"></script>
 <script src="src/data/glossary-data.js?v=3"></script>
-<script src="src/glossary-core.js?v=1"></script>
+<script src="src/glossary-core.js?v=2"></script>
 <script src="src/glossary-ui.js?v=4"></script>
 <script src="src/intro-core.js"></script>
 <script src="src/21-intro.js?v=10"></script>
@@ -1864,7 +1873,7 @@
 <script src="src/banana-casino-core.js?v=7"></script>
 <script src="src/banana-casino-ui.js?v=12"></script>
 <script src="src/data-loader.js?v=38"></script>
-<script src="src/99-bootstrap.js?v=70"></script>
+<script src="src/99-bootstrap.js?v=72"></script>
 
 </body>
 </html>
