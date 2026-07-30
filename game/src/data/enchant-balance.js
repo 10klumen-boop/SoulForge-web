@@ -44,8 +44,9 @@ const COLLECTIBLES = {
     name: "Благословенная серьга ЗакАна",
     icon: "icons/accessory_blessed_earring_of_zaken_i00.png",
     epic: true,
+    uniqueEquipped: true,
     slot: "earring",
-    desc: "Эпическая серьга. На персонаже: +0.25% к шансу заточки с +4.",
+    desc: "Эпическая серьга. На персонаже: +0.25% к шансу заточки с +4. Работает лишь один экипированный.",
     bonuses: { enchant: 0.0025, mdef: 4 },
   },
   baium_ring: {
@@ -53,8 +54,9 @@ const COLLECTIBLES = {
     name: "Кольцо Баюма",
     icon: "icons/accessory_ring_of_baium_i00.png",
     epic: true,
+    uniqueEquipped: true,
     slot: "ring",
-    desc: "Эпическое кольцо. На персонаже: +0.15% к заточке, +8% adena в шахте.",
+    desc: "Эпическое кольцо. На персонаже: +0.15% к заточке, +8% adena в шахте. Работает лишь один экипированный.",
     bonuses: { enchant: 0.0015, mineAdena: 0.08, patk: 6 },
   },
   antharas_earring: {
@@ -62,8 +64,9 @@ const COLLECTIBLES = {
     name: "Серьга Антараса",
     icon: "icons/accessory_earring_of_antaras_i00.png",
     epic: true,
+    uniqueEquipped: true,
     slot: "earring",
-    desc: "Эпическая серьга. На персонаже: +0.35% к шансу заточки с +4.",
+    desc: "Эпическая серьга. На персонаже: +0.35% к шансу заточки с +4. Работает лишь один экипированный.",
     bonuses: { enchant: 0.0035, matk: 8 },
   },
   valakas_necklace: {
@@ -71,9 +74,30 @@ const COLLECTIBLES = {
     name: "Ожерелье Валакаса",
     icon: "icons/accessory_necklace_of_valakas_i00.png",
     epic: true,
+    uniqueEquipped: true,
     slot: "necklace",
-    desc: "Эпическое ожерелье. На персонаже: +0.2% к заточке, +12% опыта души.",
+    desc: "Эпическое ожерелье. На персонаже: +0.2% к заточке, +12% опыта души. Работает лишь один экипированный.",
     bonuses: { enchant: 0.002, avatarXp: 0.12, pdef: 5, mdef: 5 },
+  },
+  banana_lucky_charm: {
+    id: "banana_lucky_charm",
+    name: "Талисман Банана",
+    icon: "icons/banana_lucky_charm.png?v=1",
+    epic: true,
+    slot: "ring",
+    uniqueEquipped: true,
+    desc: "Только из Казино Банана. На персонаже: +5% ATK и +5% DEF на арене. Работает лишь один экипированный.",
+    bonuses: { pvpAtk: 0.05, pvpDef: 0.05 },
+  },
+  queen_ant_ring: {
+    id: "queen_ant_ring",
+    name: "Кольцо Королевы Муравьёв",
+    icon: "icons/accessory_ring_of_queen_ant_i00.png?v=2",
+    grade: "D",
+    epic: false,
+    slot: "ring",
+    desc: "Кольцо D-грейда. На персонаже: +5% шанс крит. атаки в PvP (арена).",
+    bonuses: { pvpCritChance: 0.05, mdef: 2 },
   },
 };
 
@@ -85,6 +109,12 @@ const ACCESSORY_FRAGS = {
     icon: "icons/etc_broken_crystal_silver_i00.png",
     desc: "10 осколков + 10ккк adena → Серьга Закена (D) в мастерской.",
   },
+  queen_ant_ring_shard: {
+    id: "queen_ant_ring_shard",
+    name: "Осколок кольца Королевы Муравьёв",
+    icon: "icons/etc_broken_crystal_silver_i00.png",
+    desc: "10 осколков + 10ккк adena → Кольцо Королевы Муравьёв (D) в мастерской.",
+  },
 };
 
 /** Крафт бижутерии из осколков. */
@@ -92,6 +122,12 @@ const ACCESSORY_CRAFT = [
   {
     accessoryId: "zaken_earring",
     shardId: "zaken_earring_shard",
+    shardQty: 10,
+    adena: 10_000_000_000,
+  },
+  {
+    accessoryId: "queen_ant_ring",
+    shardId: "queen_ant_ring_shard",
     shardQty: 10,
     adena: 10_000_000_000,
   },

@@ -226,11 +226,17 @@ function avatarGearEnchantBonus(plus, behavior) {
       b += Math.min(0.006, (p - 3) * 0.00035 * mult);
     }
   }
+  const seenEnch = new Set();
   iterEquippedGear().forEach(({ item }) => {
     if (item.kind === "weapon" || item.kind === "armor") return;
     if (typeof isArmorItem === "function" && isArmorItem(item)) return;
     const def = COLLECTIBLES[item.id];
-    if (def?.bonuses?.enchant) b += def.bonuses.enchant;
+    if (!def?.bonuses?.enchant) return;
+    if (isAccessoryUniqueEquipped(def)) {
+      if (seenEnch.has(item.id)) return;
+      seenEnch.add(item.id);
+    }
+    b += def.bonuses.enchant;
   });
   if (typeof avatarSetBonuses === "function") {
     b += avatarSetBonuses().enchant || 0;
@@ -240,10 +246,16 @@ function avatarGearEnchantBonus(plus, behavior) {
 
 function avatarGearMineAdenaMult() {
   let m = 1;
+  const seen = new Set();
   iterEquippedGear().forEach(({ item }) => {
     if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) return;
     const def = COLLECTIBLES[item.id];
-    if (def?.bonuses?.mineAdena) m += def.bonuses.mineAdena;
+    if (!def?.bonuses?.mineAdena) return;
+    if (isAccessoryUniqueEquipped(def)) {
+      if (seen.has(item.id)) return;
+      seen.add(item.id);
+    }
+    m += def.bonuses.mineAdena;
   });
   if (typeof avatarSetBonuses === "function") {
     m += avatarSetBonuses().mineAdena || 0;
@@ -253,10 +265,16 @@ function avatarGearMineAdenaMult() {
 
 function avatarGearXpMult() {
   let m = 1;
+  const seen = new Set();
   iterEquippedGear().forEach(({ item }) => {
     if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) return;
     const def = COLLECTIBLES[item.id];
-    if (def?.bonuses?.avatarXp) m += def.bonuses.avatarXp;
+    if (!def?.bonuses?.avatarXp) return;
+    if (isAccessoryUniqueEquipped(def)) {
+      if (seen.has(item.id)) return;
+      seen.add(item.id);
+    }
+    m += def.bonuses.avatarXp;
   });
   if (typeof avatarSetBonuses === "function") {
     m += avatarSetBonuses().mineXp || 0;
@@ -264,16 +282,54 @@ function avatarGearXpMult() {
   return m;
 }
 
-/** Суммарный pvpAtk от надетой бижутерии (доля, напр. 0.05 = +5%). */
-function avatarAccessoryPvpAtk() {
+/** Эпик / uniqueEquipped — не больше одного id в экипе и в бонусах. */
+function isAccessoryUniqueEquipped(def) {
+  return !!(def && (def.uniqueEquipped || def.epic));
+}
+
+/** Сумма бонуса бижутерии; unique/epic — не больше одного id. */
+function avatarAccessoryBonusSum(key) {
   let b = 0;
+  const seen = new Set();
   iterEquippedGear().forEach(({ item }) => {
-    if (item.kind === "armor" || (typeof isArmorItem === "function" && isArmorItem(item))) return;
-    if (item.kind === "weapon") return;
+    if (!item || item.kind === "armor" || item.kind === "weapon") return;
+    if (typeof isArmorItem === "function" && isArmorItem(item)) return;
     const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
-    if (def?.bonuses?.pvpAtk) b += def.bonuses.pvpAtk;
+    const v = def?.bonuses?.[key];
+    if (!v) return;
+    if (isAccessoryUniqueEquipped(def)) {
+      if (seen.has(item.id)) return;
+      seen.add(item.id);
+    }
+    b += v;
   });
   return Math.max(0, b);
+}
+
+/** Суммарный pvpAtk от надетой бижутерии (доля, напр. 0.05 = +5%). */
+function avatarAccessoryPvpAtk() {
+  return avatarAccessoryBonusSum("pvpAtk");
+}
+
+/** Суммарный pvpDef от надетой бижутерии (доля). */
+function avatarAccessoryPvpDef() {
+  return avatarAccessoryBonusSum("pvpDef");
+}
+
+/** Суммарный шанс крита арены от бижутерии (доля). */
+function avatarAccessoryPvpCritChance() {
+  return avatarAccessoryBonusSum("pvpCritChance");
+}
+
+/** Уже надет другой экземпляр unique/epic бижутерии. */
+function isUniqueAccessoryAlreadyEquipped(itemId, exceptSlotId) {
+  const def = typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[itemId] : null;
+  if (!isAccessoryUniqueEquipped(def)) return false;
+  return iterEquippedGear().some(({ slotId, item }) => {
+    if (!item || item.id !== itemId) return false;
+    if (exceptSlotId && slotId === exceptSlotId) return false;
+    return true;
+  });
 }
 
 function avatarGearBonusSummary() {
@@ -305,6 +361,13 @@ function avatarGearBonusSummary() {
   }
   const accPvp = avatarAccessoryPvpAtk();
   if (accPvp > 0) lines.push("+" + Math.round(accPvp * 1000) / 10 + "% ATK арены (бижутерия)");
+  const accPvpDef = typeof avatarAccessoryPvpDef === "function" ? avatarAccessoryPvpDef() : 0;
+  if (accPvpDef > 0) lines.push("+" + Math.round(accPvpDef * 1000) / 10 + "% DEF арены (бижутерия)");
+  const accCrit =
+    typeof avatarAccessoryPvpCritChance === "function" ? avatarAccessoryPvpCritChance() : 0;
+  if (accCrit > 0) {
+    lines.push("+" + Math.round(accCrit * 1000) / 10 + "% крит арены (бижутерия)");
+  }
   if (typeof avatarJewelrySkillCdMult === "function") {
     const cd = avatarJewelrySkillCdMult();
     if (cd < 1) lines.push("КД скиллов −" + Math.round((1 - cd) * 1000) / 10 + "% (бижутерия)");
@@ -364,6 +427,19 @@ function equipAvatarSlot(slotId, invItem) {
         ? "нужно оружие"
         : "предмет не подходит";
     toast("Сюда не надеть: " + need, "warn");
+    return false;
+  }
+  if (
+    typeof isUniqueAccessoryAlreadyEquipped === "function" &&
+    isUniqueAccessoryAlreadyEquipped(invItem.id, slotId)
+  ) {
+    const def =
+      typeof accessoryDef === "function"
+        ? accessoryDef(invItem)
+        : typeof COLLECTIBLES !== "undefined"
+          ? COLLECTIBLES[invItem.id]
+          : null;
+    toast((def?.name || "Предмет") + " уже надет — работает только один", "warn");
     return false;
   }
   const idx = findInvIndexByUid(invItem.uid);

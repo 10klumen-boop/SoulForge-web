@@ -12,9 +12,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m245" />
+<link rel="stylesheet" href="styles/main.css?v=m275" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d18" />
-<link rel="stylesheet" href="styles/sf-ui.css?v=49" />
+<link rel="stylesheet" href="styles/sf-ui.css?v=51" />
+<link rel="stylesheet" href="styles/banana-casino.css?v=16" />
 <script src="cloud-config.js"></script>
 
 </head>
@@ -235,6 +236,12 @@
         </div>
         <div class="sett-hint" id="portableHint">Портативный режим · .sfsave для переноса между копиями.</div>
         </div>
+        <div class="settings-divider">Справка</div>
+        <div class="settings-row">
+          <span>Редактор глоссария</span>
+          <a class="sett-toggle" id="settGlossaryEditor" href="content/GLOSSARY_EDITOR.html" target="_blank" rel="noopener">Открыть</a>
+        </div>
+        <div class="sett-hint">Словарь в игре — плитка «Глоссарий» в меню. Редактор: черновик в браузере, скачать JS/JSON.</div>
         <div class="settings-divider">Отладка</div>
         <div class="settings-row">
           <span>Отчёт об ошибках</span>
@@ -275,15 +282,23 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
-        <p class="patch-ver">v0.58.22</p>
+        <p class="patch-ver">v0.60</p>
         <ul>
-          <li><b>Клан-рейд · дроп</b> — после убийства босса модалка с наградой (Символы Клятвы + адена на склад)</li>
-          <li><b>Символ Клятвы</b> — валюта с клан-рейда; изучение баффов за символы (не склад); в инвентаре и на рынке</li>
-          <li><b>Клан-рейд</b> — соски и скиллы; HP общее на клан и не сбрасывается при выходе</li>
-          <li><b>Клан · уровень</b> — накопительный XP (склад / угодья / рейд); изучение баффов по ур.1–5</li>
-          <li><b>Клан · PvP-баффы</b> — Доблесть (+урон) и Эгида (−входящий) на арене</li>
-          <li><b>Заточка</b> — обычная продажа оружия/брони/бижи убрана; продажа на рынке</li>
-          <li><b>Тултипы</b> — при наведении в сумке и на экипе: статы, грейд, сет</li>
+          <li><b>Мировые боссы</b> — Королева Муравьёв (чётные часы МСК) и Закен (нечётные); окно 5 мин с начала часа.</li>
+          <li><b>Награды WB</b> — топ-1: кольцо Королевы (+5% крит PvP) / серьга Закена; 2–3 — осколки → крафт в мастерской.</li>
+          <li><b>Рейтинг WB</b> — по урону персонажа (заточка, бусты), не по кликам; соски на арене работают.</li>
+          <li><b>Анти-автоклик</b> — каждые 100–150 ударов «Печать арены» (свайп у края, без затемнения); 3 срыва = сброс урона.</li>
+          <li><b>Арена Queen Ant</b> — фон муравейника, спрайт, карта хаба; кнопка фарма под активного босса.</li>
+          <li><b>Инстансы</b> — Некрополь Шепота (от 20) и Шпиль Безмолвия (от 35): свои фоны, карты, мобы и боссы.</li>
+          <li><b>Казино Банана</b> — гача в хабе: жетоны с редкого гнома или за адену, барабан ×1/×10, pity и Талисман Банана.</li>
+          <li><b>Клан-рейд · дроп</b> — после убийства босса модалка с наградой (Символы Клятвы + адена на склад).</li>
+          <li><b>Символ Клятвы</b> — валюта рейда; изучение баффов за символы; в инвентаре и на рынке.</li>
+          <li><b>Клан-рейд</b> — соски и скиллы; HP общее на клан, не сбрасывается при выходе.</li>
+          <li><b>Клан · уровень</b> — накопительный XP (склад / угодья / рейд); изучение баффов по ур.1–5.</li>
+          <li><b>Клан · PvP-баффы</b> — Доблесть (+урон) и Эгида (−входящий) на арене.</li>
+          <li><b>Заточка</b> — обычная продажа оружия/брони/бижи убрана; продажа на рынке.</li>
+          <li><b>Тултипы</b> — при наведении в сумке и на экипе: статы, грейд, сет.</li>
+          <li><b>Глоссарий</b> — справочник терминов и механик в главном меню.</li>
         </ul>
         <p class="patch-ver">v0.58.21</p>
         <ul>
@@ -871,6 +886,38 @@
       </div>
     </section>
 
+    <section class="screen" id="screen-glossary">
+      <div class="panel-head panel-head-ornate">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img class="inv-head-ico" src="icons/glossary_menu.png?v=1" alt="" aria-hidden="true" /> Глоссарий</h2>
+        <span class="panel-head-meta" id="glossaryHeadMeta"></span>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--glossary" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Словарь Aden</h3>
+          <p>Лор мира и механики SoulForge. В сюжете слова с пунктиром — наведи или нажми для краткой справки.</p>
+        </div>
+      </div>
+      <div class="glossary-toolbar" id="glossaryToolbar">
+        <label class="glossary-search-wrap">
+          <span class="glossary-search-ico" aria-hidden="true">⌕</span>
+          <input type="search" class="glossary-search" id="glossarySearch" placeholder="Найти: Шилен, adena, Кекай…" autocomplete="off" spellcheck="false" />
+        </label>
+        <div class="glossary-filters" id="glossaryFilters" role="tablist" aria-label="Категории">
+          <button type="button" class="glossary-filter sel" data-glossary-cat="all">Все</button>
+          <button type="button" class="glossary-filter" data-glossary-cat="lore">Лор</button>
+          <button type="button" class="glossary-filter" data-glossary-cat="place">Места</button>
+          <button type="button" class="glossary-filter" data-glossary-cat="race">Народы</button>
+          <button type="button" class="glossary-filter" data-glossary-cat="character">Персонажи</button>
+          <button type="button" class="glossary-filter" data-glossary-cat="game">Игра</button>
+        </div>
+      </div>
+      <div class="glossary-screen sf-scroll sub-screen-body">
+        <div class="glossary-list" id="glossaryList"></div>
+      </div>
+    </section>
+
     <section class="screen menu-screen" id="screen-menu" data-hub-mode="entry">
       <div class="hub-top-row"><button type="button" class="hub-back-btn" id="hubHomeBtn">← Главное меню</button></div>
       <div class="hero">
@@ -935,7 +982,7 @@
             <img class="farm-hub-entry-ico" src="assets/ui/world-boss-card-zaken.png?v=1" alt="" draggable="false">
             <span class="farm-hub-entry-copy">
               <strong>Мировой босс</strong>
-              <small>Закен · 5 мин · топ-3</small>
+              <small>Загрузка…</small>
             </span>
           </button>
         </div>
@@ -1052,6 +1099,10 @@
           <span class="tile-hit"><img class="tile-ico" src="icons/warehouse_chest.png?v=1" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Рынок</span></span>
         </div>
+        <div class="tile" id="bananaCasinoTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="icons/banana_casino_menu.png?v=1" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Казино Банана</span><span class="tcount" id="bananaCasinoTileMeta">0 жет.</span></span>
+        </div>
         <div class="tile" id="pvpArenaTile" role="button" tabindex="0">
           <span class="tile-hit">
             <img class="tile-ico" src="icons/arena_menu.png?v=1" alt="" aria-hidden="true">
@@ -1062,6 +1113,10 @@
         <div class="tile" id="achTile" role="button" tabindex="0">
           <span class="tile-hit"><img class="tile-ico" src="assets/ui/bloodhood_icon02_crop.png" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Достижения</span><span class="tcount" id="achCount">0 / 43</span></span>
+        </div>
+        <div class="tile" id="glossaryTile" role="button" tabindex="0">
+          <span class="tile-hit"><img class="tile-ico" src="icons/glossary_menu.png?v=1" alt="" aria-hidden="true"></span>
+          <span class="tile-cap"><span class="tname">Глоссарий</span><span class="tcount" id="glossaryTileMeta">Словарь</span></span>
         </div>
       </div>
     </section>
@@ -1231,8 +1286,8 @@
       <div class="sf-screen-hero sf-screen-hero--clan-warehouse" aria-hidden="true">
         <div class="sf-screen-hero-veil"></div>
         <div class="sf-screen-hero-body">
-          <h3>Склад клана</h3>
-          <p>Взносы и рента с узлов. Отсюда платят изучение клан-баффов.</p>
+          <h3>Казна клана</h3>
+          <p>Пожертвования с фикс. XP · без снятия · рента с узлов → сюда · казна на захват и отбитие.</p>
         </div>
       </div>
       <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanWarehouseScreenBody"></div>
@@ -1290,6 +1345,108 @@
         </div>
       </div>
       <div class="wsbody sf-scroll" id="wsBody"></div>
+    </section>
+
+    <section class="screen" id="screen-banana-casino">
+      <div class="panel-head">
+        <button type="button" class="back" id="bananaCasinoBackBtn">← В меню</button>
+        <h2><img src="icons/banana_casino_menu.png?v=1" alt="" class="inv-head-ico"> Казино Банана</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--banana-casino" aria-hidden="true">
+        <div class="sf-screen-hero-art"></div>
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Казино Банана</h3>
+          <p>Барабан удачи: жетоны с редкого гнома или за адену.</p>
+        </div>
+      </div>
+      <div class="banana-casino-body" id="bananaCasinoBody">
+        <div class="banana-machine" id="bananaMachine">
+          <div class="banana-machine-crown" aria-hidden="true">
+            <img class="banana-machine-gem" src="assets/ui/banana-casino/gem.png?v=1" alt="">
+            <img class="banana-machine-gem banana-machine-gem--mid" src="assets/ui/banana-casino/gem.png?v=1" alt="">
+            <img class="banana-machine-gem" src="assets/ui/banana-casino/gem.png?v=1" alt="">
+          </div>
+          <div class="banana-machine-mascot">
+            <div class="banana-mascot-frame">
+              <img src="assets/ui/banana-casino/mascot.png?v=2" alt="" draggable="false">
+            </div>
+            <div class="banana-machine-brand">
+              <span class="banana-machine-eyebrow">SoulForge · удача</span>
+              <span class="banana-machine-title">Барабан Банана</span>
+              <span class="banana-machine-sub">Три рила · один жетон</span>
+            </div>
+          </div>
+
+          <div class="banana-casino-hud">
+            <div class="banana-token-chip" title="Жетоны казино">
+              <img class="banana-token-ico" src="icons/banana_token.png?v=1" alt="" draggable="false">
+              <div class="banana-token-copy">
+                <span class="banana-token-label">Жетоны</span>
+                <strong id="bananaCasinoTokens">0</strong>
+              </div>
+            </div>
+            <div class="banana-pity-panel" id="bananaCasinoPity">
+              <div class="banana-pity-row">
+                <span class="banana-pity-lab">Rare</span>
+                <div class="banana-pity-track"><i id="bananaPityRareFill" style="width:0%"></i></div>
+                <span class="banana-pity-val" id="bananaPityRareText">0/50</span>
+              </div>
+              <div class="banana-pity-row banana-pity-row--jp">
+                <span class="banana-pity-lab">Jackpot</span>
+                <div class="banana-pity-track"><i id="bananaPityJpFill" style="width:0%"></i></div>
+                <span class="banana-pity-val" id="bananaPityJpText">0/280</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="banana-window">
+            <div class="banana-window-frame">
+              <div class="banana-reels" aria-hidden="true">
+                <div class="banana-reel"><div class="banana-reel-strip"></div></div>
+                <div class="banana-reel"><div class="banana-reel-strip"></div></div>
+                <div class="banana-reel"><div class="banana-reel-strip"></div></div>
+              </div>
+              <div class="banana-payline" aria-hidden="true"></div>
+            </div>
+            <div class="banana-spin-flash" id="bananaSpinFlash" hidden></div>
+          </div>
+
+          <div class="banana-casino-actions">
+            <button type="button" class="btn btn-primary banana-spin-btn" id="bananaCasinoSpin1">
+              <span class="banana-spin-kicker">1 жетон</span>
+              <span class="banana-spin-label">Крутить</span>
+            </button>
+            <button type="button" class="btn btn-ghost banana-spin-btn" id="bananaCasinoSpin10">
+              <span class="banana-spin-kicker">10 жетонов</span>
+              <span class="banana-spin-label">×10</span>
+            </button>
+          </div>
+          <p class="banana-machine-hint" id="bananaCasinoHint">Жетон падает с редкого гнома или покупается ниже.</p>
+        </div>
+
+        <div class="banana-casino-grid">
+          <section class="banana-casino-card">
+            <h4>Купить жетоны</h4>
+            <div class="banana-casino-packs" id="bananaCasinoPacks"></div>
+          </section>
+          <section class="banana-casino-card">
+            <h4>Шансы</h4>
+            <div class="banana-odds-grid" id="bananaCasinoOdds">
+              <div class="banana-odd tier-common"><span class="bo-t">Обычный</span><span class="bo-d">Soul / Spirit Ore</span></div>
+              <div class="banana-odd tier-uncommon"><span class="bo-t">Необычный</span><span class="bo-d">Кристальный свиток D</span></div>
+              <div class="banana-odd tier-rare"><span class="bo-t">Редкий</span><span class="bo-d">Кристальный свиток брони C</span></div>
+              <div class="banana-odd tier-epic"><span class="bo-t">Эпик</span><span class="bo-d">Кристальный свиток оружия C</span></div>
+              <div class="banana-odd tier-jackpot"><span class="bo-t">Джекпот</span><span class="bo-d">Три банана · Талисман (+5% ATK/DEF)</span></div>
+            </div>
+          </section>
+        </div>
+
+        <section class="banana-casino-card banana-casino-card--hist">
+          <h4>Последние выигрыши</h4>
+          <div id="bananaCasinoHistory"></div>
+        </section>
+      </div>
     </section>
 
     <section class="screen" id="screen-market">
@@ -1581,36 +1738,36 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=489"></script>
+<script src="src/01-constants.js?v=494"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
-<script src="src/02-state.js?v=52"></script>
+<script src="src/02-state.js?v=53"></script>
 <script src="src/data/audio-data.js?v=2"></script>
 <script src="src/03-audio.js?v=3"></script>
 <script src="src/04-settings.js"></script>
-<script src="src/05-dom.js?v=54"></script>
-<script src="src/data/enchant-balance.js?v=5"></script>
+<script src="src/05-dom.js?v=58"></script>
+<script src="src/data/enchant-balance.js?v=10"></script>
 <script src="src/data/armor-sets-data.js?v=14"></script>
 <script src="src/data/jewelry-sets-data.js?v=6"></script>
 <script src="src/06-rules.js?v=14"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
 <script src="src/workshop-core.js?v=10"></script>
-<script src="src/jewelry-sets-core.js?v=3"></script>
-<script src="src/07-workshop.js?v=24"></script>
+<script src="src/jewelry-sets-core.js?v=6"></script>
+<script src="src/07-workshop.js?v=25"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
 <script src="src/data/farm-zones-balance.js?v=9"></script>
 <script src="src/data/clan-territories-data.js?v=14"></script>
 <script src="src/data/clan-hunting-catalog-data.js?v=7"></script>
 <script src="src/data/clan-map-regions-data.js?v=4"></script>
-<script src="src/data/clan-buffs-balance.js?v=8"></script>
+<script src="src/data/clan-buffs-balance.js?v=9"></script>
 <script src="src/data/clan-siege-power-balance.js?v=1"></script>
 <script src="src/data/oath-symbol-data.js?v=1"></script>
 <script src="src/data/clan-boss-data.js?v=6"></script>
 <script src="src/data/scroll-drop-balance.js?v=7"></script>
 <script src="src/scroll-core.js?v=8"></script>
-<script src="src/08-menu.js?v=9"></script>
+<script src="src/08-menu.js?v=12"></script>
 <script src="src/09-inventory.js?v=70"></script>
 <script src="src/enchant-ui.js?v=8"></script>
-<script src="src/item-tooltip-ui.js?v=1"></script>
+<script src="src/item-tooltip-ui.js?v=4"></script>
 <script src="src/inventory-ui.js?v=22"></script>
 <script src="src/account-storage-core.js?v=6"></script>
 <script src="src/account-storage-ui.js?v=7"></script>
@@ -1618,7 +1775,7 @@
 <script src="src/dev-core.js?v=4"></script>
 <script src="src/11-enchant.js?v=18"></script>
 <script src="src/mine-ui.js?v=4"></script>
-<script src="src/mine-core.js?v=31"></script>
+<script src="src/mine-core.js?v=34"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js?v=7"></script>
 <script src="src/cloud-ui.js?v=4"></script>
@@ -1627,32 +1784,35 @@
 <script src="src/player-mail-core.js?v=8"></script>
 <script src="src/player-mail-ui.js?v=6"></script>
 <script src="src/chat-core.js?v=15"></script>
-<script src="src/clan-core.js?v=19"></script>
+<script src="src/clan-core.js?v=20"></script>
 <script src="src/clan-siege-power-core.js?v=2"></script>
 <script src="src/clan-boss-core.js?v=15"></script>
 <script src="src/clan-map-ui.js?v=12"></script>
 <script src="src/clan-grounds-ui.js?v=16"></script>
-<script src="src/clan-ui.js?v=40"></script>
+<script src="src/clan-ui.js?v=41"></script>
 <script src="src/chat-ui.js?v=5"></script>
-<script src="src/data/party-content-data.js?v=22"></script>
-<script src="src/party-core.js?v=14"></script>
+<script src="src/data/party-content-data.js?v=34"></script>
+<script src="src/party-core.js?v=22"></script>
 <script src="src/party-farm-core.js?v=5"></script>
-<script src="src/instance-core.js?v=42"></script>
-<script src="src/world-boss-core.js?v=14"></script>
-<script src="src/progress-store.js?v=5"></script>
+<script src="src/instance-core.js?v=45"></script>
+<script src="src/world-boss-core.js?v=29"></script>
+<script src="src/progress-store.js?v=6"></script>
 <script src="src/15-game-log.js?v=2"></script>
 <script src="src/16-accessory.js?v=5"></script>
-<script src="src/data/achievement-data.js?v=4"></script>
+<script src="src/data/achievement-data.js?v=5"></script>
 <script src="src/data/economy-balance.js?v=4"></script>
-<script src="src/achievements-core.js?v=7"></script>
+<script src="src/achievements-core.js?v=8"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
 <script src="src/19-home.js?v=3"></script>
 <script src="src/20-author.js"></script>
-<script src="src/data/prologue-data.js"></script>
+<script src="src/data/prologue-data.js?v=2"></script>
+<script src="src/data/glossary-data.js?v=3"></script>
+<script src="src/glossary-core.js?v=1"></script>
+<script src="src/glossary-ui.js?v=4"></script>
 <script src="src/intro-core.js"></script>
 <script src="src/21-intro.js?v=10"></script>
-<script src="src/33-ui-icons.js?v=25"></script>
+<script src="src/33-ui-icons.js?v=27"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=5"></script>
 <script src="src/35-characters.js?v=47"></script>
@@ -1664,43 +1824,47 @@
 <script src="src/avatar-core.js?v=9"></script>
 <script src="src/22-avatar.js?v=34"></script>
 <script src="src/professions-ui.js?v=4"></script>
-<script src="src/avatar-gear-core.js?v=20"></script>
+<script src="src/avatar-gear-core.js?v=23"></script>
 <script src="src/armor-sets-core.js?v=15"></script>
 <script src="src/resource-favorites-core.js?v=1"></script>
 <script src="src/avatar-armor-display.js?v=2"></script>
-<script src="src/23-avatar-gear.js?v=22"></script>
-<script src="src/story-zones-core.js?v=6"></script>
+<script src="src/23-avatar-gear.js?v=24"></script>
+<script src="src/story-zones-core.js?v=7"></script>
 <script src="src/hunting-cta-ui.js?v=1"></script>
-<script src="src/25-story-zones.js?v=11"></script>
-<script src="src/data/mine-visuals-data.js?v=27"></script>
+<script src="src/25-story-zones.js?v=12"></script>
+<script src="src/data/mine-visuals-data.js?v=33"></script>
 <script src="src/26-mine-visuals.js?v=49"></script>
 <script src="src/data/quest-data.js?v=2"></script>
 <script src="src/quest-core.js?v=6"></script>
 <script src="src/27-quests.js?v=48"></script>
 <script src="src/quest-journal-core.js?v=5"></script>
 <script src="src/29-quest-journal.js?v=9"></script>
-<script src="src/prelude-finale-core.js?v=2"></script>
+<script src="src/prelude-finale-core.js?v=3"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
 <script src="src/data/combat-skills-data.js?v=3"></script>
 <script src="src/data/combat-skills-kits-data.js?v=4"></script>
-<script src="src/combat-skills-core.js?v=14"></script>
-<script src="src/31-combat-skills.js?v=12"></script>
-<script src="src/data/pvp-balance.js?v=4"></script>
-<script src="src/pvp-combat-core.js?v=14"></script>
+<script src="src/combat-skills-core.js?v=15"></script>
+<script src="src/skill-tooltip-ui.js?v=1"></script>
+<script src="src/31-combat-skills.js?v=13"></script>
+<script src="src/data/pvp-balance.js?v=5"></script>
+<script src="src/pvp-combat-core.js?v=16"></script>
 <script src="src/pvp-social-core.js?v=3"></script>
 <script src="src/pvp-combat-ui.js?v=22"></script>
 <script src="src/32-debug-log.js"></script>
-<script src="src/avatar-math.js?v=24"></script>
+<script src="src/avatar-math.js?v=26"></script>
 <script src="src/avatar-stats-core.js?v=12"></script>
-<script src="src/24-avatar-stats.js?v=40"></script>
+<script src="src/24-avatar-stats.js?v=41"></script>
 <script src="src/data/passive-income-balance.js?v=5"></script>
 <script src="src/passive-income-core.js?v=9"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
 <script src="src/data/auto-clicker-balance.js?v=9"></script>
 <script src="src/auto-clicker-core.js?v=19"></script>
 <script src="src/auto-clicker-ui.js?v=9"></script>
-<script src="src/data-loader.js?v=36"></script>
-<script src="src/99-bootstrap.js?v=66"></script>
+<script src="src/data/banana-casino-balance.js?v=11"></script>
+<script src="src/banana-casino-core.js?v=7"></script>
+<script src="src/banana-casino-ui.js?v=12"></script>
+<script src="src/data-loader.js?v=38"></script>
+<script src="src/99-bootstrap.js?v=70"></script>
 
 </body>
 </html>

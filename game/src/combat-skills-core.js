@@ -149,6 +149,168 @@ function combatSkillCooldownLeft(skillId) {
   return Math.max(0, end - Date.now());
 }
 
+/** Число для UI: 2.5 → «2,5». */
+function combatSkillFmtNum(n, digits) {
+  const d = digits == null ? 2 : digits;
+  const v = Number(n);
+  if (!Number.isFinite(v)) return "0";
+  let s = (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d);
+  s = s.replace(/\.?0+$/, "");
+  return s.replace(".", ",");
+}
+
+function combatSkillFmtSec(ms) {
+  return combatSkillFmtNum((Number(ms) || 0) / 1000, 1) + " с";
+}
+
+function combatSkillFmtMult(m) {
+  return "×" + combatSkillFmtNum(m, 2);
+}
+
+function combatSkillHitsPhrase(n) {
+  const hits = Math.max(1, Math.floor(Number(n) || 1));
+  const k = hits % 100;
+  const k1 = hits % 10;
+  let word = "ударов";
+  if (k < 11 || k > 14) {
+    if (k1 === 1) word = "удар";
+    else if (k1 >= 2 && k1 <= 4) word = "удара";
+  }
+  return hits + " " + word;
+}
+
+/** Эффективный КД с пассивами и бижутерией. */
+function combatSkillEffectiveCdMs(skill) {
+  if (!skill) return 0;
+  let cdMs = Number(skill.cdMs) || 0;
+  let cdMult = 1;
+  if (typeof passiveEffectMult === "function") {
+    cdMult *= passiveEffectMult("skillCdMult", typeof state !== "undefined" ? state.avatar : null);
+  }
+  if (typeof avatarJewelrySkillCdMult === "function") cdMult *= avatarJewelrySkillCdMult();
+  return Math.max(500, Math.round(cdMs * Math.max(0.5, cdMult)));
+}
+
+function combatSkillEffectLabel(effect) {
+  const map = {
+    nextHit: "Усиление удара",
+    timerSlow: "Замедление таймера",
+    timerFreeze: "Остановка времени",
+    freezeMulti: "Заморозка + залп",
+    multiHit: "Серия ударов",
+    damageBuff: "Бафф урона",
+    partyDamageBuff: "Групповой бафф",
+    directHit: "Прямой удар",
+    drainHit: "Удар и время",
+  };
+  return map[effect] || "Боевой скилл";
+}
+
+/**
+ * Нормальное игровое описание по эффекту (не краткий briefly китов).
+ * @param {object} skill
+ */
+function combatSkillGameplayDesc(skill) {
+  if (!skill) return "";
+  const effect = skill.effect || "";
+  const mult = Number(skill.mult);
+  const hits = Math.max(1, Math.floor(Number(skill.hits) || 1));
+  const dur = Number(skill.duration) || 0;
+  const healMs = Number(skill.healMs) || 0;
+
+  if (effect === "nextHit") {
+    return "Следующий клик по цели наносит " + combatSkillFmtMult(mult || 2) + " урона.";
+  }
+  if (effect === "timerSlow") {
+    return (
+      combatSkillFmtSec(dur || 4000) +
+      ": таймер врага течёт примерно вдвое медленнее — больше времени добить цель."
+    );
+  }
+  if (effect === "timerFreeze") {
+    return combatSkillFmtSec(dur || 2500) + ": таймер врага полностью останавливается.";
+  }
+  if (effect === "freezeMulti") {
+    const each = mult || 0.45;
+    return (
+      combatSkillFmtSec(dur || 2500) +
+      ": таймер останавливается, затем " +
+      combatSkillHitsPhrase(hits) +
+      " по " +
+      combatSkillFmtMult(each) +
+      " каждый (всего ≈" +
+      combatSkillFmtMult(hits * each) +
+      ")."
+    );
+  }
+  if (effect === "multiHit") {
+    const each = mult || 0.5;
+    const eachPct = Math.round(each * 1000) / 10;
+    return (
+      combatSkillHitsPhrase(hits) +
+      " по цели: каждый " +
+      combatSkillFmtMult(each) +
+      " (" +
+      combatSkillFmtNum(eachPct, 1) +
+      "% от клика). Суммарно ≈" +
+      combatSkillFmtMult(hits * each) +
+      "."
+    );
+  }
+  if (effect === "damageBuff") {
+    const m = mult || 1.5;
+    const pct = Math.round((m - 1) * 1000) / 10;
+    let line =
+      combatSkillFmtSec(dur || 6000) +
+      ": урон от кликов " +
+      combatSkillFmtMult(m) +
+      " (" +
+      (pct >= 0 ? "+" : "") +
+      combatSkillFmtNum(pct, 1) +
+      "%).";
+    if (skill.farmAdenaMult > 1) {
+      const ap = Math.round((skill.farmAdenaMult - 1) * 1000) / 10;
+      line += " Пока бафф активен: адена с фарма +" + combatSkillFmtNum(ap, 1) + "%.";
+    }
+    return line;
+  }
+  if (effect === "partyDamageBuff") {
+    const m = mult || 1.15;
+    const pct = Math.round((m - 1) * 1000) / 10;
+    return (
+      "Только в инстансе / группе: на " +
+      combatSkillFmtSec(dur || 6000) +
+      " урон группы +" +
+      combatSkillFmtNum(pct, 1) +
+      "%."
+    );
+  }
+  if (effect === "directHit") {
+    return "Мгновенный удар по текущей цели на " + combatSkillFmtMult(mult || 2.5) + " урона клика.";
+  }
+  if (effect === "drainHit") {
+    return (
+      "Удар на " +
+      combatSkillFmtMult(mult || 2) +
+      " и +" +
+      combatSkillFmtSec(healMs || 3000) +
+      " к таймеру цели (в ярости время не возвращается)."
+    );
+  }
+  const raw = String(skill.desc || "").trim();
+  return raw || "Активный боевой скилл на поле задания.";
+}
+
+/** Короткий plain-текст для native title (тач). */
+function combatSkillPlainTip(skill) {
+  if (!skill) return "";
+  const parts = [skill.name];
+  if (skill.hotkey) parts.push("[" + skill.hotkey + "]");
+  parts.push(combatSkillGameplayDesc(skill));
+  if (!isCombatSkillUnlocked(skill)) parts.push("ур. " + (skill.unlockLevel || "?"));
+  return parts.join(" · ");
+}
+
 function mineSkillClickMult() {
   let m = 1;
   if (mineSkillRuntime.buffs.nextHitMult > 1) {

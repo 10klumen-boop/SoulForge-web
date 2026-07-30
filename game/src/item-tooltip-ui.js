@@ -204,19 +204,35 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       !ctx.equipped &&
       typeof canCrystallizeInventoryItem === "function" &&
       canCrystallizeInventoryItem(it);
+    const plus = it.plus || 0;
+    const mBonus =
+      typeof jewelryEnchantMdefBonus === "function" ? jewelryEnchantMdefBonus(plus) : plus;
+    const baseM = (def.bonuses && def.bonuses.mdef) || def.mdef || 0;
     const bonusLines =
       typeof formatJewelryBonusLines === "function" ? formatJewelryBonusLines(def) : [];
+    const stats = [];
+    if (baseM || mBonus) {
+      stats.push({
+        k: "M.Def",
+        v: String(baseM + mBonus) + (mBonus > 0 ? " (+" + mBonus + ")" : ""),
+      });
+    }
+    bonusLines.forEach((ln) => {
+      if (/m\.?\s*def/i.test(ln) && (baseM || mBonus)) return;
+      stats.push({ k: "Бонус", v: ln });
+    });
     const setName = itemTipSetName(def);
-    const stats = bonusLines.map((ln) => ({ k: "Бонус", v: ln }));
     const meta = slotExtra.slice();
     meta.push("Бижутерия · " + itemTipArmorSlotRu(def.slot));
     if (setName) meta.push("Сет: " + setName);
     if (canCry && def.cc) meta.push("Кристаллизация: " + def.cc + " × " + (def.grade || "?"));
     if (isEpic) meta.push("Эпик — не кристаллизуется");
+    if (def.uniqueEquipped || def.epic) meta.push("Уникальный — работает только один в экипе");
+    if (def.desc) meta.push(def.desc);
     return itemTipShellHtml({
       icon: def.icon,
       title: def.name,
-      plus: it.plus || 0,
+      plus,
       grade: itemTipGradeLabel(def),
       gradeClass: isEpic ? "g-epic" : "g-" + (def.grade || "C"),
       subtitle: isEpic ? "Эпическая бижутерия" : "Бижутерия",
@@ -236,16 +252,29 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
     meta.push("Слот: " + itemTipArmorSlotRu(def.slot));
     if (setName) meta.push("Сет: " + setName);
     if (def.cc && !ctx.equipped) meta.push("Кристаллизация: " + def.cc + " × " + (def.grade || "?"));
+    const plus = it.plus || 0;
+    const pBonus =
+      typeof armorEnchantPdefBonus === "function" ? armorEnchantPdefBonus(plus) : plus * 2;
+    const mBonus =
+      typeof armorEnchantMdefBonus === "function" ? armorEnchantMdefBonus(plus) : plus;
+    const pTot = (def.pdef || 0) + pBonus;
+    const mTot = (def.mdef || 0) + mBonus;
     return itemTipShellHtml({
       icon: def.icon,
       title: def.name,
-      plus: it.plus || 0,
+      plus,
       grade: itemTipGradeLabel(def) || "?",
       gradeClass: "g-" + (def.grade || "C"),
       subtitle: "Броня",
       stats: [
-        { k: "P.Def", v: String(def.pdef || 0) },
-        { k: "M.Def", v: String(def.mdef || 0) },
+        {
+          k: "P.Def",
+          v: String(pTot) + (pBonus > 0 ? " (+" + pBonus + ")" : ""),
+        },
+        {
+          k: "M.Def",
+          v: String(mTot) + (mBonus > 0 ? " (+" + mBonus + ")" : ""),
+        },
       ],
       meta,
       actions: equipActions || [

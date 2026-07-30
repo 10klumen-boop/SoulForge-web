@@ -50,6 +50,7 @@ function classStatBonus(classId) {
 function avatarStatBonusesFromGear() {
 
   const out = { patk: 0, matk: 0, pdef: 0, mdef: 0 };
+  const seenUniqueAcc = new Set();
 
   if (typeof iterEquippedGear !== "function") return out;
 
@@ -85,12 +86,25 @@ function avatarStatBonusesFromGear() {
           : typeof avatarGradePenaltyMult === "function"
             ? avatarGradePenaltyMult(def.grade, state.avatar?.level || 1)
             : 1;
-      if (def.pdef) out.pdef += Math.round(def.pdef * mult);
-      if (def.mdef) out.mdef += Math.round(def.mdef * mult);
+      const plus = item.plus || 0;
+      const pAdd = typeof armorEnchantPdefBonus === "function" ? armorEnchantPdefBonus(plus) : plus * 2;
+      const mAdd = typeof armorEnchantMdefBonus === "function" ? armorEnchantMdefBonus(plus) : plus;
+      out.pdef += Math.round(((def.pdef || 0) + pAdd) * mult);
+      out.mdef += Math.round(((def.mdef || 0) + mAdd) * mult);
       return;
     }
 
-    const def = COLLECTIBLES[item.id];
+    const def =
+      (typeof accessoryDef === "function" ? accessoryDef(item) : null) ||
+      (typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null);
+
+    if (
+      typeof isAccessoryUniqueEquipped === "function" &&
+      isAccessoryUniqueEquipped(def)
+    ) {
+      if (seenUniqueAcc.has(item.id)) return;
+      seenUniqueAcc.add(item.id);
+    }
 
     const b = def?.bonuses;
 

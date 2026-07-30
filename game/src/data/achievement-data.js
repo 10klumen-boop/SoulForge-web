@@ -38,6 +38,14 @@ const ACH_LOGIC = {
   banan_hunter: {
     test: (c) => c.bananWins >= 1,
   },
+  casino_first_spin: {
+    test: (c) => c.casinoPulls >= 1,
+    progress: (c) => achProg(c.casinoPulls, 1),
+  },
+  casino_jackpot: {
+    test: (c) => c.casinoJackpots >= 1,
+    progress: (c) => achProg(c.casinoJackpots, 1),
+  },
   boss_slayer: {
     test: (c) => c.bossKills >= 1,
   },

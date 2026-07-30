@@ -1,4 +1,32 @@
-﻿// ===== World boss: соло-рейс по кликам (окно из WORLD_BOSS) =====
+﻿// ===== World boss: соло-рейс по урону (окно из WORLD_BOSS) =====
+
+function worldBossFmtDamage(n) {
+  const v = Math.max(0, Math.floor(Number(n) || 0));
+  if (typeof fmt === "function") return fmt(v);
+  return String(v);
+}
+
+function worldBossHitDamage() {
+  let dmg = typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 8;
+  dmg = Math.max(1, Math.floor(Number(dmg) || 1));
+  if (typeof mineSkillClickMult === "function") {
+    dmg = Math.max(1, Math.round(dmg * mineSkillClickMult()));
+  }
+  if (typeof passiveEffectMult === "function") {
+    dmg = Math.max(
+      1,
+      Math.round(dmg * passiveEffectMult("farmDamageMult", typeof state !== "undefined" ? state.avatar : null))
+    );
+  }
+  if (typeof applyMineShotDamageMult === "function") {
+    dmg = Math.max(1, Math.round(applyMineShotDamageMult(dmg)));
+  }
+  const cap =
+    typeof WORLD_BOSS_SWIPE !== "undefined" && WORLD_BOSS_SWIPE.hitDmgMax != null
+      ? WORLD_BOSS_SWIPE.hitDmgMax
+      : 50000;
+  return Math.min(cap, dmg);
+}
 
 let worldBossStateCache = null;
 let worldBossPollTimer = null;
@@ -6,6 +34,9 @@ let worldBossClickBusy = false;
 let worldBossDomMob = null;
 let worldBossSessionActive = false;
 let worldBossEndPrompted = false;
+let worldBossSwipeOpen = false;
+let worldBossSwipeBusy = false;
+let worldBossSwipeTimer = null;
 
 function isWorldBossSessionActive() {
   return !!(mineActive && worldBossSessionActive);
@@ -41,6 +72,126 @@ function worldBossFmtMs(ms) {
   const m = Math.floor(s / 60);
   const r = s % 60;
   return m + ":" + String(r).padStart(2, "0");
+}
+
+/** url() для CSS-var: абсолютный путь (иначе url резолвится от styles/*.css → 404). */
+function worldBossCssBgUrl(assetPath) {
+  const clean = String(assetPath || "assets/ui/world-boss-card-zaken.png")
+    .split("?")[0]
+    .replace(/^\.\.\//, "")
+    .replace(/^\/+/, "");
+  try {
+    return 'url("' + new URL(clean, window.location.href).href.replace(/"/g, "%22") + '")';
+  } catch (_) {
+    return 'url("../' + clean.replace(/"/g, "") + '")';
+  }
+}
+
+/** Применить стиль кнопки WB в хабе фарма (как у карточки Закена: фон + акцент рамки). */
+function applyWorldBossFarmEntryStyle(boss, status, remainingMs) {
+  const btn = document.getElementById("farmEntryWorldBoss");
+  if (!btn || !boss) return;
+  const def =
+    (typeof worldBossById === "function" && boss.id ? worldBossById(boss.id) : null) || boss;
+  const cardBgRaw =
+    (def.ui && def.ui.cardBg) ||
+    (boss.ui && boss.ui.cardBg) ||
+    "assets/ui/world-boss-card-zaken.png";
+  const cardBg = String(cardBgRaw).split("?")[0];
+  // RGB-тройка для rgba(var(--wb-entry-accent), a) — тот же «хром», что у Закена.
+  const accentRgb =
+    def.id === "world_queen_ant" || /queen/i.test(String(def.id || ""))
+      ? "196, 90, 61"
+      : "61, 158, 140";
+  const img = btn.querySelector(".farm-hub-entry-ico");
+  if (img) {
+    const url =
+      typeof mineAssetUrl === "function" ? mineAssetUrl(cardBgRaw) : cardBgRaw;
+    if (img.getAttribute("src") !== url) img.src = url;
+    img.style.objectPosition =
+      def.id === "world_queen_ant" ? "center 45%" : "center 40%";
+  }
+  const small = btn.querySelector(".farm-hub-entry-copy small");
+  if (small) {
+    const name = def.name || boss.name || "Мировой босс";
+    const rem = Math.max(0, Number(remainingMs) || 0);
+    if (status === "active") {
+      small.textContent = name + " · бой · ещё " + worldBossFmtMs(rem);
+    } else if (status === "ended") {
+      small.textContent = name + " · итоги · топ-3";
+    } else {
+      small.textContent = name + " · через " + worldBossFmtMs(rem) + " · топ-3";
+    }
+  }
+  const bgUrl = worldBossCssBgUrl(cardBg);
+  btn.dataset.wbBoss = def.id || boss.id || "";
+  btn.dataset.wbStatus = status || "";
+  btn.style.setProperty("--wb-entry-bg", bgUrl);
+  btn.style.setProperty("--wb-entry-accent", accentRgb);
+  const field = document.getElementById("worldBossField");
+  if (field) {
+    field.style.setProperty("--wb-entry-bg", bgUrl);
+    field.style.setProperty("--wb-entry-accent", accentRgb);
+  }
+}
+
+/**
+ * Кнопка «Мировой босс»: приоритет живому окну с сервера (force-start / текущий бой),
+ * иначе ближайший слот по расписанию МСК.
+ */
+async function syncWorldBossFarmEntryBtn() {
+  const btn = document.getElementById("farmEntryWorldBoss");
+  if (!btn) return;
+
+  // 1) Живой кэш / API — если сейчас идёт бой (в т.ч. force-start).
+  let live = null;
+  const cached = worldBossStateCache;
+  if (cached && cached.boss && cached.state && cached.state.status === "active") {
+    live = {
+      boss: cached.boss,
+      status: "active",
+      remainingMs: cached.state.remainingMs || 0,
+    };
+  } else if (typeof worldBossCloudReady === "function" && worldBossCloudReady()) {
+    try {
+      const r = await worldBossApi("/world-boss/state");
+      if (r && r.ok) {
+        worldBossStateCache = r;
+        if (r.state && r.state.status === "active" && r.boss) {
+          live = {
+            boss: r.boss,
+            status: "active",
+            remainingMs: r.state.remainingMs || 0,
+          };
+        } else if (r.state && r.state.status === "ended" && r.boss) {
+          live = {
+            boss: r.boss,
+            status: "ended",
+            remainingMs: r.state.remainingMs || 0,
+          };
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (live && live.boss) {
+    applyWorldBossFarmEntryStyle(live.boss, live.status, live.remainingMs);
+    return;
+  }
+
+  // 2) Расписание МСК.
+  const upcoming =
+    typeof worldBossUpcoming === "function" ? worldBossUpcoming(Date.now()) : null;
+  const boss =
+    (upcoming && upcoming.boss) ||
+    (typeof worldBossForNow === "function" ? worldBossForNow(Date.now()) : null) ||
+    (typeof WORLD_BOSS !== "undefined" ? WORLD_BOSS : null);
+  if (!boss) return;
+  applyWorldBossFarmEntryStyle(
+    boss,
+    upcoming && upcoming.status === "active" ? "active" : "upcoming",
+    upcoming ? upcoming.remainingMs : 0
+  );
 }
 
 function worldBossApplyLoot(loot) {
@@ -116,12 +267,16 @@ async function renderWorldBossHub() {
   }
   worldBossStateCache = r;
   const st = r.state || {};
-  const boss = r.boss || (typeof WORLD_BOSS !== "undefined" ? WORLD_BOSS : {});
-  const statusLabel =
-    st.status === "active"
-      ? "Идёт бой · осталось " + worldBossFmtMs(st.remainingMs)
-      : "Перерыв · следующий старт через " + worldBossFmtMs(st.remainingMs);
-  const myClicks = st.my?.clicks || 0;
+  const tz = (r.schedule && r.schedule.tz) || "МСК";
+  const list =
+    Array.isArray(r.bosses) && r.bosses.length
+      ? r.bosses
+      : [
+          Object.assign({}, r.boss || (typeof WORLD_BOSS !== "undefined" ? WORLD_BOSS : {}), {
+            cardStatus: st.status,
+            remainingMs: st.remainingMs,
+          }),
+        ];
   const ended = st.status === "ended";
   const places = ended ? st.places || [] : [];
   const resultHtml = ended
@@ -145,67 +300,124 @@ async function renderWorldBossHub() {
         ? "<p class=\"world-boss-card-desc\">Победитель: <b>" + st.winner.charName + "</b></p>"
         : "<p class=\"world-boss-card-desc\">Победителя нет.</p>"
     : "";
-  const canEnter = st.status === "active";
-  const canClaim = ended && st.my?.canClaim;
-  const claimLabel =
-    st.my?.place === 1
-      ? "Забрать серьгу"
-      : st.my?.place
-        ? "Забрать осколок (#" + st.my.place + ")"
-        : "Забрать лут";
-  const cardBg =
-    (boss.ui && boss.ui.cardBg) ||
-    (typeof WORLD_BOSS !== "undefined" && WORLD_BOSS.ui && WORLD_BOSS.ui.cardBg) ||
-    "assets/ui/world-boss-card-zaken.png";
-  const accent =
-    (boss.ui && boss.ui.accent) ||
-    (typeof WORLD_BOSS !== "undefined" && WORLD_BOSS.ui && WORLD_BOSS.ui.accent) ||
-    "#3d9e8c";
-  const statusCls =
-    st.status === "active" ? " is-live" : ended ? " is-ended" : " is-idle";
+
+  function lootClaimLabel(boss, place) {
+    const row =
+      boss && boss.loot && boss.loot.places
+        ? boss.loot.places[place] || boss.loot.places[String(place)]
+        : null;
+    if (place === 1 && row && row.accessoryId) {
+      if (/ring/i.test(row.accessoryId)) return "Забрать кольцо";
+      if (/earring/i.test(row.accessoryId)) return "Забрать серьгу";
+      return "Забрать награду";
+    }
+    if (place >= 2) return "Забрать осколок (#" + place + ")";
+    return "Забрать лут";
+  }
+
+  function parityHint(boss) {
+    const label =
+      typeof worldBossParityLabel === "function"
+        ? worldBossParityLabel(boss.hourParity)
+        : boss.hourParity === "even"
+          ? "чётные часы"
+          : "нечётные часы";
+    return label + " " + tz;
+  }
+
+  const cards = list
+    .map((boss) => {
+      const isCurrent = st.bossId === boss.id || (!st.bossId && r.boss && r.boss.id === boss.id);
+      const cardStatus = boss.cardStatus || (isCurrent ? st.status : "idle");
+      const remaining =
+        boss.remainingMs != null ? boss.remainingMs : isCurrent ? st.remainingMs : 0;
+      const statusLabel =
+        cardStatus === "active"
+          ? "Идёт бой · осталось " + worldBossFmtMs(remaining)
+          : cardStatus === "ended" && isCurrent
+            ? "Итоги · следующий через " + worldBossFmtMs(remaining)
+            : "Старт в " + parityHint(boss) + " · через " + worldBossFmtMs(remaining);
+      const canEnter = cardStatus === "active" && isCurrent && st.status === "active";
+      const canClaim = ended && isCurrent && st.my?.canClaim;
+      const claimLabel = lootClaimLabel(boss, st.my?.place);
+      const cardBg = (boss.ui && boss.ui.cardBg) || "assets/ui/world-boss-card-zaken.png";
+      const accent = (boss.ui && boss.ui.accent) || "#3d9e8c";
+      const statusCls =
+        cardStatus === "active"
+          ? " is-live"
+          : cardStatus === "ended" && isCurrent
+            ? " is-ended"
+            : " is-idle";
+      const lootDesc =
+        boss.lootBlurb ||
+        "1 место — уникальная бижутерия · 2–3 — осколки (мастерская)";
+      return (
+        '<article class="world-boss-card' +
+        statusCls +
+        '" style="--wb-accent:' +
+        accent +
+        '" data-boss-id="' +
+        (boss.id || "") +
+        '">' +
+        '<img class="world-boss-card-art" src="' +
+        cardBg +
+        '" alt="" decoding="async" />' +
+        '<div class="world-boss-card-veil" aria-hidden="true"></div>' +
+        '<div class="world-boss-card-body">' +
+        '<div class="world-boss-card-title"><strong>' +
+        (boss.name || "Мировой босс") +
+        '</strong><span class="world-boss-chip">' +
+        (cardStatus === "active"
+          ? "Бой"
+          : cardStatus === "ended" && isCurrent
+            ? "Итоги"
+            : "Пауза") +
+        "</span></div>" +
+        '<p class="world-boss-card-status">' +
+        statusLabel +
+        "</p>" +
+        '<p class="world-boss-card-meta">HP ' +
+        (boss.cosmeticHp || 10_000_000).toLocaleString("ru-RU") +
+        " · окно " +
+        Math.round((boss.windowMs || 5 * 60 * 1000) / 60000) +
+        " мин · " +
+        parityHint(boss) +
+        "</p>" +
+        '<p class="world-boss-card-desc">' +
+        lootDesc +
+        "</p>" +
+        '<p class="world-boss-card-desc">Рейтинг по урону персонажа. Только ручные удары — автоудар и умения не считаются.</p>' +
+        (isCurrent
+          ? '<p class="world-boss-card-clicks">Твой урон: <b>' +
+            worldBossFmtDamage(st.my?.damage != null ? st.my.damage : st.my?.clicks) +
+            "</b></p>"
+          : "") +
+        (isCurrent && ended ? resultHtml : "") +
+        '<div class="party-panel-actions world-boss-card-actions">' +
+        (canEnter
+          ? '<button type="button" class="party-panel-btn party-inst-primary world-boss-enter-btn" data-boss-id="' +
+            boss.id +
+            '">Войти на арену</button>'
+          : "") +
+        (canClaim
+          ? '<button type="button" class="party-panel-btn party-inst-primary" id="worldBossClaimBtn">' +
+            claimLabel +
+            "</button>"
+          : "") +
+        "</div></div></article>"
+      );
+    })
+    .join("");
+
   body.innerHTML =
-    '<article class="world-boss-card' +
-    statusCls +
-    '" style="--wb-accent:' +
-    accent +
-    '">' +
-    '<img class="world-boss-card-art" src="' +
-    cardBg +
-    '" alt="" decoding="async" />' +
-    '<div class="world-boss-card-veil" aria-hidden="true"></div>' +
-    '<div class="world-boss-card-body">' +
-    '<div class="world-boss-card-title"><strong>' +
-    (boss.name || "Мировой босс") +
-    '</strong><span class="world-boss-chip">' +
-    (st.status === "active" ? "Бой" : ended ? "Итоги" : "Пауза") +
-    "</span></div>" +
-    '<p class="world-boss-card-status">' +
-    statusLabel +
-    "</p>" +
-    '<p class="world-boss-card-meta">HP ' +
-    (boss.cosmeticHp || 10_000_000).toLocaleString("ru-RU") +
-    " · окно " +
-    Math.round((boss.windowMs || 5 * 60 * 1000) / 60000) +
-    " мин · раз в час</p>" +
-    '<p class="world-boss-card-desc">1 место — Серьга Закена · 2–3 — осколки (10 шт + 10ккк adena в мастерской)</p>' +
-    '<p class="world-boss-card-desc">Только реальные клики. Автоудар и умения не считаются. Места — после окна.</p>' +
-    '<p class="world-boss-card-clicks">Твои клики: <b>' +
-    myClicks +
-    "</b></p>" +
-    resultHtml +
-    '<div class="party-panel-actions world-boss-card-actions">' +
-    (canEnter
-      ? '<button type="button" class="party-panel-btn party-inst-primary" id="worldBossEnterBtn">Войти на арену</button>'
-      : "") +
-    (canClaim
-      ? '<button type="button" class="party-panel-btn party-inst-primary" id="worldBossClaimBtn">' +
-        claimLabel +
-        "</button>"
-      : "") +
+    '<div class="world-boss-hub-grid">' +
+    cards +
+    '</div><div class="party-panel-actions world-boss-hub-actions">' +
     '<button type="button" class="party-panel-btn ghost" id="worldBossRefreshBtn">Обновить</button>' +
-    "</div></div></article>";
-  const enterBtn = document.getElementById("worldBossEnterBtn");
-  if (enterBtn) enterBtn.onclick = () => enterWorldBossArena();
+    "</div>";
+  body.querySelectorAll(".world-boss-enter-btn").forEach((btn) => {
+    btn.onclick = () => enterWorldBossArena(btn.getAttribute("data-boss-id"));
+  });
   const claimBtn = document.getElementById("worldBossClaimBtn");
   if (claimBtn) claimBtn.onclick = () => claimWorldBossLoot();
   const refreshBtn = document.getElementById("worldBossRefreshBtn");
@@ -224,7 +436,7 @@ async function claimWorldBossLoot() {
   renderWorldBossHub();
 }
 
-async function enterWorldBossArena() {
+async function enterWorldBossArena(bossId) {
   if (!worldBossCloudReady()) {
     if (typeof toast === "function") toast("Нужен облачный аккаунт", "warn");
     return;
@@ -239,6 +451,7 @@ async function enterWorldBossArena() {
       characterId: state.activeCharacterId || "",
       charName: state.avatar?.name || "",
       level: state.avatar?.level || 1,
+      bossId: bossId || undefined,
     },
   });
   if (!r.ok) {
@@ -309,6 +522,26 @@ function openWorldBossMine(payload) {
   if (storyBar) storyBar.hidden = true;
   const questHud = document.getElementById("mineQuestHud");
   if (questHud) questHud.hidden = true;
+  // Мировой босс: без фарм-статов/автоудара, соски оставляем.
+  const mineHud = document.querySelector("#screen-mine .mine-hud");
+  if (mineHud) mineHud.hidden = false;
+  const farmStats = document.querySelector("#screen-mine .mine-farm-stats");
+  if (farmStats) farmStats.hidden = true;
+  const sessionLoot = document.getElementById("mineSessionLoot");
+  if (sessionLoot) sessionLoot.hidden = true;
+  const resourceFav = document.getElementById("mineResourceFav");
+  if (resourceFav) resourceFav.hidden = true;
+  const autoRow = document.getElementById("mineAutoClickerRow");
+  if (autoRow) autoRow.hidden = true;
+  const territoryHud = document.getElementById("mineClanTerritoryHud");
+  if (territoryHud) {
+    territoryHud.hidden = true;
+    territoryHud.textContent = "";
+  }
+  const shotBtn = document.getElementById("mineShotToggle");
+  if (shotBtn) shotBtn.hidden = false;
+  if (typeof syncMineShotHud === "function") syncMineShotHud();
+  if (typeof renderMineHudStats === "function") renderMineHudStats();
   if (typeof show === "function") show("mine");
   if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
   clearInterval(mineTimer);
@@ -417,15 +650,281 @@ function renderWorldBossHud(payload) {
     return;
   }
   hud.hidden = false;
+  const fails = st.my?.swipeFails || 0;
+  const maxFails = st.my?.swipeMaxFails || 3;
   hud.innerHTML =
     "<div class=\"instance-hud-title\">" +
     (boss.name || "Мировой босс") +
     "</div>" +
-    "<div class=\"instance-hud-meta\">Клики: <b>" +
-    (st.my?.clicks || 0) +
+    "<div class=\"instance-hud-meta\">Урон: <b>" +
+    worldBossFmtDamage(st.my?.damage != null ? st.my.damage : st.my?.clicks) +
     "</b>" +
     (st.status === "active" ? " · ещё " + worldBossFmtMs(st.remainingMs) : " · окончен") +
+    (fails > 0 ? " · свайп " + fails + "/" + maxFails : "") +
     "</div>";
+  if (st.my?.swipeRequired) maybeShowWorldBossSwipe(payload || worldBossStateCache);
+  else hideWorldBossSwipe();
+}
+
+function ensureWorldBossSwipeEl() {
+  let el = document.getElementById("worldBossSwipe");
+  if (el && !el.querySelector(".world-boss-swipe-card.is-bare")) {
+    el.remove();
+    el = null;
+  }
+  if (el) return el;
+  const stage = document.getElementById("mineStageInner") || document.getElementById("screen-mine");
+  if (!stage) return null;
+  el = document.createElement("div");
+  el.id = "worldBossSwipe";
+  el.className = "world-boss-swipe";
+  el.hidden = true;
+  el.innerHTML =
+    '<div class="world-boss-swipe-card is-bare">' +
+    '<div class="world-boss-swipe-title">Печать арены</div>' +
+    '<p class="world-boss-swipe-hint" id="worldBossSwipeHint">Свайп →</p>' +
+    '<div class="world-boss-swipe-rail">' +
+    '<div class="world-boss-swipe-track" id="worldBossSwipeTrack" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
+    '<div class="world-boss-swipe-fill" id="worldBossSwipeFill"></div>' +
+    '<div class="world-boss-swipe-arrows" aria-hidden="true"><span></span><span></span><span></span></div>' +
+    '<img class="world-boss-swipe-knob" id="worldBossSwipeKnob" src="assets/ui/wb-swipe-knob.png?v=1" alt="" draggable="false">' +
+    "</div></div>" +
+    '<div class="world-boss-swipe-timer" aria-hidden="true"><i id="worldBossSwipeTimerBar"></i></div>' +
+    '<div class="world-boss-swipe-meta" id="worldBossSwipeMeta"></div>' +
+    "</div>";
+  stage.appendChild(el);
+  return el;
+}
+
+function hideWorldBossSwipe() {
+  worldBossSwipeOpen = false;
+  if (worldBossSwipeTimer) {
+    clearTimeout(worldBossSwipeTimer);
+    worldBossSwipeTimer = null;
+  }
+  const el = document.getElementById("worldBossSwipe");
+  if (el) {
+    el.hidden = true;
+    delete el.dataset.swipeAngle;
+  }
+}
+
+function maybeShowWorldBossSwipe(payload) {
+  const my = payload?.state?.my || payload?.my;
+  if (!my || !my.swipeRequired || !my.swipeToken) return;
+  if (
+    worldBossSwipeOpen &&
+    document.getElementById("worldBossSwipe") &&
+    !document.getElementById("worldBossSwipe").hidden
+  ) {
+    return;
+  }
+  showWorldBossSwipe(my);
+}
+
+/** Случайная позиция у края арены (не центр с боссом) + угол. */
+function placeWorldBossSwipeCard(overlay, card) {
+  if (!overlay || !card) return 0;
+  const stage = overlay.parentElement || overlay;
+  const sw = Math.max(1, stage.clientWidth || 1);
+  const sh = Math.max(1, stage.clientHeight || 1);
+  card.style.left = "0px";
+  card.style.top = "0px";
+  card.style.transform = "none";
+  const cw = Math.max(160, card.offsetWidth || Math.min(300, sw * 0.78));
+  const ch = Math.max(72, card.offsetHeight || 110);
+  const pad = 10;
+  const edgeBand = Math.max(28, Math.min(sw, sh) * 0.16);
+  const edge = Math.floor(Math.random() * 4);
+  let x = pad;
+  let y = pad;
+  if (edge === 0) {
+    x = pad + Math.random() * Math.max(0, sw - cw - pad * 2);
+    y = pad + Math.random() * Math.max(0, edgeBand);
+  } else if (edge === 1) {
+    x = pad + Math.random() * Math.max(0, sw - cw - pad * 2);
+    y = sh - ch - pad - Math.random() * Math.max(0, edgeBand);
+  } else if (edge === 2) {
+    x = pad + Math.random() * Math.max(0, edgeBand * 0.7);
+    y = pad + Math.random() * Math.max(0, sh - ch - pad * 2);
+  } else {
+    x = sw - cw - pad - Math.random() * Math.max(0, edgeBand * 0.7);
+    y = pad + Math.random() * Math.max(0, sh - ch - pad * 2);
+  }
+  x = Math.max(pad, Math.min(sw - cw - pad, x));
+  y = Math.max(pad, Math.min(sh - ch - pad, y));
+  const angle = Math.random() * 36 - 18;
+  card.style.left = Math.round(x) + "px";
+  card.style.top = Math.round(y) + "px";
+  card.style.transform = "rotate(" + angle.toFixed(1) + "deg)";
+  overlay.dataset.swipeAngle = String(angle);
+  return angle;
+}
+
+function showWorldBossSwipe(my) {
+  const el = ensureWorldBossSwipeEl();
+  if (!el) return;
+  const card = el.querySelector(".world-boss-swipe-card");
+  const dir = my.swipeDir === "rtl" ? "rtl" : "ltr";
+  const fails = my.swipeFails || 0;
+  const maxFails = my.swipeMaxFails || 3;
+  const limitMs = my.swipeTimeLimitMs || 6500;
+  const hint = document.getElementById("worldBossSwipeHint");
+  const meta = document.getElementById("worldBossSwipeMeta");
+  const track = document.getElementById("worldBossSwipeTrack");
+  const fill = document.getElementById("worldBossSwipeFill");
+  const knob = document.getElementById("worldBossSwipeKnob");
+  if (hint) hint.textContent = dir === "rtl" ? "Свайп ←" : "Свайп →";
+  if (meta) {
+    meta.textContent =
+      fails > 0 ? "Срывов: " + fails + "/" + maxFails : "3 срыва — урон обнулится";
+  }
+  el.classList.toggle("is-rtl", dir === "rtl");
+  el.hidden = false;
+  worldBossSwipeOpen = true;
+  worldBossSwipeBusy = false;
+  const angleDeg = placeWorldBossSwipeCard(el, card);
+
+  let progress = 0;
+  let dragging = false;
+  let startProg = 0;
+  let pointerId = null;
+  const startProgress = dir === "rtl" ? 1 : 0;
+  const timerBar = document.getElementById("worldBossSwipeTimerBar");
+
+  function setProgress(p) {
+    progress = Math.max(0, Math.min(1, p));
+    const inset = 0.1;
+    const span = 1 - inset * 2;
+    const xPos = inset + progress * span;
+    if (fill) {
+      if (dir === "rtl") {
+        fill.style.left = xPos * 100 + "%";
+        fill.style.width = (inset + span - xPos) * 100 + "%";
+      } else {
+        fill.style.left = inset * 100 + "%";
+        fill.style.width = progress * span * 100 + "%";
+      }
+    }
+    if (knob) knob.style.left = xPos * 100 + "%";
+    if (track) track.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
+  }
+  setProgress(startProgress);
+
+  if (timerBar) {
+    timerBar.style.transition = "none";
+    timerBar.style.transform = "scaleX(1)";
+    void timerBar.offsetWidth;
+    timerBar.style.transition = "transform " + limitMs + "ms linear";
+    timerBar.style.transform = "scaleX(0)";
+  }
+
+  function cleanupDrag() {
+    dragging = false;
+    pointerId = null;
+  }
+
+  async function finish(ok) {
+    if (worldBossSwipeBusy) return;
+    worldBossSwipeBusy = true;
+    cleanupDrag();
+    if (worldBossSwipeTimer) {
+      clearTimeout(worldBossSwipeTimer);
+      worldBossSwipeTimer = null;
+    }
+    const r = await worldBossApi("/world-boss/swipe", {
+      method: "POST",
+      body: { success: !!ok, token: my.swipeToken },
+    });
+    worldBossSwipeBusy = false;
+    if (r.ok) worldBossStateCache = r;
+    if (r.wiped) {
+      hideWorldBossSwipe();
+      if (typeof toast === "function") toast("3 провала свайпа — урон сброшен", "warn");
+      renderWorldBossHud(r);
+      return;
+    }
+    if (r.swipeOk) {
+      hideWorldBossSwipe();
+      if (typeof toast === "function") toast("Проверка пройдена", "success");
+      renderWorldBossHud(r);
+      return;
+    }
+    if (r.ok === false && r.error === "token") {
+      hideWorldBossSwipe();
+      if (typeof toast === "function") toast(r.message || "Обнови арену", "warn");
+      return;
+    }
+    if (typeof toast === "function") toast(r.message || "Свайп не засчитан", "warn");
+    const nextMy = r.state?.my || r.my;
+    if (nextMy && nextMy.swipeRequired) {
+      worldBossSwipeOpen = false;
+      showWorldBossSwipe(nextMy);
+    } else {
+      hideWorldBossSwipe();
+      renderWorldBossHud(r);
+    }
+  }
+
+  if (worldBossSwipeTimer) clearTimeout(worldBossSwipeTimer);
+  worldBossSwipeTimer = setTimeout(() => finish(false), limitMs);
+
+  function pointerProgress(clientX, clientY) {
+    const w = track.offsetWidth || 1;
+    const rect = track.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    const rad = (-angleDeg * Math.PI) / 180;
+    const localX = dx * Math.cos(rad) - dy * Math.sin(rad);
+    const inset = w * 0.1;
+    const usable = Math.max(1, w - inset * 2);
+    return Math.max(0, Math.min(1, (localX + w / 2 - inset) / usable));
+  }
+
+  function onDown(ev) {
+    if (worldBossSwipeBusy || (ev.button != null && ev.button !== 0)) return;
+    const p = pointerProgress(ev.clientX, ev.clientY);
+    const nearStart = dir === "rtl" ? p > 0.72 : p < 0.28;
+    if (!nearStart) return;
+    dragging = true;
+    pointerId = ev.pointerId;
+    startProg = p;
+    setProgress(startProgress);
+    try {
+      track.setPointerCapture(ev.pointerId);
+    } catch (_) {}
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  function onMove(ev) {
+    if (!dragging || (pointerId != null && ev.pointerId !== pointerId)) return;
+    setProgress(pointerProgress(ev.clientX, ev.clientY));
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  function onUp(ev) {
+    if (!dragging || (pointerId != null && ev.pointerId !== pointerId)) return;
+    const p = pointerProgress(ev.clientX, ev.clientY);
+    const traveled = Math.abs(p - startProg);
+    const ok =
+      traveled >= 0.55 && (dir === "rtl" ? progress <= 0.12 : progress >= 0.88);
+    cleanupDrag();
+    finish(ok);
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+
+  track.onpointerdown = onDown;
+  track.onpointermove = onMove;
+  track.onpointerup = onUp;
+  track.onpointercancel = () => {
+    if (dragging) {
+      cleanupDrag();
+      finish(false);
+    }
+  };
 }
 
 function startWorldBossPoll() {
@@ -465,13 +964,14 @@ function maybeShowWorldBossResult(r) {
   if (!backdrop || typeof renderStoryPanel !== "function") {
     // Fallback без story-панели: тост + сразу выход
     const places = st.places || [];
+    const bossName = (r?.boss && r.boss.name) || "Мировой босс";
     const ann =
       places.length > 0
-        ? "Итоги Закена: " +
+        ? "Итоги · " + bossName + ": " +
           places.map((p) => "#" + p.place + " " + (p.charName || "?")).join(" · ")
         : st.winner
           ? "Победитель: " + st.winner.charName
-          : "Окно Закена закрыто.";
+          : "Окно «" + bossName + "» закрыто.";
     if (typeof toast === "function") toast(ann, "info");
     if (st.my?.canClaim && typeof toast === "function") {
       toast("Ты в топ-3 — забери награду на хабе.", "success");
@@ -483,7 +983,7 @@ function maybeShowWorldBossResult(r) {
   const boss = r?.boss || (typeof WORLD_BOSS !== "undefined" ? WORLD_BOSS : {});
   const cta = st.my?.canClaim ? "К награде" : "Выйти";
   renderStoryPanel({
-    title: "Итоги Закена",
+    title: "Итоги · " + (boss.name || "Мировой босс"),
     eyebrow: boss.name || "Мировой босс",
     lead: "Окно боя закрыто",
     chapter: "",
@@ -518,8 +1018,8 @@ function worldBossResultBodyHtml(r) {
   const esc = worldBossEsc;
   const parts = ['<div class="world-boss-end-panel">'];
   parts.push(
-    '<p class="world-boss-end-clicks">Твои клики: <b>' +
-      (my.clicks || 0) +
+    '<p class="world-boss-end-clicks">Твой урон: <b>' +
+      worldBossFmtDamage(my.damage != null ? my.damage : my.clicks) +
       "</b>" +
       (my.place ? " · место <b>#" + my.place + "</b>" : " · вне топ-3") +
       "</p>"
@@ -590,31 +1090,40 @@ async function worldBossHandleHit(g, opts) {
   opts = opts || {};
   if (!worldBossSessionActive || !g || !g._worldBossEncounter) return true;
   if (worldBossEndPrompted) return true;
+  if (worldBossSwipeOpen) return true;
   if (opts.autoClicker || opts.bySkill || opts.skillMult) return true;
   if (worldBossClickBusy) return true;
   worldBossClickBusy = true;
   try {
+    const dmg = worldBossHitDamage();
     const r = await worldBossApi("/world-boss/click", {
       method: "POST",
       body: {
         characterId: state.activeCharacterId || "",
         charName: state.avatar?.name || "",
+        damage: dmg,
       },
     });
+    if (r.swipeRequired || r.error === "swipe") {
+      worldBossStateCache = r;
+      renderWorldBossHud(r);
+      maybeShowWorldBossSwipe(r);
+      if (!r.ok) return true;
+    }
     if (r.ok) {
       worldBossStateCache = r;
-      // Cosmetic HP tick
-      const dmg = typeof avatarMineClickDamage === "function" ? avatarMineClickDamage() : 8;
-      g._hp = Math.max(1, (g._hp ?? g._maxHp) - Math.max(1, dmg));
+      const applied = Math.max(1, Number(r.hitDamage) || dmg);
+      g._hp = Math.max(1, (g._hp ?? g._maxHp) - applied);
       if (typeof Audio2 !== "undefined" && Audio2.mineHit) Audio2.mineHit();
       g.classList.add("mob-hit");
       setTimeout(() => g.classList.remove("mob-hit"), 90);
       if (typeof updateMobHpBar === "function") updateMobHpBar(g);
       const dropAt = typeof gnomeDropPoint === "function" ? gnomeDropPoint(g) : { x: 0, y: 0 };
-      if (typeof floatText === "function") floatText(dropAt.x, dropAt.y - 12, "+1", "#ffd27a");
+      if (typeof floatText === "function") {
+        floatText(dropAt.x, dropAt.y - 12, "+" + worldBossFmtDamage(applied), "#ffd27a");
+      }
       renderWorldBossHud(r);
-      const caught = document.getElementById("mineCaught");
-      if (caught) caught.textContent = String(r.state?.my?.clicks || 0);
+      if (r.swipeRequired) maybeShowWorldBossSwipe(r);
       if (r.state?.status !== "active" && !worldBossEndPrompted) {
         worldBossEndPrompted = true;
         maybeShowWorldBossResult(r);
@@ -637,6 +1146,7 @@ function worldBossAfterStopMine() {
   }
   worldBossSessionActive = false;
   worldBossEndPrompted = false;
+  hideWorldBossSwipe();
   stopWorldBossPoll();
   worldBossClearDomMob();
   const hud = document.getElementById("worldBossHud");
@@ -644,6 +1154,12 @@ function worldBossAfterStopMine() {
     hud.hidden = true;
     hud.innerHTML = "";
   }
+  const farmStats = document.querySelector("#screen-mine .mine-farm-stats");
+  if (farmStats) farmStats.hidden = false;
+  const mineHud = document.querySelector("#screen-mine .mine-hud");
+  if (mineHud) mineHud.hidden = false;
+  if (typeof renderAutoClickerHud === "function") renderAutoClickerHud();
+  if (typeof renderMineHudStats === "function") renderMineHudStats();
   if (worldBossCloudReady()) {
     worldBossApi("/world-boss/leave", { method: "POST", body: {} }).catch(() => {});
   }
@@ -653,22 +1169,27 @@ function worldBossShouldBlockLocalSpawn() {
   return isWorldBossSessionActive();
 }
 
-/** Dev: форс-старт окна Закена (нужен облачный вход; на prod отключено). */
-async function devForceWorldBossStart() {
+/** Dev: форс-старт окна мирового босса (нужен облачный вход; на prod отключено). */
+async function devForceWorldBossStart(bossId) {
   if (typeof FEATURE_DEV_PANEL !== "undefined" && !FEATURE_DEV_PANEL) return null;
   if (typeof worldBossCloudReady === "function" && !worldBossCloudReady()) {
     if (typeof toast === "function") toast("Нужен вход в облако", "warn");
     return null;
   }
-  const r = await worldBossApi("/world-boss/dev/force-start", { method: "POST", body: {} });
+  const r = await worldBossApi("/world-boss/dev/force-start", {
+    method: "POST",
+    body: { bossId: bossId || "world_zaken" },
+  });
   if (!r.ok) {
-    if (typeof toast === "function") toast(r.message || r.error || "Не удалось запустить Закена", "warn");
+    if (typeof toast === "function") toast(r.message || r.error || "Не удалось запустить WB", "warn");
     return r;
   }
   worldBossStateCache = r;
+  const name = (r.boss && r.boss.name) || bossId || "WB";
   if (typeof toast === "function") {
-    toast("Dev: Закен активен · " + worldBossFmtMs(r.state?.remainingMs || 0), "success");
+    toast("Dev: " + name + " активен · " + worldBossFmtMs(r.state?.remainingMs || 0), "success");
   }
+  if (typeof syncWorldBossFarmEntryBtn === "function") syncWorldBossFarmEntryBtn();
   if (typeof renderWorldBossHub === "function") renderWorldBossHub();
   return r;
 }
@@ -685,7 +1206,8 @@ async function devForceWorldBossEnd() {
     return r;
   }
   worldBossStateCache = r;
-  if (typeof toast === "function") toast("Dev: окно Закена закрыто", "info");
+  if (typeof toast === "function") toast("Dev: окно мирового босса закрыто", "info");
+  if (typeof syncWorldBossFarmEntryBtn === "function") syncWorldBossFarmEntryBtn();
   if (typeof renderWorldBossHub === "function") renderWorldBossHub();
   return r;
 }
@@ -693,7 +1215,9 @@ async function devForceWorldBossEnd() {
 if (typeof window !== "undefined") {
   window.devForceWorldBossStart = devForceWorldBossStart;
   window.devForceWorldBossEnd = devForceWorldBossEnd;
-  window.devStartZaken = devForceWorldBossStart;
+  window.devStartZaken = () => devForceWorldBossStart("world_zaken");
+  window.devStartQueenAnt = () => devForceWorldBossStart("world_queen_ant");
+  window.syncWorldBossFarmEntryBtn = syncWorldBossFarmEntryBtn;
 }
 
 

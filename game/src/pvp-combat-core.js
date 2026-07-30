@@ -219,12 +219,21 @@ function buildCombatSheet(input) {
       mdef = Math.round(mdef * (1 + defB));
     }
   }
-  // Бижутерия (напр. Серьга Закена) — без требования сродства брони.
-  if (liveAvatar && typeof avatarAccessoryPvpAtk === "function") {
-    gearPvpAtk = Math.min(0.12, Math.max(0, avatarAccessoryPvpAtk()));
-    if (gearPvpAtk > 0) {
-      patk = Math.round(patk * (1 + gearPvpAtk));
-      matk = Math.round(matk * (1 + gearPvpAtk));
+  // Бижутерия (Закен / Queen Ant / Талисман Банана) — без требования сродства брони.
+  if (liveAvatar) {
+    if (typeof avatarAccessoryPvpAtk === "function") {
+      gearPvpAtk = Math.min(0.12, Math.max(0, avatarAccessoryPvpAtk()));
+      if (gearPvpAtk > 0) {
+        patk = Math.round(patk * (1 + gearPvpAtk));
+        matk = Math.round(matk * (1 + gearPvpAtk));
+      }
+    }
+    if (typeof avatarAccessoryPvpDef === "function") {
+      const gearPvpDef = Math.min(0.12, Math.max(0, avatarAccessoryPvpDef()));
+      if (gearPvpDef > 0) {
+        pdef = Math.round(pdef * (1 + gearPvpDef));
+        mdef = Math.round(mdef * (1 + gearPvpDef));
+      }
     }
   }
 
@@ -245,6 +254,7 @@ function buildCombatSheet(input) {
   let clanPvpAtkPct = 0;
   let clanPvpDefPct = 0;
   let debuffResist = 0;
+  let jewelryCrit = 0;
   if (liveAvatar) {
     const atkCap =
       typeof CLAN_BUFF_CAPS !== "undefined" && CLAN_BUFF_CAPS.pvpPct != null
@@ -263,7 +273,17 @@ function buildCombatSheet(input) {
     if (typeof avatarJewelryDebuffResist === "function") {
       debuffResist = Math.max(0, Number(avatarJewelryDebuffResist()) || 0);
     }
+    if (typeof avatarAccessoryPvpCritChance === "function") {
+      jewelryCrit = Math.max(0, Number(avatarAccessoryPvpCritChance()) || 0);
+    }
   }
+
+  const critCap =
+    typeof PVP_CRIT_CHANCE_CAP === "number" ? PVP_CRIT_CHANCE_CAP : 0.35;
+  const critChance = Math.max(
+    0,
+    Math.min(critCap, (passives.add.crit || 0) + jewelryCrit + (Number(input.critChance) || 0))
+  );
 
   return {
     name: input.name || avatar.name || "Боец",
@@ -283,7 +303,7 @@ function buildCombatSheet(input) {
     weaponPlus: weapon?.plus || 0,
     skills,
     passiveIds: passives.ids.slice(),
-    critChance: passives.add.crit,
+    critChance,
     atkMult: passives.mult.atk,
     defMult: passives.mult.def,
     clanPvpAtkPct,
@@ -372,8 +392,21 @@ function pvpComputeHitDamage(attacker, defender, skillMult, rng) {
     damage = Math.max(1, Math.round(damage * g));
   }
 
+  let crit = false;
+  const critCap =
+    typeof PVP_CRIT_CHANCE_CAP === "number" ? PVP_CRIT_CHANCE_CAP : 0.35;
+  const critChance = Math.max(0, Math.min(critCap, Number(sheetA.critChance) || 0));
+  if (critChance > 0) {
+    const critRoll = typeof rng === "function" ? rng() : 0.5;
+    if (critRoll < critChance) {
+      crit = true;
+      const critMult = typeof PVP_CRIT_MULT === "number" ? PVP_CRIT_MULT : 1.5;
+      damage = Math.max(1, Math.round(damage * critMult));
+    }
+  }
+
   // nextHit расходуется вызывающим кодом после удара
-  return { damage, mitigated: mit, variance, consumedNextHit: next > 1 };
+  return { damage, mitigated: mit, variance, crit, consumedNextHit: next > 1 };
 }
 
 function pvpFindSkill(fighter, skillId) {

@@ -97,4 +97,11 @@ assert.strictEqual(clanStudyLevelMet(clanStudyBuffDef("greed_2"), 2), true);
 assert.strictEqual(clanStudyLevelMet(clanStudyBuffDef("unity_2"), 4), false);
 assert.strictEqual(clanStudyLevelMet(clanStudyBuffDef("unity_2"), 5), true);
 
+assert.ok(Array.isArray(CLAN_DONATIONS) && CLAN_DONATIONS.length >= 4);
+assert.strictEqual(clanDonationByAmount(1_000_000).xp, 10);
+assert.strictEqual(clanDonationByAmount(10_000_000).xp, 120);
+assert.strictEqual(clanScoreFromDonation(100_000), 0);
+assert.strictEqual(clanScoreFromDonation(100_000_000), 1400);
+assert.ok(clanDonationByAmount(10_000_000).xp / 10 > clanDonationByAmount(1_000_000).xp, "larger tier better XP/adena");
+
 console.log("clan-buffs-balance: ok");

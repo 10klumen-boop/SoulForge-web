@@ -12,9 +12,15 @@ function renderStoryPanel(opts) {
   const chapter = document.getElementById("storyChapter");
   const lead = document.getElementById("storyLead");
   const questRef = document.getElementById("storyQuestRef");
+  const linkify = typeof glossaryLinkifyHtml === "function" ? glossaryLinkifyHtml : (h) => h;
+  const linkifyText = typeof glossaryLinkifyText === "function" ? glossaryLinkifyText : (t) => {
+    const d = document.createElement("div");
+    d.textContent = t == null ? "" : String(t);
+    return d.innerHTML;
+  };
   if (title) title.textContent = opts.title || "";
   if (eyebrow) eyebrow.textContent = opts.eyebrow || "";
-  if (body) body.innerHTML = opts.bodyHtml || "";
+  if (body) body.innerHTML = linkify(opts.bodyHtml || "");
   if (btn) btn.textContent = opts.cta || "Закрыть";
   if (icon) {
     if (opts.icon) {
@@ -31,13 +37,13 @@ function renderStoryPanel(opts) {
   }
   if (lead) {
     if (opts.lead) {
-      lead.textContent = opts.lead;
+      lead.innerHTML = linkifyText(opts.lead);
       lead.hidden = false;
     } else lead.hidden = true;
   }
   if (questRef) {
     if (opts.questRef) {
-      questRef.innerHTML = '<span class="story-quest-label">Квест Prelude</span> ' + opts.questRef;
+      questRef.innerHTML = '<span class="story-quest-label">Квест Prelude</span> ' + linkify(opts.questRef);
       questRef.hidden = false;
     } else questRef.hidden = true;
   }
@@ -212,7 +218,7 @@ function openStoryArcOverview() {
     "<p>" + STORY_ARC.tagline + "</p>",
     '<p class="story-race-beat">' + thread.summary + "</p>",
     '<div class="story-mechanic"><span class="story-mechanic-k">Цикл симулятора</span><p>Задание → заточка → adena → снова задание. На поле — мародёры, духи, орки, твари — у каждой расы свой враг и свой смысл.</p></div>',
-    '<p class="story-arc-hd"><b>Твои главы</b> · <a href="https://www.youtube.com/watch?v=tOHJ571xPiU" target="_blank" rel="noopener noreferrer">лор Prelude</a> · нажми главу, чтобы перечитать</p>',
+    '<p class="story-arc-hd"><b>Твои главы</b> · <a href="https://www.youtube.com/watch?v=tOHJ571xPiU" target="_blank" rel="noopener noreferrer">лор Prelude</a> · <button type="button" class="story-arc-glossary-btn">Словарь</button> · нажми главу, чтобы перечитать</p>',
     '<ul class="story-arc-list">',
   ];
   zones.forEach((zone) => {
@@ -246,6 +252,18 @@ function openStoryArcOverview() {
       readZoneStory(li.dataset.zoneId, { firstUnlock: false });
     };
   });
+  const glossBtn = body.querySelector(".story-arc-glossary-btn");
+  if (glossBtn) {
+    glossBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      delete backdrop.dataset.storyMode;
+      backdrop.hidden = true;
+      if (typeof syncGamePauseState === "function") syncGamePauseState();
+      else if (typeof setGamePaused === "function") setGamePaused(false);
+      if (typeof openGlossaryScreen === "function") openGlossaryScreen({ from: "menu" });
+    };
+  }
   backdrop.dataset.storyMode = "arc";
   delete backdrop.dataset.zoneId;
   backdrop.dataset.firstUnlock = "";
@@ -291,7 +309,9 @@ function renderMineStoryBar(zoneId) {
   if (tagEl) tagEl.textContent = beat.tag;
   if (leadEl) {
     const lead = beat.lead || beat.name;
-    leadEl.textContent = vis?.locationLabel ? vis.locationLabel + " — " + lead : lead;
+    const full = vis?.locationLabel ? vis.locationLabel + " — " + lead : lead;
+    if (typeof glossaryLinkifyText === "function") leadEl.innerHTML = glossaryLinkifyText(full);
+    else leadEl.textContent = full;
   }
   if (questEl) {
     if (typeof isZoneBossPending === "function" && isZoneBossPending(zoneId)) {

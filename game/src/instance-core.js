@@ -12,6 +12,8 @@ let instanceDomMobs = new Map();
 let instanceDomStones = new Map();
 /** @type {Map<string, HTMLElement>} */
 let instanceDomAnvilMarks = new Map();
+/** @type {Map<string, HTMLElement>} */
+let instanceDomAdds = new Map();
 let instanceLastPhaseLabel = "";
 let instancePhaseFxTimer = null;
 let instanceLastEventSeen = "";
@@ -124,12 +126,61 @@ async function startInstanceRun(dungeonId) {
     if (typeof toast === "function") toast("Нужен уровень " + dungeon.reqLevel, "warn");
     return;
   }
+  const party = typeof getChatParty === "function" ? getChatParty() : null;
+  const under = ((party && party.members) || []).filter((m) => {
+    const lv =
+      typeof partyMemberEffectiveLevel === "function"
+        ? partyMemberEffectiveLevel(m)
+        : m.level == null || m.level === ""
+          ? null
+          : Math.max(1, Math.floor(Number(m.level) || 0)) || null;
+    return lv != null && lv < (dungeon.reqLevel || 1);
+  });
+  if (under.length) {
+    const names = under
+      .slice(0, 3)
+      .map((m) => (typeof partyMemberLabel === "function" ? partyMemberLabel(m) : m.nick || "?"))
+      .join(", ");
+    if (typeof toast === "function") {
+      toast("Ур. " + dungeon.reqLevel + "+ нужен всей группе" + (names ? ": " + names : ""), "warn");
+    }
+    return;
+  }
+  const levels = {};
+  const powers = {};
+  const characterIds = {};
+  for (const m of (party && party.members) || []) {
+    if (m && m.userId != null) {
+      const lv =
+        typeof partyMemberEffectiveLevel === "function"
+          ? partyMemberEffectiveLevel(m)
+          : Math.max(1, Math.floor(Number(m.level) || 1));
+      if (lv != null) levels[m.userId] = lv;
+      if (m.power != null) powers[m.userId] = Math.max(1, Math.floor(Number(m.power) || 1));
+    }
+  }
+  const myNick =
+    (typeof readCloudAuth === "function" && readCloudAuth()?.nick) ||
+    (typeof cloudAuth !== "undefined" && cloudAuth?.nick) ||
+    "";
+  const meMember = ((party && party.members) || []).find((m) =>
+    typeof partyMemberIsMe === "function" ? partyMemberIsMe(m, myNick) : false
+  );
+  const myId = meMember?.userId;
+  if (myId != null) {
+    levels[myId] = Math.max(1, Math.floor(Number(state.avatar?.level) || 1));
+    powers[myId] = typeof avatarFarmPower === "function" ? avatarFarmPower() : 80;
+    characterIds[myId] = state.activeCharacterId || "";
+  }
   const r = await partyApi("/instance/start", {
     method: "POST",
     body: {
       dungeonId,
       power: typeof avatarFarmPower === "function" ? avatarFarmPower() : 80,
       characterId: state.activeCharacterId || "",
+      levels,
+      powers,
+      characterIds,
     },
   });
   if (!r.ok) {
@@ -364,6 +415,14 @@ function renderInstanceHud(st) {
     } else if (mech === "shield") {
       tip = "Бейте кристаллы вокруг босса";
       cls = "is-shield";
+    } else if (mech === "adds") {
+      tip = "Убейте теней до дедлайна — иначе −жизнь";
+      cls = "is-adds";
+    } else if (mech === "channel") {
+      tip = enc.channelActive
+        ? "КАСТ! Прервите скиллом!"
+        : "Готовьтесь прервать канал скиллом";
+      cls = enc.channelActive ? "is-channel is-channel-hot" : "is-channel";
     } else if (mech === "regen") {
       tip = "Реген каждые 2с — скилл гасит один тик";
       cls = "is-regen";
@@ -420,6 +479,66 @@ function renderInstanceHud(st) {
         pct +
         '%"></i></div>' +
         '<div class="instance-hud-anvil-failbar" aria-hidden="true"><i style="width:' +
+        failPct +
+        '%"></i></div>' +
+        "</div>";
+    } else if (enc.addsActive || mech === "adds") {
+      const adds = Array.isArray(enc.adds) ? enc.adds : [];
+      const alive = adds.filter((a) => a && !a.dead).length;
+      const total = adds.length || alive;
+      const leftSec =
+        enc.addsInMs != null ? Math.max(0, Math.ceil(Number(enc.addsInMs) / 1000)) : null;
+      const totalMs = Math.max(1, Number(enc.addsDeadlineMs) || 18000);
+      const leftMs = enc.addsInMs != null ? Math.max(0, Number(enc.addsInMs)) : totalMs;
+      const pct = Math.max(0, Math.min(100, Math.round((leftMs / totalMs) * 100)));
+      stoneLine =
+        '<div class="instance-hud-adds">' +
+        '<div class="instance-hud-adds-row">' +
+        '<span class="instance-hud-adds-label">☠ Адды</span>' +
+        '<span class="instance-hud-adds-prog">' +
+        alive +
+        " / " +
+        total +
+        "</span>" +
+        (leftSec != null
+          ? '<span class="instance-hud-adds-timer">' + leftSec + "с</span>"
+          : "") +
+        "</div>" +
+        '<div class="instance-hud-adds-bar" aria-hidden="true"><i style="width:' +
+        pct +
+        '%"></i></div>' +
+        "</div>";
+    } else if (enc.channelArmed || enc.channelActive || mech === "channel") {
+      const fails = Math.max(0, Math.floor(Number(enc.channelFails) || 0));
+      const failMax = Math.max(1, Math.floor(Number(enc.channelFailMax) || 3));
+      const failPct = Math.max(0, Math.min(100, Math.round((fails / failMax) * 100)));
+      const windowMs = Math.max(1, Number(enc.channelWindowMs) || 2800);
+      const leftMs = enc.channelActive && enc.channelInMs != null ? Math.max(0, Number(enc.channelInMs)) : 0;
+      const castPct = enc.channelActive
+        ? Math.max(0, Math.min(100, Math.round((leftMs / windowMs) * 100)))
+        : 0;
+      const leftSec = enc.channelActive ? Math.max(0, Math.ceil(leftMs / 1000)) : null;
+      stoneLine =
+        '<div class="instance-hud-channel' +
+        (enc.channelActive ? " is-hot" : "") +
+        '">' +
+        '<div class="instance-hud-channel-row">' +
+        '<span class="instance-hud-channel-label">' +
+        (enc.channelActive ? "✦ КАСТ" : "✦ Канал") +
+        "</span>" +
+        (leftSec != null
+          ? '<span class="instance-hud-channel-timer">' + leftSec + "с</span>"
+          : '<span class="instance-hud-channel-wait">ожидание</span>') +
+        '<span class="instance-hud-channel-fail" title="Провалы до вайпа">☠ ' +
+        fails +
+        "/" +
+        failMax +
+        "</span>" +
+        "</div>" +
+        '<div class="instance-hud-channel-bar" aria-hidden="true"><i style="width:' +
+        castPct +
+        '%"></i></div>' +
+        '<div class="instance-hud-channel-failbar" aria-hidden="true"><i style="width:' +
         failPct +
         '%"></i></div>' +
         "</div>";
@@ -500,6 +619,8 @@ function playInstancePhaseFx(label, mechanic) {
       "instance-phase-flash show" +
       (mechanic === "anvil" ? " fx-anvil" : "") +
       (mechanic === "shield" ? " fx-shield" : "") +
+      (mechanic === "adds" ? " fx-adds" : "") +
+      (mechanic === "channel" ? " fx-channel" : "") +
       (mechanic === "regen" ? " fx-regen" : "") +
       (mechanic === "tough" ? " fx-tough" : "");
     if (instancePhaseFxTimer) clearTimeout(instancePhaseFxTimer);
@@ -513,6 +634,8 @@ function playInstancePhaseFx(label, mechanic) {
     bossEl.classList.remove(
       "inst-phase-shield",
       "inst-phase-anvil",
+      "inst-phase-adds",
+      "inst-phase-channel",
       "inst-phase-regen",
       "inst-phase-tough",
       "inst-phase-pop"
@@ -520,6 +643,8 @@ function playInstancePhaseFx(label, mechanic) {
     void bossEl.offsetWidth;
     if (mechanic === "anvil") bossEl.classList.add("inst-phase-anvil");
     else if (mechanic === "shield") bossEl.classList.add("inst-phase-shield");
+    else if (mechanic === "adds") bossEl.classList.add("inst-phase-adds");
+    else if (mechanic === "channel") bossEl.classList.add("inst-phase-channel");
     else if (mechanic === "regen") bossEl.classList.add("inst-phase-regen");
     else bossEl.classList.add("inst-phase-tough");
     bossEl.classList.add("inst-phase-pop");
@@ -534,14 +659,18 @@ function playInstancePhaseFx(label, mechanic) {
           ? "#ff8a3a"
           : mechanic === "shield"
             ? "#5aa8ff"
-            : mechanic === "regen"
-              ? "#4fd878"
-              : "#e8a84a";
+            : mechanic === "adds"
+              ? "#5ad4c0"
+              : mechanic === "channel"
+                ? "#b48cff"
+                : mechanic === "regen"
+                  ? "#4fd878"
+                  : "#e8a84a";
       mineBurst(x, y, color, 18);
     }
   }
   if (typeof toast === "function" && label) {
-    toast("Фаза: " + label, mechanic === "regen" ? "warn" : "loot");
+    toast("Фаза: " + label, mechanic === "regen" || mechanic === "channel" ? "warn" : "loot");
   }
 }
 
@@ -551,6 +680,7 @@ function syncInstanceBossVisual(st) {
     instanceLastPhaseLabel = "";
     clearInstanceShieldStones();
     clearInstanceAnvilMarks();
+    clearInstanceAdds();
     return;
   }
   const label = enc.phaseLabel || "";
@@ -560,8 +690,11 @@ function syncInstanceBossVisual(st) {
     // Не вешаем mob-shielded на босса — ломает спрайт; аура через inst-phase-*
     g.classList.toggle("inst-phase-anvil", mech === "anvil");
     g.classList.toggle("inst-phase-shield", mech === "shield");
+    g.classList.toggle("inst-phase-adds", mech === "adds");
+    g.classList.toggle("inst-phase-channel", mech === "channel" || !!enc.channelActive);
     g.classList.toggle("inst-phase-regen", mech === "regen");
     g.classList.toggle("inst-phase-tough", mech === "tough" || (!mech && !!label));
+    g.classList.toggle("inst-channel-casting", !!enc.channelActive);
   }
   if (label && label !== instanceLastPhaseLabel) {
     if (instanceLastPhaseLabel) playInstancePhaseFx(label, mech);
@@ -569,9 +702,15 @@ function syncInstanceBossVisual(st) {
   }
   if (enc.anvilActive) {
     clearInstanceShieldStones();
+    clearInstanceAdds();
     syncInstanceAnvilMarks(st);
+  } else if (enc.addsActive) {
+    clearInstanceAnvilMarks();
+    clearInstanceShieldStones();
+    syncInstanceAdds(st);
   } else {
     clearInstanceAnvilMarks();
+    clearInstanceAdds();
     syncInstanceShieldStones(st);
   }
 }
@@ -870,6 +1009,80 @@ function clearInstanceShieldStones() {
   instanceDomStones.clear();
 }
 
+function clearInstanceAdds() {
+  if (!instanceDomAdds || !instanceDomAdds.size) return;
+  for (const g of [...instanceDomAdds.values()]) {
+    try {
+      if (typeof clearMobTimer === "function") clearMobTimer(g);
+      if (typeof removeGnome === "function") removeGnome(g, "caught");
+      else if (g && g.remove) g.remove();
+    } catch (_) {}
+  }
+  instanceDomAdds.clear();
+}
+
+function syncInstanceAdds(st) {
+  const enc = st && st.encounter;
+  const adds = enc && enc.addsActive && Array.isArray(enc.adds) ? enc.adds : [];
+  const aliveIds = new Set(adds.filter((a) => a && !a.dead).map((a) => a.id));
+  for (const [id, g] of [...instanceDomAdds.entries()]) {
+    if (!aliveIds.has(id)) {
+      try {
+        if (typeof clearMobTimer === "function") clearMobTimer(g);
+        if (typeof removeGnome === "function") removeGnome(g, "caught");
+        else g.remove();
+      } catch (_) {}
+      instanceDomAdds.delete(id);
+    }
+  }
+  if (!adds.length || !enc.addsActive) return;
+  const field = typeof mineSpawnField === "function" ? mineSpawnField() : null;
+  if (!field || typeof spawnSoloMob !== "function") return;
+  adds.forEach((a) => {
+    if (!a || a.dead) return;
+    let g = instanceDomAdds.get(a.id);
+    const left = Number.isFinite(Number(a.left)) ? Number(a.left) : 22;
+    const top = Number.isFinite(Number(a.top)) ? Number(a.top) : 58;
+    if (!g) {
+      const mobStem = a.mob || "whisper-shade";
+      const src = "assets/mobs/" + mobStem + ".png";
+      const sprite = {
+        src: typeof mineAssetUrl === "function" ? mineAssetUrl(src) : src + "?v=1",
+        kind: "sprite",
+        cls: "instance-add-mob",
+        label: a.name || "Тень",
+      };
+      spawnSoloMob(field, "normal", { name: a.name || "Тень", sprite });
+      let newest = null;
+      for (const x of mineGnomes) newest = x;
+      if (!newest) return;
+      newest._instanceEncounter = true;
+      newest._instanceAdd = true;
+      newest._instanceMobId = a.id;
+      newest._instanceEncId = enc.id;
+      newest._hp = Math.max(0, a.hp || 0);
+      newest._maxHp = Math.max(1, a.maxHp || a.hp || 1);
+      newest._shieldHp = 0;
+      if (typeof clearMobTimer === "function") clearMobTimer(newest);
+      newest._onExpire = null;
+      newest.style.left = left + "%";
+      newest.style.top = top + "%";
+      newest.style.transform = "translate(-50%, -50%) scale(0.78)";
+      newest.classList.add("instance-add-mob", "mob-sprite-kind");
+      newest.classList.remove("mob-shielded", "target-icon");
+      if (typeof updateMobHpBar === "function") updateMobHpBar(newest);
+      instanceDomAdds.set(a.id, newest);
+      g = newest;
+    } else {
+      g.style.left = left + "%";
+      g.style.top = top + "%";
+      g._hp = Math.max(0, a.hp || 0);
+      g._maxHp = Math.max(1, a.maxHp || a.hp || 1);
+      if (typeof updateMobHpBar === "function") updateMobHpBar(g);
+    }
+  });
+}
+
 function syncInstanceShieldStones(st) {
   const enc = st && st.encounter;
   const stones = enc && enc.shieldActive && Array.isArray(enc.shieldStones) ? enc.shieldStones : [];
@@ -944,6 +1157,7 @@ function syncInstanceShieldStones(st) {
 function instanceClearDom() {
   clearInstanceShieldStones();
   clearInstanceAnvilMarks();
+  clearInstanceAdds();
   if (instanceDomMobs && instanceDomMobs.size) {
     for (const g of [...instanceDomMobs.values()]) {
       try {
@@ -1021,7 +1235,7 @@ function syncInstanceEncounter(st) {
         floatText(p.x, p.y - 20, "+" + heal.toLocaleString("ru-RU"), "#7dff9a");
       }
     }
-    if (st.lastEvent === "enrage" || st.lastEvent === "idle_rampage") {
+    if (st.lastEvent === "enrage" || st.lastEvent === "idle_rampage" || st.lastEvent === "adds_fail" || st.lastEvent === "channel_fail") {
       if (typeof toast === "function" && st.lives != null) {
         toast("Потеряна жизнь! Осталось: " + st.lives, "warn");
       }
@@ -1029,6 +1243,18 @@ function syncInstanceEncounter(st) {
         // Новый enrage-окна на том же боссе — перезапустить визуальный таймер
         syncInstanceMobTimers(st, true);
       }
+      if (st.lastEvent === "adds_fail" && typeof toast === "function") {
+        toast("Адды не убиты вовремя!", "warn");
+      }
+      if (st.lastEvent === "channel_fail" && typeof toast === "function") {
+        toast("Канал не прерван!", "warn");
+      }
+    }
+    if (st.lastEvent === "channel_start" && typeof toast === "function") {
+      toast("Босс кастует — прерви скиллом!", "warn");
+    }
+    if (st.lastEvent === "channel_interrupted" && typeof toast === "function") {
+      toast("Канал прерван!", "loot");
     }
   }
   if (typeof renderMineSkillBar === "function") renderMineSkillBar();
@@ -1038,13 +1264,17 @@ function syncInstanceEncounter(st) {
     const reason =
       st.lastEvent === "anvil_fail"
         ? "Тиран Кузни казнил группу — провал наковальни!"
-        : st.phase === "undersized"
-          ? "Группа распалась — инстанс закрыт"
-          : st.lastEvent === "enrage" || st.phase === "wipe"
-            ? "Жизни закончились — группа пала"
-            : st.phase === "timeout"
-              ? "Время инстанса истекло"
-              : "Инстанс провален";
+        : st.lastEvent === "adds_fail"
+          ? "Адды разорвали группу — тени не убиты вовремя!"
+          : st.lastEvent === "channel_fail"
+            ? "Глас Шпиля дочитал канал — группа пала!"
+            : st.phase === "undersized"
+              ? "Группа распалась — инстанс закрыт"
+              : st.lastEvent === "enrage" || st.phase === "wipe"
+                ? "Жизни закончились — группа пала"
+                : st.phase === "timeout"
+                  ? "Время инстанса истекло"
+                  : "Инстанс провален";
     showInstanceFailModal({
       dungeonName: st.dungeonName || "Инстанс",
       reason,
@@ -1327,17 +1557,25 @@ function showInstanceFailModal(info) {
   const title =
     info.lastEvent === "anvil_fail"
       ? "Казнь кузни"
-      : info.phase === "timeout"
-        ? "Время вышло"
-        : info.phase === "undersized"
-          ? "Группа распалась"
-          : "Поражение";
+      : info.lastEvent === "adds_fail"
+        ? "Восстание мёртвых"
+        : info.lastEvent === "channel_fail"
+          ? "Песнь Безмолвия"
+          : info.phase === "timeout"
+            ? "Время вышло"
+            : info.phase === "undersized"
+              ? "Группа распалась"
+              : "Поражение";
   const tip =
     info.lastEvent === "anvil_fail"
       ? "Бейте только свой цвет в окне удара. Ошибки копят полоску ☠ до вайпа."
-      : info.phase === "undersized"
-        ? "Для инстанса нужно минимум 2 игрока в группе."
-        : "Сохраняйте жизни: не стойте без ударов и успевайте до ярости.";
+      : info.lastEvent === "adds_fail"
+        ? "Пока живы тени — босс неуязвим. Убивайте аддов до дедлайна."
+        : info.lastEvent === "channel_fail"
+          ? "В окне каста нужен удар скиллом. Обычные клики канал не прерывают."
+          : info.phase === "undersized"
+            ? "Для инстанса нужно минимум 2 игрока в группе."
+            : "Сохраняйте жизни: не стойте без ударов и успевайте до ярости.";
 
   const backdrop = document.getElementById("storyBackdrop");
   if (!backdrop || typeof renderStoryPanel !== "function") {

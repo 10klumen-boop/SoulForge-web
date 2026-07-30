@@ -13,6 +13,7 @@ const store = createStore({ dataDir: tmpDir, dbPath });
 
 function seedChar(user, charId, name, level) {
   const now = Date.now();
+  const lv = Math.max(35, Math.floor(Number(level) || 35));
   store.persistPlayerSave(user, 1, now, "test", {
     activeCharacterId: charId,
     characters: [
@@ -22,7 +23,7 @@ function seedChar(user, charId, name, level) {
           avatar: {
             created: true,
             name,
-            level: level || 20,
+            level: lv,
             raceId: "human",
             classId: "fighter",
             genderId: "male",
@@ -36,7 +37,7 @@ function seedChar(user, charId, name, level) {
     avatar: {
       created: true,
       name,
-      level: level || 20,
+      level: lv,
       raceId: "human",
       classId: "fighter",
       genderId: "male",
@@ -88,7 +89,7 @@ assert.ok(!kickSelf.ok);
 
 const farmDisabled = store.partyFarmJoin(user1, {
   zoneId: "party_raiders_trail",
-  power: 120,
+  power: 600,
   characterId: "c1",
   now: 1500,
 });
@@ -104,7 +105,7 @@ store.partySetReady(user2, { ready: true });
 
 const start = store.instanceStart(user1, {
   dungeonId: "dungeon_alpha",
-  power: 120,
+  power: 600,
   characterId: "c1",
   now: now0,
 });
@@ -120,7 +121,7 @@ assert.strictEqual(activeForMember.state.status, "ready");
 store.instanceReady(user2, {
   runId: start.state.runId,
   ready: true,
-  power: 110,
+  power: 580,
   characterId: "c2",
 });
 const stillReady = store.instanceState(user1, { runId: start.state.runId });
@@ -129,7 +130,7 @@ assert.strictEqual(stillReady.state.status, "ready", "one ready is not enough");
 store.instanceReady(user1, {
   runId: start.state.runId,
   ready: true,
-  power: 120,
+  power: 600,
   characterId: "c1",
 });
 
@@ -221,15 +222,15 @@ assert.ok(locks.locks.dungeon_alpha.clears >= 1);
 // --- Нельзя стартовать/продолжать инст соло после выхода лидера ---
 const startSoloGuard = store.instanceStart(user1, {
   dungeonId: "dungeon_alpha",
-  power: 120,
-  powers: { [user1.id]: 120, [user2.id]: 110 },
+  power: 600,
+  powers: { [user1.id]: 600, [user2.id]: 580 },
   now: now0 + 700_000,
 });
 assert.ok(startSoloGuard.ok, startSoloGuard.message);
 store.instanceReady(user2, {
   runId: startSoloGuard.state.runId,
   ready: true,
-  power: 110,
+  power: 580,
   characterId: "c2",
 });
 const leaveLeader = store.instanceLeave(user1, { runId: startSoloGuard.state.runId });
@@ -238,7 +239,7 @@ assert.ok(leaveLeader.undersized || leaveLeader.dissolved || !store._instanceRun
 const soloReady = store.instanceReady(user2, {
   runId: startSoloGuard.state.runId,
   ready: true,
-  power: 110,
+  power: 580,
   characterId: "c2",
 });
 assert.ok(!soloReady.ok || soloReady.error === "run" || soloReady.error === "size" || !soloReady.state || soloReady.state.status !== "active");
@@ -250,9 +251,11 @@ assert.ok(
 );
 
 // --- World boss ---
-const wbStart = store.worldBossForceStart({ now: now0 + 1_000_000 });
+const wbStart = store.worldBossForceStart({ now: now0 + 1_000_000, bossId: "world_zaken" });
 assert.ok(wbStart.ok);
 assert.strictEqual(wbStart.state.status, "active");
+assert.strictEqual(wbStart.boss.id, "world_zaken");
+assert.ok(Array.isArray(wbStart.bosses) && wbStart.bosses.length >= 2);
 
 const enter1 = store.worldBossEnter(user1, {
   characterId: "c1",
@@ -280,6 +283,7 @@ for (let i = 0; i < 5; i++) {
   const c = store.worldBossClick(user1, {
     characterId: "c1",
     charName: "HeroOne",
+    damage: 10,
     now: now0 + 1_000_300 + i * 200,
   });
   assert.ok(c.ok, c.message);
@@ -288,33 +292,129 @@ for (let i = 0; i < 3; i++) {
   const c = store.worldBossClick(user2, {
     characterId: "c2",
     charName: "HeroTwo",
+    damage: 100,
     now: now0 + 1_000_400 + i * 200,
   });
   assert.ok(c.ok, c.message);
 }
 
 const mid = store.worldBossState(user1);
-assert.strictEqual(mid.state.my.clicks, 5);
-assert.strictEqual(mid.state.top[0].charName, "HeroOne");
+assert.strictEqual(mid.state.my.damage, 50);
+assert.strictEqual(mid.state.my.hits, 5);
+assert.strictEqual(mid.state.my.clicks, 50);
+assert.strictEqual(mid.state.top[0].charName, "HeroTwo"); // больше урона при меньшем числе ударов
+const mid2 = store.worldBossState(user2);
+assert.strictEqual(mid2.state.my.damage, 300);
 
 store.worldBossForceEnd({ now: now0 + 1_000_300 + 20 * 60 * 1000 });
 const ended = store.worldBossState(user1);
 assert.strictEqual(ended.state.status, "ended");
 assert.ok(ended.state.winner);
-assert.strictEqual(ended.state.winner.charName, "HeroOne");
+assert.strictEqual(ended.state.winner.charName, "HeroTwo");
 
-const claimLoser = store.worldBossClaim(user2, { now: now0 + 2_000_000 });
+const claimLoser = store.worldBossClaim(user1, { now: now0 + 2_000_000 });
 assert.ok(claimLoser.ok, claimLoser.message);
 assert.ok(claimLoser.loot && claimLoser.loot.shards && claimLoser.loot.shards.id === "zaken_earring_shard");
 assert.strictEqual(claimLoser.place, 2);
 
-const claim = store.worldBossClaim(user1, { now: now0 + 2_000_100 });
+const claim = store.worldBossClaim(user2, { now: now0 + 2_000_100 });
 assert.ok(claim.ok, claim.message);
 assert.ok(claim.loot && claim.loot.accessoryId === "zaken_earring");
 assert.strictEqual(claim.place, 1);
 
-const claim2 = store.worldBossClaim(user1, { now: now0 + 2_000_200 });
+const claim2 = store.worldBossClaim(user2, { now: now0 + 2_000_200 });
 assert.ok(!claim2.ok, "one claim only");
+
+// Queen Ant force + loot
+const qaStart = store.worldBossForceStart({ now: now0 + 2_500_000, bossId: "world_queen_ant" });
+assert.ok(qaStart.ok);
+assert.strictEqual(qaStart.boss.id, "world_queen_ant");
+const qaEnter = store.worldBossEnter(user1, {
+  characterId: "c1",
+  charName: "HeroOne",
+  level: 25,
+  bossId: "world_queen_ant",
+  now: now0 + 2_500_100,
+});
+assert.ok(qaEnter.ok, qaEnter.message);
+for (let i = 0; i < 2; i++) {
+  const c = store.worldBossClick(user1, {
+    characterId: "c1",
+    charName: "HeroOne",
+    now: now0 + 2_500_200 + i * 200,
+  });
+  assert.ok(c.ok, c.message);
+}
+store.worldBossForceEnd({ now: now0 + 2_500_800 });
+const qaClaim = store.worldBossClaim(user1, { now: now0 + 2_501_000 });
+assert.ok(qaClaim.ok, qaClaim.message);
+assert.ok(qaClaim.loot && qaClaim.loot.accessoryId === "queen_ant_ring");
+
+// --- World boss swipe anti-bot ---
+const swipeStart = store.worldBossForceStart({ now: now0 + 3_500_000, bossId: "world_zaken" });
+assert.ok(swipeStart.ok);
+const swipeEnter = store.worldBossEnter(user1, {
+  characterId: "c1",
+  charName: "HeroOne",
+  level: 25,
+  now: now0 + 3_500_100,
+});
+assert.ok(swipeEnter.ok, swipeEnter.message);
+let swipeHit = null;
+for (let i = 0; i < 3; i++) {
+  swipeHit = store.worldBossClick(user1, {
+    characterId: "c1",
+    charName: "HeroOne",
+    now: now0 + 3_500_200 + i * 200,
+    _testSwipeNextAt: 3,
+  });
+  assert.ok(swipeHit.ok, swipeHit.message);
+}
+assert.ok(swipeHit.swipeRequired || swipeHit.state.my.swipeRequired, "swipe should trigger at 3");
+assert.strictEqual(swipeHit.state.my.hits, 3);
+assert.ok(swipeHit.state.my.damage >= 3);
+const blocked = store.worldBossClick(user1, {
+  characterId: "c1",
+  now: now0 + 3_501_000,
+});
+assert.ok(!blocked.ok && blocked.error === "swipe", "hits blocked during swipe");
+const token1 = blocked.state.my.swipeToken;
+assert.ok(token1);
+const fail1 = store.worldBossSwipe(user1, { success: false, token: token1, now: now0 + 3_501_100 });
+assert.ok(fail1.ok && !fail1.swipeOk && !fail1.wiped);
+assert.strictEqual(fail1.state.my.swipeFails, 1);
+assert.ok(fail1.state.my.swipeRequired);
+const token2 = fail1.state.my.swipeToken;
+const fail2 = store.worldBossSwipe(user1, { success: false, token: token2, now: now0 + 3_501_200 });
+assert.ok(fail2.ok && !fail2.wiped);
+assert.strictEqual(fail2.state.my.swipeFails, 2);
+const token3 = fail2.state.my.swipeToken;
+const wipe = store.worldBossSwipe(user1, { success: false, token: token3, now: now0 + 3_501_300 });
+assert.ok(wipe.ok && wipe.wiped);
+assert.strictEqual(wipe.state.my.damage, 0);
+assert.strictEqual(wipe.state.my.hits, 0);
+assert.strictEqual(wipe.state.my.swipeFails, 0);
+assert.ok(!wipe.state.my.swipeRequired);
+
+for (let i = 0; i < 2; i++) {
+  swipeHit = store.worldBossClick(user1, {
+    characterId: "c1",
+    damage: 25,
+    now: now0 + 3_502_000 + i * 200,
+    _testSwipeNextAt: 2,
+  });
+  assert.ok(swipeHit.ok, swipeHit.message);
+}
+assert.ok(swipeHit.state.my.swipeRequired);
+assert.strictEqual(swipeHit.state.my.damage, 50);
+const pass = store.worldBossSwipe(user1, {
+  success: true,
+  token: swipeHit.state.my.swipeToken,
+  now: now0 + 3_502_500,
+});
+assert.ok(pass.ok && pass.swipeOk);
+assert.ok(!pass.state.my.swipeRequired);
+assert.strictEqual(pass.state.my.damage, 50);
 
 // --- LFG board ---
 const u3 = store.insertUser("PartyThree", bcrypt.hashSync("pass1234", 4), Date.now());
@@ -363,14 +463,14 @@ assert.strictEqual(afterJoin.mine.membersCount, 2);
 store.partySetReady(user4, { ready: true });
 const startFromLfg = store.instanceStart(user3, {
   dungeonId: "dungeon_alpha",
-  power: 120,
+  power: 600,
   characterId: "c3",
   now: now0 + 3_001_000,
 });
 assert.ok(startFromLfg.ok, startFromLfg.message);
 assert.strictEqual(startFromLfg.state.status, "ready");
-store.instanceReady(user3, { runId: startFromLfg.state.runId, ready: true, power: 120, characterId: "c3" });
-store.instanceReady(user4, { runId: startFromLfg.state.runId, ready: true, power: 110, characterId: "c4" });
+store.instanceReady(user3, { runId: startFromLfg.state.runId, ready: true, power: 600, characterId: "c3" });
+store.instanceReady(user4, { runId: startFromLfg.state.runId, ready: true, power: 580, characterId: "c4" });
 const afterReady = store.instanceState(user3, { runId: startFromLfg.state.runId });
 assert.strictEqual(afterReady.state.status, "active");
 const clearedBoard = store.partyLfgList(user3, { now: now0 + 3_001_100 });
@@ -393,7 +493,7 @@ assert.ok(!expired.listings.some((x) => x.id === (short.listing || short.mine)?.
 const depthsNow = Date.now();
 const depthsStart = store.instanceStart(user1, {
   dungeonId: "dungeon_depths",
-  power: 200,
+  power: 600,
   characterId: "c1",
   now: depthsNow,
 });
@@ -401,13 +501,13 @@ assert.ok(depthsStart.ok, depthsStart.message);
 store.instanceReady(user1, {
   runId: depthsStart.state.runId,
   ready: true,
-  power: 200,
+  power: 600,
   characterId: "c1",
 });
 store.instanceReady(user2, {
   runId: depthsStart.state.runId,
   ready: true,
-  power: 190,
+  power: 580,
   characterId: "c2",
 });
 let sawAnvil = false;
@@ -419,6 +519,11 @@ for (let i = 0; i < 12000 && !bossDmgAfterAnvil; i++) {
   if (!snap.state || snap.state.status === "failed" || snap.state.status === "cleared") break;
   const enc = snap.state.encounter;
   const tHit = depthsNow + 1500 + i * 160;
+  // Не даём wave-idle съесть жизни при synthetic now
+  const runIdle = [...store._instanceRuns.values()].find((r) => r.id === depthsStart.state.runId);
+  if (runIdle?.encounter?.kind === "wave") {
+    runIdle.encounter.idleDeadlineAt = tHit + 60_000;
+  }
   if (enc && enc.kind === "boss" && enc.anvilActive) {
     sawAnvil = true;
     assert.ok(!(enc.shieldStones || []).length, "depths anvil has no shield crystals");
@@ -536,13 +641,13 @@ store.instanceLeave(user2, { runId: depthsStart.state.runId });
 const wipeNow = Date.now();
 const wipeStart = store.instanceStart(user1, {
   dungeonId: "dungeon_depths",
-  power: 200,
+  power: 600,
   characterId: "c1",
   now: wipeNow,
 });
 assert.ok(wipeStart.ok, wipeStart.message);
-store.instanceReady(user1, { runId: wipeStart.state.runId, ready: true, power: 200, characterId: "c1" });
-store.instanceReady(user2, { runId: wipeStart.state.runId, ready: true, power: 190, characterId: "c2" });
+store.instanceReady(user1, { runId: wipeStart.state.runId, ready: true, power: 600, characterId: "c1" });
+store.instanceReady(user2, { runId: wipeStart.state.runId, ready: true, power: 580, characterId: "c2" });
 let wiped = false;
 for (let i = 0; i < 8000 && !wiped; i++) {
   const snap = store.instanceState(user1, { runId: wipeStart.state.runId });
@@ -553,6 +658,10 @@ for (let i = 0; i < 8000 && !wiped; i++) {
   if (snap.state.status === "cleared") break;
   const enc = snap.state.encounter;
   const tHit = wipeNow + 1500 + i * 160;
+  const runIdle = [...store._instanceRuns.values()].find((r) => r.id === wipeStart.state.runId);
+  if (runIdle?.encounter?.kind === "wave") {
+    runIdle.encounter.idleDeadlineAt = tHit + 60_000;
+  }
   if (enc && enc.kind === "boss" && enc.anvilActive) {
     const run = [...store._instanceRuns.values()].find((r) => r.id === wipeStart.state.runId);
     const failMax = Math.max(1, enc.anvilFailMax || 10);
@@ -593,5 +702,277 @@ for (let i = 0; i < 8000 && !wiped; i++) {
   });
 }
 assert.ok(wiped, "wrong-color anvil fails should wipe the party");
+
+// --- Некрополь: адды блокируют босса, дедлайн жжёт life ---
+const addsNow = Date.now();
+const addsStart = store.instanceStart(user1, {
+  dungeonId: "dungeon_catacomb",
+  power: 400,
+  characterId: "c1",
+  powers: { [user1.id]: 400, [user2.id]: 380 },
+  now: addsNow,
+});
+assert.ok(addsStart.ok, addsStart.message);
+store.instanceReady(user1, { runId: addsStart.state.runId, ready: true, power: 400, characterId: "c1" });
+store.instanceReady(user2, { runId: addsStart.state.runId, ready: true, power: 380, characterId: "c2" });
+let sawAdds = false;
+let addsCleared = false;
+for (let i = 0; i < 10000 && !addsCleared; i++) {
+  const snap = store.instanceState(user1, { runId: addsStart.state.runId });
+  if (!snap.state || snap.state.status === "failed" || snap.state.status === "cleared") break;
+  const enc = snap.state.encounter;
+  const tHit = addsNow + 1500 + i * 160;
+  const runIdle = [...store._instanceRuns.values()].find((r) => r.id === addsStart.state.runId);
+  if (runIdle?.encounter?.kind === "wave") {
+    runIdle.encounter.idleDeadlineAt = tHit + 60_000;
+  }
+  if (enc && enc.kind === "boss" && enc.addsActive) {
+    sawAdds = true;
+    const boss = (enc.mobs || [])[0];
+    const blocked = store.instanceHit(user1, {
+      runId: addsStart.state.runId,
+      dmg: 500,
+      mobId: boss.id,
+      now: tHit,
+    });
+    assert.ok(blocked.ok);
+    assert.ok(blocked.blocked, "boss blocked while adds alive");
+    const aliveAdds = (enc.adds || []).filter((a) => a && !a.dead);
+    assert.ok(aliveAdds.length >= 1, "adds spawned");
+    for (const add of aliveAdds) {
+      for (let k = 0; k < 80; k++) {
+        const ha = store.instanceHit(user1, {
+          runId: addsStart.state.runId,
+          dmg: 400,
+          mobId: add.id,
+          bySkill: true,
+          now: tHit + 200 + k * 160,
+        });
+        if (ha.addDead || ha.addsDown) break;
+        if (ha.state?.status === "failed") break;
+      }
+    }
+    const after = store.instanceState(user1, { runId: addsStart.state.runId });
+    if (after.state?.encounter && !after.state.encounter.addsActive) {
+      addsCleared = true;
+      const boss2 = (after.state.encounter.mobs || [])[0];
+      const hpBefore = boss2.hp;
+      const hBoss = store.instanceHit(user1, {
+        runId: addsStart.state.runId,
+        dmg: 300,
+        mobId: boss2.id,
+        bySkill: true,
+        now: tHit + 50_000,
+      });
+      assert.ok(hBoss.ok && !hBoss.blocked, "boss damage after adds");
+      const hpAfter = (hBoss.state?.encounter?.mobs || [])[0]?.hp;
+      assert.ok(hpAfter < hpBefore, "boss took damage after adds cleared");
+      break;
+    }
+    continue;
+  }
+  const targetId = (enc?.mobs || []).find((m) => !m.dead)?.id;
+  store.instanceHit(user1, {
+    runId: addsStart.state.runId,
+    dmg: 500,
+    mobId: targetId,
+    bySkill: true,
+    now: tHit,
+  });
+}
+assert.ok(sawAdds, "catacomb boss should spawn adds");
+assert.ok(addsCleared, "adds should be clearable");
+store.instanceLeave(user1, { runId: addsStart.state.runId });
+store.instanceLeave(user2, { runId: addsStart.state.runId });
+
+// --- Шпиль: канал прерывается скиллом; без скилла — fail ---
+const chNow = Date.now();
+const chStart = store.instanceStart(user1, {
+  dungeonId: "dungeon_spire",
+  power: 600,
+  characterId: "c1",
+  powers: { [user1.id]: 600, [user2.id]: 580 },
+  now: chNow,
+});
+assert.ok(chStart.ok, chStart.message);
+store.instanceReady(user1, { runId: chStart.state.runId, ready: true, power: 600, characterId: "c1" });
+store.instanceReady(user2, { runId: chStart.state.runId, ready: true, power: 580, characterId: "c2" });
+
+function forceInstanceBoss(runId, dungeonId) {
+  const run = [...store._instanceRuns.values()].find((r) => r.id === runId);
+  assert.ok(run && run.status === "active", "run active for boss force");
+  const dungeon = partyDungeonById(dungeonId);
+  assert.ok(dungeon && dungeon.boss, "dungeon boss");
+  // Перепрыгиваем волны — тестируем только механики босса
+  run.waveIndex = dungeon.waves.length;
+  run.phase = "boss";
+  run.encounter = null;
+  const powers = [...run.members.values()].map((m) => m.power);
+  const { partyInstanceMobMaxHp: hpFn } = require(path.join(
+    __dirname,
+    "..",
+    "src",
+    "data",
+    "party-content-data.js"
+  ));
+  const maxHp = hpFn(dungeon.boss, dungeon, run.members.size, powers);
+  const packId = "test_boss_" + runId;
+  run.encounter = {
+    id: packId,
+    kind: "boss",
+    name: dungeon.boss.name,
+    phaseLabel: null,
+    mechanic: null,
+    toughness: 1,
+    regen: false,
+    phases: dungeon.boss.phases || null,
+    enrageMs: dungeon.boss.enrageMs || 0,
+    enrageAt: Date.now() + (dungeon.boss.enrageMs || 120000),
+    regenPulseMs: dungeon.boss.regenPulseMs || 0,
+    regenPct: dungeon.boss.regenPct || 0,
+    nextRegenAt: Date.now() + 2000,
+    lastHitAt: Date.now(),
+    idleDeadlineAt: 0,
+    lastSkillHitAt: 0,
+    mobs: [
+      {
+        id: packId + "_0",
+        name: dungeon.boss.name,
+        mob: dungeon.boss.mob,
+        hp: maxHp,
+        maxHp,
+        dead: false,
+        shieldHp: 0,
+        shieldMax: 0,
+      },
+    ],
+  };
+  return run;
+}
+
+const { partyDungeonById } = require(path.join(
+  __dirname,
+  "..",
+  "src",
+  "data",
+  "party-content-data.js"
+));
+forceInstanceBoss(chStart.state.runId, "dungeon_spire");
+
+let sawChannel = false;
+let interrupted = false;
+for (let i = 0; i < 8000 && !interrupted; i++) {
+  const snap = store.instanceState(user1, { runId: chStart.state.runId });
+  if (!snap.state || snap.state.status === "failed" || snap.state.status === "cleared") break;
+  const enc = snap.state.encounter;
+  const tHit = chNow + 1500 + i * 160;
+  if (!enc || enc.kind !== "boss") break;
+  const run = [...store._instanceRuns.values()].find((r) => r.id === chStart.state.runId);
+  // Снижаем HP до channel-порога (~0.74)
+  if (run && run.encounter && run.encounter.mobs && run.encounter.mobs[0]) {
+    const boss = run.encounter.mobs[0];
+    if (boss.hp / boss.maxHp > 0.74) {
+      boss.hp = Math.floor(boss.maxHp * 0.74);
+    }
+  }
+  store.instanceState(user1, { runId: chStart.state.runId });
+  if (run && run.encounter && run.encounter.channelArmed && !run.encounter.channelActive) {
+    const forceNow = Date.now();
+    run.encounter.nextChannelAt = forceNow - 1;
+    store.instanceState(user1, { runId: chStart.state.runId, now: forceNow });
+  }
+  const enc2 = store.instanceState(user1, { runId: chStart.state.runId }).state?.encounter;
+  if (enc2 && enc2.channelActive) {
+    sawChannel = true;
+    const boss = (enc2.mobs || [])[0];
+    const hi = store.instanceHit(user1, {
+      runId: chStart.state.runId,
+      dmg: 200,
+      mobId: boss.id,
+      bySkill: true,
+      skillMult: 1.5,
+      now: tHit + 50,
+    });
+    assert.ok(hi.ok);
+    assert.ok(
+      hi.state?.lastEvent === "channel_interrupted" ||
+        (hi.state?.encounter && !hi.state.encounter.channelActive),
+      "skill should interrupt channel"
+    );
+    interrupted = true;
+    break;
+  }
+  // лёгкий хит чтобы тикнуть фазу
+  const boss = (enc.mobs || [])[0];
+  store.instanceHit(user1, {
+    runId: chStart.state.runId,
+    dmg: 20,
+    mobId: boss && boss.id,
+    now: tHit,
+  });
+}
+assert.ok(sawChannel, "spire boss should start channel");
+assert.ok(interrupted, "channel should be interruptible by skill");
+
+store.instanceLeave(user1, { runId: chStart.state.runId });
+store.instanceLeave(user2, { runId: chStart.state.runId });
+const chFailNow = Date.now();
+const chFailStart = store.instanceStart(user1, {
+  dungeonId: "dungeon_spire",
+  power: 600,
+  characterId: "c1",
+  powers: { [user1.id]: 600, [user2.id]: 580 },
+  now: chFailNow,
+});
+assert.ok(chFailStart.ok, chFailStart.message);
+store.instanceReady(user1, { runId: chFailStart.state.runId, ready: true, power: 600, characterId: "c1" });
+store.instanceReady(user2, { runId: chFailStart.state.runId, ready: true, power: 580, characterId: "c2" });
+forceInstanceBoss(chFailStart.state.runId, "dungeon_spire");
+let channelWiped = false;
+for (let i = 0; i < 8000 && !channelWiped; i++) {
+  const snap = store.instanceState(user1, { runId: chFailStart.state.runId });
+  if (!snap.state) break;
+  if (snap.state.status === "failed") {
+    channelWiped =
+      snap.state.lastEvent === "channel_fail" || snap.state.phase === "wipe";
+    break;
+  }
+  if (snap.state.status === "cleared") break;
+  const enc = snap.state.encounter;
+  const tHit = chFailNow + 1500 + i * 160;
+  const run = [...store._instanceRuns.values()].find((r) => r.id === chFailStart.state.runId);
+  if (run && run.encounter && run.encounter.mobs && run.encounter.mobs[0]) {
+    const boss = run.encounter.mobs[0];
+    if (boss.hp / boss.maxHp > 0.74) boss.hp = Math.floor(boss.maxHp * 0.74);
+  }
+  store.instanceState(user1, { runId: chFailStart.state.runId });
+  if (enc && enc.kind === "boss" && run && run.encounter) {
+    if (run.encounter.channelArmed && !run.encounter.channelActive) {
+      const forceNow = Date.now();
+      run.encounter.nextChannelAt = forceNow - 1;
+      run.encounter.channelWindowMs = 400;
+      run.encounter.channelFailMax = 1;
+      store.instanceState(user1, { runId: chFailStart.state.runId, now: forceNow });
+    }
+    if (run.encounter.channelActive) {
+      const forceNow = Date.now();
+      run.encounter.channelEndsAt = forceNow - 1;
+      const after = store.instanceState(user1, { runId: chFailStart.state.runId, now: forceNow });
+      if (after.state?.status === "failed") {
+        channelWiped = after.state.lastEvent === "channel_fail" || after.state.phase === "wipe";
+        break;
+      }
+      continue;
+    }
+  }
+  const boss = (enc?.mobs || [])[0];
+  store.instanceHit(user1, {
+    runId: chFailStart.state.runId,
+    dmg: 20,
+    mobId: boss && boss.id,
+    now: tHit,
+  });
+}
+assert.ok(channelWiped, "missed channel should wipe at failMax");
 
 console.log("party-content-server.test.js OK");

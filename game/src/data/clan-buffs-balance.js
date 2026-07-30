@@ -198,10 +198,30 @@ const CLAN_BUFF_CAPS = { adenaPct: 22, xpPct: 20, pvpPct: 12, pvpDefPct: 12 };
 
 /** Очки активности (осада / босс), не баффы. */
 const CLAN_ACTIVITY = {
-  depositPerAdena: 0.0001,
-  depositMaxPerAction: 50,
   claimTerritory: 50,
 };
+
+/**
+ * Пожертвования на склад клана — только эти суммы.
+ * XP фиксирован за клик кнопки (крупнее — выгоднее XP/adena).
+ * Снятие со склада отключено: adena уходит в казну на захват/отбитие/баффы.
+ */
+const CLAN_DONATIONS = [
+  { amount: 1_000_000, xp: 10, label: "1kk" },
+  { amount: 10_000_000, xp: 120, label: "10kk" },
+  { amount: 100_000_000, xp: 1400, label: "100kk" },
+  { amount: 1_000_000_000, xp: 16000, label: "1kkk" },
+];
+
+function clanDonationByAmount(amount) {
+  const n = Math.floor(Number(amount) || 0);
+  return CLAN_DONATIONS.find((d) => d.amount === n) || null;
+}
+
+function clanScoreFromDonation(amount) {
+  const tier = clanDonationByAmount(amount);
+  return tier ? Math.max(0, Math.floor(Number(tier.xp) || 0)) : 0;
+}
 
 /** Сила осады (недельный score) → множитель цены отбития. */
 const CLAN_SIEGE_POWER_TIERS = [

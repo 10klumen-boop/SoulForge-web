@@ -929,6 +929,9 @@ function renderMenuFarmHub() {
   const worldBossField = document.getElementById("worldBossField");
   const showEntry = !menuFarmEntry;
   if (entryEl) entryEl.hidden = !showEntry;
+  if (showEntry && typeof syncWorldBossFarmEntryBtn === "function") {
+    syncWorldBossFarmEntryBtn();
+  }
   if (storyField) storyField.hidden = menuFarmEntry !== "story";
   if (farmField) farmField.hidden = menuFarmEntry !== "farm";
   if (worldBossField) worldBossField.hidden = menuFarmEntry !== "worldboss";

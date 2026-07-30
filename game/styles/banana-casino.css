@@ -1,0 +1,1150 @@
+/* ===== Казино Банана — экран и барабан ===== */
+
+#screen-banana-casino {
+  --bc-bronze: #c9a04a;
+  --bc-bronze-dim: #8a6a32;
+  --bc-ink: #0c0a08;
+  --bc-panel: #1a140e;
+  --bc-cream: #f2e2b8;
+  --bc-gold: #ffe29a;
+  --bc-rare: #7ec8ff;
+  --bc-jack: #ffc46b;
+  --bc-plate:
+    linear-gradient(165deg, rgba(22, 16, 10, 0.78) 0%, rgba(10, 8, 6, 0.88) 100%),
+    var(--sf-panel-leather, url("../assets/ui/sf-panel-leather.png"));
+  --bc-plate-size: cover;
+  --bc-plate-pos: center;
+}
+
+#screen-banana-casino .banana-casino-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 10px 12px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* Слайд на телефоне есть, полосы скролла нет */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#screen-banana-casino .banana-casino-body::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+#screen-banana-casino .sf-screen-hero {
+  margin: 0 8px 6px;
+  min-height: 56px;
+  display: none;
+}
+
+#screen-banana-casino .sf-screen-hero-body {
+  padding: 10px 14px;
+}
+
+#screen-banana-casino .sf-screen-hero-body h3 {
+  font-size: 15px;
+  margin: 0 0 2px;
+}
+
+#screen-banana-casino .sf-screen-hero-body p {
+  margin: 0;
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sf-screen-hero--banana-casino {
+  position: relative;
+  overflow: hidden;
+  background: #14100c;
+}
+
+.sf-screen-hero--banana-casino .sf-screen-hero-art {
+  position: absolute;
+  inset: 0;
+  background:
+    url("../assets/ui/banana-casino/hero.png?v=1") center 35% / cover no-repeat;
+  filter: saturate(0.92) brightness(0.72);
+  transform: scale(1.02);
+}
+
+.sf-screen-hero--banana-casino .sf-screen-hero-veil {
+  background:
+    linear-gradient(90deg, rgba(12, 8, 4, 0.82) 0%, rgba(12, 8, 4, 0.45) 45%, rgba(12, 8, 4, 0.7) 100%),
+    linear-gradient(180deg, rgba(20, 12, 6, 0.2) 0%, rgba(10, 8, 6, 0.75) 100%);
+}
+
+/* ----- Машина ----- */
+
+.banana-machine {
+  position: relative;
+  border: 2px solid var(--bc-bronze-dim);
+  border-radius: 14px;
+  background:
+    linear-gradient(165deg, rgba(40, 28, 16, 0.55) 0%, rgba(12, 9, 6, 0.78) 55%, rgba(10, 8, 6, 0.88) 100%),
+    url("../assets/ui/banana-casino/machine_frame.png?v=2") center 18% / 112% auto no-repeat,
+    linear-gradient(145deg, #2a1c12 0%, #14100c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 210, 120, 0.12),
+    inset 0 16px 32px rgba(0, 0, 0, 0.25),
+    0 8px 22px rgba(0, 0, 0, 0.45);
+  padding: 10px 12px 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.banana-machine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% -10%, rgba(255, 200, 90, 0.12), transparent 45%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.banana-machine::after {
+  display: none;
+}
+
+.banana-machine.is-spinning {
+  animation: banana-machine-hum 0.55s ease-in-out infinite;
+}
+
+.banana-machine.is-win {
+  animation: banana-machine-win 0.7s ease-out;
+}
+
+@keyframes banana-machine-hum {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.06); }
+}
+
+@keyframes banana-machine-win {
+  0% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 210, 120, 0.12),
+      0 8px 22px rgba(0, 0, 0, 0.45);
+  }
+  40% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 230, 160, 0.4),
+      0 0 26px 3px rgba(255, 196, 107, 0.32);
+  }
+  100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 210, 120, 0.12),
+      0 10px 28px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.banana-machine-crown {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 0 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.banana-machine-gem {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(255, 200, 80, 0.45));
+}
+
+.banana-machine-gem--mid {
+  width: 28px;
+  height: 28px;
+  margin-top: -2px;
+  animation: banana-gem-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes banana-gem-pulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); filter: drop-shadow(0 0 6px rgba(255, 200, 80, 0.4)); }
+  50% { opacity: 1; transform: scale(1.08); filter: drop-shadow(0 0 12px rgba(255, 210, 100, 0.75)); }
+}
+
+.banana-machine-mascot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.banana-mascot-frame {
+  width: 96px;
+  height: 96px;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.banana-mascot-frame img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  object-position: center center;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.55));
+  animation: banana-mascot-idle 3.2s ease-in-out infinite;
+}
+
+.banana-machine.is-spinning .banana-mascot-frame img {
+  animation: banana-mascot-spin 0.35s ease-in-out infinite;
+}
+
+@keyframes banana-mascot-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes banana-mascot-spin {
+  0%, 100% { transform: rotate(-4deg) scale(1.02); }
+  50% { transform: rotate(4deg) scale(1.06); }
+}
+
+.banana-machine-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.banana-machine-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a89060;
+}
+
+.banana-machine-title {
+  font-family: Literata, Georgia, serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--bc-gold);
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 0 #000, 0 0 18px rgba(255, 200, 100, 0.25);
+  line-height: 1.15;
+}
+
+.banana-machine-sub {
+  font-size: 0.72rem;
+  color: #b8a888;
+}
+
+/* ----- HUD ----- */
+
+.banana-casino-hud {
+  display: grid;
+  grid-template-columns: minmax(110px, 148px) 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.banana-token-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 160, 74, 0.55);
+  background: var(--bc-plate);
+  background-size: auto, var(--bc-plate-size);
+  background-position: center, 20% 40%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 160, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 210, 120, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.banana-token-ico {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 210, 120, 0.12), transparent 65%),
+    rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(201, 160, 74, 0.25);
+  padding: 2px;
+}
+
+.banana-token-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.banana-token-label {
+  font-size: 0.68rem;
+  color: #a89060;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.banana-token-chip strong {
+  color: var(--bc-gold);
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.banana-pity-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--bc-plate);
+  background-size: auto, var(--bc-plate-size);
+  background-position: center, 70% 55%;
+  border: 1px solid rgba(138, 106, 50, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 140, 0.1),
+    inset 0 0 18px rgba(0, 0, 0, 0.35);
+}
+
+.banana-pity-row {
+  display: grid;
+  grid-template-columns: 58px 1fr 44px;
+  gap: 6px;
+  align-items: center;
+}
+
+.banana-pity-lab {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bc-rare);
+}
+
+.banana-pity-row--jp .banana-pity-lab {
+  color: var(--bc-jack);
+}
+
+.banana-pity-track {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.banana-pity-track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3a6a90, var(--bc-rare));
+  transition: width 0.35s ease;
+}
+
+.banana-pity-row--jp .banana-pity-track i {
+  background: linear-gradient(90deg, #8a5a18, var(--bc-jack));
+}
+
+.banana-pity-val {
+  font-size: 0.72rem;
+  color: #c8b898;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- Окно рилов — единый барабан ----- */
+
+.banana-window {
+  position: relative;
+  z-index: 1;
+  margin: 2px 0 10px;
+}
+
+.banana-window-frame {
+  position: relative;
+  border-radius: 12px;
+  padding: 14px 18px 16px;
+  border: 2px solid #7a5a28;
+  background:
+    linear-gradient(180deg, rgba(28, 20, 12, 0.55) 0%, rgba(10, 8, 6, 0.72) 100%),
+    url("../assets/ui/banana-casino/machine_frame.png?v=2") center 40% / cover no-repeat;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 210, 120, 0.14),
+    inset 0 10px 28px rgba(0, 0, 0, 0.35),
+    0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.banana-window-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(255, 200, 100, 0.06), transparent 55%),
+    rgba(8, 6, 4, 0.28);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Боковые маркеры линии выигрыша */
+.banana-window-frame::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 0;
+  border-top: 1px dashed rgba(255, 200, 100, 0.12);
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.banana-reels,
+.banana-payline {
+  position: relative;
+  z-index: 1;
+}
+
+.banana-reels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  width: min(100%, 292px);
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #16110c 0%, #080604 55%, #050403 100%);
+  border: 2px solid #5a4220;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 210, 120, 0.1),
+    inset 0 14px 28px rgba(0, 0, 0, 0.65),
+    inset 0 -10px 20px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(20, 14, 8, 0.9);
+}
+
+.banana-reel {
+  --bc-cell: 72px;
+  width: 100%;
+  height: var(--bc-cell);
+  border: none;
+  border-right: 1px solid rgba(138, 106, 50, 0.4);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35)),
+    linear-gradient(180deg, rgba(28, 20, 12, 0.55) 0%, rgba(10, 8, 6, 0.35) 45%, rgba(6, 4, 3, 0.7) 100%);
+  overflow: hidden;
+  box-shadow: none;
+  position: relative;
+}
+
+.banana-reel:last-child {
+  border-right: none;
+}
+
+.banana-reel:nth-child(2) {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 20%, transparent 80%, rgba(0, 0, 0, 0.18)),
+    linear-gradient(180deg, rgba(36, 26, 14, 0.45) 0%, rgba(14, 10, 7, 0.28) 45%, rgba(8, 6, 4, 0.65) 100%);
+}
+
+.banana-reel::before,
+.banana-reel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.banana-reel::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.82), transparent);
+}
+
+.banana-reel::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.82), transparent);
+}
+
+.banana-payline {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100%, 300px);
+  height: 0;
+  margin: 0;
+  border: none;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.banana-payline::before,
+.banana-payline::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translateY(-50%);
+  border-style: solid;
+}
+
+.banana-payline::before {
+  left: 2px;
+  border-width: 7px 0 7px 10px;
+  border-color: transparent transparent transparent rgba(255, 200, 100, 0.85);
+  filter: drop-shadow(0 0 4px rgba(255, 196, 107, 0.55));
+}
+
+.banana-payline::after {
+  right: 2px;
+  border-width: 7px 10px 7px 0;
+  border-color: transparent rgba(255, 200, 100, 0.85) transparent transparent;
+  filter: drop-shadow(0 0 4px rgba(255, 196, 107, 0.55));
+}
+
+.banana-machine.is-spinning .banana-payline::before,
+.banana-machine.is-spinning .banana-payline::after {
+  animation: banana-payline-pulse 0.4s ease-in-out infinite;
+}
+
+@keyframes banana-payline-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.banana-reel-strip {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.banana-reel-strip.is-spinning .banana-reel-sym img {
+  filter: blur(0.6px) brightness(1.05);
+}
+
+.banana-reel-strip.is-stop .banana-reel-sym {
+  filter: brightness(1.18);
+}
+
+.banana-reel-sym {
+  width: 100%;
+  height: var(--bc-cell, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.banana-reel-sym img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.65));
+}
+
+.banana-spin-flash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100%, 300px);
+  height: 80px;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+  background: radial-gradient(ellipse, rgba(255, 220, 140, 0.35), transparent 70%);
+  pointer-events: none;
+  animation: banana-flash 0.55s ease-out;
+  z-index: 4;
+}
+
+@keyframes banana-flash {
+  0% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+/* ----- Кнопки ----- */
+
+.banana-casino-actions {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.banana-spin-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 56px;
+  padding: 10px 18px !important;
+  line-height: 1.15;
+  /* PNG sf-btn имеет ~7% прозрачных полей по бокам — зумим, чтобы рамка совпала с краями */
+  background-size: 117% 100% !important;
+  background-position: center center !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  overflow: hidden;
+}
+
+.banana-spin-btn .banana-spin-kicker {
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.78;
+  font-weight: 600;
+  font-family: var(--font-ui), system-ui, sans-serif;
+}
+
+.banana-spin-btn .banana-spin-label {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.banana-machine-hint {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #9a8868;
+  position: relative;
+  z-index: 1;
+}
+
+/* ----- Карточки ниже ----- */
+
+.banana-casino-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.banana-casino-card {
+  border: 1px solid rgba(138, 106, 50, 0.5);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: var(--bc-plate);
+  background-size: auto, var(--bc-plate-size);
+  background-position: center, center top;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 140, 0.1),
+    inset 0 0 0 1px rgba(255, 210, 120, 0.05),
+    0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.banana-casino-card h4 {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  color: #cbb888;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.banana-casino-packs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.banana-casino-buy {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  flex: none;
+  text-align: left;
+  min-height: 56px;
+  padding: 10px 18px !important;
+  letter-spacing: 0.02em !important;
+  background-size: 117% 100% !important;
+  background-position: center center !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  overflow: hidden;
+}
+
+.banana-casino-buy .banana-buy-title {
+  font-size: 0.92rem;
+}
+
+.banana-casino-buy .banana-buy-sub {
+  font-size: 0.72rem;
+  color: #a89878;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-family: var(--font-ui), system-ui, sans-serif;
+}
+
+.banana-casino-buy .banana-buy-price {
+  font-size: 0.82rem;
+  color: var(--bc-gold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.banana-buy-ico {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(201, 160, 74, 0.22);
+  padding: 2px;
+}
+
+.banana-buy-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.banana-buy-title {
+  font-size: 0.92rem;
+}
+
+.banana-buy-sub {
+  font-size: 0.72rem;
+  color: #a89878;
+  font-weight: 500;
+}
+
+.banana-buy-price {
+  font-size: 0.82rem;
+  color: var(--bc-gold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.banana-odds-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.banana-odd {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: var(--bc-plate);
+  background-size: auto, var(--bc-plate-size);
+  background-position: center, left center;
+  border: 1px solid rgba(90, 70, 40, 0.4);
+  border-left: 3px solid #6a5a40;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.06);
+}
+
+.banana-odd .bo-t {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #c8b090;
+}
+
+.banana-odd .bo-d {
+  font-size: 0.78rem;
+  color: #a89878;
+  text-align: right;
+}
+
+.banana-odd.tier-uncommon { border-left-color: #7aaa68; }
+.banana-odd.tier-uncommon .bo-t { color: #a8d898; }
+.banana-odd.tier-rare { border-left-color: var(--bc-rare); }
+.banana-odd.tier-rare .bo-t { color: var(--bc-rare); }
+.banana-odd.tier-epic { border-left-color: #b08cff; }
+.banana-odd.tier-epic .bo-t { color: #c8b0ff; }
+.banana-odd.tier-jackpot {
+  border-left-color: var(--bc-jack);
+  background: rgba(255, 196, 107, 0.08);
+}
+.banana-odd.tier-jackpot .bo-t { color: var(--bc-jack); }
+
+.banana-casino-hist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 148px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.banana-casino-hist::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.banana-casino-hist-item {
+  display: grid;
+  grid-template-columns: 36px 72px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: var(--bc-plate);
+  background-size: auto, var(--bc-plate-size);
+  background-position: center, left center;
+  border: 1px solid rgba(90, 70, 40, 0.28);
+  font-size: 0.85rem;
+}
+
+.banana-casino-hist-item img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.banana-casino-hist-item .bch-tier {
+  flex: 0 0 auto;
+  color: #b8a070;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.banana-casino-hist-item .bch-label {
+  color: #e8dcc0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banana-casino-hist-item.tier-rare .bch-tier,
+.banana-casino-hist-item.tier-epic .bch-tier {
+  color: var(--bc-rare);
+}
+
+.banana-casino-hist-item.tier-jackpot {
+  box-shadow: inset 0 0 0 1px rgba(255, 196, 107, 0.28);
+}
+
+.banana-casino-hist-item.tier-jackpot .bch-tier {
+  color: var(--bc-jack);
+}
+
+.banana-casino-empty {
+  margin: 0;
+  color: #8a7a60;
+  font-size: 0.85rem;
+  padding: 8px 2px;
+}
+
+/* ----- Reveal modal ----- */
+
+.modal-box.banana-reveal-modal {
+  width: min(420px, 100%);
+  border: 2px solid #6e5428;
+  border-radius: 14px;
+  background:
+    linear-gradient(165deg, rgba(36, 26, 14, 0.72) 0%, rgba(10, 8, 6, 0.9) 100%),
+    url("../assets/ui/banana-casino/machine_frame.png?v=2") center 20% / 140% auto no-repeat,
+    linear-gradient(180deg, #24180e, #100c08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 210, 120, 0.14),
+    0 18px 48px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+
+.modal-box.banana-reveal-modal .modal-head {
+  display: none;
+}
+
+.modal-box.banana-reveal-modal .modal-body {
+  padding: 14px 14px 6px;
+}
+
+.modal-box.banana-reveal-modal .modal-actions {
+  border-top: 1px solid rgba(138, 106, 50, 0.35);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 12px 14px 16px;
+}
+
+.modal-box.banana-reveal-modal .modal-actions .btn {
+  background-size: 117% 100% !important;
+  background-position: center !important;
+  min-height: 48px;
+  overflow: hidden;
+}
+
+.banana-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.banana-reveal-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 2px 2px;
+}
+
+.banana-reveal-mascot {
+  width: 72px;
+  height: 72px;
+  border-radius: 0;
+  border: none;
+  overflow: visible;
+  flex-shrink: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.banana-reveal-mascot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.banana-reveal-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.banana-reveal-eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a89060;
+}
+
+.banana-reveal-hero-title {
+  font-family: Literata, Georgia, serif;
+  font-size: 1.2rem;
+  color: var(--bc-gold, #ffe29a);
+  text-shadow: 0 1px 0 #000, 0 0 16px rgba(255, 200, 100, 0.25);
+  line-height: 1.2;
+}
+
+.banana-reveal-hero-sub {
+  font-size: 0.78rem;
+  color: #b8a888;
+}
+
+.banana-reveal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(280px, 42vh);
+  overflow: auto;
+  text-align: left;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: #8a6a32 transparent;
+}
+
+.banana-reveal-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.banana-reveal-list::-webkit-scrollbar-thumb {
+  background: #6e5428;
+  border-radius: 999px;
+}
+
+.banana-reveal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background:
+    linear-gradient(165deg, rgba(42, 30, 18, 0.78), rgba(14, 11, 8, 0.88)),
+    var(--sf-panel-leather, url("../assets/ui/sf-panel-leather.png"));
+  background-size: auto, cover;
+  background-position: center, center;
+  border: 1px solid rgba(138, 106, 50, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.08);
+}
+
+.banana-reveal-ico {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(201, 160, 74, 0.35);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.45);
+}
+
+.banana-reveal-ico img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.banana-reveal-row .br-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.banana-reveal-row .br-tier {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #a89878;
+  min-width: 0;
+}
+
+.banana-reveal-row .br-label {
+  color: #f0e4c8;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banana-reveal-row.tier-uncommon .br-tier { color: #a8d898; }
+.banana-reveal-row.tier-rare .br-tier { color: var(--bc-rare, #7ec8ff); }
+.banana-reveal-row.tier-epic .br-tier { color: #c8b0ff; }
+.banana-reveal-row.tier-jackpot {
+  border-color: rgba(255, 196, 107, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 196, 107, 0.22),
+    inset 0 1px 0 rgba(255, 220, 140, 0.12);
+}
+.banana-reveal-row.tier-jackpot .br-tier { color: var(--bc-jack, #ffc46b); }
+.banana-reveal-row.tier-epic,
+.banana-reveal-row.tier-rare {
+  box-shadow: inset 0 0 0 1px rgba(126, 200, 255, 0.22);
+}
+
+.banana-reveal-banner {
+  text-align: center;
+  margin: 0 0 10px;
+  font-family: Literata, Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--bc-gold, #ffe29a);
+}
+
+@media (max-width: 640px) {
+  .banana-casino-grid {
+    grid-template-columns: 1fr;
+  }
+  .banana-casino-hud {
+    grid-template-columns: 1fr;
+  }
+  .banana-casino-hist-item {
+    grid-template-columns: 32px 56px 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .banana-reel {
+    --bc-cell: 56px;
+  }
+  .banana-reel-sym img {
+    width: 36px;
+    height: 36px;
+  }
+  .banana-mascot-frame {
+    width: 78px;
+    height: 78px;
+  }
+  .banana-mascot-frame img {
+    width: 72px;
+    height: 72px;
+  }
+  .banana-machine-title {
+    font-size: 0.95rem;
+  }
+  .banana-casino-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  #screen-banana-casino .sf-screen-hero {
+    display: none;
+  }
+}
+
+@media (max-height: 760px) {
+  #screen-banana-casino .sf-screen-hero {
+    min-height: 48px;
+  }
+  #screen-banana-casino .sf-screen-hero-body p {
+    display: none;
+  }
+  .banana-machine-crown {
+    display: none;
+  }
+  .banana-machine-hint {
+    display: none;
+  }
+  .banana-reel {
+    --bc-cell: 56px;
+  }
+}
+
+@media (max-height: 640px) {
+  #screen-banana-casino .sf-screen-hero {
+    display: none;
+  }
+  .banana-casino-card--hist {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banana-mascot-frame img,
+  .banana-machine-gem--mid,
+  .banana-machine.is-spinning,
+  .banana-machine.is-win,
+  .banana-payline {
+    animation: none !important;
+  }
+}

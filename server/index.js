@@ -912,6 +912,7 @@ app.post("/world-boss/enter", (req, res) => {
       characterId: req.body?.characterId,
       charName: req.body?.charName,
       level: req.body?.level,
+      bossId: req.body?.bossId,
       now: Date.now(),
     });
     if (!result.ok) return res.status(400).json(result);
@@ -929,6 +930,7 @@ app.post("/world-boss/click", (req, res) => {
     const result = store.worldBossClick(user, {
       characterId: req.body?.characterId,
       charName: req.body?.charName,
+      damage: req.body?.damage,
       autoClicker: req.body?.autoClicker,
       bySkill: req.body?.bySkill,
       skillMult: req.body?.skillMult,
@@ -939,6 +941,23 @@ app.post("/world-boss/click", (req, res) => {
   } catch (e) {
     console.error("POST /world-boss/click", e);
     return jsonError(res, 500, "Ошибка мирового босса");
+  }
+});
+
+app.post("/world-boss/swipe", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.worldBossSwipe(user, {
+      success: !!req.body?.success,
+      token: req.body?.token,
+      now: Date.now(),
+    });
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (e) {
+    console.error("POST /world-boss/swipe", e);
+    return jsonError(res, 500, "Ошибка свайпа");
   }
 });
 
@@ -971,7 +990,10 @@ app.post("/world-boss/dev/force-start", (req, res) => {
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
   if (!worldBossDevAllowed()) return jsonError(res, 403, "Dev WB отключён на этом сервере");
   try {
-    const result = store.worldBossForceStart({ now: Date.now() });
+    const result = store.worldBossForceStart({
+      now: Date.now(),
+      bossId: req.body?.bossId,
+    });
     res.json(Object.assign({}, result, { ok: true, forced: "start" }));
   } catch (e) {
     console.error("POST /world-boss/dev/force-start", e);
@@ -1002,6 +1024,7 @@ app.post("/instance/start", (req, res) => {
       characterId: req.body?.characterId,
       powers: req.body?.powers,
       characterIds: req.body?.characterIds,
+      levels: req.body?.levels,
       now: Date.now(),
     });
     if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");

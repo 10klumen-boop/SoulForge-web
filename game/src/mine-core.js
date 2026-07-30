@@ -285,6 +285,10 @@ function openMineContinue(zoneId, zone) {
   $("#mineEarned").textContent = "0";
   $("#mineCaught").textContent = "0";
   $("#mineMissed").textContent = "0";
+  const farmStats = document.querySelector("#screen-mine .mine-farm-stats");
+  if (farmStats) farmStats.hidden = false;
+  const mineHud = document.querySelector("#screen-mine .mine-hud");
+  if (mineHud) mineHud.hidden = false;
   renderMineSessionLoot();
   if (hintEl) hintEl.style.display = "";
   if (typeof renderMineHudStats === "function") renderMineHudStats();
@@ -564,6 +568,15 @@ function syncMineClanTerritoryHud() {
   const el = document.getElementById("mineClanTerritoryHud");
   if (!el) return;
   if (typeof isClanBossSessionActive === "function" && isClanBossSessionActive()) {
+    el.hidden = true;
+    el.textContent = "";
+    el.className = "mh mine-clan-territory";
+    return;
+  }
+  if (
+    (typeof isWorldBossSessionActive === "function" && isWorldBossSessionActive()) ||
+    (typeof mineSession !== "undefined" && mineSession && mineSession.worldBoss)
+  ) {
     el.hidden = true;
     el.textContent = "";
     el.className = "mh mine-clan-territory";
@@ -928,6 +941,9 @@ function catchBanan(g) {
   } else {
     toast("Редкий гном… но " + res.text, "warn");
     floatText(x, y, res.text, "#ff6b6b");
+  }
+  if (res.ok && typeof grantBananaCasinoTokens === "function") {
+    grantBananaCasinoTokens(1);
   }
   mineBurst(x, y, color, 40);
   if (typeof achStat === "function") achStat("bananWins", 1);

@@ -412,7 +412,8 @@ async function clanWarehouseDeposit(amount) {
     if (r.save) applyClanSave(r.save);
     clanWarehouseState = Object.assign({}, clanWarehouseState || {}, {
       adena: r.adena,
-      canWithdraw: clanWarehouseState?.canWithdraw,
+      canWithdraw: false,
+      donations: clanWarehouseState?.donations,
     });
   }
   return r;

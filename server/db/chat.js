@@ -344,6 +344,27 @@ function attachChatMethods(db, store) {
     return nick;
   }
 
+  function memberActiveLevel(userId) {
+    let level = 1;
+    try {
+      const save = typeof store.getSave === "function" ? store.getSave(userId) : null;
+      level = Math.max(1, Math.floor(Number(save?.active_level) || 1));
+    } catch (_) {}
+    try {
+      const row = db
+        .prepare(
+          `SELECT level FROM player_characters
+           WHERE user_id = ? AND created = 1
+           ORDER BY level DESC, slot_id ASC LIMIT 1`
+        )
+        .get(userId);
+      if (row && row.level != null) {
+        level = Math.max(level, Math.floor(Number(row.level) || 1));
+      }
+    } catch (_) {}
+    return Math.max(1, level);
+  }
+
   function socialSnapshot(userId) {
     const partyId = getPartyId(userId);
     const clanId = getClanId(userId);
@@ -359,6 +380,7 @@ function attachChatMethods(db, store) {
           userId: m.user_id,
           nick: m.nick,
           name: memberDisplayName(m.user_id, m.nick),
+          level: memberActiveLevel(m.user_id),
         })),
       };
       if (typeof store.partyAnnotateReady === "function") {

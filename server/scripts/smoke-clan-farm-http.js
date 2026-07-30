@@ -138,7 +138,7 @@ async function main() {
   // 3) warehouse deposit + claim free farm (or contest occupied if DB dirty)
   r = await api("POST", "/chat/clan/warehouse/deposit", {
     token: lead.token,
-    body: { amount: 80_000_000, characterId: lead.charId },
+    body: { amount: 100_000_000, characterId: lead.charId },
   });
   assert(r.status === 200 && r.json?.ok, "deposit " + JSON.stringify(r.json));
 
@@ -197,7 +197,7 @@ async function main() {
   assert(r.status === 200 && r.json?.ok, "rival create " + JSON.stringify(r.json));
   r = await api("POST", "/chat/clan/warehouse/deposit", {
     token: mem.token,
-    body: { amount: 80_000_000, characterId: mem.charId },
+    body: { amount: 100_000_000, characterId: mem.charId },
   });
   assert(r.status === 200 && r.json?.ok, "rival deposit");
 

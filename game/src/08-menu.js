@@ -35,6 +35,18 @@ function renderMenu() {
     const { done, total } = achievementsProgress();
     achEl.textContent = done + "/" + total;
   }
+  const glossMeta = document.getElementById("glossaryTileMeta");
+  if (glossMeta && typeof glossaryAll === "function") {
+    const n = glossaryAll().length;
+    const m = n % 100;
+    const m1 = n % 10;
+    let word = "терминов";
+    if (!(m > 10 && m < 20)) {
+      if (m1 === 1) word = "термин";
+      else if (m1 >= 2 && m1 <= 4) word = "термина";
+    }
+    glossMeta.textContent = n + " " + word;
+  }
   if (typeof renderMenuHero === "function") renderMenuHero();
   if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
   else if (typeof renderMineBanner === "function") renderMineBanner();
@@ -47,6 +59,7 @@ function renderMenu() {
   if (typeof syncMenuTileIcons === "function") syncMenuTileIcons();
   if (typeof syncPartyTileMeta === "function") syncPartyTileMeta();
   if (typeof syncClanTileMeta === "function") syncClanTileMeta();
+  if (typeof renderBananaCasinoTileMeta === "function") renderBananaCasinoTileMeta();
   if (typeof syncCloudUI === "function") syncCloudUI();
   const tileMeta = document.getElementById("avatarTileMeta");
   if (tileMeta) {

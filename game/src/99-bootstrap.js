@@ -56,9 +56,20 @@ if (typeof bindClanMenuTile === "function") bindClanMenuTile();
 if (typeof bindAdenMapBack === "function") bindAdenMapBack();
 if (typeof syncClanTileMeta === "function") syncClanTileMeta();
 $("#shopTile").onclick = () => openWorkshop();
+const bananaCasinoTile = document.getElementById("bananaCasinoTile");
+if (bananaCasinoTile) {
+  bananaCasinoTile.onclick = () => {
+    if (typeof openBananaCasino === "function") openBananaCasino();
+  };
+}
 if (typeof bindMarketUi === "function") bindMarketUi();
 if (typeof bindPvpArenaUi === "function") bindPvpArenaUi();
 $("#achTile").onclick = openAchievements;
+if ($("#glossaryTile")) {
+  $("#glossaryTile").onclick = () => {
+    if (typeof openGlossaryScreen === "function") openGlossaryScreen({ from: "menu" });
+  };
+}
 if (typeof wireDevPanel === "function") wireDevPanel();
 if (typeof wireQuestJournal === "function") wireQuestJournal();
 $("#enchBack").onclick = () => { Audio2.click(); goInventory(); };
@@ -126,7 +137,7 @@ document.addEventListener("keydown", (e) => {
     if (typeof openClanScreen === "function") openClanScreen();
     else show("clan");
   }
-  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active"))) { show("menu"); }
+  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active") || $("#screen-glossary")?.classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
 
@@ -163,6 +174,8 @@ if (typeof applyUiIconsToFarmZones === "function") applyUiIconsToFarmZones();
 if (typeof applyUiIconsToQuestNpcs === "function") applyUiIconsToQuestNpcs();
 if (typeof wireStoryArcBar === "function") wireStoryArcBar();
 if (typeof wireMineStory === "function") wireMineStory();
+if (typeof wireGlossaryTips === "function") wireGlossaryTips();
+if (typeof wireGlossaryScreen === "function") wireGlossaryScreen();
 if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();
 if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
 renderMenu();

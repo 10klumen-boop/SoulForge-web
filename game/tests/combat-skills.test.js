@@ -265,6 +265,46 @@ function runTests() {
     delete global.isMineInstanceMode;
   });
 
+  test("combatSkillGameplayDesc covers core effects", () => {
+    assert.ok(
+      /следующий клик/i.test(
+        combatSkillGameplayDesc({ effect: "nextHit", mult: 2.5 })
+      )
+    );
+    assert.ok(
+      /вдвое медленнее/i.test(
+        combatSkillGameplayDesc({ effect: "timerSlow", duration: 4000 })
+      )
+    );
+    const multi = combatSkillGameplayDesc({ effect: "multiHit", hits: 5, mult: 0.5 });
+    assert.ok(/5 ударов/.test(multi));
+    assert.ok(/×2,5/.test(multi) || /×2.5/.test(multi) || /≈×2,5/.test(multi));
+    assert.ok(
+      /мгновенный удар/i.test(
+        combatSkillGameplayDesc({ effect: "directHit", mult: 3 })
+      )
+    );
+    assert.ok(
+      /к таймеру/i.test(
+        combatSkillGameplayDesc({ effect: "drainHit", mult: 2.2, healMs: 3500 })
+      )
+    );
+    assert.ok(
+      /группе/i.test(
+        combatSkillGameplayDesc({ effect: "partyDamageBuff", mult: 1.18, duration: 6000 })
+      )
+    );
+  });
+
+  test("combatSkillEffectLabel and plain tip", () => {
+    assert.strictEqual(combatSkillEffectLabel("multiHit"), "Серия ударов");
+    const skill = { id: "t", name: "Тест", hotkey: "Q", effect: "directHit", mult: 2, unlockLevel: 1 };
+    state.avatar = { created: true, level: 10 };
+    const tip = combatSkillPlainTip(skill);
+    assert.ok(tip.indexOf("Тест") >= 0);
+    assert.ok(tip.indexOf("[Q]") >= 0);
+  });
+
   console.log("\n--- summary ---");
   console.log("passed: " + passed + ", failed: " + failed);
   if (failed > 0) process.exit(1);

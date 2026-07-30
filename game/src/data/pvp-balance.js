@@ -10,6 +10,12 @@ const PVP_ATK_SCALE = 0.42;
 /** Узкий разброс урона (±). */
 const PVP_VARIANCE = 0.04;
 
+/** Множитель урона при крите (арена). */
+const PVP_CRIT_MULT = 1.5;
+
+/** Потолок шанса крита с листа (пассивки + бижутерия). */
+const PVP_CRIT_CHANCE_CAP = 0.35;
+
 /** Потолок произведения skill×buff×shot за один удар. */
 const PVP_SKILL_MULT_CAP = 4;
 

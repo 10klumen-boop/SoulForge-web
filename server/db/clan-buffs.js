@@ -259,10 +259,26 @@ const CLAN_STUDY_BUFFS = [
 const CLAN_BUFF_CAPS = { adenaPct: 22, xpPct: 20, pvpPct: 12, pvpDefPct: 12 };
 
 const CLAN_ACTIVITY = {
-  depositPerAdena: 0.0001,
-  depositMaxPerAction: 50,
   claimTerritory: 50,
 };
+
+/** Mirror game/src/data/clan-buffs-balance.js — fixed donation tiers. */
+const CLAN_DONATIONS = [
+  { amount: 1_000_000, xp: 10, label: "1kk" },
+  { amount: 10_000_000, xp: 120, label: "10kk" },
+  { amount: 100_000_000, xp: 1400, label: "100kk" },
+  { amount: 1_000_000_000, xp: 16000, label: "1kkk" },
+];
+
+function clanDonationByAmount(amount) {
+  const n = Math.floor(Number(amount) || 0);
+  return CLAN_DONATIONS.find((d) => d.amount === n) || null;
+}
+
+function clanScoreFromDonation(amount) {
+  const tier = clanDonationByAmount(amount);
+  return tier ? Math.max(0, Math.floor(Number(tier.xp) || 0)) : 0;
+}
 
 /** Сила осады (недельный activity score) → множитель цены отбития. */
 const CLAN_SIEGE_POWER_TIERS = [
@@ -677,8 +693,11 @@ function attachClanBuffMethods(db, store, deps) {
   };
 
   store.clanScoreFromDeposit = function clanScoreFromDeposit(amount) {
-    const raw = Math.floor(Number(amount) || 0) * CLAN_ACTIVITY.depositPerAdena;
-    return Math.max(0, Math.min(CLAN_ACTIVITY.depositMaxPerAction, Math.floor(raw)));
+    return clanScoreFromDonation(amount);
+  };
+
+  store.clanDonationTier = function clanDonationTier() {
+    return CLAN_DONATIONS.slice();
   };
 
   store.clanGetBuffs = function clanGetBuffs(user, opts = {}) {
@@ -788,4 +807,7 @@ module.exports = {
   CLAN_STUDY_BUFFS,
   CLAN_BUFF_CAPS,
   CLAN_ACTIVITY,
+  CLAN_DONATIONS,
+  clanDonationByAmount,
+  clanScoreFromDonation,
 };

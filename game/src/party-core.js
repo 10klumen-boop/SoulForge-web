@@ -38,7 +38,7 @@ function partyAmLeader() {
   if (!p) return false;
   const myNick = typeof chatMyNick === "function" ? chatMyNick() : "";
   const leader = (p.members || []).find((m) => m.userId === p.leaderUserId);
-  return !!(leader && leader.nick === myNick);
+  return !!(leader && partyMemberIsMe(leader, myNick));
 }
 
 function partyCanEnterGroupContent() {
@@ -64,6 +64,21 @@ function partyCloudReady() {
 
 function partyMemberLabel(m) {
   return String((m && (m.name || m.charName || m.nick)) || "?").trim() || "?";
+}
+
+/** Эффективный уровень участника; null — данных нет (не блокируем UI). */
+function partyMemberEffectiveLevel(m) {
+  if (!m) return null;
+  const myNick = typeof chatMyNick === "function" ? chatMyNick() : "";
+  if (typeof partyMemberIsMe === "function" && partyMemberIsMe(m, myNick)) {
+    const local = Math.max(1, Math.floor(Number(state.avatar?.level) || 0));
+    const reported = Math.floor(Number(m.level) || 0);
+    return Math.max(local, reported, 1);
+  }
+  if (m.level == null || m.level === "") return null;
+  const lv = Math.floor(Number(m.level));
+  if (!Number.isFinite(lv) || lv < 1) return null;
+  return lv;
 }
 
 function partyMyCharName() {
@@ -266,7 +281,7 @@ async function partyKickByName(nameArg) {
 
 function partyInstanceStatusLabel(inst) {
   if (!inst) return "";
-  if (inst.status === "ready") return "Ready-check";
+  if (inst.status === "ready") return "Ожидание готовности";
   if (inst.status === "active") {
     if (inst.phase === "boss") return "Босс";
     if (inst.phase === "wave") return "Волна " + ((inst.waveIndex || 0) + 1);
@@ -356,6 +371,85 @@ function partyEscAttr(s) {
     .replace(/</g, "&lt;");
 }
 
+function partyFmtNum(n) {
+  return Math.max(0, Math.floor(Number(n) || 0)).toLocaleString("ru-RU");
+}
+
+function partyFmtRange(range) {
+  if (!range) return "—";
+  const lo = Math.max(0, Math.floor(Number(range.min) || 0));
+  const hi = Math.max(lo, Math.floor(Number(range.max) || lo));
+  if (lo === hi) return partyFmtNum(lo);
+  return partyFmtNum(lo) + "–" + partyFmtNum(hi);
+}
+
+/** Текст наград инста: на игрока + оценка на текущую группу. */
+function partyDungeonLootTooltipHtml(d) {
+  const loot = (d && d.loot) || {};
+  const n = Math.max(1, Math.min(4, partyMemberCount() || 2));
+  const adenaMult =
+    typeof partyAdenaMult === "function" ? partyAdenaMult(n) : 1 + 0.08 * (n - 1);
+  const adenaLo = Math.round((Number(loot.adena?.min) || 0) * adenaMult);
+  const adenaHi = Math.round((Number(loot.adena?.max) || 0) * adenaMult);
+  const xpLo = Math.max(0, Math.floor(Number(loot.xp?.min) || 0));
+  const xpHi = Math.max(xpLo, Math.floor(Number(loot.xp?.max) || xpLo));
+  const grade = loot.weaponGrade || "?";
+  const armorMax = Math.max(0, Math.floor(Number(loot.armorPiecesMax != null ? loot.armorPiecesMax : 2)));
+  const rows = [
+    '<div class="party-dungeon-tip-title">Награды за клир</div>',
+    '<div class="party-dungeon-tip-sec">На каждого игрока</div>',
+    '<div class="party-dungeon-tip-row"><span>Опыт</span><strong>' +
+      partyFmtRange(loot.xp) +
+      " XP</strong></div>",
+    '<div class="party-dungeon-tip-row"><span>Адена</span><strong>' +
+      partyFmtNum(adenaLo) +
+      "–" +
+      partyFmtNum(adenaHi) +
+      "</strong></div>",
+    '<div class="party-dungeon-tip-row"><span>Soul / Spirit</span><strong>' +
+      partyFmtRange(loot.soul) +
+      " / " +
+      partyFmtRange(loot.spirit) +
+      "</strong></div>",
+    '<div class="party-dungeon-tip-sec">На группу (' + n + " чел.)</div>",
+    '<div class="party-dungeon-tip-row"><span>Опыт всего</span><strong>' +
+      partyFmtNum(xpLo * n) +
+      "–" +
+      partyFmtNum(xpHi * n) +
+      " XP</strong></div>",
+    '<div class="party-dungeon-tip-row"><span>Адена всего</span><strong>~' +
+      partyFmtNum(adenaLo * n) +
+      "–" +
+      partyFmtNum(adenaHi * n) +
+      "</strong></div>",
+    '<div class="party-dungeon-tip-row"><span>Оружие</span><strong>грейд ' +
+      partyEscAttr(grade) +
+      " · раздача в пати</strong></div>",
+    '<div class="party-dungeon-tip-row"><span>Броня</span><strong>до ' +
+      armorMax +
+      " куск./игрок</strong></div>",
+  ];
+  return '<div class="party-dungeon-tip">' + rows.join("") + "</div>";
+}
+
+function partyDungeonLootHint(d) {
+  const loot = (d && d.loot) || {};
+  if (!loot.xp && !loot.adena) return "";
+  return (
+    '<div class="party-dungeon-loot-hotspot" tabindex="0">' +
+    '<button type="button" class="party-dungeon-loot-btn" aria-label="Награды инстанса">' +
+    '<span class="party-dungeon-loot-ico" aria-hidden="true">ℹ</span>' +
+    '<span class="party-dungeon-loot-label">Награды</span>' +
+    '<span class="party-dungeon-loot-brief">XP ' +
+    partyFmtRange(loot.xp) +
+    (loot.weaponGrade ? " · " + loot.weaponGrade : "") +
+    "</span>" +
+    "</button>" +
+    partyDungeonLootTooltipHtml(d) +
+    "</div>"
+  );
+}
+
 function partyCardArtHtml(bg) {
   if (!bg) return "";
   return (
@@ -396,6 +490,7 @@ function partyRenderDungeonCards(inst) {
   const power = typeof avatarFarmPower === "function" ? avatarFarmPower() : 0;
   const level = state.avatar?.level || 1;
   const activeBusy = !!(inst && (inst.status === "ready" || inst.status === "active"));
+  const partyMembers = (getChatParty() && getChatParty().members) || [];
   if (!list.length) {
     return '<p class="party-panel-hint">Инстансы пока недоступны.</p>';
   }
@@ -412,13 +507,23 @@ function partyRenderDungeonCards(inst) {
         const left = unlimited ? 99 : Math.max(0, max - (lock.clears || 0));
         const needLv = level < (d.reqLevel || 1);
         const needPow = power < (d.reqPower || 0);
+        const underleveled = partyMembers.filter((m) => {
+          const lv = partyMemberEffectiveLevel(m);
+          return lv != null && lv < (d.reqLevel || 1);
+        });
         const noClears = !unlimited && left <= 0;
         let reason = "";
         if (!partyAmLeader()) reason = "Запускает лидер";
         else if (!partyCanEnterGroupContent()) reason = "Нужно 2–4 в группе";
         else if (activeBusy) reason = "Уже есть активный инст";
         else if (needLv) reason = "Нужен ур. " + d.reqLevel;
-        else if (needPow) reason = "Нужна сила " + d.reqPower;
+        else if (underleveled.length) {
+          const names = underleveled
+            .slice(0, 2)
+            .map((m) => partyMemberLabel(m))
+            .join(", ");
+          reason = "Ур. " + d.reqLevel + "+ всей группе" + (names ? " · " + names : "");
+        } else if (needPow) reason = "Нужна сила " + d.reqPower;
         else if (noClears) reason = "Нет клиров на неделе";
         const disabled = !!reason || !canStart;
         const bg = partyDungeonCardBg(d);
@@ -429,8 +534,10 @@ function partyRenderDungeonCards(inst) {
           '"' +
           (accent ? ' style="--party-accent:' + partyEscAttr(accent) + '"' : "") +
           ">" +
+          '<div class="party-dungeon-card-media" aria-hidden="true">' +
           partyCardArtHtml(bg) +
-          '<div class="party-dungeon-card-veil" aria-hidden="true"></div>' +
+          '<div class="party-dungeon-card-veil"></div>' +
+          "</div>" +
           '<div class="party-dungeon-card-body">' +
           '<div class="party-dungeon-card-title">' +
           "<strong>" +
@@ -445,9 +552,10 @@ function partyRenderDungeonCards(inst) {
           "</p>" +
           '<div class="party-dungeon-meta">ур.' +
           d.reqLevel +
-          " · сила " +
+          "+ · сила " +
           d.reqPower +
           "</div>" +
+          partyDungeonLootHint(d) +
           (reason ? '<div class="party-dungeon-reason">' + reason + "</div>" : "") +
           '<div class="party-dungeon-actions">' +
           '<button type="button" class="party-panel-btn party-inst-primary" data-dungeon-start="' +
@@ -835,9 +943,9 @@ function renderPartyPanel() {
         : '<p class="party-panel-hint">Приглашает только лидер</p>') +
       '<div class="party-panel-actions">' +
       '<button type="button" class="party-panel-btn' +
-      (myReady ? "" : " ghost") +
+      (myReady ? " party-inst-primary" : " ghost") +
       '" id="partyReadyBtn">' +
-      (myReady ? "Готов ✓" : "Ready") +
+      (myReady ? "Готов ✓" : "Готов") +
       "</button>" +
       '<button type="button" class="party-panel-btn ghost" id="partyLeaveBtn">Выйти</button>' +
       "</div>";

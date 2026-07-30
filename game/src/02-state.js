@@ -63,6 +63,7 @@ function defaultState() {
     partyFarm: { dailyUsedMs: 0, dayKey: "", lastZoneId: "" },
     instanceLocks: {},
     overflowLoot: [],
+    bananaCasino: { tokens: 0, pity: 0, pityJackpot: 0, pulls: 0, jackpots: 0, history: [] },
     accountWarehouse: { items: [], stacks: [] },
     accountMail: { messages: [] },
     devTune: {},
@@ -102,7 +103,7 @@ function freshCharacterProgressSnapshot() {
     "records", "totals", "storySeen", "inventory", "crystals",
     "collectibles", "equipped", "materials", "shots", "scrolls", "autoShots", "achievements",
     "passiveIncome", "autoClicker", "resourceFavorites",
-    "partyFarm", "instanceLocks", "overflowLoot",
+    "partyFarm", "instanceLocks", "overflowLoot", "bananaCasino",
   ];
   const p = {};
   keys.forEach((k) => { p[k] = JSON.parse(JSON.stringify(d[k])); });

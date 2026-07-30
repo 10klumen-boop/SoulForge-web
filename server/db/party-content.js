@@ -571,6 +571,36 @@ function attachPartyContentMethods(db, store) {
               : [],
             anvilWindowMs: Math.max(0, Math.floor(Number(run.encounter.anvilWindowMs) || 0)),
             anvilCycleMs: Math.max(0, Math.floor(Number(run.encounter.anvilCycleMs) || 0)),
+            addsActive: !!run.encounter.addsActive,
+            addsDeadlineAt: run.encounter.addsDeadlineAt || 0,
+            addsDeadlineMs: Math.max(0, Math.floor(Number(run.encounter.addsDeadlineMs) || 0)),
+            addsInMs:
+              run.encounter.addsActive && run.encounter.addsDeadlineAt && run.status === "active"
+                ? Math.max(0, Number(run.encounter.addsDeadlineAt) - Date.now())
+                : null,
+            adds: Array.isArray(run.encounter.adds)
+              ? run.encounter.adds.map((a) => ({
+                  id: a.id,
+                  name: a.name,
+                  mob: a.mob,
+                  hp: a.hp,
+                  maxHp: a.maxHp,
+                  dead: !!a.dead,
+                  left: Number.isFinite(Number(a.left)) ? Number(a.left) : null,
+                  top: Number.isFinite(Number(a.top)) ? Number(a.top) : null,
+                }))
+              : [],
+            channelActive: !!run.encounter.channelActive,
+            channelEndsAt: run.encounter.channelEndsAt || 0,
+            channelWindowMs: Math.max(0, Math.floor(Number(run.encounter.channelWindowMs) || 0)),
+            channelCycleMs: Math.max(0, Math.floor(Number(run.encounter.channelCycleMs) || 0)),
+            channelFails: Math.max(0, Math.floor(Number(run.encounter.channelFails) || 0)),
+            channelFailMax: Math.max(0, Math.floor(Number(run.encounter.channelFailMax) || 0)),
+            channelInMs:
+              run.encounter.channelActive && run.encounter.channelEndsAt && run.status === "active"
+                ? Math.max(0, Number(run.encounter.channelEndsAt) - Date.now())
+                : null,
+            channelArmed: !!run.encounter.channelArmed,
             enrageInMs:
               run.encounter.enrageAt && run.status === "active"
                 ? Math.max(0, run.encounter.enrageAt - Date.now())
@@ -786,6 +816,60 @@ function attachPartyContentMethods(db, store) {
     return true;
   }
 
+  /** Позиции аддов вокруг босса (слева/справа/снизу). */
+  function spawnBossAdds(enc, ph, run, nowMs) {
+    const dungeon = partyDungeonById(run?.dungeonId);
+    const powers = [...(run?.members?.values?.() || [])].map((m) => m.power);
+    const n = Math.max(1, Math.min(4, Math.floor(Number(ph.addCount) || 3)));
+    const addHpHits = Math.max(8, Math.floor(Number(ph.addHpHits) || 24));
+    const addMob = String(ph.addMob || "whisper-shade");
+    const addName = String(ph.addName || "Тень");
+    const deadlineMs = Math.max(6000, Math.floor(Number(ph.addsDeadlineMs) || 18000));
+    const slots = [
+      { left: 22, top: 48 },
+      { left: 78, top: 48 },
+      { left: 50, top: 72 },
+      { left: 35, top: 68 },
+    ];
+    const unitDef = { hpHits: addHpHits, name: addName, mob: addMob };
+    let maxHp = partyInstanceMobMaxHp(unitDef, dungeon, run.members.size, powers);
+    maxHp = Math.max(30, Math.round(maxHp * 0.55));
+    const phKey = String(ph.label || "adds");
+    enc.adds = [];
+    for (let i = 0; i < n; i++) {
+      const slot = slots[i % slots.length];
+      enc.adds.push({
+        id: (enc.id || "boss") + "_add_" + i + "_" + phKey.replace(/\s+/g, ""),
+        name: n > 1 ? addName + " #" + (i + 1) : addName,
+        mob: addMob,
+        hp: maxHp,
+        maxHp,
+        dead: false,
+        left: slot.left,
+        top: slot.top,
+      });
+    }
+    enc.addsActive = true;
+    enc.addsDeadlineMs = deadlineMs;
+    enc.addsDeadlineAt = (Number(nowMs) || Date.now()) + deadlineMs;
+    enc.addsSpawnedFor = phKey;
+  }
+
+  function armBossChannel(enc, ph, nowMs, resetFails) {
+    const windowMs = Math.max(800, Math.floor(Number(ph.channelWindowMs) || 2800));
+    const cycleMs = Math.max(windowMs + 400, Math.floor(Number(ph.channelCycleMs) || 7000));
+    const failMax = Math.max(1, Math.floor(Number(ph.channelFailMax) || 3));
+    enc.channelArmed = true;
+    enc.channelWindowMs = windowMs;
+    enc.channelCycleMs = cycleMs;
+    enc.channelFailMax = failMax;
+    if (resetFails) enc.channelFails = 0;
+    enc.channelActive = false;
+    enc.channelEndsAt = 0;
+    // Первый канал чуть позже входа в фазу
+    enc.nextChannelAt = (Number(nowMs) || Date.now()) + Math.floor(cycleMs * 0.35);
+  }
+
   function applyBossPhase(enc, nowMs, run) {
     if (!enc || enc.kind !== "boss" || !Array.isArray(enc.phases) || !enc.phases.length) return;
     const boss = enc.mobs && enc.mobs[0];
@@ -814,8 +898,10 @@ function attachPartyContentMethods(db, store) {
     enc.regen = !!(active.regen || enc.regenLatched);
     if (!enc.anvilDoneLabels) enc.anvilDoneLabels = {};
     if (!enc.shieldDoneLabels) enc.shieldDoneLabels = {};
+    if (!enc.addsDoneLabels) enc.addsDoneLabels = {};
+    if (!enc.channelDoneLabels) enc.channelDoneLabels = {};
     // Одноразовые механики — по всем фазам до activeIdx (не пропускать при огромном уроне / testHpScale)
-    if (!enc.anvilActive && !enc.shieldActive) {
+    if (!enc.anvilActive && !enc.shieldActive && !enc.addsActive) {
       for (let i = 0; i <= activeIdx; i++) {
         const ph = enc.phases[i];
         if (!ph) continue;
@@ -896,7 +982,34 @@ function attachPartyContentMethods(db, store) {
           boss.shieldMax = 0;
           break;
         }
+        const wantsAdds = ph.mechanic === "adds" || !!(ph.addCount || ph.addHpHits);
+        if (wantsAdds && !enc.addsDoneLabels[phKey]) {
+          enc.addsDoneLabels[phKey] = true;
+          spawnBossAdds(enc, ph, run, now);
+          enc.phaseLabel = ph.label || enc.phaseLabel;
+          boss.shieldHp = 0;
+          boss.shieldMax = 0;
+          break;
+        }
       }
+    }
+    // Channel: вооружаем при проходе фазы (как anvil — не скипнуть огромным уроном)
+    {
+      let armedThisPass = false;
+      for (let i = 0; i <= activeIdx; i++) {
+        const ph = enc.phases[i];
+        if (!ph) continue;
+        const phKey = String(ph.label || i);
+        const wantsChannel = ph.mechanic === "channel" || !!(ph.channelWindowMs || ph.channelCycleMs);
+        if (wantsChannel && !enc.channelDoneLabels[phKey]) {
+          enc.channelDoneLabels[phKey] = true;
+          armBossChannel(enc, ph, now, !armedThisPass);
+          enc.phaseLabel = ph.label || enc.phaseLabel;
+          armedThisPass = true;
+        }
+      }
+      // Не снимаем channelArmed при уходе в финальную non-channel фазу —
+      // иначе скип уроном мгновенно обезоруживает только что вооружённый канал.
     }
     if (enc.anvilActive) {
       boss.shieldHp = 0;
@@ -918,15 +1031,31 @@ function attachPartyContentMethods(db, store) {
         boss.shieldMax = 0;
       }
     }
+    if (enc.addsActive && Array.isArray(enc.adds)) {
+      const aliveAdds = enc.adds.filter((a) => a && !a.dead).length;
+      boss.shieldHp = 0;
+      boss.shieldMax = 0;
+      if (aliveAdds <= 0) {
+        enc.addsActive = false;
+        enc.adds = [];
+        enc.addsDeadlineAt = 0;
+      }
+    }
     enc.mechanic = enc.anvilActive
       ? "anvil"
       : enc.shieldActive
         ? "shield"
-        : enc.regen
-          ? "regen"
-          : enc.toughness > 1.05
-            ? "tough"
-            : null;
+        : enc.addsActive
+          ? "adds"
+          : enc.channelActive
+            ? "channel"
+            : enc.channelArmed
+              ? "channel"
+              : enc.regen
+                ? "regen"
+                : enc.toughness > 1.05
+                  ? "tough"
+                  : null;
   }
 
   function tickAnvilMarks(enc, now) {
@@ -1136,6 +1265,58 @@ function attachPartyContentMethods(db, store) {
       applyBossPhase(enc, now, run);
       tickAnvilMarks(enc, now);
 
+      // Адды: дедлайн → −life и респавн; 0 lives → wipe
+      if (enc.addsActive && Array.isArray(enc.adds) && enc.addsDeadlineAt && now >= enc.addsDeadlineAt) {
+        const aliveAdds = enc.adds.filter((a) => a && !a.dead);
+        if (aliveAdds.length > 0) {
+          run.lives = Math.max(0, (run.lives || 0) - 1);
+          run.lastEvent = "adds_fail";
+          if (run.lives <= 0) {
+            run.status = "failed";
+            run.phase = "wipe";
+            run.encounter = null;
+            return;
+          }
+          // Респавн аддов с тем же дедлайном
+          const ph =
+            (enc.phases || []).find((p) => String(p.label) === String(enc.addsSpawnedFor)) ||
+            (enc.phases || []).find((p) => p.mechanic === "adds") ||
+            { addCount: enc.adds.length, addHpHits: 28, addMob: "whisper-shade", addsDeadlineMs: enc.addsDeadlineMs };
+          spawnBossAdds(enc, { ...ph, label: enc.addsSpawnedFor || ph.label }, run, now);
+        }
+      }
+
+      // Канал: старт окна / провал окна
+      if (enc.channelArmed) {
+        if (!enc.channelActive && enc.nextChannelAt && now >= enc.nextChannelAt) {
+          enc.channelActive = true;
+          enc.channelEndsAt = now + Math.max(800, enc.channelWindowMs || 2800);
+          enc.nextChannelAt = 0;
+          run.lastEvent = "channel_start";
+          enc.mechanic = "channel";
+        } else if (enc.channelActive && enc.channelEndsAt && now >= enc.channelEndsAt) {
+          enc.channelActive = false;
+          enc.channelEndsAt = 0;
+          enc.channelFails = Math.max(0, (enc.channelFails || 0) + 1);
+          run.lastEvent = "channel_fail";
+          const failMax = Math.max(1, enc.channelFailMax || 3);
+          if ((enc.channelFails || 0) >= failMax) {
+            run.status = "failed";
+            run.phase = "wipe";
+            run.encounter = null;
+            return;
+          }
+          run.lives = Math.max(0, (run.lives || 0) - 1);
+          if (run.lives <= 0) {
+            run.status = "failed";
+            run.phase = "wipe";
+            run.encounter = null;
+            return;
+          }
+          enc.nextChannelAt = now + Math.max(1200, Math.floor((enc.channelCycleMs || 7000) * 0.55));
+        }
+      }
+
       if (enc.regen && enc.regenPulseMs && enc.nextRegenAt && now >= enc.nextRegenAt) {
         // Один скилл гасит один тик регена (не всё окно 8с)
         const skillOk = enc.lastSkillHitAt && enc.lastSkillHitAt > (enc.lastRegenAt || 0);
@@ -1189,6 +1370,53 @@ function attachPartyContentMethods(db, store) {
     if (!dungeon) return { ok: false, error: "dungeon", message: "Инстанс не найден" };
     if ((party.members || []).length < instanceMinMembers()) {
       return { ok: false, error: "size", message: "Нужно минимум " + instanceMinMembers() + " в группе" };
+    }
+    const reqLevel = Math.max(1, Math.floor(Number(dungeon.reqLevel) || 1));
+    const reqPower = Math.max(0, Math.floor(Number(dungeon.reqPower) || 0));
+    // Уровень/сила — у ВСЕХ членов группы (save.active_level + opts.levels/powers)
+    for (const m of party.members || []) {
+      const save = typeof store.getSave === "function" ? store.getSave(m.userId) : null;
+      let levelFromSave = Math.max(1, Math.floor(Number(save?.active_level) || 1));
+      try {
+        const row = db
+          .prepare(
+            `SELECT level FROM player_characters
+             WHERE user_id = ? AND created = 1
+             ORDER BY level DESC, slot_id ASC LIMIT 1`
+          )
+          .get(m.userId);
+        if (row && row.level != null) {
+          levelFromSave = Math.max(levelFromSave, Math.floor(Number(row.level) || 1));
+        }
+      } catch (_) {}
+      const levelFromOpts = Math.max(0, Math.floor(Number(opts.levels?.[m.userId]) || 0));
+      const level = Math.max(levelFromSave, levelFromOpts);
+      if (level < reqLevel) {
+        return {
+          ok: false,
+          error: "level",
+          message: "У " + (m.nick || "игрока") + " ур. " + level + " (нужен " + reqLevel + ")",
+        };
+      }
+      const power = Math.max(
+        1,
+        Math.floor(Number(opts.powers?.[m.userId]) || (m.userId === user.id ? Number(opts.power) : 0) || 0)
+      );
+      // Если сила не передана для мембера — не блокируем по силе (лидер проверит свой power ниже)
+      if (opts.powers && opts.powers[m.userId] != null && power < reqPower) {
+        return {
+          ok: false,
+          error: "power",
+          message: "У " + (m.nick || "игрока") + " сила " + power + " (нужна " + reqPower + ")",
+        };
+      }
+    }
+    if (Math.max(1, Math.floor(Number(opts.power) || 0)) < reqPower) {
+      return {
+        ok: false,
+        error: "power",
+        message: "Недостаточно силы лидера (нужна " + reqPower + ")",
+      };
     }
     // Clear existing run for party
     for (const [rid, run] of instanceRuns) {
@@ -1315,7 +1543,7 @@ function attachPartyContentMethods(db, store) {
     if (!run || !run.members.has(user.id)) {
       return { ok: false, error: "run", message: "Нет активного инстанса" };
     }
-    const now = Date.now();
+    const now = Number(opts.now) || Date.now();
     if (run.status === "active" && run.expiresAt < now) {
       run.status = "failed";
       run.phase = "timeout";
@@ -1496,6 +1724,53 @@ function attachPartyContentMethods(db, store) {
       };
     }
 
+    // Адды: бей теней. Урон в босса блокируется, пока живы адды.
+    if (enc.kind === "boss" && enc.addsActive && Array.isArray(enc.adds)) {
+      const addTarget = enc.adds.find((a) => a && a.id === mobId && !a.dead);
+      if (addTarget) {
+        const power = Math.max(1, member.power || 1);
+        const click = Math.max(1, Math.round(power / 4.2));
+        let dmg = Math.max(1, Math.min(click * 3, Math.floor(Number(opts.dmg) || click)));
+        if (bySkill) {
+          enc.lastSkillHitAt = now;
+          const MAX_SKILL_MULT = 4.0;
+          const sm = Math.min(MAX_SKILL_MULT, Math.max(1, Number(opts.skillMult) || 1.15));
+          dmg = Math.max(1, Math.round(dmg * sm));
+        }
+        const partyBuff = run.partyDamageBuff;
+        if (partyBuff && partyBuff.until > now && partyBuff.mult > 1) {
+          const pm = Math.min(1.5, Math.max(1, Number(partyBuff.mult) || 1));
+          dmg = Math.max(1, Math.round(dmg * pm));
+        }
+        addTarget.hp = Math.max(0, addTarget.hp - dmg);
+        enc.lastHitAt = now;
+        if (addTarget.hp <= 0) {
+          addTarget.hp = 0;
+          addTarget.dead = true;
+        }
+        applyBossPhase(enc, now, run);
+        return {
+          ok: true,
+          killed: !!addTarget.dead,
+          addHit: true,
+          addId: addTarget.id,
+          addDead: !!addTarget.dead,
+          addsDown: !enc.addsActive,
+          dmg,
+          state: publicInstanceState(run, user.id),
+        };
+      }
+      // клик по боссу / мимо — адды держат
+      enc.lastHitAt = now;
+      if (bySkill) enc.lastSkillHitAt = now;
+      return {
+        ok: true,
+        blocked: true,
+        dmg: 0,
+        state: publicInstanceState(run, user.id),
+      };
+    }
+
     let target =
       (enc.mobs || []).find((m) => m.id === mobId && !m.dead) ||
       (enc.mobs || []).find((m) => !m.dead);
@@ -1510,6 +1785,13 @@ function attachPartyContentMethods(db, store) {
       const MAX_SKILL_MULT = 4.0;
       const sm = Math.min(MAX_SKILL_MULT, Math.max(1, Number(opts.skillMult) || 1.15));
       dmg = Math.max(1, Math.round(dmg * sm));
+      // Канал: skill-hit в окне прерывает каст
+      if (enc.kind === "boss" && enc.channelActive) {
+        enc.channelActive = false;
+        enc.channelEndsAt = 0;
+        enc.nextChannelAt = now + Math.max(1200, Math.floor((enc.channelCycleMs || 7000) * 0.65));
+        run.lastEvent = "channel_interrupted";
+      }
     }
     const partyBuff = run.partyDamageBuff;
     if (partyBuff && partyBuff.until > now && partyBuff.mult > 1) {
@@ -1522,8 +1804,8 @@ function attachPartyContentMethods(db, store) {
     if (dmg > 0) target.hp = Math.max(0, target.hp - dmg);
     enc.lastHitAt = now;
     if (enc.kind === "boss") applyBossPhase(enc, now, run);
-    // Убийственный удар не должен сносить босса до старта/закрытия щита/наковальни
-    if (enc.kind === "boss" && (enc.anvilActive || enc.shieldActive) && target.hp <= 0) {
+    // Убийственный удар не должен сносить босса до старта/закрытия щита/наковальни/аддов
+    if (enc.kind === "boss" && (enc.anvilActive || enc.shieldActive || enc.addsActive) && target.hp <= 0) {
       target.hp = 1;
       target.dead = false;
     }

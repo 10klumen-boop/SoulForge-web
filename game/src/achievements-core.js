@@ -173,6 +173,8 @@ function achievementContext() {
     gnomesCaught: s.gnomesCaught || 0,
     goldenGnomes: s.goldenGnomes || 0,
     bananWins: s.bananWins || 0,
+    casinoPulls: state.bananaCasino?.pulls || 0,
+    casinoJackpots: state.bananaCasino?.jackpots || 0,
     funpayWins: s.funpayWins || 0,
     weaponsSold: s.weaponsSold || 0,
     weaponsBroken: s.weaponsBroken || 0,

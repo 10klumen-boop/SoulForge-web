@@ -707,7 +707,7 @@ function renderWorkshopJewelryEpic(body) {
   sec.className = "ws-sec";
   sec.innerHTML =
     "<h3>💍 Эпическая бижутерия</h3>" +
-    '<p class="ws-armor-hint">Осколки падают с мирового босса Закена (2–3 место). 1 место — готовая серьга.</p>' +
+    '<p class="ws-armor-hint">Осколки падают с мировых боссов (Закен / Королева Муравьёв, 2–3 место). 1 место — готовая бижутерия.</p>' +
     '<div class="craft-grid" id="jewelCraftGrid"></div>';
   body.appendChild(sec);
   const grid = sec.querySelector("#jewelCraftGrid");

@@ -53,8 +53,10 @@ const UI_MENU_ICONS = {
   clan: "icons/party_menu.png?v=2",
   arena: "icons/arena_menu.png?v=1",
   market: "icons/warehouse_chest.png?v=1",
+  bananaCasino: "icons/banana_casino_menu.png?v=1",
   workshop: "assets/ui/inventory_book_crop.png?v=10",
   achievements: "assets/ui/bloodhood_icon02_crop.png",
+  glossary: "icons/glossary_menu.png?v=1",
 };
 
 /** Кнопки входа История/Фарм и разделы мастерской. */
@@ -481,6 +483,7 @@ function syncMenuTileIcons() {
   const clanIco = document.querySelector("#clanTile .tile-ico");
   const marketIco = document.querySelector("#marketTile .tile-ico");
   const arenaIco = document.querySelector("#pvpArenaTile .tile-ico");
+  const bananaIco = document.querySelector("#bananaCasinoTile .tile-ico");
   if (charIco) charIco.src = UI_MENU_ICONS.character;
   if (questIco) questIco.src = UI_MENU_ICONS.quest;
   if (whIco && UI_MENU_ICONS.warehouse) whIco.src = UI_MENU_ICONS.warehouse;
@@ -488,7 +491,10 @@ function syncMenuTileIcons() {
   if (partyIco && UI_MENU_ICONS.party) partyIco.src = UI_MENU_ICONS.party;
   if (clanIco && UI_MENU_ICONS.clan) clanIco.src = UI_MENU_ICONS.clan;
   if (marketIco && UI_MENU_ICONS.market) marketIco.src = UI_MENU_ICONS.market;
+  if (bananaIco && UI_MENU_ICONS.bananaCasino) bananaIco.src = UI_MENU_ICONS.bananaCasino;
   if (arenaIco && UI_MENU_ICONS.arena) arenaIco.src = UI_MENU_ICONS.arena;
+  const glossIco = document.querySelector("#glossaryTile .tile-ico");
+  if (glossIco && UI_MENU_ICONS.glossary) glossIco.src = UI_MENU_ICONS.glossary;
 }
 
 function devWorldIconEntries() {

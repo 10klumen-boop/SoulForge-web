@@ -23,6 +23,7 @@ const L2_MOB_NAMES = {
   "dre-vanul": "Дре Ванул",
   "relic-werewolf": "Реликтовый оборотень",
   zaken: "Закен",
+  "queen-ant": "Королева Муравьёв",
   werewolf: "Оборотень",
   "monster-eye": "Глаз Монстра",
   "vampire-bat": "Вампирская летучая мышь",
@@ -156,7 +157,7 @@ const L2_LOC_NAMES = {
 };
 
 /** Cache-bust — менять после замены assets/locations|mobs */
-const MINE_ASSET_VER = 26;
+const MINE_ASSET_VER = 31;
 const _mineSpritePick = {};
 
 function resetMineSpritePick(zoneId) {

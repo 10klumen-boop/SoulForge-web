@@ -215,6 +215,21 @@ function formatJewelryBonusLines(def) {
   if (!def) return lines;
   const b = def.bonuses || {};
   if (b.mdef) lines.push("M.Def +" + b.mdef);
+  if (b.pdef) lines.push("P.Def +" + b.pdef);
+  if (b.pvpAtk) lines.push("ATK арены +" + Math.round(b.pvpAtk * 1000) / 10 + "%");
+  if (b.pvpDef) lines.push("DEF арены +" + Math.round(b.pvpDef * 1000) / 10 + "%");
+  if (b.pvpCritChance) {
+    lines.push("Крит арены +" + Math.round(b.pvpCritChance * 1000) / 10 + "%");
+  }
+  if (b.mineAdena) lines.push("Adena +" + Math.round(b.mineAdena * 100) + "%");
+  if (b.avatarXp) lines.push("XP души +" + Math.round(b.avatarXp * 100) + "%");
+  if (b.enchant) {
+    lines.push(
+      typeof formatArmorEnchantBonus === "function"
+        ? formatArmorEnchantBonus(b.enchant)
+        : "Заточка +" + (b.enchant * 100).toFixed(2) + "%"
+    );
+  }
   if (b.skillCdMult != null && b.skillCdMult < 1) {
     const pct = Math.round((1 - b.skillCdMult) * 1000) / 10;
     lines.push("КД скиллов −" + pct + "%");
@@ -222,6 +237,7 @@ function formatJewelryBonusLines(def) {
   if (b.debuffResist) {
     lines.push("Резист дебаффов +" + Math.round(b.debuffResist * 1000) / 10 + "%");
   }
+  if (def.uniqueEquipped || def.epic) lines.push("Уникальный — один в экипе");
   return lines;
 }
 

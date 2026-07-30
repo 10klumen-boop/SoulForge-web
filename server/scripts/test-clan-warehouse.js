@@ -44,23 +44,24 @@ const rival = { id: u3.id, nick: "ClanRival" };
 
 store.persistPlayerSave(lead, 1, now, "0.58", makeSave(50_000_000, "LeadHero", "lead1"));
 store.persistPlayerSave(mem, 1, now + 1, "0.58", makeSave(500_000, "MemHero", "mem1"));
-store.persistPlayerSave(rival, 1, now + 2, "0.58", makeSave(80_000_000, "RivalHero", "riv1"));
+store.persistPlayerSave(rival, 1, now + 2, "0.58", makeSave(200_000_000, "RivalHero", "riv1"));
 
 const created = store.chatCreateClan(lead, { name: "IronHold", now: now + 3 });
 assert(created.ok && created.clan && created.clan.id, "create clan");
 assert(store.chatCreateClan(rival, { name: "RivalHold", now: now + 4 }).ok, "rival clan");
 
 const depSeed = store.clanWarehouseDeposit(lead, {
-  amount: 20_000_000,
+  amount: 10_000_000,
   characterId: "lead1",
   now: now + 5,
 });
-assert(depSeed.ok && depSeed.adena === 20_000_000, "seed warehouse " + JSON.stringify(depSeed));
-assert(depSeed.save.data.characters[0].progress.adena === 30_000_000, "char paid seed");
+assert(depSeed.ok && depSeed.adena === 10_000_000, "seed warehouse " + JSON.stringify(depSeed));
+assert(depSeed.save.data.characters[0].progress.adena === 40_000_000, "char paid seed");
+assert(depSeed.xpGained === 120, "seed donation xp " + depSeed.xpGained);
 
 const claim = store.clanClaimTerritory(lead, { territoryId: "wasteland", now: now + 6 });
 assert(claim.ok, "claim wasteland: " + (claim.message || claim.error));
-assert(claim.warehouseAdena === 15_000_000, "wh after claim " + claim.warehouseAdena);
+assert(claim.warehouseAdena === 5_000_000, "wh after claim " + claim.warehouseAdena);
 
 const list = store.clanListTerritories();
 assert(
@@ -70,7 +71,7 @@ assert(
 
 // Contest lock: right after claim
 const rivDep = store.clanWarehouseDeposit(rival, {
-  amount: 30_000_000,
+  amount: 100_000_000,
   characterId: "riv1",
   now: now + 7,
 });
@@ -81,13 +82,21 @@ const locked = store.clanContestTerritory(rival, {
 });
 assert(!locked.ok && locked.error === "lock", "contest lock right after claim: " + JSON.stringify(locked));
 
-const dep = store.clanWarehouseDeposit(lead, {
+const badAmt = store.clanWarehouseDeposit(lead, {
   amount: 100_000,
   characterId: "lead1",
   now: now + 9,
 });
-assert(dep.ok && dep.adena === 15_100_000, "deposit " + JSON.stringify(dep));
-assert(dep.save.data.characters[0].progress.adena === 29_900_000, "char paid");
+assert(!badAmt.ok && badAmt.error === "amount", "reject free amount " + JSON.stringify(badAmt));
+
+const dep = store.clanWarehouseDeposit(lead, {
+  amount: 1_000_000,
+  characterId: "lead1",
+  now: now + 9,
+});
+assert(dep.ok && dep.adena === 6_000_000, "deposit " + JSON.stringify(dep));
+assert(dep.save.data.characters[0].progress.adena === 39_000_000, "char paid");
+assert(dep.xpGained === 10, "1kk donation xp");
 
 const inv = store.chatInviteClan(lead, { nick: "MemHero", now: now + 10 });
 assert(inv.ok && inv.inviteId, "invite");
@@ -102,21 +111,22 @@ const stillNo = store.clanWarehouseWithdraw(mem, {
 assert(!stillNo.ok, "member still cannot withdraw");
 
 const wh = store.clanGetWarehouse(lead, { now: now + 13 });
-assert(wh.ok && wh.adena === 15_100_000, "warehouse get");
+assert(wh.ok && wh.adena === 6_000_000, "warehouse get");
+assert(wh.canWithdraw === false, "withdraw disabled");
+assert(Array.isArray(wh.donations) && wh.donations.length >= 4, "donation tiers");
 assert(wh.holdings.some((h) => h.territoryId === "wasteland"), "holdings");
 
 const rentNow = now + 13 + 24 * 60 * 60 * 1000;
 const wh2 = store.clanGetWarehouse(lead, { now: rentNow });
 assert(wh2.ok && wh2.rentAdded === 50000, "rent day " + wh2.rentAdded);
-assert(wh2.adena === 15_150_000, "adena after rent " + wh2.adena);
+assert(wh2.adena === 6_050_000, "adena after rent " + wh2.adena);
 
 const wd = store.clanWarehouseWithdraw(lead, {
   amount: 25_000,
   characterId: "lead1",
   now: rentNow + 5,
 });
-assert(wd.ok && wd.adena === 15_125_000, "withdraw");
-assert(wd.save.data.characters[0].progress.adena === 29_925_000, "char received");
+assert(!wd.ok && wd.error === "disabled", "withdraw permanently disabled");
 
 const cap2 = store.clanClaimTerritory(lead, { territoryId: "abandoned_camp", now: rentNow + 6 });
 assert(cap2.ok, "second farm abandoned_camp: " + (cap2.message || cap2.error));

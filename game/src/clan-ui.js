@@ -497,82 +497,36 @@ function bindClanSubBackButtons() {
 
 function wireClanWarehouseActions(root) {
   const box = root || document;
-  const whAmt = box.querySelector("#clanWhAmount");
-  if (whAmt) {
-    whAmt.oninput = () => {
-      let v = String(whAmt.value || "");
-      v = v.replace(/[^\d.,kкKК\s\u00a0]/gi, "");
-      clanWarehouseDraft = v;
-      whAmt.value = v;
-    };
-  }
-  box.querySelectorAll("[data-clan-wh-preset]").forEach((el) => {
-    el.onclick = () => {
-      const raw = el.getAttribute("data-clan-wh-preset");
-      if (raw === "all") {
-        const have = Math.max(0, Math.floor(Number(state?.adena) || 0));
-        clanWarehouseDraft = String(have);
-      } else {
-        clanWarehouseDraft = String(raw || "");
-      }
-      if (whAmt) whAmt.value = clanWarehouseDraft;
-    };
-  });
-  const dep = box.querySelector("#clanWhDeposit");
-  if (dep) {
-    dep.onclick = async () => {
-      const n =
-        typeof parseClanAdenaAmount === "function"
-          ? parseClanAdenaAmount(clanWarehouseDraft)
-          : Number(String(clanWarehouseDraft || "").replace(/\D/g, "")) || 0;
-      if (n < 1000) {
-        clanSetStatus("Минимум 1 000 adena (можно 10kkk / 10ккк)", "warn");
+  box.querySelectorAll("[data-clan-donate]").forEach((el) => {
+    el.onclick = async () => {
+      const n = Math.floor(Number(el.getAttribute("data-clan-donate")) || 0);
+      if (n < 1) return;
+      const have = Math.max(0, Math.floor(Number(state?.adena) || 0));
+      if (have < n) {
+        clanSetStatus("Недостаточно адены", "warn");
         return;
       }
-      dep.disabled = true;
+      el.disabled = true;
       const r = await clanWarehouseDeposit(n);
-      dep.disabled = false;
+      el.disabled = false;
       if (!r.ok) {
         clanSetStatus(r.message || r.error || "Ошибка", "warn");
-        if (typeof toast === "function") toast(r.message || r.error || "Не удалось внести", "warn");
+        if (typeof toast === "function") toast(r.message || r.error || "Не удалось пожертвовать", "warn");
       } else {
-        clanWarehouseDraft = "";
+        const xp = Math.floor(Number(r.xpGained || r.activity?.added) || 0);
+        const amtTxt = typeof fmt === "function" ? fmt(r.deposited || n) : String(r.deposited || n);
         clanSetStatus(
-          "На склад: " + (typeof fmt === "function" ? fmt(r.deposited) : r.message || "Внесено")
+          "Пожертвовано " + amtTxt + (xp > 0 ? " · +" + xp + " XP клану" : "")
         );
+        if (typeof toast === "function") {
+          toast("В казну: " + amtTxt + (xp > 0 ? " (+" + xp + " XP)" : ""), "success");
+        }
         if (typeof clanRefreshWarehouse === "function") await clanRefreshWarehouse();
         if (typeof clanRefreshBuffs === "function") await clanRefreshBuffs();
       }
       renderClanWarehouseScreen();
     };
-  }
-  const wdr = box.querySelector("#clanWhWithdraw");
-  if (wdr) {
-    wdr.onclick = async () => {
-      const n =
-        typeof parseClanAdenaAmount === "function"
-          ? parseClanAdenaAmount(clanWarehouseDraft)
-          : Number(String(clanWarehouseDraft || "").replace(/\D/g, "")) || 0;
-      if (n < 1) {
-        clanSetStatus("Укажи сумму (можно 10kkk)", "warn");
-        return;
-      }
-      wdr.disabled = true;
-      const r = await clanWarehouseWithdraw(n);
-      wdr.disabled = false;
-      if (!r.ok) {
-        clanSetStatus(r.message || r.error || "Ошибка", "warn");
-        if (typeof toast === "function") toast(r.message || r.error || "Не удалось снять", "warn");
-      } else {
-        clanWarehouseDraft = "";
-        clanSetStatus(
-          "Со склада: " + (typeof fmt === "function" ? fmt(r.withdrawn) : r.message || "Снято")
-        );
-        if (typeof clanRefreshWarehouse === "function") await clanRefreshWarehouse();
-      }
-      renderClanWarehouseScreen();
-    };
-  }
+  });
 }
 
 function wireClanBuffsActions(root) {
@@ -824,7 +778,7 @@ function clanLevelBarHtml(b) {
     '<div class="clan-level-bar-fill" style="width:' +
     pct +
     '%"></div></div>' +
-    '<p class="party-panel-hint clan-level-hint">Уровень растёт от вкладов на склад, угодий и рейда. Сильные баффы открываются с ростом уровня.</p>' +
+    '<p class="party-panel-hint clan-level-hint">Уровень растёт от пожертвований в казну, угодий и рейда. Сильные баффы открываются с ростом уровня.</p>' +
     "</div>"
   );
 }
@@ -1109,8 +1063,42 @@ function renderClanWarehouseCard() {
       );
     })
     .join("");
-  const canWd = !!wh.canWithdraw;
   const myAdena = fmtAdena(Math.max(0, Math.floor(Number(state?.adena) || 0)));
+  const have = Math.max(0, Math.floor(Number(state?.adena) || 0));
+  const tiers =
+    (wh.donations && wh.donations.length
+      ? wh.donations
+      : typeof CLAN_DONATIONS !== "undefined"
+        ? CLAN_DONATIONS
+        : []) || [];
+  const donateBtns = tiers
+    .map((d) => {
+      const amt = Math.floor(Number(d.amount) || 0);
+      const xp = Math.floor(Number(d.xp) || 0);
+      const label = d.label || String(amt);
+      const can = have >= amt;
+      return (
+        '<button type="button" class="clan-wh-donate' +
+        (can ? "" : " is-poor") +
+        '" data-clan-donate="' +
+        amt +
+        '"' +
+        (can ? "" : " disabled") +
+        ' title="Пожертвовать ' +
+        label +
+        " · +" +
+        xp +
+        ' XP клану">' +
+        '<span class="clan-wh-donate-amt">' +
+        label +
+        "</span>" +
+        '<span class="clan-wh-donate-xp">+' +
+        xp +
+        " XP</span>" +
+        "</button>"
+      );
+    })
+    .join("");
   return (
     '<div class="clan-warehouse">' +
     '<div class="clan-warehouse-hero" aria-hidden="true">' +
@@ -1118,7 +1106,7 @@ function renderClanWarehouseCard() {
     "</div>" +
     '<div class="clan-warehouse-panel">' +
     '<div class="clan-warehouse-head">' +
-    "<strong>Склад адены</strong>" +
+    "<strong>Казна клана</strong>" +
     '<span class="clan-warehouse-adena" title="На складе клана">' +
     fmtAdena(wh.adena || 0) +
     "</span>" +
@@ -1128,31 +1116,12 @@ function renderClanWarehouseCard() {
         fmtAdena(wh.rentAdded) +
         "</p>"
       : "") +
-    '<p class="clan-warehouse-note">Взнос — любой · снятие — лидер/офицер · рента с узлов → сюда</p>' +
+    '<p class="clan-warehouse-note">Пожертвование в казну · без снятия · XP клану по сумме кнопки · рента с узлов → сюда</p>' +
     '<div class="clan-warehouse-balance">У тебя: <b>' +
     myAdena +
     "</b></div>" +
-    '<label class="clan-warehouse-field">' +
-    '<span class="clan-warehouse-field-label">Сумма</span>' +
-    '<input type="text" inputmode="text" class="clan-warehouse-input" id="clanWhAmount" ' +
-    'placeholder="10kkk или 1500000" autocomplete="off" value="' +
-    String(clanWarehouseDraft || "").replace(/"/g, "&quot;") +
-    '" />' +
-    "</label>" +
-    '<div class="clan-warehouse-actions">' +
-    '<button type="button" class="clan-warehouse-btn clan-warehouse-btn--deposit" id="clanWhDeposit">Внести</button>' +
-    (canWd
-      ? '<button type="button" class="clan-warehouse-btn clan-warehouse-btn--withdraw" id="clanWhWithdraw">Снять</button>'
-      : '<button type="button" class="clan-warehouse-btn clan-warehouse-btn--withdraw" disabled title="Только лидер или офицер">Снять</button>') +
-    "</div>" +
-    '<div class="clan-warehouse-presets" role="group" aria-label="Быстрая сумма">' +
-    '<button type="button" class="clan-wh-preset" data-clan-wh-preset="1kk">1kk</button>' +
-    '<button type="button" class="clan-wh-preset" data-clan-wh-preset="10kk">10kk</button>' +
-    '<button type="button" class="clan-wh-preset" data-clan-wh-preset="100kk">100kk</button>' +
-    '<button type="button" class="clan-wh-preset" data-clan-wh-preset="1kkk">1kkk</button>' +
-    '<button type="button" class="clan-wh-preset" data-clan-wh-preset="10kkk">10kkk</button>' +
-    '<button type="button" class="clan-wh-preset" data-clan-wh-preset="100kkk">100kkk</button>' +
-    '<button type="button" class="clan-wh-preset clan-wh-preset--all" data-clan-wh-preset="all">всё</button>' +
+    '<div class="clan-warehouse-donations" role="group" aria-label="Пожертвования">' +
+    (donateBtns || '<p class="clan-warehouse-note">Нет доступных сумм</p>') +
     "</div>" +
     (holdings
       ? '<div class="clan-warehouse-holdings"><strong>Узлы</strong><ul>' +

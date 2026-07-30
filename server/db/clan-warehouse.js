@@ -376,10 +376,8 @@ const CLAN_TERRITORIES = {
 };
 
 const HOLD_MAX = { farm: 2, city: 1 };
-const DEPOSIT_MIN = 1000;
 /** Safe JS integer — раньше 50ккк резало крупные взносы. */
 const DEPOSIT_MAX = Number.MAX_SAFE_INTEGER;
-const WITHDRAW_MAX = Number.MAX_SAFE_INTEGER;
 const MS_DAY = 24 * 60 * 60 * 1000;
 /** После захвата узел нельзя отбить сразу. */
 const CONTEST_LOCK_MS = 30 * 60 * 1000;
@@ -909,15 +907,24 @@ function attachClanEconomyMethods(db, store, deps) {
         rentAdded: rent.added,
         holdings,
         canDeposit: true,
-        canWithdraw: role === "leader" || role === "officer",
+        canWithdraw: false,
+        donations:
+          typeof store.clanDonationTier === "function" ? store.clanDonationTier() : [],
       };
     })();
   };
 
   store.clanWarehouseDeposit = function clanWarehouseDeposit(user, opts = {}) {
     const amount = Math.floor(Number(opts.amount) || 0);
-    if (!Number.isFinite(amount) || amount < DEPOSIT_MIN) {
-      return { ok: false, error: "amount", message: "Минимум " + DEPOSIT_MIN.toLocaleString("ru-RU") + " adena" };
+    const known =
+      typeof store.clanDonationTier === "function" &&
+      store.clanDonationTier().some((d) => d.amount === amount);
+    if (!Number.isFinite(amount) || !known) {
+      return {
+        ok: false,
+        error: "amount",
+        message: "Выбери сумму пожертвования: 1kk / 10kk / 100kk / 1kkk",
+      };
     }
     if (amount > DEPOSIT_MAX) {
       return {
@@ -947,7 +954,7 @@ function attachClanEconomyMethods(db, store, deps) {
       const wh = ensureWarehouse(clanId, now);
       const next = Math.max(0, Math.floor(Number(wh.adena) || 0) + amount);
       stmtWhUpsert.run(clanId, next, now);
-      stmtWhLog.run(clanId, user.id, "deposit", amount, characterId, now);
+      stmtWhLog.run(clanId, user.id, "donate", amount, characterId, now);
       let activity = null;
       if (typeof store.clanScoreFromDeposit === "function" && typeof store.clanAddActivityScore === "function") {
         const pts = store.clanScoreFromDeposit(amount);
@@ -958,6 +965,8 @@ function attachClanEconomyMethods(db, store, deps) {
         ok: true,
         adena: next,
         deposited: amount,
+        donated: amount,
+        xpGained: activity?.added || 0,
         charAdena: progress.adena,
         activity,
         ...persisted,
@@ -965,49 +974,12 @@ function attachClanEconomyMethods(db, store, deps) {
     })();
   };
 
-  store.clanWarehouseWithdraw = function clanWarehouseWithdraw(user, opts = {}) {
-    const amount = Math.floor(Number(opts.amount) || 0);
-    if (!Number.isFinite(amount) || amount < 1) {
-      return { ok: false, error: "amount", message: "Укажи сумму" };
-    }
-    if (amount > WITHDRAW_MAX) {
-      return { ok: false, error: "amount", message: "Слишком большая сумма" };
-    }
-    const clanId = getClanId(user.id);
-    if (!clanId) return { ok: false, error: "clan", message: "Нужен клан" };
-    const role = clanRole(clanId, user.id);
-    if (role !== "leader" && role !== "officer") {
-      return { ok: false, error: "role", message: "Снимать со склада может лидер или офицер" };
-    }
-    const characterId = String(opts.characterId || "").slice(0, 64);
-    if (!characterId) return { ok: false, error: "character", message: "Нужен characterId" };
-    const now = Number(opts.now) || Date.now();
-
-    return db.transaction(() => {
-      const loaded = loadUserData(user.id);
-      if (!loaded.ok) return loaded;
-      const slot = getCharacterSlot(loaded.data, characterId);
-      if (!slot) return { ok: false, error: "character", message: "Персонаж не найден" };
-      const progress = ensureProgress(slot);
-      accrueRentForClan(clanId, now);
-      const wh = ensureWarehouse(clanId, now);
-      const have = Math.max(0, Math.floor(Number(wh.adena) || 0));
-      if (have < amount) {
-        return { ok: false, error: "funds", message: "На складе недостаточно адены" };
-      }
-      const next = have - amount;
-      stmtWhUpsert.run(clanId, next, now);
-      stmtWhLog.run(clanId, user.id, "withdraw", amount, characterId, now);
-      progress.adena = Math.max(0, Math.floor(Number(progress.adena) || 0) + amount);
-      const persisted = persistMutated(user, loaded.data, loaded.row.seq);
-      return {
-        ok: true,
-        adena: next,
-        withdrawn: amount,
-        charAdena: progress.adena,
-        ...persisted,
-      };
-    })();
+  store.clanWarehouseWithdraw = function clanWarehouseWithdraw(_user, _opts = {}) {
+    return {
+      ok: false,
+      error: "disabled",
+      message: "Склад — только пожертвования. Снятие отключено.",
+    };
   };
 }
 

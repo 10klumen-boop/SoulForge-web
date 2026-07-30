@@ -129,17 +129,18 @@ function formatEquippedJewelryBonusHtml() {
       } else {
         if (b.mdef) parts.push("+" + b.mdef + " M.Def");
         if (b.pdef) parts.push("+" + b.pdef + " P.Def");
+        if (b.pvpAtk) parts.push("+" + Math.round(b.pvpAtk * 1000) / 10 + "% ATK арены");
+        if (b.pvpDef) parts.push("+" + Math.round(b.pvpDef * 1000) / 10 + "% DEF арены");
+        if (b.enchant) {
+          parts.push(
+            typeof formatArmorEnchantBonus === "function"
+              ? formatArmorEnchantBonus(b.enchant)
+              : "+" + (b.enchant * 100).toFixed(2) + "% заточка"
+          );
+        }
+        if (b.mineAdena) parts.push("+" + Math.round(b.mineAdena * 100) + "% adena");
+        if (b.avatarXp) parts.push("+" + Math.round(b.avatarXp * 100) + "% XP души");
       }
-      if (b.pvpAtk) parts.push("+" + Math.round(b.pvpAtk * 1000) / 10 + "% ATK арены");
-      if (b.enchant) {
-        parts.push(
-          typeof formatArmorEnchantBonus === "function"
-            ? formatArmorEnchantBonus(b.enchant)
-            : "+" + (b.enchant * 100).toFixed(2) + "% заточка"
-        );
-      }
-      if (b.mineAdena) parts.push("+" + Math.round(b.mineAdena * 100) + "% adena");
-      if (b.avatarXp) parts.push("+" + Math.round(b.avatarXp * 100) + "% XP души");
       jewelryLines.push(
         '<li class="on">✓ ' + (c.name || item.id) + (parts.length ? ": " + parts.join(" · ") : "") + "</li>"
       );
@@ -432,8 +433,21 @@ function renderAvatarEquipList() {
       const lines =
         typeof formatJewelryBonusLines === "function" ? formatJewelryBonusLines(def) : [];
       sub = lines.length ? lines.join(" · ") : def.desc || (def.epic ? "Эпический аксессуар" : "Бижутерия");
-    } else if (isArmor) sub = "P.Def " + (def.pdef || 0) + " · M.Def " + (def.mdef || 0);
-    else sub = typeof weaponEquipStatLabel === "function" ? weaponEquipStatLabel(def, it.plus || 0) : "P.Atk " + fmt(statAt(def.patk, def.ps, it.plus || 0));
+    } else if (isArmor) {
+      const plusN = it.plus || 0;
+      const pAdd = typeof armorEnchantPdefBonus === "function" ? armorEnchantPdefBonus(plusN) : plusN * 2;
+      const mAdd = typeof armorEnchantMdefBonus === "function" ? armorEnchantMdefBonus(plusN) : plusN;
+      sub =
+        "P.Def " +
+        ((def.pdef || 0) + pAdd) +
+        " · M.Def " +
+        ((def.mdef || 0) + mAdd);
+    } else if (typeof isAccessoryItem === "function" && isAccessoryItem(it)) {
+      const plusN = it.plus || 0;
+      const mAdd = typeof jewelryEnchantMdefBonus === "function" ? jewelryEnchantMdefBonus(plusN) : plusN;
+      const baseM = (def.bonuses && def.bonuses.mdef) || def.mdef || 0;
+      sub = "M.Def " + (baseM + mAdd);
+    } else sub = typeof weaponEquipStatLabel === "function" ? weaponEquipStatLabel(def, it.plus || 0) : "P.Atk " + fmt(statAt(def.patk, def.ps, it.plus || 0));
     btn.innerHTML =
       '<img src="' + def.icon + '" alt="">' +
       "<div><strong>" + def.name + plus + badge + "</strong>" +

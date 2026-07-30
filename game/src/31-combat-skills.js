@@ -12,13 +12,23 @@ function syncMineSkillBtn(btn, skill) {
     (cd > 0 ? " on-cd" : "") +
     (unlocked ? "" : " locked");
   btn.disabled = !unlocked;
-  const keyHint = " [" + skill.hotkey + "]";
-  btn.title =
-    skill.name +
-    keyHint +
-    " · " +
-    skill.desc +
-    (unlocked ? "" : " · ур. " + skill.unlockLevel);
+  if (!btn.dataset.skillTipWired) {
+    if (typeof wireCombatSkillTooltip === "function") {
+      const skillId = skill.id;
+      wireCombatSkillTooltip(btn, () => {
+        const list = typeof combatSkillsForAvatar === "function" ? combatSkillsForAvatar() : [];
+        return list.find((s) => s.id === skillId) || skill;
+      });
+    } else {
+      btn.title =
+        (typeof combatSkillPlainTip === "function" ? combatSkillPlainTip(skill) : null) ||
+        skill.name + " [" + skill.hotkey + "] · " + skill.desc;
+    }
+  } else if (typeof itemTipIsCoarsePointer === "function" && itemTipIsCoarsePointer()) {
+    btn.title =
+      (typeof combatSkillPlainTip === "function" ? combatSkillPlainTip(skill) : null) ||
+      skill.name + " [" + skill.hotkey + "] · " + skill.desc;
+  }
 
   let img = btn.querySelector("img");
   if (!img) {
@@ -135,14 +145,38 @@ function renderAvatarSkillsPanel() {
     '<p class="avatar-skills-hint">На поле задания · клавиши Q · E · R · F · масштаб −/+ на панели</p>' +
     skills.map((s) => {
       const open = lvl >= s.unlockLevel;
+      const desc =
+        typeof combatSkillGameplayDesc === "function" ? combatSkillGameplayDesc(s) : s.desc || "";
+      const key = s.hotkey ? " · " + s.hotkey : "";
       return (
-        '<div class="avatar-skill-row' + (open ? " unlocked" : " locked") + '">' +
-        '<img src="' + s.icon + '" alt="">' +
-        "<div><b>" + s.name + "</b>" +
-        (open ? "" : ' <small>· ур. ' + s.unlockLevel + "</small>") +
-        "<p>" + s.desc + "</p></div></div>"
+        '<div class="avatar-skill-row' +
+        (open ? " unlocked" : " locked") +
+        '" data-skill-id="' +
+        s.id +
+        '">' +
+        '<img src="' +
+        s.icon +
+        '" alt="">' +
+        "<div><b>" +
+        s.name +
+        "</b>" +
+        key +
+        (open ? "" : " <small>· ур. " + s.unlockLevel + "</small>") +
+        "<p>" +
+        desc +
+        "</p></div></div>"
       );
     }).join("");
+
+  if (typeof wireCombatSkillTooltip === "function") {
+    el.querySelectorAll(".avatar-skill-row[data-skill-id]").forEach((row) => {
+      const sid = row.dataset.skillId;
+      wireCombatSkillTooltip(row, () => {
+        const list = combatSkillsForAvatar();
+        return list.find((s) => s.id === sid) || null;
+      });
+    });
+  }
 }
 
 function wireCombatSkills() {

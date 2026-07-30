@@ -74,7 +74,7 @@ function show(screen) {
   }
 
   const app = gameDoc().querySelector(".app");
-  const subScreens = new Set(["mine", "ach", "avatar", "quests", "inv", "shop", "ench", "acc", "account-storage", "player-mail", "market", "pvp-arena", "party", "clan", "clan-grounds", "clan-warehouse", "clan-buffs", "clan-raid", "aden-map"]);
+  const subScreens = new Set(["mine", "ach", "avatar", "quests", "inv", "shop", "ench", "acc", "account-storage", "player-mail", "market", "pvp-arena", "party", "clan", "clan-grounds", "clan-warehouse", "clan-buffs", "clan-raid", "aden-map", "glossary", "banana-casino"]);
   if (app) {
     const titleScreens = ["home", "settings", "patch", "author", "characters"];
     app.classList.toggle("hub-screen", screen === "menu");
@@ -96,6 +96,12 @@ function show(screen) {
     const pop = document.getElementById("settingsPop");
     if (pop) pop.hidden = false;
     if (typeof syncSettingsUI === "function") syncSettingsUI();
+  }
+  if (screen === "glossary" && typeof renderGlossaryScreen === "function") {
+    renderGlossaryScreen();
+  }
+  if (screen === "banana-casino" && typeof renderBananaCasinoScreen === "function") {
+    renderBananaCasinoScreen();
   }
   if (screen === "login" && typeof syncCloudUI === "function") syncCloudUI();
   if (typeof syncCharacterSessionOverlays === "function") syncCharacterSessionOverlays();
@@ -142,6 +148,11 @@ function closeConfirm(result) {
   const backdrop = document.getElementById("modalBackdrop");
   if (!backdrop || backdrop.hidden) return;
   backdrop.hidden = true;
+  const box = backdrop.querySelector(".modal-box");
+  if (box && box.dataset.sfBoxClass) {
+    box.classList.remove(box.dataset.sfBoxClass);
+    delete box.dataset.sfBoxClass;
+  }
   document.removeEventListener("keydown", _confirmKeyHandler);
   if (_confirmLockTimer) {
     clearTimeout(_confirmLockTimer);
@@ -247,6 +258,14 @@ function showConfirm(opts) {
 
     const box = backdrop.querySelector(".modal-box");
     if (box) {
+      if (box.dataset.sfBoxClass) {
+        box.classList.remove(box.dataset.sfBoxClass);
+        delete box.dataset.sfBoxClass;
+      }
+      if (opts.boxClass) {
+        box.classList.add(opts.boxClass);
+        box.dataset.sfBoxClass = opts.boxClass;
+      }
       box.onpointerdown = (e) => e.stopPropagation();
       box.onclick = (e) => e.stopPropagation();
     }
