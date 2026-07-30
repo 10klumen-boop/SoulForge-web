@@ -98,6 +98,11 @@ assert.ok(worldBossNextStartMs("world_zaken", Date.now()) > Date.now() - 60 * 10
   const up = worldBossUpcoming(evenPast);
   assert.strictEqual(up.status, "upcoming");
   assert.strictEqual(up.boss.id, "world_zaken");
+  const nextZaken = worldBossNextStartMs("world_zaken", evenPast);
+  const nextQueen = worldBossNextStartMs("world_queen_ant", evenPast);
+  assert.ok(nextZaken !== nextQueen, "parity schedules must differ");
+  assert.ok(nextZaken < nextQueen, "after even window Zaken before Queen");
+  assert.strictEqual(nextQueen - nextZaken, 60 * 60 * 1000);
 }
 {
   const oddHour = Date.UTC(2026, 6, 30, 11, 1, 0) - 3 * 60 * 60 * 1000; // 11:01 МСК

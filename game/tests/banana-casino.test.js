@@ -179,6 +179,22 @@ function runTests() {
     assert.strictEqual(loot.kind, "charm");
   });
 
+  test("jackpot resets rare and jackpot pity bars", () => {
+    state.inventory = [];
+    state.bananaCasino = {
+      ...defaultBananaCasinoState(),
+      tokens: 1,
+      pity: 40,
+      pityJackpot: BANANA_CASINO.pityJackpot,
+    };
+    const r = spinBananaCasino(1, () => 0);
+    assert.strictEqual(r.ok, true);
+    assert.strictEqual(r.results[0].tier, "jackpot");
+    assert.strictEqual(state.bananaCasino.pity, 0, "rare pity reset");
+    assert.strictEqual(state.bananaCasino.pityJackpot, 0, "jackpot pity reset");
+    assert.ok((state.bananaCasino.jackpots || 0) >= 1);
+  });
+
   test("grantCasinoLoot charm", () => {
     state.inventory = [];
     const res = grantCasinoLoot({

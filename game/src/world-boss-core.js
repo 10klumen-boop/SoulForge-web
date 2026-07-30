@@ -335,7 +335,7 @@ async function renderWorldBossHub() {
         cardStatus === "active"
           ? "Идёт бой · осталось " + worldBossFmtMs(remaining)
           : cardStatus === "ended" && isCurrent
-            ? "Итоги · следующий через " + worldBossFmtMs(remaining)
+            ? "Итоги · след. старт через " + worldBossFmtMs(remaining)
             : "Старт в " + parityHint(boss) + " · через " + worldBossFmtMs(remaining);
       const canEnter = cardStatus === "active" && isCurrent && st.status === "active";
       const canClaim = ended && isCurrent && st.my?.canClaim;

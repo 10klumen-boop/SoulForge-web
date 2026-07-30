@@ -290,24 +290,30 @@ function resolveCasinoPull(rng) {
   ProgressStore.update("bananaCasino", (c) => {
     const next = { ...(c || defaultBananaCasinoState()) };
     next.pulls = (next.pulls || 0) + 1;
-    next.pity = isRarePlus ? 0 : (next.pity || 0) + 1;
     if (isJackpot) {
+      // Джекпот сбрасывает обе полоски (Rare и Jackpot).
+      next.pity = 0;
       next.pityJackpot = 0;
       next.jackpots = (next.jackpots || 0) + 1;
     } else {
+      next.pity = isRarePlus ? 0 : (next.pity || 0) + 1;
       next.pityJackpot = (next.pityJackpot || 0) + 1;
     }
+    const max = BANANA_CASINO.historyMax || 20;
+    const hist = Array.isArray(next.history) ? next.history.slice() : [];
+    hist.unshift({
+      tier,
+      kind: loot.kind,
+      label: res.ok ? res.text : loot.label + " (" + (res.text || "fail") + ")",
+      at: Date.now(),
+      ok: !!res.ok,
+    });
+    while (hist.length > max) hist.pop();
+    next.history = hist;
     return next;
   });
 
   const label = res.ok ? res.text : loot.label + " (" + (res.text || "fail") + ")";
-  _bananaCasinoPushHistory({
-    tier,
-    kind: loot.kind,
-    label,
-    at: Date.now(),
-    ok: !!res.ok,
-  });
 
   return { loot, res, tier, label };
 }

@@ -541,13 +541,14 @@ function attachWorldBossMethods(db, store) {
       const nextAt = nextStartMs(b.id, now);
       const isCurrent = boss && boss.id === b.id;
       let cardStatus = "idle";
+      // Всегда отсчёт до следующего слота ЭТОГО босса (чётный/нечётный час).
+      // Не подменять cycle.nextAt — там ближайший любой слот (другой босс).
       let remainingMs = Math.max(0, nextAt - now);
       if (isCurrent && cycle.status === "active") {
         cardStatus = "active";
         remainingMs = Math.max(0, cycle.endsAt - now);
       } else if (isCurrent && cycle.status === "ended") {
         cardStatus = "ended";
-        remainingMs = Math.max(0, cycle.nextAt - now);
       }
       return Object.assign(publicBoss(b), {
         cardStatus,
