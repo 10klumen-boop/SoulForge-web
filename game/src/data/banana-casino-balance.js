@@ -15,14 +15,13 @@ const BANANA_CASINO = {
     { id: "x10", label: "10 жетонов", tokens: 10, price: 450_000_000 },
   ],
   /**
-   * Веса на 2000 (×2 от старой шкалы 1000).
-   * uncommon/rare/epic — те же %; jackpot 1/2000 = 0.05%.
+   * Веса на 10000. uncommon/rare/epic — те же %; jackpot 1/10000 = 0.01%.
    */
   tierWeights: {
-    common: 1861,
-    uncommon: 80,
-    rare: 54,
-    epic: 4,
+    common: 9309,
+    uncommon: 400,
+    rare: 270,
+    epic: 20,
     jackpot: 1,
   },
   /** Common: Soul Ore или Spirit Ore. */
