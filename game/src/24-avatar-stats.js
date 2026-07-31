@@ -885,24 +885,224 @@ function renderAvatarStatsPanel() {
   const grid = document.getElementById("avatarStatGrid");
   const powerEl = document.getElementById("avatarFarmPower");
   if (!grid) return;
-  const s = avatarStats();
-  const power = avatarFarmPower();
-  const mystic = avatarIsMystic();
-  const rows = [
-    { k: "P.Atk", v: s.patk, tip: mystic ? "Физ. урон — вторичный для мага" : "Физ. урон — основной стат воина в шахте и силе фарма" },
-    { k: "M.Atk", v: s.matk, tip: mystic ? "Маг. урон — основной стат мага в шахте и силе фарма" : "Маг. урон — вторичный для воина (влияет слабее P.Atk)" },
-    { k: "P.Def", v: s.pdef, tip: "Физ. защита — броня; снижает HP golden/boss" },
-    { k: "M.Def", v: s.mdef, tip: "Маг. защита — броня; снижает HP golden/boss" },
-  ];
-  grid.innerHTML = rows
-    .map(
-      (r) =>
-        '<div class="avatar-stat" title="' + r.tip + '">' +
-        '<span class="avatar-stat-k">' + r.k + "</span>" +
-        '<b class="avatar-stat-v">' + fmt(r.v) + "</b></div>"
-    )
-    .join("");
+  const mystic = typeof avatarIsMystic === "function" && avatarIsMystic();
+  const bd =
+    typeof avatarStatsBreakdown === "function"
+      ? avatarStatsBreakdown()
+      : null;
+  const s = bd ? bd.totals : typeof avatarStats === "function" ? avatarStats() : {};
+  const power =
+    (bd && bd.farm && bd.farm.power) ||
+    (typeof avatarFarmPower === "function" ? avatarFarmPower() : 0);
   if (powerEl) powerEl.textContent = fmt(power);
+
+  if (!bd || !bd.combat) {
+    grid.className = "avatar-stat-grid";
+    grid.innerHTML = [
+      { k: "P.Atk", v: s.patk || 0 },
+      { k: "M.Atk", v: s.matk || 0 },
+      { k: "P.Def", v: s.pdef || 0 },
+      { k: "M.Def", v: s.mdef || 0 },
+    ]
+      .map(
+        (r) =>
+          '<div class="avatar-stat"><span class="avatar-stat-k">' +
+          r.k +
+          '</span><b class="avatar-stat-v">' +
+          fmt(r.v) +
+          "</b></div>"
+      )
+      .join("");
+    return;
+  }
+
+  grid.className = "avatar-stats-sheet";
+
+  function fmtPct(x) {
+    const n = Number(x) || 0;
+    if (!n) return "";
+    const p = Math.round(n * 1000) / 10;
+    return (p % 1 === 0 ? String(p) : p.toFixed(1)) + "%";
+  }
+
+  function tipAttr(tip) {
+    return tip ? ' title="' + String(tip).replace(/"/g, "&quot;") + '"' : "";
+  }
+
+  function sheetRow(k, v, opts) {
+    opts = opts || {};
+    return (
+      '<div class="avatar-sheet-row"' +
+      tipAttr(opts.tip) +
+      ">" +
+      '<span class="avatar-sheet-k">' +
+      k +
+      "</span>" +
+      '<b class="avatar-sheet-v">' +
+      v +
+      "</b></div>"
+    );
+  }
+
+  function sheetSection(title, bodyHtml, opts) {
+    if (!bodyHtml) return "";
+    opts = opts || {};
+    const cls = opts.mode ? " avatar-sheet-sec--" + opts.mode : "";
+    return (
+      '<section class="avatar-sheet-sec' +
+      cls +
+      '">' +
+      "<h4 class=\"avatar-sheet-hd\"" +
+      tipAttr(opts.tip || opts.note) +
+      ">" +
+      title +
+      "</h4>" +
+      bodyHtml +
+      "</section>"
+    );
+  }
+
+  function combatTip(row, baseTip) {
+    const bits = [];
+    if (row.race) bits.push("раса " + row.race);
+    if (row.class) bits.push("кл. " + row.class);
+    if (row.level) bits.push("ур. " + row.level);
+    if (row.gear) bits.push("экип " + row.gear);
+    if (row.passive) bits.push("пасс. " + row.passive);
+    const parts = bits.length ? " · " + bits.join(" + ") : "";
+    return baseTip + parts;
+  }
+
+  const combatRows = [
+    {
+      k: "P.Atk",
+      tip: mystic
+        ? "Физ. урон — вторичный для мага"
+        : "Физ. урон — основной у воина",
+      row: bd.combat.patk,
+    },
+    {
+      k: "M.Atk",
+      tip: mystic
+        ? "Маг. урон — основной у мага"
+        : "Маг. урон — вторичный для воина",
+      row: bd.combat.matk,
+    },
+    {
+      k: "P.Def",
+      tip: "Физ. защита",
+      row: bd.combat.pdef,
+    },
+    {
+      k: "M.Def",
+      tip: "Маг. защита",
+      row: bd.combat.mdef,
+    },
+  ];
+
+  function statCell(k, v, tip) {
+    return (
+      '<div class="avatar-sheet-stat"' +
+      tipAttr(tip) +
+      ">" +
+      '<span class="avatar-sheet-stat-k">' +
+      k +
+      "</span><b>" +
+      v +
+      "</b></div>"
+    );
+  }
+
+  const combatHtml =
+    '<div class="avatar-sheet-statgrid">' +
+    combatRows
+      .map((r) =>
+        statCell(
+          r.k,
+          fmt((r.row && r.row.total) || 0),
+          combatTip(r.row || {}, r.tip)
+        )
+      )
+      .join("") +
+    "</div>";
+
+  const farmExtra = [];
+  farmExtra.push(
+    statCell(
+      "Сила",
+      fmt(bd.farm.power),
+      "Сила фарма (PvE): гейт охоты. На арену не влияет."
+    )
+  );
+  if (bd.farm.farmBonus > 0) {
+    farmExtra.push(
+      statCell("Бонус", "+" + fmt(Math.round(bd.farm.farmBonus)), "Плоский бонус к силе фарма")
+    );
+  }
+  if (bd.sets.enchant > 0) {
+    farmExtra.push(statCell("Заточка", "+" + fmtPct(bd.sets.enchant), "Шанс заточки"));
+  }
+  if (bd.sets.mineAdena > 0) {
+    farmExtra.push(statCell("Adena", "+" + fmtPct(bd.sets.mineAdena)));
+  }
+  if (bd.sets.mineXp > 0) {
+    farmExtra.push(statCell("XP", "+" + fmtPct(bd.sets.mineXp)));
+  }
+  if (bd.sets.armorSustain > 0) {
+    farmExtra.push(statCell("Устойч.", "+" + fmtPct(bd.sets.armorSustain), "Меньше HP golden/boss"));
+  }
+  if (bd.sets.bossResist > 0) {
+    farmExtra.push(statCell("Боссам", "+" + fmtPct(bd.sets.bossResist)));
+  }
+  if (bd.farm.weaponLabel) {
+    farmExtra.push(
+      '<div class="avatar-sheet-weapon"' +
+        tipAttr("Оружие") +
+        ">" +
+        bd.farm.weaponLabel +
+        "</div>"
+    );
+  }
+
+  const pveBody =
+    combatHtml +
+    (farmExtra.length
+      ? '<div class="avatar-sheet-statgrid avatar-sheet-statgrid--sec">' +
+        farmExtra.join("") +
+        "</div>"
+      : "");
+
+  const critPct = bd.pvp.crit > 0 ? fmtPct(bd.pvp.crit) : "—";
+  const pvpBody =
+    '<div class="avatar-sheet-statgrid">' +
+    statCell(
+      "ATK",
+      bd.pvp.atk > 0 ? "+" + fmtPct(bd.pvp.atk) : "—",
+      "Множитель атаки арены"
+    ) +
+    statCell(
+      "DEF",
+      bd.pvp.def > 0 ? "+" + fmtPct(bd.pvp.def) : "—",
+      "Множитель защиты арены"
+    ) +
+    statCell(
+      "HP",
+      bd.pvp.hp > 0 ? "+" + fmt(Math.round(bd.pvp.hp)) : "—",
+      "Бонус HP арены"
+    ) +
+    statCell("Крит", critPct === "" ? "—" : critPct, "Крит только на арене · ×1.5 · кап 35%") +
+    "</div>";
+
+  grid.innerHTML =
+    '<p class="avatar-sheet-title">Характеристики</p>' +
+    sheetSection("PvE", pveBody, {
+      mode: "pve",
+      tip: "Поле / охота. Сила — гейт зон.",
+    }) +
+    sheetSection("PvP", pvpBody, {
+      mode: "pvp",
+      tip: "Арена: те же Atk/Def + эти бонусы. Сила фарма не работает.",
+    });
 }
 
 function renderMenuFarmHub() {

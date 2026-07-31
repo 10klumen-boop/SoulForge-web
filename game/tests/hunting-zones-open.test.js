@@ -7,6 +7,7 @@ const { loadScripts } = require("./setup");
 loadScripts([
   "src/data/farm-zones-balance.js",
   "src/data/economy-balance.js",
+  "src/data/avatar-stats-data.js",
   "src/avatar-math.js",
 ]);
 

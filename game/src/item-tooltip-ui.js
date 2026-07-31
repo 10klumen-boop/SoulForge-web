@@ -186,6 +186,8 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
 
   if (typeof isShardItem === "function" && isShardItem(it)) {
     const qty = Math.max(1, Math.floor(Number(it.qty) || 1));
+    const meta = slotExtra.slice();
+    if (Array.isArray(ctx.extraMeta)) meta.push(...ctx.extraMeta);
     return itemTipShellHtml({
       icon: def.icon,
       title: def.name,
@@ -193,8 +195,10 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       gradeClass: "g-D",
       subtitle: "Осколок",
       stats: [{ k: "Кол-во", v: "×" + qty }],
-      meta: slotExtra,
-      actions: equipActions || ["Крафт в Мастерской → Бижутерия"],
+      meta,
+      actions: Array.isArray(ctx.actions)
+        ? ctx.actions
+        : equipActions || ["Крафт в Мастерской → Бижутерия"],
     });
   }
 
@@ -229,6 +233,7 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
     if (isEpic) meta.push("Эпик — не кристаллизуется");
     if (def.uniqueEquipped || def.epic) meta.push("Уникальный — работает только один в экипе");
     if (def.desc) meta.push(def.desc);
+    if (Array.isArray(ctx.extraMeta)) meta.push(...ctx.extraMeta);
     return itemTipShellHtml({
       icon: def.icon,
       title: def.name,
@@ -238,10 +243,12 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       subtitle: isEpic ? "Эпическая бижутерия" : "Бижутерия",
       stats,
       meta,
-      actions: equipActions || [
-        isEpic ? "Клик — детали" : "Клик — заточка",
-        "Тяни на слот экипа" + (canCry ? " / кристаллизацию" : ""),
-      ],
+      actions: Array.isArray(ctx.actions)
+        ? ctx.actions
+        : equipActions || [
+            isEpic ? "Клик — детали" : "Клик — заточка",
+            "Тяни на слот экипа" + (canCry ? " / кристаллизацию" : ""),
+          ],
     });
   }
 
@@ -252,6 +259,7 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
     meta.push("Слот: " + itemTipArmorSlotRu(def.slot));
     if (setName) meta.push("Сет: " + setName);
     if (def.cc && !ctx.equipped) meta.push("Кристаллизация: " + def.cc + " × " + (def.grade || "?"));
+    if (Array.isArray(ctx.extraMeta)) meta.push(...ctx.extraMeta);
     const plus = it.plus || 0;
     const pBonus =
       typeof armorEnchantPdefBonus === "function" ? armorEnchantPdefBonus(plus) : plus * 2;
@@ -277,10 +285,12 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
         },
       ],
       meta,
-      actions: equipActions || [
-        noGrade ? "Без грейда — не точится" : "Клик — заточка",
-        "Тяни на экип / кристаллизацию",
-      ],
+      actions: Array.isArray(ctx.actions)
+        ? ctx.actions
+        : equipActions || [
+            noGrade ? "Без грейда — не точится" : "Клик — заточка",
+            "Тяни на экип / кристаллизацию",
+          ],
     });
   }
 
@@ -298,6 +308,7 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
         fmtA(typeof sellValue === "function" ? sellValue(w, 0) : 1000)
     );
   }
+  if (Array.isArray(ctx.extraMeta)) meta.push(...ctx.extraMeta);
   return itemTipShellHtml({
     icon: w.icon,
     title: w.name,
@@ -310,11 +321,12 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       { k: "M.Atk", v: fmtFn(m) },
     ],
     meta,
-    actions:
-      equipActions ||
-      (ng
-        ? ["Клик — продать"]
-        : ["Клик — заточка", "Тяни на слот оружия / кристаллизацию"]),
+    actions: Array.isArray(ctx.actions)
+      ? ctx.actions
+      : equipActions ||
+        (ng
+          ? ["Клик — продать"]
+          : ["Клик — заточка", "Тяни на слот оружия / кристаллизацию"]),
   });
 }
 

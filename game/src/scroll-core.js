@@ -139,6 +139,8 @@ function consumeScroll(target, typeId, grade, qty) {
   if (!hasScroll(t, ty, g, n)) return false;
   ProgressStore.update("scrolls", (s) => {
     const next = JSON.parse(JSON.stringify(s || emptyScrollsState()));
+    if (!next[t] || typeof next[t] !== "object") next[t] = emptyScrollTypeMap();
+    if (!next[t][ty] || typeof next[t][ty] !== "object") next[t][ty] = emptyScrollGradeMap();
     next[t][ty][g] = Math.max(0, Math.floor(Number(next[t][ty][g]) || 0) - n);
     return next;
   });

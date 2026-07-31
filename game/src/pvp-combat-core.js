@@ -167,14 +167,11 @@ function buildCombatSheet(input) {
   let pdef = Math.max(0, stats.pdef || 0);
   let mdef = Math.max(0, stats.mdef || 0);
 
-  // Явные stats — сырые: накидываем все PvP-add. Live avatarStats уже включает matkAdd.
+  // Явные stats — сырые: накидываем все *Add. Live avatarStats уже включает
+  // matkAdd/patkAdd/pdefAdd/mdefAdd (global) — без двойного сложения.
   if (input.stats) {
     patk += passives.add.patk;
     matk += passives.add.matk;
-    pdef += passives.add.pdef;
-    mdef += passives.add.mdef;
-  } else {
-    patk += passives.add.patk;
     pdef += passives.add.pdef;
     mdef += passives.add.mdef;
   }

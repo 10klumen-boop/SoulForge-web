@@ -18,6 +18,9 @@ const BANANA_CASINO_REEL_CELL = 72;
 /** Полных циклов символов в ленте — стоп всегда внутри ленты. */
 const BANANA_CASINO_REEL_LOOPS = 10;
 
+/** Последний стоп: держим в окне до следующего крута. */
+let _bananaCasinoHeldReels = null;
+
 function openBananaCasino() {
   if (typeof needsAvatarSetup === "function" && needsAvatarSetup()) {
     if (typeof toast === "function") toast("Сначала создай персонажа", "warn");
@@ -61,17 +64,37 @@ function _bananaCasinoReelStripHtml() {
   return parts.join("");
 }
 
-/** Заполнить ленты; в покое — translateY(0), чтобы иконки были в окне. */
+/** Заполнить ленты; после спина — оставить выпавшее в окне до следующего крута. */
 function _bananaCasinoEnsureReelsIdle() {
   const root = document.getElementById("screen-banana-casino");
   if (!root) return;
   const need = BANANA_CASINO_REEL_LOOPS * BANANA_CASINO_REEL_SYMBOLS.length;
-  root.querySelectorAll(".banana-reel-strip").forEach((strip) => {
+  root.querySelectorAll(".banana-reel-strip").forEach((strip, i) => {
     if (!strip.children.length || strip.children.length < need) {
       strip.innerHTML = _bananaCasinoReelStripHtml();
       strip.dataset.ready = "1";
     }
     if (_bananaCasinoSpinning) return;
+
+    const held = _bananaCasinoHeldReels && _bananaCasinoHeldReels[i];
+    if (held) {
+      strip.classList.remove("is-spinning");
+      strip.classList.add("is-stop");
+      strip.style.transition = "none";
+      if (held.stopIndex != null) {
+        _bananaCasinoPlantStripIcon(strip, held.stopIndex, held.icon);
+        if (held.stopIndex >= BANANA_CASINO_REEL_SYMBOLS.length) {
+          _bananaCasinoPlantStripIcon(
+            strip,
+            held.stopIndex - BANANA_CASINO_REEL_SYMBOLS.length,
+            held.icon
+          );
+        }
+      }
+      strip.style.transform = "translateY(-" + held.offset + "px)";
+      return;
+    }
+
     strip.classList.remove("is-spinning", "is-stop");
     strip.style.transition = "none";
     strip.style.transform = "translateY(0)";
@@ -235,6 +258,13 @@ function _bananaCasinoIconForLoot(loot) {
   return _bananaCasinoKindIcon(loot.kind, loot.icon);
 }
 
+/** Вписать иконку в ячейку ленты до старта — стоп без подмены src. */
+function _bananaCasinoPlantStripIcon(strip, index, icon) {
+  const cell = strip.children[index];
+  const img = cell && cell.querySelector("img");
+  if (img && icon) img.src = icon;
+}
+
 function _bananaCasinoAnimateReels(finalIcons) {
   return new Promise((resolve) => {
     const reels = document.querySelectorAll(".banana-reel-strip");
@@ -247,12 +277,12 @@ function _bananaCasinoAnimateReels(finalIcons) {
       : [finalIcons, finalIcons, finalIcons];
     const reduced =
       typeof prefersReducedMotion === "function" && prefersReducedMotion();
-    const duration = reduced ? 160 : 2000;
-    const stagger = reduced ? 0 : 220;
+    const duration = reduced ? 160 : 2300;
+    const stagger = reduced ? 0 : 300;
     const cellH = _bananaCasinoReelCellPx();
     const nSym = BANANA_CASINO_REEL_SYMBOLS.length;
-    // Стоп внутри предпоследнего цикла — всегда есть ячейка под окном
-    const stopCycle = Math.max(1, BANANA_CASINO_REEL_LOOPS - 2);
+    const maxStopCycle = Math.max(2, BANANA_CASINO_REEL_LOOPS - 2);
+    const held = [];
 
     reels.forEach((strip, i) => {
       strip.innerHTML = _bananaCasinoReelStripHtml();
@@ -262,26 +292,39 @@ function _bananaCasinoAnimateReels(finalIcons) {
       strip.style.transform = "translateY(0)";
       void strip.offsetWidth;
 
-      const stopIndex = stopCycle * nSym + (i % nSym);
+      // Разный пробег и слот — барабаны независимы, приз уже в ячейке стопа
+      const stopCycle = Math.max(2, maxStopCycle - (i % 3));
+      const stopSlot = (1 + i * 2) % nSym;
+      const stopIndex = stopCycle * nSym + stopSlot;
+      const icon = icons[i] || icons[0];
+      _bananaCasinoPlantStripIcon(strip, stopIndex, icon);
+      // На цикле раньше — при торможении уже видно тот же символ
+      if (stopIndex >= nSym) {
+        _bananaCasinoPlantStripIcon(strip, stopIndex - nSym, icon);
+      }
+
       const offset = stopIndex * cellH;
+      held[i] = { offset, stopIndex, icon };
+      const ms = duration + i * stagger;
       strip.style.transition =
-        "transform " + (duration + i * stagger) + "ms cubic-bezier(0.08, 0.82, 0.16, 1)";
+        "transform " + ms + "ms cubic-bezier(0.15, 0.72, 0.12, 1)";
       strip.classList.add("is-spinning");
-      strip.style.transform = "translateY(-" + offset + "px)";
+      requestAnimationFrame(() => {
+        strip.style.transform = "translateY(-" + offset + "px)";
+      });
 
       setTimeout(() => {
         strip.classList.remove("is-spinning");
         strip.classList.add("is-stop");
         strip.style.transition = "none";
         strip.style.transform = "translateY(-" + offset + "px)";
-        const cell = strip.children[stopIndex];
-        const img = cell && cell.querySelector("img");
-        const icon = icons[i] || icons[0];
-        if (img && icon) img.src = icon;
-      }, duration + i * stagger);
+      }, ms);
     });
 
-    setTimeout(resolve, duration + (reels.length - 1) * stagger + 100);
+    setTimeout(() => {
+      _bananaCasinoHeldReels = held;
+      resolve();
+    }, duration + (reels.length - 1) * stagger + 120);
   });
 }
 

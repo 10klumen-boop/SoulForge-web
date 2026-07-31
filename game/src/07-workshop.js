@@ -116,7 +116,28 @@ function renderWorkshopHub(body) {
   hub.className = "ws-hub";
   const shotIco = (typeof UI_HUB_BTN_ICONS !== "undefined" && UI_HUB_BTN_ICONS.shots) || "icons/btn_shots.png?v=2";
   const armorIco = (typeof UI_HUB_BTN_ICONS !== "undefined" && UI_HUB_BTN_ICONS.armor) || "icons/btn_armor.png?v=2";
-  const jewelIco = "icons/accessory_earring_of_zaken_i00.png";
+  const jewelIco =
+    (typeof UI_HUB_BTN_ICONS !== "undefined" && UI_HUB_BTN_ICONS.jewelry) || "icons/btn_jewelry.png?v=1";
+  function hubCard(main, ico, title, chips) {
+    return (
+      '<button type="button" class="ws-hub-card is-framed-art" data-main="' +
+      main +
+      '">' +
+      '<img class="ws-hub-card-art" src="' +
+      ico +
+      '" alt="" draggable="false">' +
+      '<span class="ws-hub-card-veil" aria-hidden="true"></span>' +
+      '<span class="ws-hub-card-top">' +
+      '<span class="ws-hub-ico-plate"><img class="ws-hub-ico-img" src="' +
+      ico +
+      '" alt="" draggable="false"></span>' +
+      '<span class="ws-hub-card-text"><strong>' +
+      title +
+      "</strong>" +
+      chipsHtml(chips) +
+      "</span></span></button>"
+    );
+  }
   function chipsHtml(items) {
     const chipArt = {
       Soulshot: "icons/etc_spirit_bullet_blue_i00.png",
@@ -171,30 +192,9 @@ function renderWorkshopHub(body) {
   hub.innerHTML =
     '<p class="ws-hub-lead">Выбери раздел</p>' +
     '<div class="ws-hub-grid">' +
-    '<button type="button" class="ws-hub-card" data-main="shots">' +
-    '<span class="ws-hub-card-top">' +
-    '<span class="ws-hub-ico-plate"><img class="ws-hub-ico-img" src="' +
-    shotIco +
-    '" alt="" draggable="false"></span>' +
-    '<span class="ws-hub-card-text"><strong>Заряды</strong>' +
-    chipsHtml(["Soulshot", "Spiritshot", "Руда", "Продажа"]) +
-    "</span></span></button>" +
-    '<button type="button" class="ws-hub-card" data-main="armor">' +
-    '<span class="ws-hub-card-top">' +
-    '<span class="ws-hub-ico-plate"><img class="ws-hub-ico-img" src="' +
-    armorIco +
-    '" alt="" draggable="false"></span>' +
-    '<span class="ws-hub-card-text"><strong>Броня</strong>' +
-    chipsHtml(["D", "C", "Material", "Крафт"]) +
-    "</span></span></button>" +
-    '<button type="button" class="ws-hub-card" data-main="jewelry">' +
-    '<span class="ws-hub-card-top">' +
-    '<span class="ws-hub-ico-plate"><img class="ws-hub-ico-img" src="' +
-    jewelIco +
-    '" alt="" draggable="false"></span>' +
-    '<span class="ws-hub-card-text"><strong>Бижутерия</strong>' +
-    chipsHtml(["D / C", "Эпики", "Куски", "Крафт"]) +
-    "</span></span></button>" +
+    hubCard("shots", shotIco, "Заряды", ["Soulshot", "Spiritshot", "Руда", "Продажа"]) +
+    hubCard("armor", armorIco, "Броня", ["D", "C", "Material", "Крафт"]) +
+    hubCard("jewelry", jewelIco, "Бижутерия", ["D / C", "Эпики", "Куски", "Крафт"]) +
     "</div>";
   body.appendChild(hub);
   hub.querySelectorAll("[data-main]").forEach((b) => {

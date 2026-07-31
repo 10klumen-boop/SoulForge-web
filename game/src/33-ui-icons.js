@@ -60,12 +60,13 @@ const UI_MENU_ICONS = {
 };
 
 /** Кнопки входа История/Фарм и разделы мастерской. */
-const UI_HUB_BTN_VER = 4;
+const UI_HUB_BTN_VER = 5;
 const UI_HUB_BTN_ICONS = {
   story: "icons/btn_story.png?v=" + UI_HUB_BTN_VER,
   farm: "icons/btn_farm.png?v=" + UI_HUB_BTN_VER,
   shots: "icons/btn_shots.png?v=" + UI_HUB_BTN_VER,
   armor: "icons/btn_armor.png?v=" + UI_HUB_BTN_VER,
+  jewelry: "icons/btn_jewelry.png?v=1",
   chapters: "icons/btn_chapters.png?v=1",
   chapterStory: "icons/btn_chapter_story.png?v=1",
   play: "icons/btn_play.png?v=1",

@@ -831,6 +831,118 @@
   box-sizing: border-box;
   overflow: hidden;
 }
+
+/* Модалка профессий: карточки не обрезаются рамкой */
+#professionPickBackdrop .avatar-setup-box {
+  aspect-ratio: auto !important;
+  max-height: min(88vh, 720px) !important;
+  min-height: min(520px, 82vh);
+}
+#professionPickBackdrop .avatar-setup-inner {
+  inset: 6% 5.5% 7.5% !important;
+  overflow: hidden;
+  gap: 6px;
+}
+#professionPickBackdrop .avatar-pick-lead {
+  margin: 0 0 6px !important;
+  font-size: 12px !important;
+  flex: 0 0 auto;
+}
+#professionPickBackdrop .profession-pick-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  align-content: start;
+  max-height: none !important;
+  padding-right: 2px;
+}
+#professionPickBackdrop .profession-pick-grid--few {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+}
+#professionPickBackdrop .profession-pick-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  padding: 8px 9px !important;
+  min-height: 0 !important;
+}
+#professionPickBackdrop .profession-pick-ico {
+  width: 44px !important;
+  height: 44px !important;
+  flex: 0 0 auto;
+  object-fit: contain !important;
+  border-radius: 5px;
+  border: 1px solid rgba(36, 32, 30, 0.9);
+  background: #060504;
+}
+#professionPickBackdrop .profession-pick-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+#professionPickBackdrop .profession-pick-card strong {
+  font-size: 14px !important;
+  line-height: 1.15;
+}
+#professionPickBackdrop .profession-pick-desc {
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  color: var(--txt-dim) !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#professionPickBackdrop .profession-pick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 1px;
+}
+#professionPickBackdrop .profession-pick-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1.2;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  background: rgba(12, 10, 8, 0.65);
+  color: #cfc3a8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#professionPickBackdrop .profession-pick-chip--armor {
+  border-color: rgba(95, 168, 255, 0.4);
+  color: #9ec4ef;
+}
+#professionPickBackdrop .profession-pick-chip--bonus {
+  border-color: rgba(120, 200, 120, 0.35);
+  color: #b7d9a8;
+}
+@media (max-width: 720px) {
+  #professionPickBackdrop .profession-pick-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #professionPickBackdrop .profession-pick-grid--few {
+    grid-template-columns: 1fr !important;
+    max-width: none;
+  }
+  #professionPickBackdrop .avatar-setup-box {
+    min-height: min(560px, 88vh);
+  }
+}
 .avatar-setup-wide {
   width: 100% !important;
   padding: 0 !important;

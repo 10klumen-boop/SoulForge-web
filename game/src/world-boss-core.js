@@ -307,8 +307,13 @@ async function renderWorldBossHub() {
         ? boss.loot.places[place] || boss.loot.places[String(place)]
         : null;
     if (place === 1 && row && row.accessoryId) {
-      if (/ring/i.test(row.accessoryId)) return "Забрать кольцо";
-      if (/earring/i.test(row.accessoryId)) return "Забрать серьгу";
+      const id = String(row.accessoryId);
+      const def =
+        typeof COLLECTIBLES !== "undefined" && COLLECTIBLES ? COLLECTIBLES[id] : null;
+      // earring раньше ring: id «…_earring» содержит подстроку «ring»
+      if ((def && def.slot === "earring") || /earring/i.test(id)) return "Забрать серьгу";
+      if ((def && def.slot === "ring") || /(^|_)ring(_|$)/i.test(id)) return "Забрать кольцо";
+      if (def && def.slot === "necklace") return "Забрать ожерелье";
       return "Забрать награду";
     }
     if (place >= 2) return "Забрать осколок (#" + place + ")";
@@ -575,6 +580,7 @@ function spawnWorldBossMob(payload) {
   if (!newest) return;
   newest._worldBossEncounter = true;
   newest.classList.add("world-boss-mob");
+  if (mobId === "queen-ant") newest.classList.add("world-boss-mob--queen-ant");
   newest._type = "boss";
   newest._hp = maxHp;
   newest._maxHp = maxHp;
@@ -596,9 +602,12 @@ function ensureWorldBossMob(payload) {
   if (alive) {
     if (typeof clearMobTimer === "function") clearMobTimer(worldBossDomMob);
     worldBossDomMob._onExpire = null;
+    const boss = payload?.boss || worldBossStateCache?.boss || {};
+    if ((boss.mob || worldBossDomMob._mobId) === "queen-ant") {
+      worldBossDomMob.classList.add("world-boss-mob--queen-ant");
+    }
     // Не даём косметическому HP уйти в 0 — босс остаётся на поле
     if ((worldBossDomMob._hp || 0) < 1) {
-      const boss = payload?.boss || worldBossStateCache?.boss || {};
       const maxHp = boss.cosmeticHp || 10_000_000;
       worldBossDomMob._maxHp = maxHp;
       worldBossDomMob._hp = maxHp;

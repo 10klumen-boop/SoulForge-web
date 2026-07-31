@@ -93,8 +93,8 @@ function preludeFinaleEpilogue() {
 
 function preludeFinaleBodyHtml(ep) {
   const parts = [];
-  parts.push("<p><em>" + ep.lead + "</em></p>");
-  ep.paragraphs.forEach((p) => parts.push("<p>" + p + "</p>"));
+  // lead уже в #storyLead (renderStoryPanel) — не дублируем здесь
+  (ep.paragraphs || []).forEach((p) => parts.push("<p>" + p + "</p>"));
   const rw = PRELUDE_FINALE_REWARD;
   parts.push('<div class="chapter-reward-loot prelude-finale-loot">');
   parts.push("<p><b>Награда пролога:</b></p><ul>");
@@ -107,7 +107,8 @@ function preludeFinaleBodyHtml(ep) {
     });
   }
   parts.push("</ul>");
-  parts.push('<p class="prelude-chaos-tease"><i>' + STORY_ARC.finaleTease + "</i></p>");
+  // Не вставлять STORY_ARC.finaleTease — это текст вступления в пролог, не финала
+  parts.push('<p class="prelude-chaos-tease"><i>Эпоха Хаоса открыта — охота, кланы и мировые боссы ждут.</i></p>');
   parts.push("</div>");
   return parts.join("");
 }

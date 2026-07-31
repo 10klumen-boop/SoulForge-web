@@ -83,6 +83,20 @@ function runTests() {
     assert.ok(state.materials.soul > 0);
   });
 
+  test("preludeFinaleBodyHtml has loot and no prologue intro tease", () => {
+    const ep = preludeFinaleEpilogue();
+    const html = preludeFinaleBodyHtml(ep);
+    assert.ok(html.includes("Награда пролога"));
+    assert.ok(html.includes("Soul Ore"));
+    assert.ok(html.includes("Эпоха Хаоса открыта"));
+    assert.ok(!html.includes("Так открывается Prelude"));
+    assert.ok(!html.includes("Пять глав легли"));
+    // lead не дублируется в body — он в #storyLead
+    const lead = ep.lead;
+    const leadCount = (html.match(new RegExp(lead.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+    assert.strictEqual(leadCount, 0, "lead must not appear in bodyHtml");
+  });
+
   console.log("\n--- summary ---");
   console.log("passed: " + passed + ", failed: " + failed);
   if (failed > 0) process.exit(1);

@@ -696,7 +696,8 @@ function attachMarketMethods(db, store, deps) {
     const now = opts.now || Date.now();
     db.transaction(() => expireDue(now, 15))();
     const characterId = opts.characterId ? String(opts.characterId).slice(0, 64) : null;
-    let sql = "SELECT * FROM market_listings WHERE seller_user_id = ?";
+    // Только активные лоты — снятые/проданные/истёкшие не засоряют «Мои лоты»
+    let sql = "SELECT * FROM market_listings WHERE seller_user_id = ? AND status = 'listed'";
     const params = [userId];
     if (characterId) {
       sql += " AND seller_character_id = ?";

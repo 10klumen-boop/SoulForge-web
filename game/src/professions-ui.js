@@ -19,6 +19,18 @@ function professionTierTitle(tier) {
   return "Выбор профессии";
 }
 
+function professionPickChipLabel(text) {
+  return String(text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function professionPickShortPassive(blurb) {
+  const s = professionPickChipLabel(blurb);
+  if (s.length <= 42) return s;
+  return s.slice(0, 40).replace(/\s+\S*$/, "") + "…";
+}
+
 function renderProfessionPickModal() {
   const grid = document.getElementById("professionPickGrid");
   const title = document.getElementById("professionPickTitle");
@@ -42,37 +54,57 @@ function renderProfessionPickModal() {
       (cur || "—") +
       " · ур. " +
       (a.level || 1) +
-      ". Выбери ветку — обратно сменить нельзя.";
+      ". Ветка навсегда.";
   }
+  grid.className =
+    "avatar-pick-grid profession-pick-grid" +
+    (choices.length <= 2 ? " profession-pick-grid--few" : "");
   grid.innerHTML = "";
   choices.forEach((p) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "avatar-pick-card";
+    btn.className = "avatar-pick-card profession-pick-card";
     const pref = p.armorPref || "";
-    const prefLabel =
+    const prefLabelRaw =
       (typeof ARMOR_KIND_LABELS !== "undefined" && ARMOR_KIND_LABELS[pref]) || pref;
-    const passiveBlurb = (p.passiveIds || [])
+    const prefLabel = prefLabelRaw
+      ? prefLabelRaw.charAt(0).toUpperCase() + prefLabelRaw.slice(1)
+      : "";
+    const passives = (p.passiveIds || [])
       .map((id) => (typeof passiveSkillById === "function" ? passiveSkillById(id) : null))
-      .filter(Boolean)
-      .map((s) => s.blurb || s.name)
-      .join(" · ");
+      .filter(Boolean);
+    const passiveBlurb = passives.map((s) => s.blurb || s.name).filter(Boolean)[0] || "";
+    const desc = professionPickChipLabel(p.desc || p.blurb || "");
+    const chips = [];
+    if (prefLabel) {
+      chips.push(
+        '<span class="profession-pick-chip profession-pick-chip--armor">' +
+          prefLabel +
+          "</span>"
+      );
+    }
+    if (passiveBlurb) {
+      chips.push(
+        '<span class="profession-pick-chip profession-pick-chip--bonus" title="' +
+          String(passiveBlurb).replace(/"/g, "&quot;") +
+          '">' +
+          professionPickShortPassive(passiveBlurb) +
+          "</span>"
+      );
+    }
     btn.innerHTML =
-      '<img src="' +
+      '<img class="profession-pick-ico" src="' +
       (p.icon || "") +
       '" alt="">' +
+      '<div class="profession-pick-body">' +
       "<strong>" +
-      p.name +
+      (p.name || "") +
       "</strong>" +
-      "<span>" +
-      (p.desc || "") +
-      "</span>" +
-      (prefLabel
-        ? '<small class="avatar-race-passive"><span>Броня: ' + prefLabel + "</span></small>"
+      (desc ? '<span class="profession-pick-desc">' + desc + "</span>" : "") +
+      (chips.length
+        ? '<div class="profession-pick-chips">' + chips.join("") + "</div>"
         : "") +
-      (passiveBlurb
-        ? '<small class="avatar-race-passive"><span>' + passiveBlurb + "</span></small>"
-        : "");
+      "</div>";
     btn.onclick = () => {
       if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
       if (typeof chooseProfession === "function" && chooseProfession(p.id)) {

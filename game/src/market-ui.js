@@ -319,6 +319,7 @@ function buildMarketCard(listing, opts) {
     st.textContent = marketStatusLabel(listing.status);
     actions.appendChild(st);
   }
+  wireMarketCardTooltip(card, listing);
   return card;
 }
 
@@ -330,6 +331,94 @@ function marketStatusLabel(status) {
       cancelled: "Снят",
       expired: "Истёк",
     }[status] || status
+  );
+}
+
+function marketListingTipKindLabel(kind) {
+  return (
+    {
+      weapon: "Оружие",
+      armor: "Броня",
+      accessory: "Бижутерия",
+      armor_piece: "Кусок брони",
+      jewelry_piece: "Кусок бижутерии",
+      crystal: "Кристалл",
+      material: "Руда",
+      shot: "Заряд",
+      scroll: "Свиток",
+    }[kind] || "Лот"
+  );
+}
+
+function marketListingTipHtml(listing) {
+  if (!listing) return "";
+  const item = listing.item || {};
+  const kind = listing.kind || item.kind;
+  const price =
+    typeof fmtAdena === "function" ? fmtAdena(listing.priceAdena) : String(listing.priceAdena || 0);
+  const extraMeta = ["Цена: " + price + " adena"];
+  const actions = ["Лот на торговой площади"];
+  const tipCtx = { actions, extraMeta };
+
+  if (kind === "weapon" && typeof itemTooltipHtmlFromInvItem === "function") {
+    return itemTooltipHtmlFromInvItem(
+      { id: item.id, plus: item.plus || 0, spent: item.spent || 0 },
+      tipCtx
+    );
+  }
+  if (kind === "armor" && typeof itemTooltipHtmlFromInvItem === "function") {
+    return itemTooltipHtmlFromInvItem(
+      { id: item.id, kind: "armor", plus: item.plus || 0, spent: item.spent || 0 },
+      tipCtx
+    );
+  }
+  if (kind === "accessory" && typeof itemTooltipHtmlFromInvItem === "function") {
+    return itemTooltipHtmlFromInvItem(
+      { id: item.id, kind: "accessory", plus: item.plus || 0 },
+      tipCtx
+    );
+  }
+  if (kind === "jewelry_piece" && typeof itemTooltipHtmlFromInvItem === "function") {
+    return itemTooltipHtmlFromInvItem(
+      {
+        id: item.fragId || item.id,
+        kind: "shard",
+        qty: Math.max(1, listing.qty || 1),
+      },
+      tipCtx
+    );
+  }
+
+  const grade = typeof marketListingGrade === "function" ? marketListingGrade(listing) : "";
+  if (typeof itemTooltipHtmlFromStack === "function") {
+    return itemTooltipHtmlFromStack({
+      name: marketListingTitle(listing),
+      icon: marketListingIcon(listing),
+      qty: Math.max(1, listing.qty || 1),
+      badge: grade === "epic" ? "Эпик" : grade,
+      gradeClass: grade ? "g-" + grade : "",
+      kind: marketListingTipKindLabel(kind),
+      role: "Лот на торговой площади",
+      extra: "Цена: " + price + " adena",
+      actions: [],
+    });
+  }
+  return "";
+}
+
+function marketListingTipPlain(listing) {
+  const title = marketListingTitle(listing);
+  const price =
+    typeof fmtAdena === "function" ? fmtAdena(listing.priceAdena) : String(listing.priceAdena || 0);
+  return title + "\n" + price + " adena";
+}
+
+function wireMarketCardTooltip(card, listing) {
+  if (!card || !listing || typeof wireItemTooltip !== "function") return;
+  wireItemTooltip(
+    card,
+    () => marketListingTipHtml(listing),
+    marketListingTipPlain(listing)
   );
 }
 
@@ -962,9 +1051,9 @@ async function renderMarketMine(root) {
     list.innerHTML = '<p class="market-empty">' + (r.error || "Ошибка") + "</p>";
     return;
   }
-  mineCache = r.rows || [];
+  mineCache = (r.rows || []).filter((row) => !row.status || row.status === "listed");
   if (!mineCache.length) {
-    list.innerHTML = '<p class="market-empty">У тебя нет лотов.</p>';
+    list.innerHTML = '<p class="market-empty">У тебя нет активных лотов.</p>';
     return;
   }
   paint();

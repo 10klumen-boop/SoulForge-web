@@ -198,7 +198,14 @@ function countInvTabItems(tabId) {
 }
 
 function inventorySortMode() {
+  const m = state && state.invSort;
+  if (m === "power" || m === "grade" || m === "kind") return m;
   return "kind";
+}
+
+function setInvSort(mode) {
+  state.invSort = mode === "power" || mode === "grade" ? mode : "kind";
+  if (typeof save === "function") save();
 }
 
 function inventoryItemPower(it, def) {
@@ -222,13 +229,18 @@ function inventoryItemPower(it, def) {
   return Math.round(raw * pen);
 }
 
-function compareInventoryItems(a, b, mode) {
-  const kindA = inventoryItemKind(a);
-  const kindB = inventoryItemKind(b);
-  const rankA = INV_KIND_RANK[kindA] ?? 99;
-  const rankB = INV_KIND_RANK[kindB] ?? 99;
-  if (rankA !== rankB) return rankA - rankB;
+function inventoryItemGradeRank(it, def) {
+  const key =
+    typeof inventoryItemGradeKey === "function"
+      ? inventoryItemGradeKey(it)
+      : def && def.epic
+        ? "epic"
+        : (def && def.grade) || "NG";
+  if (key === "epic") return 6;
+  return INV_GRADE_RANK[key] ?? 0;
+}
 
+function compareInventoryItems(a, b, mode) {
   const da = invItemDef(a), db = invItemDef(b);
   if (!da && !db) return 0;
   if (!da) return 1;
@@ -236,24 +248,60 @@ function compareInventoryItems(a, b, mode) {
   if (mode === "name") {
     return String(da.name || "").localeCompare(String(db.name || ""), "ru", { sensitivity: "base" });
   }
+
+  const kindA = inventoryItemKind(a);
+  const kindB = inventoryItemKind(b);
+  const rankA = INV_KIND_RANK[kindA] ?? 99;
+  const rankB = INV_KIND_RANK[kindB] ?? 99;
   const plusA = a.plus || 0, plusB = b.plus || 0;
-  const gradeA = INV_GRADE_RANK[da.grade] ?? 0;
-  const gradeB = INV_GRADE_RANK[db.grade] ?? 0;
+  const gradeA = inventoryItemGradeRank(a, da);
+  const gradeB = inventoryItemGradeRank(b, db);
   const powerA = inventoryItemPower(a, da);
   const powerB = inventoryItemPower(b, db);
-  // Внутри группы: грейд ↓, заточка ↓, сила ↓, имя
+  const byName = () =>
+    String(da.name || "").localeCompare(String(db.name || ""), "ru", { sensitivity: "base" });
+
+  if (mode === "grade") {
+    // Грейд ↓, затем тип, заточка, имя
+    if (gradeB !== gradeA) return gradeB - gradeA;
+    if (rankA !== rankB) return rankA - rankB;
+    if (plusB !== plusA) return plusB - plusA;
+    return byName();
+  }
+
+  // kind / power: сначала тип
+  if (rankA !== rankB) return rankA - rankB;
+
+  if (mode === "power") {
+    if (powerB !== powerA) return powerB - powerA;
+    if (gradeB !== gradeA) return gradeB - gradeA;
+    if (plusB !== plusA) return plusB - plusA;
+    return byName();
+  }
+  // kind: грейд ↓, заточка ↓, имя
   if (gradeB !== gradeA) return gradeB - gradeA;
   if (plusB !== plusA) return plusB - plusA;
-  if (mode === "power" && powerB !== powerA) return powerB - powerA;
-  return String(da.name || "").localeCompare(String(db.name || ""), "ru", { sensitivity: "base" });
+  return byName();
 }
 
 function applyInventorySort(mode) {
-  mode = mode || inventorySortMode();
-  state.invSort = "kind";
-  if (state.inventory && state.inventory.length > 1) {
-    state.inventory.sort((a, b) => compareInventoryItems(a, b, mode));
+  if (mode === "power" || mode === "grade" || mode === "kind") {
+    /* keep */
+  } else {
+    mode = inventorySortMode();
   }
+  state.invSort = mode;
+  const inv = Array.isArray(state.inventory) ? state.inventory.slice() : [];
+  if (inv.length > 1) {
+    inv.sort((a, b) => compareInventoryItems(a, b, mode));
+  }
+  if (typeof ProgressStore !== "undefined" && ProgressStore && typeof ProgressStore.set === "function") {
+    ProgressStore.set("inventory", inv);
+  } else {
+    state.inventory = inv;
+  }
+  if (typeof save === "function") save();
+  return mode;
 }
 
 function inventoryCount() {

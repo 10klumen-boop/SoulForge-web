@@ -1,10 +1,17 @@
 // ===== Данные: автокликер (покупка на время) =====
-// pack.price ≈ 70–75% live farm гл.I за длительность; итоговая цена *= mineProgressAdenaScale(зоны).
+// pack.price — якорь ≈ 70–75% live farm гл.I за длительность.
+// Итоговая цена = pack.price × flatPriceScale (единая «средняя» шкала, без зоны —
+// иначе покупали дёшево в intro и фармили в хай-лвл).
 
 const AUTO_CLICKER = {
   intervalMs: 150,
   /** Доля live adena/час зоны за длительность пакета (якорь pack.price при scale=1). */
   priceOfLiveFarm: 0.72,
+  /**
+   * Фиксированный множитель цены (≈ среднее глав 1…5: (1+2+3.5+5.5+8)/5 = 4).
+   * Не зависит от текущей зоны/охоты.
+   */
+  flatPriceScale: 4,
   /** Максимум накопленного времени автоудара (стак пакетов). */
   maxStackMs: 3 * 60 * 60 * 1000,
   packs: [
@@ -15,5 +22,5 @@ const AUTO_CLICKER = {
 };
 
 function defaultAutoClickerState() {
-  return { until: 0, enabled: true, pauseStartedAt: 0, frozenRemainingMs: 0 };
+  return { until: 0, enabled: true, pauseStartedAt: 0, pausedRemainingMs: 0 };
 }

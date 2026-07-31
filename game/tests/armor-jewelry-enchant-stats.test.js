@@ -20,6 +20,7 @@ global.passiveEffectSum = () => 0;
 global.isMysticArchetype = () => false;
 
 loadScripts([
+  "src/data/avatar-stats-data.js",
   "src/armor-sets-core.js",
   "src/jewelry-sets-core.js",
   "src/avatar-math.js",

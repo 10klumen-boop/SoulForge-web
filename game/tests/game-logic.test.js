@@ -15,6 +15,7 @@ loadScripts([
   "src/data/enchant-balance.js",
   "src/data/farm-balance.js",
   "src/data/professions-data.js",
+  "src/data/avatar-stats-data.js",
   "src/professions-core.js",
   "src/06-rules.js",
   "src/02-state.js",
@@ -187,9 +188,9 @@ function runTests() {
     const b1 = avatarLevelStatBonus(1);
     assert.deepStrictEqual(b1, { atk: 0, def: 0 });
     const b5 = avatarLevelStatBonus(5);
-    assert.deepStrictEqual(b5, { atk: 2, def: 2 });
+    assert.deepStrictEqual(b5, { atk: 4, def: 3 }); // floor(4*1.15), floor(4*0.85)
     const b10 = avatarLevelStatBonus(10);
-    assert.deepStrictEqual(b10, { atk: 6, def: 4 });
+    assert.deepStrictEqual(b10, { atk: 10, def: 7 }); // floor(9*1.15), floor(9*0.85)
   });
 
   test("classStatBonus picks correct archetype", () => {
@@ -202,10 +203,10 @@ function runTests() {
   test("avatarStats sums race, class and level bonuses", () => {
     state.avatar = { raceId: "human", classId: "fighter", level: 1, gear: { weapon: null } };
     const s = avatarStats();
-    assert.strictEqual(s.patk, 18); // 15 + 3 + 0
-    assert.strictEqual(s.pdef, 17); // 15 + 2 + 0
-    assert.strictEqual(s.matk, 13);
-    assert.strictEqual(s.mdef, 15);
+    assert.strictEqual(s.patk, 23); // 19 + 4 + 0
+    assert.strictEqual(s.pdef, 22); // 19 + 3 + 0
+    assert.strictEqual(s.matk, 16);
+    assert.strictEqual(s.mdef, 19);
     assert.strictEqual(s.farmBonus, 0);
   });
 

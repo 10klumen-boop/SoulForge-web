@@ -103,6 +103,52 @@ function run() {
     assert.strictEqual(state.inventory[1].id, "w_d");
     assert.strictEqual(state.inventory[2].id, "mithril_boots");
     assert.strictEqual(state.inventory[3].id, "epic_ring");
+    assert.strictEqual(inventorySortMode(), "kind");
+  });
+
+  test("sort power: higher weapon power first within weapons", () => {
+    state.inventory = [
+      { uid: "1", id: "w_d", plus: 0 },
+      { uid: "2", id: "w_a", plus: 0 },
+      { uid: "3", id: "mithril_boots", kind: "armor" },
+    ];
+    applyInventorySort("power");
+    assert.strictEqual(state.inventory[0].id, "w_a", "A sword stronger than D");
+    assert.strictEqual(state.inventory[1].id, "w_d");
+    assert.strictEqual(state.inventory[2].id, "mithril_boots");
+    assert.strictEqual(inventorySortMode(), "power");
+  });
+
+  test("sort power: same grade, higher plus (power) first", () => {
+    state.inventory = [
+      { uid: "1", id: "w_a", plus: 0 },
+      { uid: "2", id: "w_a", plus: 5 },
+    ];
+    applyInventorySort("power");
+    assert.strictEqual(state.inventory[0].plus, 5);
+    assert.strictEqual(state.inventory[1].plus, 0);
+  });
+
+  test("sort grade: A before D before armor of lower grade", () => {
+    state.inventory = [
+      { uid: "1", id: "mithril_boots", kind: "armor" },
+      { uid: "2", id: "w_d", plus: 0 },
+      { uid: "3", id: "w_a", plus: 0 },
+    ];
+    applyInventorySort("grade");
+    assert.strictEqual(state.inventory[0].id, "w_a");
+    assert.strictEqual(state.inventory[1].id, "mithril_boots", "C armor above D weapon");
+    assert.strictEqual(state.inventory[2].id, "w_d");
+    assert.strictEqual(inventorySortMode(), "grade");
+  });
+
+  test("setInvSort persists mode", () => {
+    setInvSort("power");
+    assert.strictEqual(inventorySortMode(), "power");
+    setInvSort("grade");
+    assert.strictEqual(inventorySortMode(), "grade");
+    setInvSort("kind");
+    assert.strictEqual(inventorySortMode(), "kind");
   });
 
   test("tabs filter by kind", () => {

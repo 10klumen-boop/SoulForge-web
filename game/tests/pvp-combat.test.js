@@ -383,4 +383,54 @@ test("P0: debuffResist on sheet resists atkDebuff without isAvatar", () => {
   assert.strictEqual(def.buffs.atkDebuffRounds, 0);
 });
 
+test("live avatarStats path does not double-add global *Add passives", () => {
+  global.state = {
+    avatar: { classId: "fighter", raceId: "human", level: 12, name: "Live", gear: {} },
+  };
+  // Уже включают patkAdd/pdefAdd/mdefAdd/matkAdd — как avatarStats после B2.
+  global.avatarStats = () => ({ patk: 100, matk: 20, pdef: 50, mdef: 40 });
+  global.passiveSkillsForAvatar = () => [
+    {
+      id: "stat_pads",
+      effects: [
+        { type: "patkAdd", value: 10 },
+        { type: "matkAdd", value: 7 },
+        { type: "pdefAdd", value: 5 },
+        { type: "mdefAdd", value: 3 },
+      ],
+    },
+  ];
+  global.avatarArmorAffinityActive = () => true;
+
+  const live = buildCombatSheet({
+    name: "Live",
+    avatar: state.avatar,
+    level: 12,
+    classId: "fighter",
+    raceId: "human",
+  });
+  assert.strictEqual(live.patk, 100, "no double patkAdd");
+  assert.strictEqual(live.matk, 20, "no double matkAdd");
+  assert.strictEqual(live.pdef, 50, "no double pdefAdd");
+  assert.strictEqual(live.mdef, 40, "no double mdefAdd");
+
+  const raw = buildCombatSheet({
+    name: "Raw",
+    avatar: state.avatar,
+    level: 12,
+    classId: "fighter",
+    raceId: "human",
+    stats: { patk: 100, matk: 20, pdef: 50, mdef: 40 },
+  });
+  assert.strictEqual(raw.patk, 110);
+  assert.strictEqual(raw.matk, 27);
+  assert.strictEqual(raw.pdef, 55);
+  assert.strictEqual(raw.mdef, 43);
+
+  delete global.avatarStats;
+  delete global.passiveSkillsForAvatar;
+  delete global.avatarArmorAffinityActive;
+  delete global.state;
+});
+
 console.log("pvp-combat: all tests passed");

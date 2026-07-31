@@ -49,19 +49,19 @@ function runTests() {
     assert.strictEqual(long.price, 6_900_000);
   });
 
-  test("zone price mult is 1 without mineProgressAdenaScale", () => {
-    assert.ok(Math.abs(autoClickerZonePriceMult() - 1) < 1e-9);
-    assert.strictEqual(autoClickerPackPrice(autoClickerPackById("short")), 1_750_000);
+  test("flat price mult is fixed (no zone)", () => {
+    assert.strictEqual(autoClickerPriceMult(), 4);
+    assert.strictEqual(autoClickerZonePriceMult(), 4);
+    assert.strictEqual(autoClickerPackPrice(autoClickerPackById("short")), 1_750_000 * 4);
   });
 
-  test("P0: pack price scales with live zone adena (not zone.chapter)", () => {
+  test("P0: pack price ignores live zone adena scale", () => {
     global.mineProgressAdenaScale = () => 8;
     const short = autoClickerPackById("short");
-    assert.strictEqual(autoClickerPackPrice(short), 1_750_000 * 8);
-    // Охота с chapter:1 всё равно дороже intro
+    assert.strictEqual(autoClickerPackPrice(short), 1_750_000 * 4);
     global.FARM_ZONES = [{ id: "blazing_swamp", active: true, side: true, chapter: 1 }];
     state.farmZone = "blazing_swamp";
-    assert.strictEqual(autoClickerPackPrice(short), 1_750_000 * 8);
+    assert.strictEqual(autoClickerPackPrice(short), 1_750_000 * 4);
     delete global.mineProgressAdenaScale;
     state.farmZone = "banana_mine";
     global.FARM_ZONES = [{ id: "banana_mine", active: true, chapter: 1 }];
@@ -72,12 +72,13 @@ function runTests() {
     state.autoClicker = { until: 0, enabled: true, pauseStartedAt: 0 };
     const ok = buyAutoClickerPack("short");
     assert.strictEqual(ok, true);
-    assert.strictEqual(state.adena, 10_000_000 - 1_750_000);
+    assert.strictEqual(state.adena, 10_000_000 - 1_750_000 * 4);
     assert.ok(autoClickerRemainingMs() > 14 * 60 * 1000);
     assert.ok(autoClickerIsActive());
   });
 
   test("buying again stacks duration", () => {
+    state.adena = 50_000_000;
     const before = autoClickerRemainingMs();
     buyAutoClickerPack("short");
     const after = autoClickerRemainingMs();
@@ -85,7 +86,7 @@ function runTests() {
   });
 
   test("max stack is 3 hours — refuse over-cap buy", () => {
-    state.adena = 10_000_000;
+    state.adena = 50_000_000;
     const maxMs = autoClickerMaxStackMs();
     assert.strictEqual(maxMs, 3 * 60 * 60 * 1000);
     state.autoClicker = {

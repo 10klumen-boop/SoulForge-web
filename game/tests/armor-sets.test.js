@@ -132,6 +132,7 @@ global.renderAvatarStatsPanel = () => {};
 global.renderAvatarScreen = () => {};
 
 loadScripts([
+  "src/data/avatar-stats-data.js",
   "src/data/armor-sets-data.js",
   "src/avatar-gear-core.js",
   "src/armor-sets-core.js",
@@ -274,7 +275,7 @@ function runTests() {
     state.avatar.level = 10;
   });
 
-  test("farmPower barely moves with full mithril vs bare", () => {
+  test("farmPower rises with full mithril vs bare (partial armor weight)", () => {
     state.avatar.gear = defaultAvatarGear();
     state.inventory = [];
     const weapon = { uid: "w1", id: "test_sword", plus: 4, spent: 0, kind: "weapon" };
@@ -296,8 +297,10 @@ function runTests() {
       });
     });
     const geared = avatarFarmPower();
-    const deltaPct = Math.abs(geared - bare) / Math.max(1, bare);
-    assert.ok(deltaPct < 0.02, "farmPower delta " + (deltaPct * 100).toFixed(2) + "% should be < 2%");
+    const deltaPct = (geared - bare) / Math.max(1, bare);
+    assert.ok(geared > bare, "mithril should raise farmPower");
+    assert.ok(deltaPct >= 0.02, "farmPower delta " + (deltaPct * 100).toFixed(2) + "% should be >= 2%");
+    assert.ok(deltaPct < 0.35, "armor should not rival weapon; delta " + (deltaPct * 100).toFixed(2) + "%");
     const stats = avatarStats();
     assert.ok(stats.pdef > 40, "full set should raise visible pdef, got " + stats.pdef);
     const sus = avatarArmorSustainPct();

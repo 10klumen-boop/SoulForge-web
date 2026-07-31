@@ -274,21 +274,17 @@ body {
 .ws-hub-card {
   border-color: var(--edge2);
   border-radius: 4px;
-  background:
-    linear-gradient(165deg, rgba(138, 40, 40, 0.12) 0%, transparent 42%),
-    linear-gradient(160deg, #1a1816, #0c0a08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    inset 0 -18px 28px rgba(0, 0, 0, 0.28),
-    0 8px 18px rgba(0, 0, 0, 0.4);
+  background: #0a0806;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
 }
-.ws-hub-card::before {
-  background: radial-gradient(ellipse 70% 55% at 18% 28%, rgba(138, 40, 40, 0.12), transparent 62%);
+.ws-hub-card-veil {
+  background:
+    linear-gradient(180deg, rgba(8, 6, 4, 0.2) 0%, rgba(8, 6, 4, 0.48) 42%, rgba(8, 6, 4, 0.9) 100%),
+    linear-gradient(90deg, rgba(8, 6, 4, 0.68) 0%, rgba(8, 6, 4, 0.2) 55%, rgba(20, 8, 6, 0.45) 100%);
 }
 .ws-hub-card:hover {
   border-color: var(--accent-soft);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 10px 24px rgba(0, 0, 0, 0.45),
     0 0 14px rgba(138, 40, 40, 0.12);
 }
@@ -299,12 +295,12 @@ body {
     radial-gradient(circle at 35% 30%, rgba(138, 40, 40, 0.14), transparent 55%),
     linear-gradient(160deg, #161412, #0a0806);
 }
-.ws-hub-card strong { color: var(--ash); text-shadow: none; }
+.ws-hub-card strong { color: var(--ash); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85); }
 .ws-hub-chip {
-  border-radius: 3px;
-  color: #d8ccc4;
-  border-color: var(--edge);
-  background: linear-gradient(180deg, #1c1816, #0c0a08);
+  border-radius: 999px;
+  color: #e8ddd4;
+  border-color: rgba(138, 96, 64, 0.45);
+  background: linear-gradient(180deg, rgba(40, 28, 22, 0.9), rgba(12, 10, 8, 0.92));
 }
 .ws-hub-chip-art {
   border-radius: 2px;
@@ -313,27 +309,11 @@ body {
     radial-gradient(circle at 35% 30%, rgba(138, 40, 40, 0.16), transparent 55%),
     linear-gradient(160deg, #161412, #0a0806);
 }
-.ws-hub-chip--grade {
-  border-color: rgba(201, 168, 106, 0.4);
-  color: var(--ash);
-}
-.ws-hub-chip--shot {
-  border-color: rgba(100, 140, 180, 0.4);
-  color: #c8d8e8;
-}
-.ws-hub-chip--spirit {
-  border-color: rgba(90, 160, 120, 0.4);
-  color: #c8e0d0;
-}
-.ws-hub-chip--epic {
-  border-color: rgba(155, 111, 212, 0.4);
-  color: #dcc8ec;
-}
-.ws-hub-chip--action {
-  border-color: rgba(138, 40, 40, 0.45);
-  color: var(--accent-soft);
-  background: linear-gradient(180deg, rgba(60, 28, 24, 0.95), #0c0a08);
-}
+.ws-hub-chip--grade { color: var(--ash); }
+.ws-hub-chip--shot { color: #c8d8e8; }
+.ws-hub-chip--spirit { color: #c8e0d0; }
+.ws-hub-chip--epic { color: #dcc8ec; }
+.ws-hub-chip--action { color: var(--accent-soft); }
 
 /* —— Story arc —— */
 .story-arc-bar { margin: 0 22px 10px; }

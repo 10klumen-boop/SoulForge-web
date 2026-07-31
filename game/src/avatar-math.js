@@ -1,45 +1,50 @@
 // ===== Avatar math: статы, сила фарма, баланс зон =====
 // Вынесено из 24-avatar-stats.js; чистые расчёты без UI и мутаций state.
+// Базовые числа рас/классов — data/avatar-stats-data.js (RACE_BASE_STATS, CLASS_STAT_BONUS).
 
-const RACE_BASE_STATS = {
-
-  human: { patk: 15, matk: 13, pdef: 15, mdef: 15 },
-
-  elf: { patk: 12, matk: 19, pdef: 12, mdef: 17 },
-
-  dark_elf: { patk: 17, matk: 16, pdef: 11, mdef: 14 },
-
-  orc: { patk: 20, matk: 10, pdef: 19, mdef: 11 },
-
-  dwarf: { patk: 17, matk: 10, pdef: 17, mdef: 14 },
-
+/**
+ * Контракт пассивов (этап B2):
+ * - global — в totals / лист / фарм / арена через avatarStats
+ * - pvpOnly — зарезервировано (сейчас пусто для *Add)
+ * matkAdd/patkAdd/pdefAdd/mdefAdd: global; buildCombatSheet на live-stats
+ *   НЕ добавляет их повторно (только при явных raw input.stats).
+ * farmBonus: global flat к силе фарма (не %); на арену не влияет.
+ */
+const STAT_PASSIVE_SCOPES = {
+  matkAdd: "global",
+  patkAdd: "global",
+  pdefAdd: "global",
+  mdefAdd: "global",
+  farmBonus: "global",
 };
 
-
-
-const CLASS_STAT_BONUS = {
-
-  fighter: { patk: 3, matk: 0, pdef: 2, mdef: 0 },
-
-  mystic: { patk: 0, matk: 4, pdef: 0, mdef: 2 },
-
-};
-
-function avatarLevelStatBonus(level) {
-
-  const lvl = Math.max(0, (level || 1) - 1);
-
-  return { atk: Math.floor(lvl * 0.7), def: Math.floor(lvl * 0.55) };
-
+function raceBaseStats(raceId) {
+  const T = typeof RACE_BASE_STATS !== "undefined" ? RACE_BASE_STATS : null;
+  if (!T) return { patk: 19, matk: 16, pdef: 19, mdef: 19 };
+  return T[raceId] || T.human || { patk: 19, matk: 16, pdef: 19, mdef: 19 };
 }
 
-
+function avatarLevelStatBonus(level) {
+  const lvl = Math.max(0, (level || 1) - 1);
+  return { atk: Math.floor(lvl * 1.15), def: Math.floor(lvl * 0.85) };
+}
 
 function classStatBonus(classId) {
+  const T =
+    typeof CLASS_STAT_BONUS !== "undefined"
+      ? CLASS_STAT_BONUS
+      : {
+          fighter: { patk: 4, matk: 0, pdef: 3, mdef: 0 },
+          mystic: { patk: 0, matk: 5, pdef: 0, mdef: 3 },
+        };
   if (typeof isMysticArchetype === "function" && isMysticArchetype(classId)) {
-    return CLASS_STAT_BONUS.mystic;
+    return T.mystic;
   }
-  return CLASS_STAT_BONUS[classId] || CLASS_STAT_BONUS.fighter;
+  return T[classId] || T.fighter;
+}
+
+function armorFarmDefWeight() {
+  return typeof ARMOR_FARM_DEF_WEIGHT === "number" ? ARMOR_FARM_DEF_WEIGHT : 0.35;
 }
 
 
@@ -143,45 +148,213 @@ function avatarStatBonusesFromGear() {
 
 
 
-function avatarStats() {
-
+/**
+ * Единый проход статов: base → level → gear → passives → totals → derived.
+ * Публичные avatarStats / avatarStatsBreakdown / avatarFarmPower — тонкие обёртки.
+ */
+function buildAvatarStatPipeline(opts) {
+  opts = opts || {};
   const a = state.avatar || {};
-
-  const race = RACE_BASE_STATS[a.raceId] || RACE_BASE_STATS.human;
-
+  const race = raceBaseStats(a.raceId);
   const cls = classStatBonus(a.classId);
-
   const lv = Math.max(1, a.level || 1);
-
   const lb = avatarLevelStatBonus(lv);
-
   const gear = avatarStatBonusesFromGear();
-
   const raceId = a.raceId || "human";
-  const farmBonus = typeof passiveEffectSum === "function"
-    ? passiveEffectSum("farmBonus", a, lv)
-    : (typeof racialEffectSum === "function" ? racialEffectSum("farmBonus", raceId, lv) : 0);
-  const matkAdd = typeof passiveEffectSum === "function"
-    ? passiveEffectSum("matkAdd", a, lv)
-    : 0;
 
-  return {
+  const farmBonus =
+    typeof passiveEffectSum === "function"
+      ? passiveEffectSum("farmBonus", a, lv)
+      : typeof racialEffectSum === "function"
+        ? racialEffectSum("farmBonus", raceId, lv)
+        : 0;
+  const matkAdd =
+    typeof passiveEffectSum === "function" ? passiveEffectSum("matkAdd", a, lv) : 0;
+  // pvpOnly — читаем для контракта/прозрачности, в totals не входят
+  const patkAdd =
+    typeof passiveEffectSum === "function" ? passiveEffectSum("patkAdd", a, lv) : 0;
+  const pdefAdd =
+    typeof passiveEffectSum === "function" ? passiveEffectSum("pdefAdd", a, lv) : 0;
+  const mdefAdd =
+    typeof passiveEffectSum === "function" ? passiveEffectSum("mdefAdd", a, lv) : 0;
 
-    patk: race.patk + cls.patk + lb.atk + gear.patk,
-
+  const totals = {
+    patk: race.patk + cls.patk + lb.atk + gear.patk + patkAdd,
     matk: race.matk + cls.matk + lb.atk + gear.matk + matkAdd,
-
-    pdef: race.pdef + cls.pdef + lb.def + gear.pdef,
-
-    mdef: race.mdef + cls.mdef + lb.def + gear.mdef,
-
+    pdef: race.pdef + cls.pdef + lb.def + gear.pdef + pdefAdd,
+    mdef: race.mdef + cls.mdef + lb.def + gear.mdef + mdefAdd,
     farmBonus,
-
   };
 
+  const mystic = avatarIsMystic();
+  const primary = mystic ? totals.matk * 1.06 : totals.patk;
+  const secondary = mystic ? totals.patk : totals.matk;
+  // Броня/сет-def: частично в farm power (ARMOR_FARM_DEF_WEIGHT), остальное — sustain.
+  const armorDef =
+    typeof avatarArmorDefBonuses === "function"
+      ? avatarArmorDefBonuses()
+      : { pdef: 0, mdef: 0 };
+  const wArm = armorFarmDefWeight();
+  const farmPdef =
+    Math.max(0, (totals.pdef || 0) - (armorDef.pdef || 0)) +
+    (armorDef.pdef || 0) * wArm;
+  const farmMdef =
+    Math.max(0, (totals.mdef || 0) - (armorDef.mdef || 0)) +
+    (armorDef.mdef || 0) * wArm;
+  const farmPower = Math.max(
+    1,
+    Math.round(
+      primary * 1.0 +
+        secondary * 0.55 +
+        farmPdef * 0.36 +
+        farmMdef * 0.36 +
+        Math.max(0, lv - 1) * 1.2 +
+        farmBonus
+    )
+  );
+
+  let weaponLabel = "";
+  if (opts.weaponLabel) {
+    const wItem =
+      typeof equippedWeaponItem === "function"
+        ? equippedWeaponItem()
+        : a.gear && a.gear.weapon
+          ? a.gear.weapon
+          : null;
+    if (wItem && typeof WMAP !== "undefined" && WMAP[wItem.id]) {
+      const w = WMAP[wItem.id];
+      weaponLabel =
+        typeof weaponEquipStatLabel === "function" && typeof fmt === "function"
+          ? weaponEquipStatLabel(w, wItem.plus || 0)
+          : w.name || "";
+    }
+  }
+
+  const set =
+    typeof avatarSetBonuses === "function"
+      ? avatarSetBonuses()
+      : {
+          enchant: 0,
+          mineAdena: 0,
+          mineXp: 0,
+          armorSustain: 0,
+          bossResist: 0,
+          pvpAtk: 0,
+          pvpDef: 0,
+          pvpHp: 0,
+        };
+  const jewAtk = typeof avatarAccessoryPvpAtk === "function" ? avatarAccessoryPvpAtk() : 0;
+  const jewDef = typeof avatarAccessoryPvpDef === "function" ? avatarAccessoryPvpDef() : 0;
+  const jewHp =
+    typeof avatarAccessoryBonusSum === "function" ? avatarAccessoryBonusSum("pvpHp") : 0;
+  const jewCrit =
+    typeof avatarAccessoryPvpCritChance === "function" ? avatarAccessoryPvpCritChance() : 0;
+  let passCrit = 0;
+  let passHp = 0;
+  if (typeof pvpCollectPassives === "function") {
+    const pp = pvpCollectPassives(a);
+    passCrit = (pp && pp.add && pp.add.crit) || 0;
+    passHp = (pp && pp.add && pp.add.hp) || 0;
+  }
+  const critCap =
+    typeof PVP_CRIT_CHANCE_CAP === "number" ? PVP_CRIT_CHANCE_CAP : 0.35;
+  const critChance = Math.min(critCap, Math.max(0, jewCrit + passCrit));
+  const pvpHpAdd = jewHp + (set.pvpHp || 0) + passHp;
+  const gearEnchant =
+    typeof avatarGearEnchantBonus === "function" && typeof safeLevel === "function"
+      ? avatarGearEnchantBonus(safeLevel(), "regular")
+      : 0;
+
+  return {
+    base: { race: race, class: cls },
+    level: lb,
+    gear,
+    passives: {
+      scopes: STAT_PASSIVE_SCOPES,
+      global: { matkAdd, patkAdd, pdefAdd, mdefAdd, farmBonus },
+      pvpOnly: {},
+    },
+    totals,
+    combat: {
+      patk: {
+        race: race.patk,
+        class: cls.patk,
+        level: lb.atk,
+        gear: gear.patk,
+        passive: patkAdd,
+        total: totals.patk,
+      },
+      matk: {
+        race: race.matk,
+        class: cls.matk,
+        level: lb.atk,
+        gear: gear.matk,
+        passive: matkAdd,
+        total: totals.matk,
+      },
+      pdef: {
+        race: race.pdef,
+        class: cls.pdef,
+        level: lb.def,
+        gear: gear.pdef,
+        passive: pdefAdd,
+        total: totals.pdef,
+      },
+      mdef: {
+        race: race.mdef,
+        class: cls.mdef,
+        level: lb.def,
+        gear: gear.mdef,
+        passive: mdefAdd,
+        total: totals.mdef,
+      },
+    },
+    farm: {
+      power: farmPower,
+      farmBonus,
+      weaponLabel,
+      armorDefStripped: { pdef: armorDef.pdef || 0, mdef: armorDef.mdef || 0 },
+      defForFarm: { pdef: farmPdef, mdef: farmMdef },
+    },
+    sets: {
+      enchant: gearEnchant || set.enchant || 0,
+      mineAdena: set.mineAdena || 0,
+      mineXp: set.mineXp || 0,
+      armorSustain: set.armorSustain || 0,
+      bossResist: set.bossResist || 0,
+    },
+    pvp: {
+      atk: jewAtk + (set.pvpAtk || 0),
+      def: jewDef + (set.pvpDef || 0),
+      hp: pvpHpAdd,
+      crit: critChance,
+    },
+    derived: { farmPower },
+  };
 }
 
+function avatarStats() {
+  return buildAvatarStatPipeline().totals;
+}
 
+/** Подробная разбивка статов для UI. Суммы частей = avatarStats(). */
+function avatarStatsBreakdown() {
+  const p = buildAvatarStatPipeline({ weaponLabel: true });
+  return {
+    totals: p.totals,
+    combat: p.combat,
+    farm: {
+      power: p.farm.power,
+      farmBonus: p.farm.farmBonus,
+      weaponLabel: p.farm.weaponLabel,
+      armorDefStripped: p.farm.armorDefStripped,
+      defForFarm: p.farm.defForFarm,
+    },
+    sets: p.sets,
+    pvp: p.pvp,
+    passives: p.passives,
+  };
+}
 
 function avatarIsMystic() {
   return typeof isMysticArchetype === "function" && isMysticArchetype(state.avatar?.classId);
@@ -203,18 +376,7 @@ function weaponEquipStatLabel(w, plus) {
 }
 
 function avatarFarmPower() {
-  const s = avatarStats();
-  const mystic = avatarIsMystic();
-  const primary = mystic ? s.matk * 1.06 : s.patk;
-  const secondary = mystic ? s.patk : s.matk;
-  // Броня/сет-def — sustain, не якорь farm power (модель 2C).
-  const armorDef = typeof avatarArmorDefBonuses === "function" ? avatarArmorDefBonuses() : { pdef: 0, mdef: 0 };
-  const pdef = Math.max(0, (s.pdef || 0) - (armorDef.pdef || 0));
-  const mdef = Math.max(0, (s.mdef || 0) - (armorDef.mdef || 0));
-  const power = Math.round(
-    primary * 1.0 + secondary * 0.72 + pdef * 0.36 + mdef * 0.36 + Math.max(0, (state.avatar?.level || 1) - 1) * 1.5 + s.farmBonus
-  );
-  return Math.max(1, power);
+  return buildAvatarStatPipeline().derived.farmPower;
 }
 
 /** Бонус P.Atk от оружия; fixedPlus — принудительный уровень заточки (для базового HP). */
@@ -383,12 +545,15 @@ function mineMobMaxHp(type, zoneId) {
 function expectedFarmPowerAtLevel(level) {
   level = Math.max(1, level || 1);
   const a = state.avatar || {};
-  const race = RACE_BASE_STATS[a.raceId] || RACE_BASE_STATS.human;
+  const race = raceBaseStats(a.raceId);
   const cls = classStatBonus(a.classId);
   const lb = avatarLevelStatBonus(level);
-  const racialFarm = typeof passiveEffectSum === "function"
-    ? passiveEffectSum("farmBonus", a, level)
-    : (typeof racialEffectSum === "function" ? racialEffectSum("farmBonus", a.raceId, level) : 0);
+  const racialFarm =
+    typeof passiveEffectSum === "function"
+      ? passiveEffectSum("farmBonus", a, level)
+      : typeof racialEffectSum === "function"
+        ? racialEffectSum("farmBonus", a.raceId, level)
+        : 0;
   const patk = race.patk + cls.patk + lb.atk;
   const matk = race.matk + cls.matk + lb.atk;
   const pdef = race.pdef + cls.pdef + lb.def;
@@ -396,8 +561,14 @@ function expectedFarmPowerAtLevel(level) {
   const mystic = typeof isMysticArchetype === "function" && isMysticArchetype(a.classId);
   const primary = mystic ? matk : patk;
   const secondary = mystic ? patk : matk;
+  // Bare (без брони): те же веса, что pipeline (secondary 0.55, level flat 1.2).
   return Math.round(
-    primary * 1.0 + secondary * 0.72 + pdef * 0.36 + mdef * 0.36 + Math.max(0, level - 1) * 1.5 + racialFarm
+    primary * 1.0 +
+      secondary * 0.55 +
+      pdef * 0.36 +
+      mdef * 0.36 +
+      Math.max(0, level - 1) * 1.2 +
+      racialFarm
   );
 }
 

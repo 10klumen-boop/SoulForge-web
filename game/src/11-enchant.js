@@ -88,10 +88,14 @@ function doEnchant() {
     if (!consumeScroll(target, cur.scroll, grade, 1)) {
       busy = false;
       toast("Нет свитка в сумке", "warn");
+      if (typeof renderScrolls === "function") renderScrolls();
       renderEnch();
       return;
     }
   }
+  // Сразу обновить ×N на карточках и в футере — не ждать анимации
+  if (typeof renderScrolls === "function") renderScrolls();
+  renderEnch();
   if (adenaCost > 0) {
     ProgressStore.update("adena", (a) => Math.max(0, (a || 0) - adenaCost));
   }
@@ -262,8 +266,10 @@ function doEnchant() {
       if (typeof refreshInvPaperdoll === "function") refreshInvPaperdoll();
     }
     renderEnch();
+    if (typeof renderScrolls === "function") renderScrolls();
     setTimeout(() => {
       busy = false;
+      if (typeof renderScrolls === "function") renderScrolls();
       renderEnch();
       if (typeof checkAchievements === "function") checkAchievements();
     }, animMs);

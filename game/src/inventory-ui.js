@@ -427,6 +427,35 @@ function buildInvTabs(tabId) {
   return tabs;
 }
 
+function buildInvSortControls(sortMode) {
+  const wrap = document.createElement("div");
+  wrap.className = "inv-sort";
+  wrap.setAttribute("role", "group");
+  wrap.setAttribute("aria-label", "Разложить сумку");
+
+  const modes = [
+    { id: "kind", label: "По типу", toast: "Разложено по типу" },
+    { id: "grade", label: "По грейду", toast: "Разложено по грейду" },
+    { id: "power", label: "По силе", toast: "Разложено по силе" },
+  ];
+  modes.forEach((m) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "inv-sort-btn" + (sortMode === m.id ? " active" : "");
+    btn.textContent = m.label;
+    btn.title = "Разложить: " + m.label.toLowerCase();
+    btn.onclick = () => {
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      if (typeof setInvSort === "function") setInvSort(m.id);
+      if (typeof applyInventorySort === "function") applyInventorySort(m.id);
+      if (typeof toast === "function") toast(m.toast, "info");
+      renderInventory();
+    };
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+
 function appendInvEmptySlot(grid) {
   const empty = document.createElement("div");
   empty.className = "inv-slot empty";
@@ -731,8 +760,7 @@ function renderInventory() {
   if (!state.crystals) state.crystals = { D: 0, C: 0, B: 0, A: 0 };
   const inv = state.inventory || [];
   const tabId = inventoryTabId();
-  const sortMode = inventorySortMode();
-  if (inv.length > 1) applyInventorySort(sortMode);
+  const sortMode = typeof inventorySortMode === "function" ? inventorySortMode() : "kind";
 
   const shown = inv.slice(0, INV_CAP);
   const resourceTab = typeof isInvResourceTab === "function" && isInvResourceTab(tabId);
@@ -779,6 +807,7 @@ function renderInventory() {
   }
   title.innerHTML = "Сумка <span>(" + countLabel + ")</span>";
   bar.appendChild(title);
+  bar.appendChild(buildInvSortControls(sortMode));
   scroll.appendChild(bar);
 
   const gridPanel = document.createElement("div");

@@ -78,35 +78,28 @@ function autoClickerCanBuyPack(pack, now) {
   return { ok: true, rem, maxMs, room };
 }
 
-/** Множитель цены пакета = live-шкала текущей зоны (та же, что mineProgressAdenaScale). */
-function autoClickerZonePriceMult() {
-  const zoneId = state.farmZone || "banana_mine";
-  if (typeof mineProgressAdenaScale === "function") {
-    return Math.max(0.01, mineProgressAdenaScale(zoneId));
-  }
-  // Fallback без avatar-math: сюжетная глава × lvl (как economyChapterFarmMult).
-  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : { chapter: 1 };
-  const chapter =
-    typeof farmZoneProgressChapter === "function"
-      ? farmZoneProgressChapter(zone)
-      : Math.max(1, zone?.chapter || 1);
-  const chMult =
-    typeof economyChapterFarmMult === "function"
-      ? economyChapterFarmMult(chapter)
-      : 1;
-  const lvl = Math.max(1, Number(state.avatar?.level) || 1);
-  return Math.max(0.01, chMult * (1 + Math.max(0, lvl - 1) * 0.02));
+/** Единый множитель цены пакета — без привязки к зоне (анти-эксплойт cheap→farm hard). */
+function autoClickerPriceMult() {
+  const flat =
+    typeof AUTO_CLICKER !== "undefined" && AUTO_CLICKER.flatPriceScale != null
+      ? Number(AUTO_CLICKER.flatPriceScale)
+      : 4;
+  return Number.isFinite(flat) && flat > 0 ? flat : 4;
 }
 
-/** @deprecated алиас — цена теперь от live-шкалы зоны, не zone.chapter */
+/** @deprecated алиас — цена больше не от зоны */
+function autoClickerZonePriceMult() {
+  return autoClickerPriceMult();
+}
+
+/** @deprecated алиас */
 function autoClickerChapterPriceMult() {
-  return autoClickerZonePriceMult();
+  return autoClickerPriceMult();
 }
 
 function autoClickerPackPrice(pack) {
   if (!pack) return 0;
-  // pack.price уже ≈ 70–75% farm гл.I за длительность; домножаем на live-шкалу зоны.
-  return Math.round(pack.price * autoClickerZonePriceMult());
+  return Math.round(pack.price * autoClickerPriceMult());
 }
 
 function autoClickerFreezeForPause() {

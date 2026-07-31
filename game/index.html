@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m276" />
-<link rel="stylesheet" href="styles/dark-fantasy.css?v=d18" />
-<link rel="stylesheet" href="styles/sf-ui.css?v=51" />
+<link rel="stylesheet" href="styles/main.css?v=m287" />
+<link rel="stylesheet" href="styles/dark-fantasy.css?v=d22" />
+<link rel="stylesheet" href="styles/sf-ui.css?v=52" />
 <link rel="stylesheet" href="styles/banana-casino.css?v=16" />
 <script src="cloud-config.js"></script>
 
@@ -286,6 +286,11 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.60.4</p>
+        <ul>
+          <li><b>Статы</b> — честный лист PvE/PvP; раса/класс/уровень; hunting reqPower ×2; сюжетные главы без изменений.</li>
+          <li><b>Мастерская</b> — арт-подложки разделов как у зон фарма; модалка профессий компактнее.</li>
+        </ul>
         <p class="patch-ver">v0.60.3</p>
         <ul>
           <li><b>Казино</b> — шанс Талисмана Банана 0.01% (pity 280 без изменений).</li>
@@ -1166,8 +1171,8 @@
             <p class="avatar-rank" id="avatarRank">Уровень 1</p>
             <div class="avatar-xp-track" aria-hidden="true"><div class="avatar-xp-bar" id="avatarXpBar"></div></div>
             <p class="avatar-xp-text" id="avatarXpText">0 / 100 опыта души</p>
-            <div class="avatar-stat-grid" id="avatarStatGrid"></div>
-            <div class="avatar-farm-row">
+            <div class="avatar-stats-sheet" id="avatarStatGrid"></div>
+            <div class="avatar-farm-row" hidden>
               <span>Сила фарма</span>
               <b id="avatarFarmPower">0</b>
             </div>
@@ -1718,7 +1723,7 @@
         <h2 class="story-title" id="professionPickTitle">Профессия</h2>
         <p class="story-eyebrow">Смена класса</p>
         <p class="avatar-pick-lead" id="professionPickLead">Выбери ветку профессии.</p>
-        <div class="avatar-pick-grid avatar-pick-grid-class" id="professionPickGrid"></div>
+        <div class="avatar-pick-grid profession-pick-grid" id="professionPickGrid"></div>
       </div>
     </div>
     <div class="avatar-setup-actions">
@@ -1756,7 +1761,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=497"></script>
+<script src="src/01-constants.js?v=498"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
 <script src="src/02-state.js?v=53"></script>
 <script src="src/data/audio-data.js?v=2"></script>
@@ -1770,9 +1775,9 @@
 <script src="src/data/workshop-balance.js?v=2"></script>
 <script src="src/workshop-core.js?v=10"></script>
 <script src="src/jewelry-sets-core.js?v=6"></script>
-<script src="src/07-workshop.js?v=25"></script>
+<script src="src/07-workshop.js?v=26"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
-<script src="src/data/farm-zones-balance.js?v=9"></script>
+<script src="src/data/farm-zones-balance.js?v=10"></script>
 <script src="src/data/clan-territories-data.js?v=14"></script>
 <script src="src/data/clan-hunting-catalog-data.js?v=7"></script>
 <script src="src/data/clan-map-regions-data.js?v=4"></script>
@@ -1781,24 +1786,24 @@
 <script src="src/data/oath-symbol-data.js?v=1"></script>
 <script src="src/data/clan-boss-data.js?v=6"></script>
 <script src="src/data/scroll-drop-balance.js?v=7"></script>
-<script src="src/scroll-core.js?v=8"></script>
+<script src="src/scroll-core.js?v=9"></script>
 <script src="src/08-menu.js?v=12"></script>
-<script src="src/09-inventory.js?v=70"></script>
+<script src="src/09-inventory.js?v=72"></script>
 <script src="src/enchant-ui.js?v=8"></script>
-<script src="src/item-tooltip-ui.js?v=4"></script>
-<script src="src/inventory-ui.js?v=22"></script>
+<script src="src/item-tooltip-ui.js?v=5"></script>
+<script src="src/inventory-ui.js?v=24"></script>
 <script src="src/account-storage-core.js?v=6"></script>
 <script src="src/account-storage-ui.js?v=7"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js?v=4"></script>
-<script src="src/11-enchant.js?v=18"></script>
+<script src="src/11-enchant.js?v=19"></script>
 <script src="src/mine-ui.js?v=4"></script>
 <script src="src/mine-core.js?v=34"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js?v=7"></script>
 <script src="src/cloud-ui.js?v=4"></script>
 <script src="src/market-core.js?v=10"></script>
-<script src="src/market-ui.js?v=13"></script>
+<script src="src/market-ui.js?v=14"></script>
 <script src="src/player-mail-core.js?v=8"></script>
 <script src="src/player-mail-ui.js?v=6"></script>
 <script src="src/chat-core.js?v=15"></script>
@@ -1813,7 +1818,7 @@
 <script src="src/party-core.js?v=22"></script>
 <script src="src/party-farm-core.js?v=5"></script>
 <script src="src/instance-core.js?v=45"></script>
-<script src="src/world-boss-core.js?v=30"></script>
+<script src="src/world-boss-core.js?v=32"></script>
 <script src="src/progress-store.js?v=6"></script>
 <script src="src/15-game-log.js?v=2"></script>
 <script src="src/16-accessory.js?v=5"></script>
@@ -1825,23 +1830,24 @@
 <script src="src/19-home.js?v=3"></script>
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js?v=2"></script>
-<script src="src/data/glossary-data.js?v=3"></script>
+<script src="src/data/glossary-data.js?v=4"></script>
 <script src="src/glossary-core.js?v=2"></script>
 <script src="src/glossary-ui.js?v=4"></script>
 <script src="src/intro-core.js"></script>
 <script src="src/21-intro.js?v=10"></script>
-<script src="src/33-ui-icons.js?v=27"></script>
+<script src="src/33-ui-icons.js?v=28"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=5"></script>
 <script src="src/35-characters.js?v=47"></script>
 <script src="src/data/avatar-data.js?v=2"></script>
+<script src="src/data/avatar-stats-data.js?v=3"></script>
 <script src="src/data/professions-data.js?v=18"></script>
 <script src="src/data/passive-skills-data.js?v=2"></script>
 <script src="src/passive-skills-core.js?v=7"></script>
 <script src="src/professions-core.js?v=13"></script>
 <script src="src/avatar-core.js?v=9"></script>
 <script src="src/22-avatar.js?v=34"></script>
-<script src="src/professions-ui.js?v=4"></script>
+<script src="src/professions-ui.js?v=5"></script>
 <script src="src/avatar-gear-core.js?v=23"></script>
 <script src="src/armor-sets-core.js?v=15"></script>
 <script src="src/resource-favorites-core.js?v=1"></script>
@@ -1857,7 +1863,7 @@
 <script src="src/27-quests.js?v=48"></script>
 <script src="src/quest-journal-core.js?v=5"></script>
 <script src="src/29-quest-journal.js?v=9"></script>
-<script src="src/prelude-finale-core.js?v=3"></script>
+<script src="src/prelude-finale-core.js?v=4"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
 <script src="src/data/combat-skills-data.js?v=3"></script>
 <script src="src/data/combat-skills-kits-data.js?v=4"></script>
@@ -1865,23 +1871,23 @@
 <script src="src/skill-tooltip-ui.js?v=1"></script>
 <script src="src/31-combat-skills.js?v=13"></script>
 <script src="src/data/pvp-balance.js?v=5"></script>
-<script src="src/pvp-combat-core.js?v=16"></script>
+<script src="src/pvp-combat-core.js?v=17"></script>
 <script src="src/pvp-social-core.js?v=3"></script>
 <script src="src/pvp-combat-ui.js?v=22"></script>
 <script src="src/32-debug-log.js"></script>
-<script src="src/avatar-math.js?v=26"></script>
+<script src="src/avatar-math.js?v=31"></script>
 <script src="src/avatar-stats-core.js?v=12"></script>
-<script src="src/24-avatar-stats.js?v=41"></script>
+<script src="src/24-avatar-stats.js?v=50"></script>
 <script src="src/data/passive-income-balance.js?v=5"></script>
 <script src="src/passive-income-core.js?v=9"></script>
 <script src="src/passive-income-ui.js?v=3"></script>
-<script src="src/data/auto-clicker-balance.js?v=9"></script>
-<script src="src/auto-clicker-core.js?v=19"></script>
+<script src="src/data/auto-clicker-balance.js?v=10"></script>
+<script src="src/auto-clicker-core.js?v=20"></script>
 <script src="src/auto-clicker-ui.js?v=9"></script>
 <script src="src/data/banana-casino-balance.js?v=14"></script>
 <script src="src/banana-casino-core.js?v=8"></script>
-<script src="src/banana-casino-ui.js?v=12"></script>
-<script src="src/data-loader.js?v=38"></script>
+<script src="src/banana-casino-ui.js?v=14"></script>
+<script src="src/data-loader.js?v=39"></script>
 <script src="src/99-bootstrap.js?v=72"></script>
 
 </body>

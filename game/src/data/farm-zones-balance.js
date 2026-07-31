@@ -16,11 +16,11 @@ const FARM_ZONE_ALIASES = {
  * Так SF 20 не заходит в L2 30–40 / 40+. Живые числа — в story-zones.json.
  */
 const FARM_POWER_CURVE = [
-  { l2Mid: 12, reqLevel: 5, reqPower: 40, note: "soft ≤20" },
-  { l2Mid: 25, reqLevel: 16, reqPower: 88, note: "D 20–30" },
-  { l2Mid: 35, reqLevel: 25, reqPower: 128, note: "C 30–40" },
-  { l2Mid: 45, reqLevel: 32, reqPower: 159, note: "C 40+" },
-  { l2Mid: 55, reqLevel: 36, reqPower: 176, note: "C 50+" },
+  { l2Mid: 12, reqLevel: 5, reqPower: 80, note: "soft ≤20 (B2 ×2 vs B1 power)" },
+  { l2Mid: 25, reqLevel: 16, reqPower: 176, note: "D 20–30" },
+  { l2Mid: 35, reqLevel: 25, reqPower: 256, note: "C 30–40" },
+  { l2Mid: 45, reqLevel: 32, reqPower: 318, note: "C 40+" },
+  { l2Mid: 55, reqLevel: 36, reqPower: 352, note: "C 50+" },
 ];
 
 /** Все side-зоны охоты (кроме race soft-start). */
