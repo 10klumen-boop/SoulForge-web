@@ -32,6 +32,7 @@ function syncSettingsUI() {
   }
 
   if (typeof syncChatMobileSettingUi === "function") syncChatMobileSettingUi();
+  if (typeof syncMentorSettingsUI === "function") syncMentorSettingsUI();
 
   if (typeof defaultAudioVol === "function") {
     if (!state.audioVol || typeof state.audioVol !== "object") state.audioVol = defaultAudioVol();

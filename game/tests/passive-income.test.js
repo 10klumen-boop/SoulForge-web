@@ -52,16 +52,24 @@ function runTests() {
 
   console.log("\n--- passive income ---");
 
-  test("passiveCapSec base is 2 hours", () => {
+  test("passiveCapSec is 0 until warehouse bought", () => {
     global._done = new Set();
     state.passiveIncome = { lastCollectAt: 0, warehouseLv: 0 };
-    assert.strictEqual(passiveCapSec(), 2 * 3600);
+    assert.strictEqual(passiveCapSec(), 0);
+    assert.strictEqual(passiveWarehouseUnlocked(), false);
+  });
+
+  test("passiveCapSec base after first warehouse", () => {
+    global._done = new Set();
+    state.passiveIncome = { lastCollectAt: 0, warehouseLv: 1 };
+    assert.strictEqual(passiveCapSec(), 2 * 3600 + 1 * 2 * 3600);
+    assert.strictEqual(passiveWarehouseUnlocked(), true);
   });
 
   test("passiveCapSec grows with completed chapters", () => {
     global._done = new Set(["banana_mine", "elven_ruins"]);
-    state.passiveIncome = { lastCollectAt: 0, warehouseLv: 0 };
-    assert.strictEqual(passiveCapSec(), 2 * 3600 + 2 * 3600);
+    state.passiveIncome = { lastCollectAt: 0, warehouseLv: 1 };
+    assert.strictEqual(passiveCapSec(), 2 * 3600 + 2 * 3600 + 1 * 2 * 3600);
   });
 
   test("passiveCapSec grows with warehouse levels", () => {
@@ -70,9 +78,19 @@ function runTests() {
     assert.strictEqual(passiveCapSec(), 2 * 3600 + 2 * 2 * 3600);
   });
 
-  test("passivePendingSec clamps to cap", () => {
+  test("no pending without warehouse", () => {
     global._done = new Set();
     state.passiveIncome = { lastCollectAt: Date.now() - 10 * 3600 * 1000, warehouseLv: 0 };
+    assert.strictEqual(passivePendingSec(), 0);
+    assert.strictEqual(passivePendingAdena(), 0);
+    const res = collectPassiveIncome({ queueNotice: true });
+    assert.strictEqual(res.amount, 0);
+    assert.strictEqual(peekPassiveIncomeNotice(), null);
+  });
+
+  test("passivePendingSec clamps to cap", () => {
+    global._done = new Set();
+    state.passiveIncome = { lastCollectAt: Date.now() - 10 * 3600 * 1000, warehouseLv: 1 };
     const sec = passivePendingSec();
     assert.strictEqual(sec, passiveCapSec());
   });
@@ -81,7 +99,7 @@ function runTests() {
     global._done = new Set();
     state.adena = 0;
     state.totals = { tries: 0, fails: 0, earned: 0 };
-    state.passiveIncome = { lastCollectAt: Date.now() - 3600 * 1000, warehouseLv: 0 };
+    state.passiveIncome = { lastCollectAt: Date.now() - 3600 * 1000, warehouseLv: 1 };
     const before = state.adena;
     const res = collectPassiveIncome({ queueNotice: false });
     assert.ok(res.amount > 0);
@@ -94,7 +112,7 @@ function runTests() {
     global._done = new Set();
     state.adena = 0;
     state.totals = { tries: 0, fails: 0, earned: 0 };
-    state.passiveIncome = { lastCollectAt: Date.now() - 3600 * 1000, warehouseLv: 0 };
+    state.passiveIncome = { lastCollectAt: Date.now() - 3600 * 1000, warehouseLv: 1 };
     const res = collectPassiveIncome({ queueNotice: true });
     assert.ok(res.amount > 0);
     const notice = peekPassiveIncomeNotice();
@@ -107,7 +125,7 @@ function runTests() {
   test("queueNotice does not stack hours beyond cap", () => {
     takePassiveIncomeNotice();
     global._done = new Set();
-    state.passiveIncome = { lastCollectAt: Date.now() - 10 * 3600 * 1000, warehouseLv: 0 };
+    state.passiveIncome = { lastCollectAt: Date.now() - 10 * 3600 * 1000, warehouseLv: 1 };
     const cap = passiveCapSec();
     collectPassiveIncome({ queueNotice: true });
     // Симулируем повторный collect после «отката» якоря (как после cloud apply).
@@ -130,6 +148,7 @@ function runTests() {
     global.avatarFarmPower = () => 0;
     state.avatar.level = 1;
     state.farmZone = "banana_mine";
+    state.passiveIncome = { lastCollectAt: Date.now(), warehouseLv: 1 };
     // Без mineProgressAdenaScale — fallback chapter mult (=1 для гл.I).
     delete global.mineProgressAdenaScale;
     const rate = passiveRatePerSec();
@@ -141,6 +160,7 @@ function runTests() {
     global.avatarFarmPower = () => 0;
     state.avatar.level = 1;
     state.farmZone = "e"; // chapter 5
+    state.passiveIncome = { lastCollectAt: Date.now(), warehouseLv: 1 };
     delete global.mineProgressAdenaScale;
     const rate = passiveRatePerSec();
     assert.ok(Math.abs(rate - economyPassiveAdenaPerSec(5)) < 0.1, "rate=" + rate);
@@ -149,6 +169,7 @@ function runTests() {
   test("P0: hunting passive follows mineProgressAdenaScale, not zone.chapter", () => {
     global.avatarFarmPower = () => 0;
     state.avatar.level = 1;
+    state.passiveIncome = { lastCollectAt: Date.now(), warehouseLv: 1 };
     global.FARM_ZONES.push({ id: "blazing_swamp", active: true, side: true, chapter: 1, reqLevel: 36 });
     global.mineProgressAdenaScale = (zoneId) => (zoneId === "blazing_swamp" ? 8 : 1);
     state.farmZone = "blazing_swamp";
@@ -164,6 +185,7 @@ function runTests() {
     global.avatarFarmPower = () => 0;
     state.avatar.level = 1;
     state.farmZone = "banana_mine";
+    state.passiveIncome = { lastCollectAt: Date.now(), warehouseLv: 1 };
     delete global.mineProgressAdenaScale;
     state.avatar.raceId = "human";
     const base = passiveRatePerSec();
@@ -173,6 +195,11 @@ function runTests() {
     state.avatar.raceId = "human";
   });
 
+  test("rate is 0 without warehouse", () => {
+    global.avatarFarmPower = () => 0;
+    state.passiveIncome = { lastCollectAt: Date.now() - 3600 * 1000, warehouseLv: 0 };
+    assert.strictEqual(passiveRatePerSec(), 0);
+  });
   console.log("\n--- summary ---");
   console.log("passed: " + passed + ", failed: " + failed);
   if (failed > 0) process.exit(1);

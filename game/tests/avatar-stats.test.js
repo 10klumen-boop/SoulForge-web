@@ -6,6 +6,7 @@ global.FARM_ZONES = [
   { id: "banana_mine", active: true, chapter: 1, reqLevel: 1, reqPower: 0, race: "human" },
   { id: "elven_ruins", active: true, chapter: 2, reqLevel: 5, reqPower: 100, race: "elf" },
   { id: "dwarven_depths", active: false, chapter: 3, reqLevel: 10, reqPower: 300, race: "dwarf" },
+  { id: "side_hunt", active: true, chapter: 1, reqLevel: 3, reqPower: 120, side: true, race: "human" },
 ];
 global.ZONE_RACE_BONUS = {};
 
@@ -68,14 +69,33 @@ function runTests() {
     assert.strictEqual(canEnterFarmZone(FARM_ZONES[0]), true);
   });
 
-  test("canEnterFarmZone rejects underpowered zone", () => {
+  test("story zone ignores power gate (level only)", () => {
     global._avatarPower = 10;
-    assert.strictEqual(canEnterFarmZone(FARM_ZONES[1]), false);
+    state.avatar.level = 5;
+    assert.strictEqual(canEnterFarmZone(FARM_ZONES[1]), true);
   });
 
-  test("canEnterFarmZone allows zone when powerful enough", () => {
+  test("story zone rejects underleveled even with high power", () => {
+    global._avatarPower = 999;
+    state.avatar.level = 2;
+    assert.strictEqual(canEnterFarmZone(FARM_ZONES[1]), false);
+    state.avatar.level = 5;
+  });
+
+  test("side farm still requires power", () => {
+    global._avatarPower = 10;
+    state.avatar.level = 10;
+    assert.strictEqual(canEnterFarmZone(FARM_ZONES[3]), false);
     global._avatarPower = 200;
-    assert.strictEqual(canEnterFarmZone(FARM_ZONES[1]), true);
+    assert.strictEqual(canEnterFarmZone(FARM_ZONES[3]), true);
+  });
+
+  test("farmZoneStatus needPower is 0 for story", () => {
+    global._avatarPower = 10;
+    state.avatar.level = 5;
+    const st = farmZoneStatus(FARM_ZONES[1]);
+    assert.strictEqual(st.needPower, 0);
+    assert.strictEqual(st.ok, true);
   });
 
   test("recommendedFarmZoneId picks highest available chapter", () => {

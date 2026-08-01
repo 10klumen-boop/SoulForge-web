@@ -28,17 +28,17 @@ function migrateFarmZone() {
     ? farmZoneById(cur)
     : FARM_ZONES.find((z) => z.id === cur);
 
-  if (zone && zone.active && zone.id === cur) return;
+  if (zone && zone.active && zone.id === cur && canEnterFarmZone(zone)) return;
 
-  if (zone && zone.active && zone.id !== cur) {
-    ProgressStore.set("farmZone", zone.id);
-    return;
-  }
+  const fallbackId =
+    (typeof recommendedFarmZoneId === "function" &&
+      (recommendedFarmZoneId({ mode: "story" }) || recommendedFarmZoneId({ mode: "farm" }))) ||
+    (FARM_ZONES.find((z) => z && z.active && canEnterFarmZone(z)) || null)?.id ||
+    null;
 
-  const fallback = FARM_ZONES.find((z) => z.active && canEnterFarmZone(z)) || FARM_ZONES[0];
-
-  if (fallback && state.farmZone !== fallback.id) {
-    ProgressStore.set("farmZone", fallback.id);
+  // Не оставлять farmZone на закрытой главе — иначе «Играть» мёртвая
+  if (fallbackId && state.farmZone !== fallbackId) {
+    ProgressStore.set("farmZone", fallbackId);
   }
 
 }
@@ -66,18 +66,23 @@ function selectFarmZone(zoneId) {
 
     const st = farmZoneStatus(zone);
 
+    if (st.chapterDone) {
+      toast("Глава пройдена — зона закрыта", "warn");
+      return false;
+    }
+
     const parts = [];
-
-    if (st.needLevel > 0) parts.push("ур. " + zone.reqLevel);
-
-    if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
 
     if (st.needQuest && typeof prevFarmZone === "function") {
       const prev = prevFarmZone(zone);
       if (prev) parts.push("глава «" + (zoneRaceView(prev)?.name || prev.id) + "»");
     }
 
-    toast("Нужно: " + parts.join(", "), "warn");
+    if (st.needLevel > 0) parts.push("ур. " + zone.reqLevel);
+
+    if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
+
+    toast("Нужно: " + (parts.length ? parts.join(", ") : "закрыто"), "warn");
 
     return false;
 
@@ -156,7 +161,12 @@ function notifyFarmZoneUnlocks() {
       }
       if (typeof gameLog === "function") {
         gameLog(
-          (z.side ? "Фарм открыт: " : "Этап открыт: ") + v.name + " · ур. " + z.reqLevel + "+ · сила " + fmt(z.reqPower) + "+",
+          (z.side ? "Фарм открыт: " : "Этап открыт: ") +
+            v.name +
+            " · ур. " +
+            z.reqLevel +
+            "+" +
+            (farmZoneUsesPowerGate(z) ? " · сила " + fmt(z.reqPower) + "+" : ""),
           "system"
         );
       }
@@ -167,22 +177,41 @@ function notifyFarmZoneUnlocks() {
 
 
 
+/** Охота / party: гейт по силе. Сюжет — только уровень (+ предыдущая глава). */
+function farmZoneUsesPowerGate(zone) {
+  return !!(zone && (zone.side || zone.party));
+}
+
 function canEnterFarmZone(zone) {
 
   zone = zone || farmZoneById(state.farmZone || "banana_mine");
 
   if (!zone.active) return false;
 
-  if (!state.avatar?.created) return zone.reqLevel <= 1 && zone.reqPower <= 0;
+  if (!state.avatar?.created) {
+    if ((zone.reqLevel || 0) > 1) return false;
+    if (farmZoneUsesPowerGate(zone) && (zone.reqPower || 0) > 0) return false;
+    return true;
+  }
 
-  const power = avatarFarmPower();
+  // Сюжет: пройденная глава закрыта (охота/side остаётся открытой)
+  if (
+    !zone.side &&
+    !zone.party &&
+    typeof isZoneChapterComplete === "function" &&
+    isZoneChapterComplete(zone.id)
+  ) {
+    return false;
+  }
 
   const lvl = state.avatar.level || 1;
+  if (lvl < (zone.reqLevel || 0)) return false;
 
-  if (power < zone.reqPower || lvl < zone.reqLevel) return false;
-
-  // Party / side: без сюжетного гейта предыдущей главы
-  if (zone.party || zone.side) return true;
+  if (farmZoneUsesPowerGate(zone)) {
+    const power = avatarFarmPower();
+    if (power < (zone.reqPower || 0)) return false;
+    return true;
+  }
 
   if (typeof isPrevZoneChapterComplete === "function" && !isPrevZoneChapterComplete(zone)) return false;
 
@@ -200,10 +229,17 @@ function farmZoneStatus(zone) {
 
   const lvl = state.avatar?.level || 1;
 
+  const chapterDone =
+    !!(zone && !zone.side && !zone.party) &&
+    typeof isZoneChapterComplete === "function" &&
+    isZoneChapterComplete(zone.id);
+
   const ok = canEnterFarmZone(zone);
 
   const needQuest =
     typeof isPrevZoneChapterComplete === "function" ? !isPrevZoneChapterComplete(zone) : false;
+
+  const powerGate = farmZoneUsesPowerGate(zone);
 
   return {
 
@@ -213,13 +249,15 @@ function farmZoneStatus(zone) {
 
     locked: !zone.active,
 
+    chapterDone,
+
     power,
 
     level: lvl,
 
-    needPower: Math.max(0, zone.reqPower - power),
+    needPower: powerGate ? Math.max(0, (zone.reqPower || 0) - power) : 0,
 
-    needLevel: Math.max(0, zone.reqLevel - lvl),
+    needLevel: Math.max(0, (zone.reqLevel || 0) - lvl),
 
     needQuest,
 
@@ -234,10 +272,12 @@ function farmZoneStatus(zone) {
 function farmZoneLockHint(zone) {
   const st = farmZoneStatus(zone);
   if (st.ok) return "";
+  if (st.chapterDone) return "глава ✓ · закрыто";
   const parts = [];
+  // Сюжет: сначала предыдущая глава, потом уровень
+  if (st.needQuest && typeof questStatusText === "function") parts.push(questStatusText(zone));
   if (st.needLevel > 0) parts.push("ур. " + zone.reqLevel);
   if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
-  if (st.needQuest && typeof questStatusText === "function") parts.push(questStatusText(zone));
   return parts.length ? parts.join(" · ") : "Закрыто";
 }
 
@@ -249,15 +289,17 @@ function farmZoneChipText(zone, st) {
 
   if (!zone.active) return view.storyTag + " · скоро";
 
+  if (st.chapterDone) return "глава ✓ · закрыто";
+
   if (!st.ok) {
 
     const parts = [];
 
+    if (st.needQuest && typeof questStatusText === "function") parts.push(questStatusText(zone));
+
     if (st.needLevel > 0) parts.push("от ур." + zone.reqLevel);
 
     if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
-
-    if (st.needQuest && typeof questStatusText === "function") parts.push(questStatusText(zone));
 
     return parts.length ? parts.join(" · ") : "закрыто";
 
@@ -291,16 +333,18 @@ function farmZoneMetaText(zone, st) {
 
   if (!st.ok) {
 
+    if (st.chapterDone) return "Глава пройдена — зона закрыта";
+
     const parts = [];
-
-    if (st.needLevel > 0) parts.push("ур. " + zone.reqLevel);
-
-    if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
 
     if (st.needQuest && typeof prevFarmZone === "function") {
       const prev = prevFarmZone(zone);
       if (prev) parts.push("глава «" + (zoneRaceView(prev)?.name || prev.id) + "»");
     }
+
+    if (st.needLevel > 0) parts.push("ур. " + zone.reqLevel);
+
+    if (st.needPower > 0) parts.push(fmt(zone.reqPower) + " силы");
 
     return "Требуется: " + parts.join(", ");
 

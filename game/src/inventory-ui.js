@@ -8,6 +8,10 @@ let invPointerDrag = null;
 let invDragGhost = null;
 let invSuppressClickUntil = 0;
 let lastWheelAt = 0;
+/** Режим «выделить и кристаллизовать» (галочки на слотах). */
+let invCrySelectMode = false;
+/** @type {Set<string>} */
+let invCrySelected = new Set();
 
 document.addEventListener(
   "wheel",
@@ -251,15 +255,33 @@ function canCrystallizeInventoryItem(it) {
   return !!(w.grade && w.grade !== "NG");
 }
 
-async function crystallizeAt(idx) {
-  const inv = state.inventory || [];
-  const it = inv[idx];
-  if (!it) return;
-  if (typeof isShardItem === "function" && isShardItem(it)) return;
-  if (typeof isItemEquipped === "function" && isItemEquipped(it.uid)) {
-    toast("Сначала сними предмет", "warn");
-    return;
-  }
+function isInvCrySelectMode() {
+  return !!invCrySelectMode;
+}
+
+function exitInvCrySelectMode() {
+  invCrySelectMode = false;
+  invCrySelected = new Set();
+}
+
+/** Сумма кристаллов по грейдам из превью. */
+function aggregateCrystalYields(previews) {
+  const byGrade = { D: 0, C: 0, B: 0, A: 0 };
+  let count = 0;
+  (previews || []).forEach((p) => {
+    if (!p || !p.grade) return;
+    const g = p.grade;
+    if (byGrade[g] == null) byGrade[g] = 0;
+    byGrade[g] += Math.max(0, Math.floor(Number(p.yld) || 0));
+    count++;
+  });
+  return { byGrade, count };
+}
+
+/** Превью кристаллизации предмета (или null). */
+function crystallizeItemPreview(it) {
+  if (!it || !canCrystallizeInventoryItem(it)) return null;
+  if (typeof isItemEquipped === "function" && isItemEquipped(it.uid)) return null;
 
   const isAcc = isAccessoryItem(it);
   const isArmor = !isAcc && typeof isArmorItem === "function" && isArmorItem(it);
@@ -273,11 +295,7 @@ async function crystallizeAt(idx) {
           ? COLLECTIBLES[it.id]
           : null;
     kind = "accessory";
-    if (!def) return;
-    if (def.epic) {
-      toast("Эпическую бижутерию нельзя кристаллизовать", "warn");
-      return;
-    }
+    if (!def || def.epic) return null;
   } else if (isArmor) {
     def =
       typeof armorItemDef === "function"
@@ -289,19 +307,159 @@ async function crystallizeAt(idx) {
   } else {
     def = typeof WMAP !== "undefined" ? WMAP[it.id] : null;
     kind = "weapon";
+    if (def && typeof weaponCanEnchant === "function" && !weaponCanEnchant(def)) return null;
   }
-  if (!def) return;
-  if (!isAcc && !isArmor && typeof weaponCanEnchant === "function" && !weaponCanEnchant(def)) {
-    toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
-    return;
-  }
-  if (!def.grade || def.grade === "NG") {
-    toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
-    return;
-  }
+  if (!def || !def.grade || def.grade === "NG") return null;
+  // как в одиночной кристаллизации: plus у бижи в yield не входит
   const plus = isArmor || isAcc ? (isArmor ? it.plus || 0 : 0) : it.plus || 0;
-  const yld = crystalYield(def, plus);
-  const grade = def.grade;
+  const yld = typeof crystalYield === "function" ? crystalYield(def, plus) : 0;
+  return {
+    uid: it.uid,
+    def,
+    kind,
+    grade: def.grade,
+    plus,
+    yld,
+    name: def.name,
+    icon: def.icon,
+  };
+}
+
+function listCrystallizableOnTab(tabId) {
+  const inv = state.inventory || [];
+  const tid = tabId || (typeof inventoryTabId === "function" ? inventoryTabId() : "all");
+  if (typeof isInvResourceTab === "function" && isInvResourceTab(tid)) return [];
+  return inv.filter((it) => {
+    if (!crystallizeItemPreview(it)) return false;
+    if (tid !== "all" && typeof inventoryItemMatchesTab === "function") {
+      return inventoryItemMatchesTab(it, tid);
+    }
+    return true;
+  });
+}
+
+function selectAllCryOnTab() {
+  listCrystallizableOnTab().forEach((it) => {
+    if (it && it.uid) invCrySelected.add(it.uid);
+  });
+}
+
+function deselectCryOnTab() {
+  listCrystallizableOnTab().forEach((it) => {
+    if (it && it.uid) invCrySelected.delete(it.uid);
+  });
+}
+
+function enterInvCrySelectMode() {
+  const list = listCrystallizableOnTab();
+  if (!list.length) {
+    toast("Нет предметов для кристаллизации на этой вкладке", "warn");
+    return;
+  }
+  invCrySelectMode = true;
+  invCrySelected = new Set();
+  list.forEach((it) => {
+    if (it && it.uid) invCrySelected.add(it.uid);
+  });
+  renderInventory();
+  toast("Сними галочки с того, что оставить · затем «Кристаллизовать»", "info");
+}
+
+function selectedCryPreviews() {
+  const inv = state.inventory || [];
+  const byUid = new Map();
+  inv.forEach((it) => {
+    if (it && it.uid) byUid.set(it.uid, it);
+  });
+  const out = [];
+  invCrySelected.forEach((uid) => {
+    const p = crystallizeItemPreview(byUid.get(uid));
+    if (p) out.push(p);
+  });
+  return out;
+}
+
+function crystalYieldSummaryHtml(byGrade) {
+  return ["D", "C", "B", "A"]
+    .filter((g) => (byGrade[g] || 0) > 0)
+    .map(
+      (g) =>
+        '<span class="modal-cryst-reward"><img src="' +
+        (typeof CRYSTAL_ICON !== "undefined" ? CRYSTAL_ICON[g] : "") +
+        '" alt=""> +' +
+        byGrade[g] +
+        ' <span class="g-' +
+        g +
+        '">' +
+        g +
+        "</span></span>"
+    )
+    .join(" ");
+}
+
+function applyCrystalGains(byGrade) {
+  ProgressStore.update("crystals", (c) => {
+    const next = { ...(c || { D: 0, C: 0, B: 0, A: 0 }) };
+    ["D", "C", "B", "A"].forEach((g) => {
+      const add = byGrade[g] || 0;
+      if (add) next[g] = (next[g] || 0) + add;
+    });
+    return next;
+  });
+}
+
+function logCrystallizePreview(p) {
+  if (typeof logCharacterEvent !== "function" || !p) return;
+  logCharacterEvent("crystallize", {
+    itemId: p.def.id,
+    itemName: p.name,
+    kind: p.kind,
+    weaponId: p.kind === "weapon" ? p.def.id : undefined,
+    weaponName: p.kind === "weapon" ? p.name : undefined,
+    grade: p.grade,
+    plus: p.plus,
+    crystals: p.yld,
+  });
+}
+
+async function crystallizeAt(idx) {
+  const inv = state.inventory || [];
+  const it = inv[idx];
+  if (!it) return;
+  if (typeof isShardItem === "function" && isShardItem(it)) return;
+  if (typeof isItemEquipped === "function" && isItemEquipped(it.uid)) {
+    toast("Сначала сними предмет", "warn");
+    return;
+  }
+
+  const preview = crystallizeItemPreview(it);
+  if (!preview) {
+    if (isAccessoryItem(it)) {
+      const def =
+        typeof accessoryDef === "function"
+          ? accessoryDef(it)
+          : typeof COLLECTIBLES !== "undefined"
+            ? COLLECTIBLES[it.id]
+            : null;
+      if (def && def.epic) toast("Эпическую бижутерию нельзя кристаллизовать", "warn");
+      else if (def) toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
+    } else {
+      const def =
+        (typeof isArmorItem === "function" && isArmorItem(it)
+          ? typeof armorItemDef === "function"
+            ? armorItemDef(it)
+            : typeof AMAP !== "undefined"
+              ? AMAP[it.id]
+              : null
+          : typeof WMAP !== "undefined"
+            ? WMAP[it.id]
+            : null) || null;
+      if (def) toast("«" + def.name + "» без грейда — не кристаллизуется", "warn");
+    }
+    return;
+  }
+
+  const { def, grade, plus, yld } = preview;
   const plusStr = plus ? " +" + plus : "";
   const ok = await showConfirm({
     title: "Кристаллизация",
@@ -319,28 +477,59 @@ async function crystallizeAt(idx) {
   });
   if (!ok) return;
   ProgressStore.set("inventory", inv.filter((x) => x.uid !== it.uid));
-  ProgressStore.update("crystals", (c) => {
-    const next = { ...(c || { D: 0, C: 0, B: 0, A: 0 }) };
-    next[grade] = (next[grade] || 0) + yld;
-    return next;
-  });
+  applyCrystalGains({ [grade]: yld });
   if (typeof afterInventorySpaceFreed === "function") afterInventorySpaceFreed();
   Audio2.coin();
   save();
   if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
   toast("Кристаллизация: " + def.name + plusStr + " → +" + yld + " крист. (" + grade + ")", "loot");
-  if (typeof logCharacterEvent === "function") {
-    logCharacterEvent("crystallize", {
-      itemId: def.id,
-      itemName: def.name,
-      kind,
-      weaponId: kind === "weapon" ? def.id : undefined,
-      weaponName: kind === "weapon" ? def.name : undefined,
-      grade,
-      plus,
-      crystals: yld,
-    });
+  logCrystallizePreview(preview);
+  renderInventory();
+}
+
+async function crystallizeSelectedBatch() {
+  const previews = selectedCryPreviews();
+  const { byGrade, count } = aggregateCrystalYields(previews);
+  if (!count) {
+    toast("Ничего не выбрано — поставь галочки или «Выделить всё»", "warn");
+    return;
   }
+  const rewardHtml = crystalYieldSummaryHtml(byGrade);
+  const ok = await showConfirm({
+    title: "Кристаллизовать всё",
+    html:
+      '<div class="modal-cryst modal-cryst-batch">' +
+      '<div class="modal-cryst-info">' +
+      '<div class="modal-cryst-name">Предметов: <b>' +
+      count +
+      "</b></div>" +
+      '<div class="modal-cryst-warn">Выбранные предметы будут уничтожены без возврата.</div>' +
+      '<div class="modal-cryst-batch-rewards">' +
+      rewardHtml +
+      "</div>" +
+      "</div></div>",
+    okText: "Кристаллизовать ×" + count,
+    cancelText: "Отмена",
+    danger: true,
+  });
+  if (!ok) return;
+
+  const uidSet = new Set(previews.map((p) => p.uid));
+  ProgressStore.set(
+    "inventory",
+    (state.inventory || []).filter((x) => !uidSet.has(x.uid))
+  );
+  applyCrystalGains(byGrade);
+  if (typeof afterInventorySpaceFreed === "function") afterInventorySpaceFreed();
+  Audio2.coin();
+  save();
+  if (typeof flushCloudSave === "function") flushCloudSave({ force: true });
+  previews.forEach(logCrystallizePreview);
+  const parts = ["D", "C", "B", "A"]
+    .filter((g) => (byGrade[g] || 0) > 0)
+    .map((g) => "+" + byGrade[g] + " " + g);
+  toast("Кристаллизация ×" + count + (parts.length ? ": " + parts.join(", ") : ""), "loot");
+  exitInvCrySelectMode();
   renderInventory();
 }
 
@@ -663,6 +852,10 @@ function appendInvItemSlot(grid, it, idx) {
     appendInvEmptySlot(grid);
     return;
   }
+  if (invCrySelectMode) {
+    appendInvCryPickSlot(grid, it, def);
+    return;
+  }
   const slot = document.createElement("div");
   const wireTip = () => {
     if (typeof wireItemTooltip !== "function") return;
@@ -739,16 +932,155 @@ function appendInvItemSlot(grid, it, idx) {
   grid.appendChild(slot);
 }
 
+function appendInvCryPickSlot(grid, it, def) {
+  const slot = document.createElement("div");
+  const preview = crystallizeItemPreview(it);
+  const selectable = !!preview;
+  const selected = selectable && invCrySelected.has(it.uid);
+  let gKey = "NG";
+  if (typeof isShardItem === "function" && isShardItem(it)) gKey = "D";
+  else if (isAccessoryItem(it)) {
+    gKey =
+      typeof inventoryItemGradeKey === "function"
+        ? inventoryItemGradeKey(it)
+        : def.epic
+          ? "epic"
+          : def.grade || "epic";
+  } else if (typeof isArmorItem === "function" && isArmorItem(it)) {
+    gKey = def.grade || "C";
+  } else {
+    gKey = def.grade || "NG";
+  }
+  slot.className =
+    "inv-slot filled g-" +
+    gKey +
+    (selectable ? " inv-cry-pick" : " inv-cry-muted") +
+    (selected ? " inv-cry-on" : "");
+  const plusHtml = it.plus ? '<span class="ip">+' + it.plus + "</span>" : "";
+  const qty =
+    typeof isShardItem === "function" && isShardItem(it)
+      ? Math.max(1, Math.floor(Number(it.qty) || 1))
+      : 0;
+  const qtyHtml = qty > 1 ? '<span class="ip">×' + qty + "</span>" : plusHtml;
+  slot.innerHTML =
+    '<img src="' +
+    def.icon +
+    '" alt="" loading="lazy" draggable="false" onerror="this.style.visibility=\'hidden\'">' +
+    qtyHtml +
+    (selectable ? '<span class="inv-cry-mark" aria-hidden="true"></span>' : "");
+  if (selectable) {
+    slot.setAttribute("role", "checkbox");
+    slot.setAttribute("aria-checked", selected ? "true" : "false");
+    slot.title = selected ? "Убрать из кристаллизации" : "Кристаллизовать";
+    slot.onclick = () => {
+      if (invClickBlocked()) return;
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      if (invCrySelected.has(it.uid)) invCrySelected.delete(it.uid);
+      else invCrySelected.add(it.uid);
+      renderInventory();
+    };
+  } else {
+    slot.title = "Нельзя кристаллизовать";
+    slot.onclick = () => {
+      if (invClickBlocked()) return;
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      toast("Этот предмет нельзя кристаллизовать", "info");
+    };
+  }
+  if (typeof wireItemTooltip === "function") {
+    wireItemTooltip(
+      slot,
+      () =>
+        typeof itemTooltipHtmlFromInvItem === "function"
+          ? itemTooltipHtmlFromInvItem(it)
+          : "",
+      typeof itemTooltipPlainFromInvItem === "function"
+        ? itemTooltipPlainFromInvItem(it)
+        : def.name || ""
+    );
+  }
+  grid.appendChild(slot);
+}
+
 function appendInvCrystallizeFooter(list) {
   const cz = document.createElement("div");
-  cz.className = "inv-crystallize inv-crystallize-footer";
+  cz.className =
+    "inv-crystallize inv-crystallize-footer" + (invCrySelectMode ? " is-select" : "");
   cz.id = "invCrystallize";
-  cz.innerHTML =
-    '<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="' +
-    CRYSTALLIZE_ICON.normal +
-    '" alt="" draggable="false"></div>' +
-    '<div class="inv-crystallize-text"><b>Кристаллизация</b><span>Тяни оружие, броню или бижу D/C · ПКМ по предмету</span></div>';
-  attachCrystallizeZone(cz);
+
+  if (invCrySelectMode) {
+    const n = selectedCryPreviews().length;
+    const onTab = listCrystallizableOnTab().length;
+    cz.innerHTML =
+      '<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="' +
+      CRYSTALLIZE_ICON.normal +
+      '" alt="" draggable="false"></div>' +
+      '<div class="inv-crystallize-text">' +
+      "<b>Кристаллизация · выбрано " +
+      n +
+      "</b>" +
+      "<span>Сними галочку с того, что оставить" +
+      (onTab ? " · на вкладке " + onTab : "") +
+      "</span>" +
+      '<div class="inv-cry-actions">' +
+      '<button type="button" class="inv-cry-btn" data-cry-act="all">Выделить всё</button>' +
+      '<button type="button" class="inv-cry-btn" data-cry-act="none">Снять всё</button>' +
+      '<button type="button" class="inv-cry-btn inv-cry-btn-go" data-cry-act="go"' +
+      (n ? "" : " disabled") +
+      ">Кристаллизовать" +
+      (n ? " ×" + n : "") +
+      "</button>" +
+      '<button type="button" class="inv-cry-btn" data-cry-act="cancel">Отмена</button>' +
+      "</div></div>";
+    cz.querySelectorAll("[data-cry-act]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+        const act = btn.getAttribute("data-cry-act");
+        if (act === "all") {
+          selectAllCryOnTab();
+          renderInventory();
+        } else if (act === "none") {
+          deselectCryOnTab();
+          renderInventory();
+        } else if (act === "cancel") {
+          exitInvCrySelectMode();
+          renderInventory();
+        } else if (act === "go") {
+          crystallizeSelectedBatch();
+        }
+      });
+    });
+  } else {
+    const tabNow = typeof inventoryTabId === "function" ? inventoryTabId() : "all";
+    const resourceTab = typeof isInvResourceTab === "function" && isInvResourceTab(tabNow);
+    cz.innerHTML =
+      '<div class="inv-crystallize-slot"><img class="inv-crystallize-ico" src="' +
+      CRYSTALLIZE_ICON.normal +
+      '" alt="" draggable="false"></div>' +
+      '<div class="inv-crystallize-text">' +
+      "<b>Кристаллизация</b>" +
+      "<span>Тяни оружие, броню или бижу · ПКМ" +
+      (resourceTab ? "" : " · или выдели пачкой") +
+      "</span>" +
+      (resourceTab
+        ? ""
+        : '<div class="inv-cry-actions">' +
+          '<button type="button" class="inv-cry-btn inv-cry-btn-go" data-cry-act="enter">Выделить всё</button>' +
+          "</div>") +
+      "</div>";
+    const enterBtn = cz.querySelector('[data-cry-act="enter"]');
+    if (enterBtn) {
+      enterBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+        enterInvCrySelectMode();
+      });
+    }
+    attachCrystallizeZone(cz);
+  }
   list.appendChild(cz);
 }
 

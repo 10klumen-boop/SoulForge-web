@@ -85,6 +85,8 @@ function dismissQuestBriefing() {
   if (typeof renderMineQuestHud === "function") renderMineQuestHud();
   if (typeof flushPendingQuestBriefing === "function") flushPendingQuestBriefing();
   if (reopenMine && typeof openMine === "function") setTimeout(() => openMine(), 120);
+  else if (typeof mentorScheduleResume === "function") mentorScheduleResume(160);
+  else if (typeof mentorResume === "function") setTimeout(() => mentorResume(), 160);
 }
 
 function flushPendingQuestBriefing() {

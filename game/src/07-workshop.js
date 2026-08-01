@@ -119,10 +119,14 @@ function renderWorkshopHub(body) {
   const jewelIco =
     (typeof UI_HUB_BTN_ICONS !== "undefined" && UI_HUB_BTN_ICONS.jewelry) || "icons/btn_jewelry.png?v=1";
   function hubCard(main, ico, title, chips) {
+    const mentorAttr =
+      main === "shots" ? ' data-mentor="ws-shots-hub"' : "";
     return (
       '<button type="button" class="ws-hub-card is-framed-art" data-main="' +
       main +
-      '">' +
+      '"' +
+      mentorAttr +
+      ">" +
       '<img class="ws-hub-card-art" src="' +
       ico +
       '" alt="" draggable="false">' +
@@ -312,6 +316,7 @@ function renderWorkshopArmorHub(body) {
   const setOrder = typeof ARMOR_SETS !== "undefined" ? Object.keys(ARMOR_SETS) : [];
   const filtered = setOrder.filter((setId) => {
     const setDef = ARMOR_SETS[setId];
+    if (!setDef || setDef.starter || setDef.grade === "NG") return false;
     return !wsArmorKind || setDef.kind === wsArmorKind;
   });
   if (!filtered.length) {
@@ -398,21 +403,25 @@ function renderWorkshop() {
 
   if (!wsMainTab) {
     renderWorkshopHub(body);
+    workshopMentorAfterRender();
     return;
   }
 
   if (wsMainTab === "jewelry") {
     renderWorkshopJewelry(body);
+    workshopMentorAfterRender();
     return;
   }
 
   if (wsMainTab === "armor" && !wsArmorKind) {
     renderWorkshopArmorTypeHub(body);
+    workshopMentorAfterRender();
     return;
   }
 
   if (wsMainTab === "armor" && !wsArmorSetId) {
     renderWorkshopArmorHub(body);
+    workshopMentorAfterRender();
     return;
   }
 
@@ -427,6 +436,7 @@ function renderWorkshop() {
 
   if (wsMainTab === "armor") {
     renderWorkshopArmor(body);
+    workshopMentorAfterRender();
     return;
   }
 
@@ -493,7 +503,11 @@ function renderWorkshop() {
         <button class="sellb" ${stock > 0 ? "" : "disabled"}>Продать</button>
       </div>`;
     bindCraftFavButtons(card);
-    card.querySelector(".craftb").onclick = () => craftShot(ty, g);
+    const craftBtn = card.querySelector(".craftb");
+    craftBtn.onclick = () => craftShot(ty, g);
+    if (g === "D") {
+      craftBtn.setAttribute("data-mentor", "craft-shot");
+    }
     card.querySelector(".sellb").onclick = () => sellShots(ty, g);
     grid.appendChild(card);
   });
@@ -505,6 +519,14 @@ function renderWorkshop() {
   sellAll.textContent = "💰 Продать все заряды · " + fmtAdena(tv);
   sellAll.onclick = sellAllShots;
   craft.appendChild(sellAll);
+  workshopMentorAfterRender();
+}
+
+function workshopMentorAfterRender() {
+  if (typeof mentorRefreshSpotlight !== "function") return;
+  requestAnimationFrame(() => {
+    try { mentorRefreshSpotlight(); } catch (e) {}
+  });
 }
 
 function renderWorkshopJewelry(body) {
@@ -572,6 +594,7 @@ function renderWorkshopJewelryGraded(body) {
     if (typeof JEWELRY_SETS === "undefined" || !JEWELRY_SETS) return;
     Object.keys(JEWELRY_SETS).forEach((setId) => {
       const setDef = JEWELRY_SETS[setId];
+      if (!setDef || setDef.starter || setDef.grade === "NG") return;
       const zoneId =
         typeof farmZoneIdForJewelrySet === "function" ? farmZoneIdForJewelrySet(setId) : setDef.farmZoneId;
       const zone = zoneId && typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;

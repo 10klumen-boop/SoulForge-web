@@ -285,6 +285,98 @@ const JEWELRY = [
     icon: "icons/accessory_ring_of_binding_i00.png",
     desc: "C-сет Binding. M.Def +3, КД скиллов −1%.",
   },
+
+  // —— NG ученик (ментор) ——
+  {
+    id: "ng_guard_necklace",
+    name: "Амулет стража",
+    slot: "necklace",
+    grade: "NG",
+    setId: "ng_guard",
+    epic: false,
+    starter: true,
+    noEnchant: true,
+    mdef: 2,
+    cc: 0,
+    bonuses: { mdef: 2, debuffResist: 0.008 },
+    icon: "icons/accessory_necklace_of_darkness_i00.png",
+    desc: "NG. Слабый M.Def и сопротивление дебаффам. Учебный подарок.",
+  },
+  {
+    id: "ng_guard_earring",
+    name: "Серьга стража",
+    slot: "earring",
+    grade: "NG",
+    setId: "ng_guard",
+    epic: false,
+    starter: true,
+    noEnchant: true,
+    mdef: 1,
+    cc: 0,
+    bonuses: { mdef: 1, debuffResist: 0.005 },
+    icon: "icons/accessory_earing_of_darkness_i00.png",
+    desc: "NG. Учебная серьга стража.",
+  },
+  {
+    id: "ng_guard_ring",
+    name: "Кольцо стража",
+    slot: "ring",
+    grade: "NG",
+    setId: "ng_guard",
+    epic: false,
+    starter: true,
+    noEnchant: true,
+    mdef: 1,
+    cc: 0,
+    bonuses: { mdef: 1, debuffResist: 0.004 },
+    icon: "icons/accessory_ring_of_darkness_i00.png",
+    desc: "NG. Учебное кольцо стража.",
+  },
+  {
+    id: "ng_adept_necklace",
+    name: "Амулет послушника",
+    slot: "necklace",
+    grade: "NG",
+    setId: "ng_adept",
+    epic: false,
+    starter: true,
+    noEnchant: true,
+    mdef: 2,
+    cc: 0,
+    bonuses: { mdef: 2, skillCdMult: 0.995 },
+    icon: "icons/accessory_elven_necklace_i00.png",
+    desc: "NG. Слабый M.Def и чуть быстрее КД. Учебный подарок.",
+  },
+  {
+    id: "ng_adept_earring",
+    name: "Серьга послушника",
+    slot: "earring",
+    grade: "NG",
+    setId: "ng_adept",
+    epic: false,
+    starter: true,
+    noEnchant: true,
+    mdef: 1,
+    cc: 0,
+    bonuses: { mdef: 1, skillCdMult: 0.997 },
+    icon: "icons/accessory_elven_earring_i00.png",
+    desc: "NG. Учебная серьга послушника.",
+  },
+  {
+    id: "ng_adept_ring",
+    name: "Кольцо послушника",
+    slot: "ring",
+    grade: "NG",
+    setId: "ng_adept",
+    epic: false,
+    starter: true,
+    noEnchant: true,
+    mdef: 1,
+    cc: 0,
+    bonuses: { mdef: 1, skillCdMult: 0.998 },
+    icon: "icons/accessory_elven_ring_i00.png",
+    desc: "NG. Учебное кольцо послушника.",
+  },
 ];
 
 const JEWELRY_SETS = {
@@ -360,6 +452,30 @@ const JEWELRY_SETS = {
       5: { skillCdMult: 0.96, mdef: 2 },
     },
   },
+  ng_guard: {
+    id: "ng_guard",
+    name: "Бижутерия стража",
+    grade: "NG",
+    role: "resist",
+    starter: true,
+    pieces: ["ng_guard_necklace", "ng_guard_earring", "ng_guard_ring"],
+    bonuses: {
+      3: { debuffResist: 0.012 },
+      5: { debuffResist: 0.018, mdef: 1 },
+    },
+  },
+  ng_adept: {
+    id: "ng_adept",
+    name: "Бижутерия послушника",
+    grade: "NG",
+    role: "cdr",
+    starter: true,
+    pieces: ["ng_adept_necklace", "ng_adept_earring", "ng_adept_ring"],
+    bonuses: {
+      3: { skillCdMult: 0.992 },
+      5: { skillCdMult: 0.985, mdef: 1 },
+    },
+  },
 };
 
 const JEWELRY_SET_FRAG_ICONS = {
@@ -374,6 +490,7 @@ const _JEWEL_FRAG_FALLBACK = "icons/etc_broken_crystal_silver_i00.png";
 
 const JEWELRY_FRAGS = {};
 JEWELRY.forEach((j) => {
+  if (j.starter || j.grade === "NG") return;
   const fragId = j.id + "_piece";
   JEWELRY_FRAGS[fragId] = {
     id: fragId,
@@ -439,6 +556,8 @@ const JEWELRY_CRAFT = [
       mdef: j.mdef,
       cc: j.cc,
       bonuses: Object.assign({}, j.bonuses),
+      starter: !!j.starter,
+      noEnchant: !!j.noEnchant,
     };
   });
   if (typeof ACCESSORY_FRAGS !== "undefined") {

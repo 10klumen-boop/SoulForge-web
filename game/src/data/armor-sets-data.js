@@ -166,6 +166,25 @@ const ARMOR = [
   { id: "demon_hose", name: "Demon Hose", slot: "legs", grade: "C", setId: "demon", pdef: 7, mdef: 12, cc: 184, icon: "icons/armor_demon_hose_i00.png", glow: "#a05070" },
   { id: "demon_gloves", name: "Demon Gloves", slot: "gloves", grade: "C", setId: "demon", pdef: 4, mdef: 6, cc: 98, icon: "icons/armor_demon_gloves_i00.png", glow: "#a05070" },
   { id: "demon_boots", name: "Demon Boots", slot: "boots", grade: "C", setId: "demon", pdef: 4, mdef: 6, cc: 98, icon: "icons/armor_demon_boots_i00.png", glow: "#a05070" },
+
+  // —— NG ученик (ментор): слабые куски, не точатся, без крафта ——
+  { id: "ng_heavy_helmet", name: "Шлем ученика", slot: "helmet", grade: "NG", setId: "ng_heavy", pdef: 2, mdef: 1, cc: 0, icon: "icons/armor_leather_helmet_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_heavy_chest", name: "Кираса ученика", slot: "chest", grade: "NG", setId: "ng_heavy", pdef: 5, mdef: 1, cc: 0, icon: "icons/armor_bone_breastplate_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_heavy_legs", name: "Поножи ученика", slot: "legs", grade: "NG", setId: "ng_heavy", pdef: 3, mdef: 1, cc: 0, icon: "icons/armor_bone_gaiters_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_heavy_gloves", name: "Перчатки ученика", slot: "gloves", grade: "NG", setId: "ng_heavy", pdef: 1, mdef: 0, cc: 0, icon: "icons/armor_gauntlet_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_heavy_boots", name: "Сапоги ученика", slot: "boots", grade: "NG", setId: "ng_heavy", pdef: 1, mdef: 0, cc: 0, icon: "icons/armor_boots_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+
+  { id: "ng_light_helmet", name: "Шлем следопыта", slot: "helmet", grade: "NG", setId: "ng_light", pdef: 1, mdef: 1, cc: 0, icon: "icons/armor_leather_helmet_i02.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_light_chest", name: "Куртка следопыта", slot: "chest", grade: "NG", setId: "ng_light", pdef: 4, mdef: 2, cc: 0, icon: "icons/armor_manticore_skin_shirt_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_light_legs", name: "Штаны следопыта", slot: "legs", grade: "NG", setId: "ng_light", pdef: 2, mdef: 1, cc: 0, icon: "icons/armor_manticore_skin_gaiters_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_light_gloves", name: "Перчатки следопыта", slot: "gloves", grade: "NG", setId: "ng_light", pdef: 1, mdef: 1, cc: 0, icon: "icons/armor_manticore_skin_gloves_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_light_boots", name: "Сапоги следопыта", slot: "boots", grade: "NG", setId: "ng_light", pdef: 1, mdef: 1, cc: 0, icon: "icons/armor_manticore_skin_boots_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+
+  { id: "ng_robe_helmet", name: "Обруч послушника", slot: "helmet", grade: "NG", setId: "ng_robe", pdef: 1, mdef: 2, cc: 0, icon: "icons/armor_circlet_i02.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_robe_chest", name: "Роба послушника", slot: "chest", grade: "NG", setId: "ng_robe", pdef: 2, mdef: 4, cc: 0, icon: "icons/armor_mithril_tunic_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_robe_legs", name: "Штаны послушника", slot: "legs", grade: "NG", setId: "ng_robe", pdef: 1, mdef: 3, cc: 0, icon: "icons/armor_mithril_hose_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_robe_gloves", name: "Перчатки послушника", slot: "gloves", grade: "NG", setId: "ng_robe", pdef: 0, mdef: 1, cc: 0, icon: "icons/armor_elven_mithril_gloves_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
+  { id: "ng_robe_boots", name: "Сапоги послушника", slot: "boots", grade: "NG", setId: "ng_robe", pdef: 0, mdef: 1, cc: 0, icon: "icons/armor_elven_mithril_boots_i00.png", glow: "#8a8a8a", starter: true, noEnchant: true },
 ];
 
 const AMAP = {};
@@ -197,6 +216,7 @@ const ARMOR_SET_FRAG_ICONS = {
 };
 const _FRAG_FALLBACK = "icons/etc_lump_gray_i00.png";
 ARMOR.forEach((a) => {
+  if (a.starter || a.grade === "NG") return;
   const fragId = a.id + "_piece";
   ARMOR_FRAGS[fragId] = {
     id: fragId,
@@ -491,6 +511,46 @@ const ARMOR_SETS = {
     pieces: ["demon_circlet", "demon_tunic", "demon_hose", "demon_gloves", "demon_boots"],
     farmZoneId: "blazing_swamp",
     bonuses: { 2: { enchant: 0.001 }, 4: { mineXp: 0.05 }, 5: { bossResist: 0.05, pvpAtk: 0.055 } },
+  },
+
+  ng_heavy: {
+    id: "ng_heavy",
+    name: "Доспех ученика",
+    grade: "NG",
+    kind: "heavy",
+    starter: true,
+    pieces: ["ng_heavy_helmet", "ng_heavy_chest", "ng_heavy_legs", "ng_heavy_gloves", "ng_heavy_boots"],
+    bonuses: {
+      2: { armorSustain: 0.01 },
+      4: { mineAdena: 0.015 },
+      5: { armorSustain: 0.01, mineXp: 0.02 },
+    },
+  },
+  ng_light: {
+    id: "ng_light",
+    name: "Кожа следопыта",
+    grade: "NG",
+    kind: "light",
+    starter: true,
+    pieces: ["ng_light_helmet", "ng_light_chest", "ng_light_legs", "ng_light_gloves", "ng_light_boots"],
+    bonuses: {
+      2: { mineAdena: 0.015 },
+      4: { mineXp: 0.02 },
+      5: { mineAdena: 0.015, armorSustain: 0.01 },
+    },
+  },
+  ng_robe: {
+    id: "ng_robe",
+    name: "Роба послушника",
+    grade: "NG",
+    kind: "robe",
+    starter: true,
+    pieces: ["ng_robe_helmet", "ng_robe_chest", "ng_robe_legs", "ng_robe_gloves", "ng_robe_boots"],
+    bonuses: {
+      2: { mineXp: 0.02 },
+      4: { mineAdena: 0.015 },
+      5: { mineXp: 0.02, armorSustain: 0.01 },
+    },
   },
 };
 

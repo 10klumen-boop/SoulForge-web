@@ -77,6 +77,16 @@ function runTests() {
     assert.ok(autoClickerIsActive());
   });
 
+  test("grantAutoClickerTime is free and stacks 15 min", () => {
+    state.adena = 1_000_000;
+    state.autoClicker = { until: 0, enabled: true, pauseStartedAt: 0 };
+    const ok = grantAutoClickerTime(15 * 60 * 1000, { toast: false, label: "15 мин" });
+    assert.strictEqual(ok, true);
+    assert.strictEqual(state.adena, 1_000_000);
+    assert.ok(autoClickerRemainingMs() > 14 * 60 * 1000);
+    assert.ok(autoClickerIsActive());
+  });
+
   test("buying again stacks duration", () => {
     state.adena = 50_000_000;
     const before = autoClickerRemainingMs();

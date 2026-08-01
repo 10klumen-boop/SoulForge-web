@@ -146,6 +146,7 @@ function craftShot(type, grade) {
   toast("Скрафчено " + SHOT_TYPE[type].item + " (" + grade + ") ×" + batch, "craft");
   if (typeof achStat === "function") achStat("shotsCrafted", batch);
   if (typeof checkAchievements === "function") checkAchievements();
+  if (typeof mentorEmit === "function") mentorEmit("shot_crafted");
 }
 
 function shotsTotalValue() {

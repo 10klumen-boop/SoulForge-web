@@ -20,11 +20,12 @@
   }
 
 $("#mineBanner") && ($("#mineBanner").onclick = () => {
+  if (typeof migrateFarmZone === "function") migrateFarmZone();
   const cur = typeof farmZoneById === "function" ? farmZoneById(state.farmZone) : null;
-  if (cur?.side && typeof storyFarmZones === "function") {
-    const zones = storyFarmZones();
+  if (!cur || cur.side || cur.party || (typeof canEnterFarmZone === "function" && !canEnterFarmZone(cur))) {
+    const zones = typeof storyFarmZones === "function" ? storyFarmZones() : [];
     const pick =
-      zones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || zones[0];
+      zones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || null;
     if (pick && typeof selectFarmZone === "function") selectFarmZone(pick.id);
   }
   openMine();
@@ -32,11 +33,12 @@ $("#mineBanner") && ($("#mineBanner").onclick = () => {
 const farmPlayBanner = document.getElementById("farmPlayBanner");
 if (farmPlayBanner) {
   farmPlayBanner.onclick = () => {
+    if (typeof migrateFarmZone === "function") migrateFarmZone();
     const cur = typeof farmZoneById === "function" ? farmZoneById(state.farmZone) : null;
-    if (!cur?.side && typeof freeFarmZones === "function") {
-      const zones = freeFarmZones();
+    if (!cur?.side || (typeof canEnterFarmZone === "function" && !canEnterFarmZone(cur))) {
+      const zones = typeof freeFarmZones === "function" ? freeFarmZones() : [];
       const pick =
-        zones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || zones[0];
+        zones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || null;
       if (pick && typeof selectFarmZone === "function") selectFarmZone(pick.id);
     }
     openMine();
@@ -122,7 +124,21 @@ document.addEventListener("keydown", (e) => {
     else if (e.key === "Escape") { Audio2.click(); goInventory(); }
   } else if ($("#screen-acc").classList.contains("active")) {
     if (e.key === "Escape") { Audio2.click(); curAcc = null; goInventory(); }
-  } else if (e.key === "Escape" && $("#screen-mine").classList.contains("active")) { stopMine(); renderMenu(); show("menu"); }
+  } else if (e.key === "Escape" && $("#screen-mine").classList.contains("active")) {
+    if (typeof mineSessionLootOpen !== "undefined" && mineSessionLootOpen && typeof closeMineSessionLootDrawer === "function") {
+      Audio2.click();
+      closeMineSessionLootDrawer();
+      if (typeof renderMineSessionLoot === "function") renderMineSessionLoot();
+    } else if (typeof mineResourceFavOpen !== "undefined" && mineResourceFavOpen && typeof closeMineResourceFavDrawer === "function") {
+      Audio2.click();
+      closeMineResourceFavDrawer();
+      if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
+    } else {
+      stopMine();
+      renderMenu();
+      show("menu");
+    }
+  }
   else if (e.key === "Escape" && $("#screen-login")?.classList.contains("active")) {
     Audio2.click();
   }
@@ -144,6 +160,11 @@ document.addEventListener("keydown", (e) => {
     if (typeof openClanScreen === "function") openClanScreen();
     else show("clan");
   }
+  else if (e.key === "Escape" && $("#screen-inv").classList.contains("active") && typeof isInvCrySelectMode === "function" && isInvCrySelectMode()) {
+    Audio2.click();
+    if (typeof exitInvCrySelectMode === "function") exitInvCrySelectMode();
+    if (typeof renderInventory === "function") renderInventory();
+  }
   else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active") || $("#screen-glossary")?.classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
@@ -162,6 +183,7 @@ migrateCollectiblesToInventory();
 if (typeof wireBananDev === "function") wireBananDev();
 wireAuthorPanel();
 wireIntro();
+if (typeof wireMentorUI === "function") wireMentorUI();
 wireAvatar();
 if (typeof wireHomeMenu === "function") wireHomeMenu();
 if (typeof wireAvatarGear === "function") wireAvatarGear();
@@ -181,6 +203,7 @@ if (typeof applyUiIconsToFarmZones === "function") applyUiIconsToFarmZones();
 if (typeof applyUiIconsToQuestNpcs === "function") applyUiIconsToQuestNpcs();
 if (typeof wireStoryArcBar === "function") wireStoryArcBar();
 if (typeof wireMineStory === "function") wireMineStory();
+if (typeof wireMineSidePanelsLayout === "function") wireMineSidePanelsLayout();
 if (typeof wireGlossaryTips === "function") wireGlossaryTips();
 if (typeof wireGlossaryScreen === "function") wireGlossaryScreen();
 if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();

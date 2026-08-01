@@ -92,6 +92,9 @@ function show(screen) {
   if (typeof Audio2 !== "undefined" && Audio2.setScreen) {
     Audio2.setScreen(screen);
   }
+  if (screen !== "inv" && typeof exitInvCrySelectMode === "function") {
+    exitInvCrySelectMode();
+  }
   if (screen === "settings") {
     const pop = document.getElementById("settingsPop");
     if (pop) pop.hidden = false;
@@ -103,8 +106,37 @@ function show(screen) {
   if (screen === "banana-casino" && typeof renderBananaCasinoScreen === "function") {
     renderBananaCasinoScreen();
   }
+  if (screen === "menu" || screen === "home") {
+    if (typeof refreshPlayerMailBadgeOnly === "function") {
+      refreshPlayerMailBadgeOnly();
+    }
+    if (typeof startPlayerMailBadgePoll === "function") {
+      startPlayerMailBadgePoll();
+    }
+  }
   if (screen === "login" && typeof syncCloudUI === "function") syncCloudUI();
   if (typeof syncCharacterSessionOverlays === "function") syncCharacterSessionOverlays();
+  if (
+    screen === "login" ||
+    screen === "home" ||
+    screen === "characters" ||
+    screen === "settings" ||
+    screen === "patch" ||
+    screen === "author"
+  ) {
+    if (typeof hideMentorUI === "function") hideMentorUI();
+  } else if (typeof mentorEmit === "function") {
+    if (screen === "inv") mentorEmit("screen_inv");
+    else if (screen === "ench") mentorEmit("screen_ench");
+    else if (screen === "shop") mentorEmit("screen_shop");
+    else if (screen === "quests") mentorEmit("screen_quests");
+    else if (screen === "avatar" || screen === "ach" || screen === "menu" || screen === "mine") {
+      if (typeof mentorScheduleResume === "function") mentorScheduleResume(40);
+      else if (typeof mentorResume === "function") {
+        setTimeout(() => mentorResume(), 40);
+      }
+    }
+  }
 }
 
 /** В игре с созданным персонажем (не логин / title / выбор слота). */
@@ -134,6 +166,7 @@ function syncCharacterSessionOverlays() {
   try {
     document.body.classList.toggle("sf-char-session", on);
   } catch (_) {}
+  if (!on && typeof hideMentorUI === "function") hideMentorUI();
   if (typeof renderPartyPanel === "function") renderPartyPanel();
 }
 

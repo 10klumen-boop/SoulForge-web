@@ -29,15 +29,18 @@ function ensureQuestProgress() {
 
 function prevFarmZone(zone) {
   zone = typeof zone === "string" ? farmZoneById(zone) : zone;
-  const i = FARM_ZONES.findIndex((z) => z.id === zone.id);
-  if (i <= 0) return null;
-  // Side-зоны (mithril_forge и т.п.) не входят в основную цепочку глав.
-  for (let j = i - 1; j >= 0; j--) {
-    const z = FARM_ZONES[j];
-    if (z && (z.side || z.party)) continue;
-    return z;
-  }
-  return null;
+  if (!zone || zone.side || zone.party) return null;
+  const story =
+    typeof storyFarmZones === "function"
+      ? storyFarmZones()
+      : (typeof FARM_ZONES !== "undefined" ? FARM_ZONES : []).filter((z) => z && !z.side && !z.party);
+  const chain = story
+    .filter((z) => z && z.active)
+    .slice()
+    .sort((a, b) => (a.chapter || 0) - (b.chapter || 0) || String(a.id).localeCompare(String(b.id)));
+  const idx = chain.findIndex((z) => z.id === zone.id);
+  if (idx <= 0) return null;
+  return chain[idx - 1];
 }
 
 function questNpc(zoneId, race) {
@@ -266,6 +269,7 @@ function acceptZoneQuest(questId) {
     return next;
   });
   save();
+  if (typeof mentorEmit === "function") mentorEmit("quest_accepted");
 }
 
 function onQuestMobKill(zoneId, mobType) {
@@ -273,6 +277,7 @@ function onQuestMobKill(zoneId, mobType) {
   const def = activeZoneQuest(zoneId);
   if (!def || isQuestStepComplete(def.id)) return false;
   ensureQuestProgress();
+  const killsBefore = questKillsDone(def.id);
   const isGolden = mobType === "golden" || mobType === "boss";
   ProgressStore.update("questProgress", (q) => {
     const next = { ...(q || {}) };
@@ -289,6 +294,7 @@ function onQuestMobKill(zoneId, mobType) {
     }
     return next;
   });
+  if (killsBefore === 0 && typeof mentorEmit === "function") mentorEmit("first_kill");
   const done = isQuestStepObjectivesMet(def);
   if (done) {
     markQuestStepComplete(def.id);
@@ -345,6 +351,14 @@ function onZoneBossDefeated(zoneId) {
   if (typeof gameLog === "function") gameLog(view.name + ": " + boss.name + " повержен — путь дальше открыт", "success");
   if (typeof toast === "function") toast("☠ " + boss.name + " повержен! Глава завершена.", "success");
   if (typeof grantChapterReward === "function") grantChapterReward(zoneId);
+  // Пройденная сюжетная зона закрывается — переключаем выбор и выходим с поля
+  if (typeof migrateFarmZone === "function") migrateFarmZone();
+  if (typeof mineActive !== "undefined" && mineActive && (mineSession?.zoneId === zoneId || state.farmZone === zoneId)) {
+    if (typeof stopMine === "function") stopMine();
+    if (typeof renderMenu === "function") renderMenu();
+    if (typeof show === "function") show("menu");
+    if (typeof toast === "function") toast("Глава закрыта — дальше следующая или Охота", "warn");
+  }
   if (typeof notifyFarmZoneUnlocks === "function") notifyFarmZoneUnlocks();
   if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
   if (typeof renderStoryArcBar === "function") renderStoryArcBar();
@@ -368,7 +382,7 @@ function questStatusText(zone) {
   const prev = prevFarmZone(zone);
   if (prev && !isZoneChapterComplete(prev.id)) {
     const pv = typeof zoneRaceView === "function" ? zoneRaceView(prev) : prev;
-    return "глава: " + (pv.name || "…") + " ✗";
+    return "сначала «" + (pv.name || prev.id) + "»";
   }
   if (isZoneBossPending(zone.id)) return "☠ босс";
   const def = activeZoneQuest(zone.id);
@@ -389,7 +403,10 @@ function migrateQuestProgress() {
   let maxIdx = 0;
   FARM_ZONES.forEach((zone, i) => {
     if (!zone.active) return;
-    if (power >= zone.reqPower && lvl >= zone.reqLevel) maxIdx = i;
+    if (lvl < (zone.reqLevel || 0)) return;
+    // Сюжет: только уровень. Охота/party — ещё и сила.
+    if ((zone.side || zone.party) && power < (zone.reqPower || 0)) return;
+    maxIdx = i;
   });
   if (!state.questProgress._migratedV2) {
     for (let i = 0; i < maxIdx; i++) {

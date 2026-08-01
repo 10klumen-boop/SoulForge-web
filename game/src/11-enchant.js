@@ -60,6 +60,12 @@ function syncEnchantItemToStore() {
 function doEnchant() {
   if (busy || (typeof isGamePaused === "function" && isGamePaused())) return;
   if (!cur || cur.broken || !cur.weapon) return;
+  if (typeof mentorEnsurePracticeScroll === "function") {
+    if (mentorEnsurePracticeScroll(cur)) {
+      if (typeof renderScrolls === "function") renderScrolls();
+      if (typeof renderEnch === "function") renderEnch();
+    }
+  }
   const isArmor = cur.kind === "armor";
   const isJew = cur.kind === "accessory" || cur.kind === "jewelry";
   const capPlus =
@@ -82,6 +88,7 @@ function doEnchant() {
     toast("Недостаточно adena!", "warn");
     return;
   }
+  if (typeof mentorEmit === "function") mentorEmit("enchant_try");
   busy = true;
   renderEnch();
   if (typeof consumeScroll === "function") {
@@ -111,7 +118,14 @@ function doEnchant() {
   $("#adena").textContent = fmt(state.adena);
   $("#pSpent").textContent = fmtAdena(cur.item.spent);
   const chance = successChance(cur.plus, sc.behavior);
-  const win = Math.random() < chance;
+  let win = Math.random() < chance;
+  let mentorForced = null;
+  if (typeof mentorScriptEnchantRoll === "function") {
+    mentorForced = mentorScriptEnchantRoll(cur);
+    if (mentorForced === true || mentorForced === false) win = mentorForced;
+  }
+  const forceMentorBreak =
+    mentorForced === false && !!(cur.item && cur.item.mentorKit);
   const itemLabel = isJew ? "бижутерия" : isArmor ? "броня" : "оружие";
   const ItemLabel = isJew ? "Бижутерия" : isArmor ? "Броня" : "Оружие";
   const intactSuffix = isArmor || isJew ? "а" : "";
@@ -175,7 +189,7 @@ function doEnchant() {
       stage.classList.add("shake");
       animMs = 420;
       setTimeout(() => stage.classList.remove("shake"), animMs);
-      if (sc.behavior === "reset") {
+      if (!forceMentorBreak && sc.behavior === "reset") {
         const plusBefore = cur.plus;
         cur.plus = 0;
         cur.item.plus = 0;
@@ -195,7 +209,7 @@ function doEnchant() {
             cost: estimate,
           });
         }
-      } else if (sc.behavior === "destruction") {
+      } else if (!forceMentorBreak && sc.behavior === "destruction") {
         const plusBefore = cur.plus;
         setVerdict("Провал — " + itemLabel + " цел" + intactSuffix + " (+" + cur.plus + ")", "bad");
         gameLog("Провал (разруш.): " + cur.weapon.name + " +" + plusBefore + " — без изменений", "fail");
@@ -251,6 +265,7 @@ function doEnchant() {
           ProgressStore.set("inventory", (state.inventory || []).filter((x) => x.uid !== cur.item.uid));
         }
         if (cur.broken) renderEnch();
+        if (typeof mentorEmit === "function") mentorEmit("enchant_break");
       }
     }
     if (!cur.broken) syncEnchantItemToStore();

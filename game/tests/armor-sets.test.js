@@ -386,8 +386,8 @@ function runTests() {
     assert.ok(state.materials.bone_boots_piece < 10);
   });
 
-  test("seventeen armor sets spread across hunting zones", () => {
-    assert.strictEqual(Object.keys(ARMOR_SETS).length, 17);
+  test("twenty armor sets spread across hunting zones", () => {
+    assert.strictEqual(Object.keys(ARMOR_SETS).length, 20);
     assert.deepStrictEqual(ARMOR_FRAG_ZONES.wasteland, ["bone", "brigandine"]);
     assert.deepStrictEqual(ARMOR_FRAG_ZONES.abandoned_coal_low, ["mithril", "chain"]);
     assert.strictEqual(farmZoneIdForArmorSet("bone"), "wasteland");
@@ -395,7 +395,7 @@ function runTests() {
     assert.strictEqual(farmZoneIdForArmorSet("karmian"), "enchanted_valley");
     assert.strictEqual(farmZoneIdForArmorSet("demon"), "blazing_swamp");
     assert.ok(Object.keys(ARMOR_FRAG_ZONES).length >= 20, "armor spread across many zones");
-    assert.strictEqual(ARMOR.length, 85);
+    assert.strictEqual(ARMOR.length, 100);
     assert.strictEqual(ARMOR_CRAFT.length, 85);
   });
 
@@ -406,14 +406,15 @@ function runTests() {
       assert.ok(s.kind === "heavy" || s.kind === "light" || s.kind === "robe", s.id);
       counts[s.kind]++;
     });
-    assert.strictEqual(counts.heavy, 6);
-    assert.strictEqual(counts.light, 6);
-    assert.strictEqual(counts.robe, 5);
+    assert.strictEqual(counts.heavy, 7);
+    assert.strictEqual(counts.light, 7);
+    assert.strictEqual(counts.robe, 6);
   });
 
   test("armor set frag icons are unique per set and helmet icons differ within kind", () => {
     const fragIcons = new Set();
-    Object.keys(ARMOR_SETS).forEach((setId) => {
+    const craftSets = Object.keys(ARMOR_SETS).filter((id) => !String(id).startsWith("ng_"));
+    craftSets.forEach((setId) => {
       const piece = ARMOR_SETS[setId].pieces[0];
       const frag = ARMOR_FRAGS[piece + "_piece"];
       assert.ok(frag?.icon, setId);

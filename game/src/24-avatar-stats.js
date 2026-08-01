@@ -53,6 +53,7 @@ function setMenuFarmEntry(mode) {
     menuFarmLevelBand = defaultFarmLevelBand();
   }
   menuFarmEntry = next;
+  if (next === "story" && typeof mentorEmit === "function") mentorEmit("hub_story");
   if (menuFarmEntry === "story" || menuFarmEntry === "farm") {
     const zones =
       menuFarmEntry === "farm"
@@ -1146,12 +1147,22 @@ function renderMenuFarmHub() {
     fillFarmZoneList(document.getElementById("storyZoneList"), storyZones, { mode: "story" });
     const storyActions = document.getElementById("farmHubStoryActions");
     if (storyActions) storyActions.hidden = !state.avatar?.created;
+    const enterableStory =
+      storyZones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || null;
+    // Не вешать баннер на пройденную главу — иначе «Играть» выглядит мёртвой
     const storyZone =
-      selected && !selected.side && !selected.party
+      selected && !selected.side && !selected.party && typeof canEnterFarmZone === "function" && canEnterFarmZone(selected)
         ? selected
-        : storyZones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) ||
-          storyZones[0] ||
-          selected;
+        : enterableStory || selected;
+    if (
+      storyZone &&
+      typeof canEnterFarmZone === "function" &&
+      canEnterFarmZone(storyZone) &&
+      state.farmZone !== storyZone.id
+    ) {
+      if (typeof ProgressStore !== "undefined") ProgressStore.set("farmZone", storyZone.id);
+      else state.farmZone = storyZone.id;
+    }
     updatePlayBanner({
       bannerId: "mineBanner",
       titleId: "mineBannerTitle",
@@ -1163,13 +1174,17 @@ function renderMenuFarmHub() {
     const farmBack = document.getElementById("farmFieldBack");
     if (farmBack) farmBack.textContent = "← Назад";
     fillFarmZoneList(document.getElementById("freeFarmZoneList"), farmZones, { mode: "farm" });
+    const enterableFarm =
+      farmZones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) || null;
     const farmZone =
-      selected && selected.side && !selected.party
+      selected && selected.side && !selected.party && typeof canEnterFarmZone === "function" && canEnterFarmZone(selected)
         ? selected
-        : farmZones.find((z) => typeof canEnterFarmZone === "function" && canEnterFarmZone(z)) ||
-          farmZones[0] ||
-          null;
+        : enterableFarm;
     if (farmZone) {
+      if (state.farmZone !== farmZone.id) {
+        if (typeof ProgressStore !== "undefined") ProgressStore.set("farmZone", farmZone.id);
+        else state.farmZone = farmZone.id;
+      }
       updatePlayBanner({
         bannerId: "farmPlayBanner",
         titleId: "farmPlayTitle",

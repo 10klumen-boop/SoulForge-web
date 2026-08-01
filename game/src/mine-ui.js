@@ -6,8 +6,187 @@ function mineSessionLootEl() {
   return document.getElementById("mineSessionLoot");
 }
 
+function mineSessionLootDrawerEl() {
+  if (typeof gameDoc === "function") return gameDoc().getElementById("mineSessionLootDrawer");
+  return document.getElementById("mineSessionLootDrawer");
+}
+
+function mineResourceFavDrawerEl() {
+  if (typeof gameDoc === "function") return gameDoc().getElementById("mineResourceFavDrawer");
+  return document.getElementById("mineResourceFavDrawer");
+}
+
+function mineSidePanelsEl() {
+  if (typeof gameDoc === "function") return gameDoc().getElementById("mineSidePanels");
+  return document.getElementById("mineSidePanels");
+}
+
+function syncMineSidePanels() {
+  const side = mineSidePanelsEl();
+  if (!side) return;
+  ensureMineSidePanelsHost(side);
+  const lootDrawer = mineSessionLootDrawerEl();
+  const favDrawer = mineResourceFavDrawerEl();
+  const lootOpen = !!(lootDrawer && !lootDrawer.hidden);
+  const favOpen = !!(favDrawer && !favDrawer.hidden);
+  const any = lootOpen || favOpen;
+  side.hidden = !any;
+  side.classList.toggle("has-loot", lootOpen);
+  side.classList.toggle("has-fav", favOpen);
+  side.classList.toggle("has-both", lootOpen && favOpen);
+  if (any) layoutMineSidePanels();
+  else clearMineSidePanelsLayout();
+}
+
+function ensureMineSidePanelsHost(side) {
+  const el = side || mineSidePanelsEl();
+  if (!el || typeof document === "undefined" || !document.body) return;
+  if (el.parentElement !== document.body) document.body.appendChild(el);
+}
+
+function clearMineSidePanelsLayout() {
+  const side = mineSidePanelsEl();
+  if (!side) return;
+  side.style.left = "";
+  side.style.top = "";
+  side.style.height = "";
+  side.style.width = "";
+}
+
+/** Панели в тёмном gutter слева от .shell / поля — вне карточки боя. */
+function layoutMineSidePanels() {
+  const side = mineSidePanelsEl();
+  const doc = typeof gameDoc === "function" ? gameDoc() : document;
+  const field = doc.getElementById("minefield");
+  const shell = doc.querySelector(".shell");
+  if (!side || side.hidden || !field) return;
+  const fr = field.getBoundingClientRect();
+  const edgeLeft = shell ? shell.getBoundingClientRect().left : fr.left;
+  const gap = 8;
+  const avail = Math.max(0, edgeLeft - gap);
+  const w = avail >= 100
+    ? Math.min(260, Math.max(100, avail - gap))
+    : Math.min(180, Math.max(120, Math.floor(window.innerWidth * 0.26)));
+  side.style.width = w + "px";
+  side.style.left = (avail >= 100
+    ? Math.max(4, Math.round(edgeLeft - w - gap))
+    : 4) + "px";
+  side.style.top = Math.max(4, Math.round(fr.top)) + "px";
+  side.style.height = Math.max(120, Math.round(fr.height)) + "px";
+}
+
+function wireMineSidePanelsLayout() {
+  if (typeof window === "undefined" || window.__mineSidePanelsLayoutWired) return;
+  window.__mineSidePanelsLayoutWired = true;
+  ensureMineSidePanelsHost();
+  const relayout = () => {
+    const side = mineSidePanelsEl();
+    if (side && !side.hidden) layoutMineSidePanels();
+  };
+  window.addEventListener("resize", relayout);
+  window.addEventListener("scroll", relayout, true);
+}
+
 function mineSessionLootKindsCount(rows) {
   return rows.reduce((n, r) => n + (r.qty > 1 ? r.qty : 1), 0);
+}
+
+function closeMineSessionLootDrawer() {
+  mineSessionLootOpen = false;
+  const drawer = mineSessionLootDrawerEl();
+  if (drawer) {
+    drawer.hidden = true;
+    drawer.innerHTML = "";
+    drawer.classList.remove("is-open");
+  }
+  const bar = mineSessionLootEl();
+  if (bar) {
+    bar.classList.remove("is-open");
+    const btn = bar.querySelector("#mineSessionLootToggle");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+  syncMineSidePanels();
+}
+
+function closeMineResourceFavDrawer() {
+  mineResourceFavOpen = false;
+  const drawer = mineResourceFavDrawerEl();
+  if (drawer) {
+    drawer.hidden = true;
+    drawer.innerHTML = "";
+    drawer.classList.remove("is-open");
+  }
+  const bar =
+    typeof gameDoc === "function"
+      ? gameDoc().getElementById("mineResourceFav")
+      : document.getElementById("mineResourceFav");
+  if (bar) {
+    bar.classList.remove("is-open");
+    const btn = bar.querySelector("#mineResourceFavToggle");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+  syncMineSidePanels();
+}
+
+function renderMineSessionLootDrawer(rows, totalQty) {
+  const drawer = mineSessionLootDrawerEl();
+  if (!drawer) return;
+  if (!mineSessionLootOpen || !rows.length) {
+    drawer.hidden = true;
+    drawer.innerHTML = "";
+    drawer.classList.remove("is-open");
+    syncMineSidePanels();
+    return;
+  }
+  drawer.hidden = false;
+  drawer.classList.add("is-open");
+  const cells = rows
+    .map((row) => {
+      const grade = row.grade || "D";
+      const gClass = row.kind === "accessory" ? "g-epic" : "g-" + grade;
+      const plus = row.plus ? " +" + row.plus : "";
+      const label = row.kind === "shots" ? row.name : (row.name || "?") + plus;
+      const icon = row.icon || "icons/char_menu.png?v=10";
+      const qty =
+        row.qty > 1 ? '<span class="mine-loot-cell-qty">×' + row.qty + "</span>" : "";
+      return (
+        '<div class="mine-loot-cell ' +
+        gClass +
+        '" title="' +
+        label.replace(/"/g, "&quot;") +
+        '">' +
+        '<img src="' +
+        icon +
+        '" alt="" loading="lazy" draggable="false">' +
+        qty +
+        '<span class="mine-loot-cell-name">' +
+        label +
+        "</span>" +
+        "</div>"
+      );
+    })
+    .join("");
+  drawer.innerHTML =
+    '<div class="mine-loot-drawer-head">' +
+    "<b>Дроп за сессию</b>" +
+    '<span class="mine-loot-count">' +
+    totalQty +
+    "</span>" +
+    '<button type="button" class="mine-loot-drawer-close" id="mineSessionLootClose" title="Закрыть" aria-label="Закрыть">×</button>' +
+    "</div>" +
+    '<div class="mine-loot-grid sf-scroll">' +
+    cells +
+    "</div>";
+  const closeBtn = drawer.querySelector("#mineSessionLootClose");
+  if (closeBtn) {
+    closeBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      closeMineSessionLootDrawer();
+    };
+  }
+  syncMineSidePanels();
 }
 
 function renderMineSessionLoot() {
@@ -19,7 +198,7 @@ function renderMineSessionLoot() {
     el.hidden = true;
     el.innerHTML = "";
     el.classList.remove("is-open");
-    mineSessionLootOpen = false;
+    closeMineSessionLootDrawer();
     if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
     return;
   }
@@ -33,8 +212,8 @@ function renderMineSessionLoot() {
   const totalQty = mineSessionLootKindsCount(rows);
 
   if (!rows.length) {
+    closeMineSessionLootDrawer();
     el.classList.remove("is-open");
-    mineSessionLootOpen = false;
     el.innerHTML =
       '<div class="mine-loot-toggle is-static">' +
       '<span class="mine-loot-title">' +
@@ -49,34 +228,18 @@ function renderMineSessionLoot() {
   const open = !!mineSessionLootOpen;
   el.classList.toggle("is-open", open);
 
-  const bodyHtml =
-    '<div class="mine-loot-body">' +
-    rows.map((row) => {
-      const grade = row.grade || "D";
-      const gClass = row.kind === "accessory" ? "g-epic" : "g-" + grade;
-      const plus = row.plus ? " +" + row.plus : "";
-      const qty = row.qty > 1 ? '<span class="mine-loot-qty">×' + row.qty + "</span>" : "";
-      const label = row.kind === "shots" ? row.name : (row.name || "?") + plus;
-      const icon = row.icon || "icons/char_menu.png?v=10";
-      return (
-        '<span class="mine-loot-chip ' + gClass + '" title="' + label.replace(/"/g, "&quot;") + '">' +
-        '<img src="' + icon + '" alt="" loading="lazy" draggable="false">' +
-        '<span class="mine-loot-name">' + label + "</span>" + qty +
-        "</span>"
-      );
-    }).join("") +
-    "</div>";
-
   el.innerHTML =
     '<button type="button" class="mine-loot-toggle" id="mineSessionLootToggle" aria-expanded="' +
-    (open ? "true" : "false") + '">' +
+    (open ? "true" : "false") +
+    '" title="Открыть слева от поля (тёмная зона)">' +
     '<span class="mine-loot-chevron" aria-hidden="true"></span>' +
     '<span class="mine-loot-title">' +
     '<span class="mine-loot-lbl">Дроп за сессию</span>' +
-    '<span class="mine-loot-count">' + totalQty + "</span>" +
+    '<span class="mine-loot-count">' +
+    totalQty +
     "</span>" +
-    "</button>" +
-    bodyHtml;
+    "</span>" +
+    "</button>";
 
   const btn = el.querySelector("#mineSessionLootToggle");
   if (btn) {
@@ -86,6 +249,7 @@ function renderMineSessionLoot() {
       renderMineSessionLoot();
     };
   }
+  renderMineSessionLootDrawer(rows, totalQty);
   if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
 }
 
@@ -94,103 +258,88 @@ function renderMineHudStats() {
   if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
 }
 
-function renderMineResourceFavorites() {
-  const el =
-    typeof gameDoc === "function"
-      ? gameDoc().getElementById("mineResourceFav")
-      : document.getElementById("mineResourceFav");
-  if (!el) return;
-  const rows =
-    typeof listResourceFavoritesResolved === "function" ? listResourceFavoritesResolved() : [];
-  if (!rows.length) {
-    el.hidden = true;
-    el.innerHTML = "";
-    el.classList.remove("is-open");
-    mineResourceFavOpen = false;
+function renderMineResourceFavDrawer(rows, needLeft, countLabel) {
+  const drawer = mineResourceFavDrawerEl();
+  if (!drawer) return;
+  if (!mineResourceFavOpen || !rows.length) {
+    drawer.hidden = true;
+    drawer.innerHTML = "";
+    drawer.classList.remove("is-open");
+    syncMineSidePanels();
     return;
   }
-  el.hidden = false;
-  const open = !!mineResourceFavOpen;
-  el.classList.toggle("is-open", open);
-  const needLeft = rows.reduce((n, r) => n + (r.done ? 0 : 1), 0);
-  const countLabel = needLeft > 0 ? needLeft : rows.length;
-
-  const bodyHtml =
-    '<div class="mine-loot-body mine-fav-body">' +
-    rows
-      .map((row) => {
-        const leftCls = row.done ? " is-done" : " is-need";
-        const leftTxt = row.done
-          ? "готово"
-          : "ещё " + (typeof fmt === "function" ? fmt(row.left) : row.left);
-        const title =
-          (row.name || "") +
-          " · " +
-          row.have +
-          "/" +
-          row.target +
-          (row.done ? " ✓" : " · осталось " + row.left) +
-          " · тап — убрать";
-        const gClass = row.grade ? " g-" + row.grade : "";
-        const icon = row.icon
-          ? '<img src="' + row.icon + '" alt="" loading="lazy" draggable="false">'
-          : "";
-        return (
-          '<button type="button" class="mine-fav-chip' +
-          leftCls +
-          gClass +
-          '" data-fav-kind="' +
-          row.kind +
-          '" data-fav-id="' +
-          String(row.id).replace(/"/g, "") +
-          '" title="' +
-          title.replace(/"/g, "&quot;") +
-          '">' +
-          icon +
-          '<span class="mine-fav-meta">' +
-          '<span class="mine-fav-name">' +
-          (row.name || "?") +
-          "</span>" +
-          '<span class="mine-fav-qty">' +
-          (typeof fmt === "function" ? fmt(row.have) : row.have) +
-          "/" +
-          (typeof fmt === "function" ? fmt(row.target) : row.target) +
-          "</span>" +
-          '<span class="mine-fav-left">' +
-          leftTxt +
-          "</span>" +
-          "</span>" +
-          "</button>"
-        );
-      })
-      .join("") +
-    "</div>";
-
-  el.innerHTML =
-    '<button type="button" class="mine-loot-toggle" id="mineResourceFavToggle" aria-expanded="' +
-    (open ? "true" : "false") +
-    '">' +
-    '<span class="mine-loot-chevron" aria-hidden="true"></span>' +
-    '<span class="mine-loot-title">' +
-    '<span class="mine-loot-lbl">Дофарм</span>' +
+  drawer.hidden = false;
+  drawer.classList.add("is-open");
+  const cells = rows
+    .map((row) => {
+      const leftCls = row.done ? " is-done" : " is-need";
+      const leftTxt = row.done
+        ? "готово"
+        : "ещё " + (typeof fmt === "function" ? fmt(row.left) : row.left);
+      const title =
+        (row.name || "") +
+        " · " +
+        row.have +
+        "/" +
+        row.target +
+        (row.done ? " ✓" : " · осталось " + row.left) +
+        " · тап — убрать";
+      const gClass = row.grade ? " g-" + row.grade : "";
+      const icon = row.icon
+        ? '<img src="' + row.icon + '" alt="" loading="lazy" draggable="false">'
+        : "";
+      const qty =
+        '<span class="mine-loot-cell-qty">' +
+        (typeof fmt === "function" ? fmt(row.have) : row.have) +
+        "/" +
+        (typeof fmt === "function" ? fmt(row.target) : row.target) +
+        "</span>";
+      return (
+        '<button type="button" class="mine-loot-cell mine-fav-cell' +
+        leftCls +
+        gClass +
+        '" data-fav-kind="' +
+        row.kind +
+        '" data-fav-id="' +
+        String(row.id).replace(/"/g, "") +
+        '" title="' +
+        title.replace(/"/g, "&quot;") +
+        '">' +
+        icon +
+        qty +
+        '<span class="mine-loot-cell-name">' +
+        (row.name || "?") +
+        "</span>" +
+        '<span class="mine-fav-cell-left">' +
+        leftTxt +
+        "</span>" +
+        "</button>"
+      );
+    })
+    .join("");
+  drawer.innerHTML =
+    '<div class="mine-loot-drawer-head">' +
+    "<b>Дофарм</b>" +
     '<span class="mine-loot-count' +
     (needLeft <= 0 ? " is-done" : "") +
     '">' +
     countLabel +
     "</span>" +
-    "</span>" +
-    "</button>" +
-    bodyHtml;
-
-  const toggle = el.querySelector("#mineResourceFavToggle");
-  if (toggle) {
-    toggle.onclick = () => {
-      mineResourceFavOpen = !mineResourceFavOpen;
+    '<button type="button" class="mine-loot-drawer-close" id="mineResourceFavClose" title="Закрыть" aria-label="Закрыть">×</button>' +
+    "</div>" +
+    '<div class="mine-loot-grid sf-scroll">' +
+    cells +
+    "</div>";
+  const closeBtn = drawer.querySelector("#mineResourceFavClose");
+  if (closeBtn) {
+    closeBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
-      renderMineResourceFavorites();
+      closeMineResourceFavDrawer();
     };
   }
-  el.querySelectorAll(".mine-fav-chip").forEach((btn) => {
+  drawer.querySelectorAll(".mine-fav-cell").forEach((btn) => {
     btn.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -207,6 +356,55 @@ function renderMineResourceFavorites() {
       }
     };
   });
+  syncMineSidePanels();
+}
+
+function renderMineResourceFavorites() {
+  const el =
+    typeof gameDoc === "function"
+      ? gameDoc().getElementById("mineResourceFav")
+      : document.getElementById("mineResourceFav");
+  if (!el) return;
+  const rows =
+    typeof listResourceFavoritesResolved === "function" ? listResourceFavoritesResolved() : [];
+  if (!rows.length) {
+    el.hidden = true;
+    el.innerHTML = "";
+    el.classList.remove("is-open");
+    mineResourceFavOpen = false;
+    closeMineResourceFavDrawer();
+    return;
+  }
+  el.hidden = false;
+  const open = !!mineResourceFavOpen;
+  el.classList.toggle("is-open", open);
+  const needLeft = rows.reduce((n, r) => n + (r.done ? 0 : 1), 0);
+  const countLabel = needLeft > 0 ? needLeft : rows.length;
+
+  el.innerHTML =
+    '<button type="button" class="mine-loot-toggle" id="mineResourceFavToggle" aria-expanded="' +
+    (open ? "true" : "false") +
+    '" title="Открыть слева от поля (тёмная зона)">' +
+    '<span class="mine-loot-chevron" aria-hidden="true"></span>' +
+    '<span class="mine-loot-title">' +
+    '<span class="mine-loot-lbl">Дофарм</span>' +
+    '<span class="mine-loot-count' +
+    (needLeft <= 0 ? " is-done" : "") +
+    '">' +
+    countLabel +
+    "</span>" +
+    "</span>" +
+    "</button>";
+
+  const toggle = el.querySelector("#mineResourceFavToggle");
+  if (toggle) {
+    toggle.onclick = () => {
+      mineResourceFavOpen = !mineResourceFavOpen;
+      if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+      renderMineResourceFavorites();
+    };
+  }
+  renderMineResourceFavDrawer(rows, needLeft, countLabel);
 }
 
 function syncMineShotHud() {

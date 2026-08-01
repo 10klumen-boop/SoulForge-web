@@ -33,8 +33,8 @@ loadScripts([
   "src/workshop-core.js",
 ]);
 
-assert.ok(JEWELRY.length === 18, "18 jewelry pieces");
-assert.ok(Object.keys(JEWELRY_SETS).length === 6, "6 jewelry sets");
+assert.ok(JEWELRY.length === 24, "24 jewelry pieces");
+assert.ok(Object.keys(JEWELRY_SETS).length === 8, "8 jewelry sets");
 assert.ok(COLLECTIBLES.elven_necklace, "elven merged into COLLECTIBLES");
 assert.ok(COLLECTIBLES.elven_necklace.epic === false, "graded not epic");
 assert.ok(COLLECTIBLES.zaken_blessed_earring.epic === true, "epic stays epic");

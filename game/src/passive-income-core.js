@@ -44,6 +44,12 @@ function ensurePassiveIncomeState() {
   }
 }
 
+/** Склад куплен (lv≥1). До первой покупки пассив не копит adena. */
+function passiveWarehouseUnlocked() {
+  ensurePassiveIncomeState();
+  return (state.passiveIncome.warehouseLv || 0) >= 1;
+}
+
 function passiveCompletedChaptersCount() {
   if (typeof FARM_ZONES === "undefined" || !Array.isArray(FARM_ZONES)) return 0;
   if (typeof isZoneChapterComplete !== "function") return 0;
@@ -52,6 +58,7 @@ function passiveCompletedChaptersCount() {
 
 function passiveCapSec() {
   ensurePassiveIncomeState();
+  if (!passiveWarehouseUnlocked()) return 0;
   const base = typeof tuneInt === "function"
     ? tuneInt("passive.baseCapSec", PASSIVE_INCOME.baseCapSec)
     : PASSIVE_INCOME.baseCapSec;
@@ -68,6 +75,7 @@ function passiveCapSec() {
 
 function passiveRatePerSec() {
   ensurePassiveIncomeState();
+  if (!passiveWarehouseUnlocked()) return 0;
   const zoneId = state.farmZone || "banana_mine";
   // База = 10% якоря farm гл.I; шкала зоны = mineProgressAdenaScale (охота L2 mid, сюжет chapter).
   const baseFallback = PASSIVE_INCOME.baseAdenaPerSec;
@@ -133,6 +141,10 @@ function touchPassiveCollectAt(ts) {
 function touchPassiveHeartbeat() {
   ensurePassiveIncomeState();
   const now = Date.now();
+  if (!passiveWarehouseUnlocked()) {
+    touchPassiveCollectAt(now);
+    return;
+  }
   const last = state.passiveIncome.lastCollectAt || 0;
   if (!last) {
     touchPassiveCollectAt(now);
@@ -147,6 +159,11 @@ function collectPassiveIncome(opts) {
   opts = opts || {};
   ensurePassiveIncomeState();
   const now = Date.now();
+  if (!passiveWarehouseUnlocked()) {
+    // Не копим «долг» до покупки склада — якорь сбрасываем.
+    touchPassiveCollectAt(now);
+    return { ok: true, amount: 0, sec: 0, locked: true };
+  }
   if (!state.passiveIncome.lastCollectAt) {
     touchPassiveCollectAt(now);
     return { ok: true, amount: 0, sec: 0 };
@@ -194,10 +211,13 @@ function buyPassiveWarehouse() {
     }
     return false;
   }
+  const prevLv = state.passiveIncome.warehouseLv || 0;
   ProgressStore.update("adena", (a) => (a || 0) - price);
   ProgressStore.update("passiveIncome", (p) => ({
     ...(p || defaultPassiveIncomeState()),
     warehouseLv: (p?.warehouseLv || 0) + 1,
+    // Первая покупка: накопление стартует с этого момента, без «долга» за прошлое.
+    lastCollectAt: prevLv < 1 ? Date.now() : (p?.lastCollectAt || Date.now()),
   }));
   if (typeof save === "function") save();
   if ($("#adena")) $("#adena").textContent = typeof fmt === "function" ? fmt(state.adena) : String(state.adena);
@@ -205,7 +225,11 @@ function buyPassiveWarehouse() {
   const bonusH = Math.round(PASSIVE_INCOME.warehouseCapBonusSec / 3600);
   if (typeof renderAvatarScreen === "function") renderAvatarScreen();
   if (typeof renderPassiveIncomePanel === "function") {
-    renderPassiveIncomePanel({ status: "Склад расширен — кап +" + bonusH + " ч", statusKind: "ok" });
+    const status =
+      prevLv < 1
+        ? "Склад открыт — пассивный доход включён"
+        : "Склад расширен — кап +" + bonusH + " ч";
+    renderPassiveIncomePanel({ status: status, statusKind: "ok" });
   }
   return true;
 }

@@ -130,6 +130,13 @@ function dismissIntro(fromFirstRun) {
   if (typeof flushPendingZoneStory === "function") flushPendingZoneStory();
   if (backdrop) delete backdrop.dataset.firstRun;
   // Поручение не показываем после пролога — только при входе в «Историю».
+  if (fromFirstRun && typeof mentorStartAfterPrologue === "function") {
+    mentorStartAfterPrologue();
+  } else if (typeof mentorScheduleResume === "function") {
+    mentorScheduleResume(200);
+  } else if (typeof mentorResume === "function") {
+    setTimeout(() => mentorResume(), 200);
+  }
 }
 
 function showIntro(opts) {
@@ -210,5 +217,7 @@ async function runGameEntryModals() {
     }
     // Брифинг поручения — только при входе в «Историю», не при входе в хаб.
     if (typeof tryTriggerPreludeFinale === "function") tryTriggerPreludeFinale();
+    if (typeof mentorScheduleResume === "function") mentorScheduleResume(40);
+    else if (typeof mentorResume === "function") mentorResume();
   }, 360);
 }

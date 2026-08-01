@@ -119,8 +119,9 @@ function openMine() {
     if (typeof maybeShowAvatarSetup === "function") maybeShowAvatarSetup();
     return;
   }
-  const zoneId = state.farmZone || "banana_mine";
-  const zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  if (typeof migrateFarmZone === "function") migrateFarmZone();
+  let zoneId = state.farmZone || "banana_mine";
+  let zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
   // В группе — соло История/Фарм закрыты (инстансы и мировой босс — отдельно)
   const inParty =
     typeof partyMemberCount === "function"
@@ -132,7 +133,14 @@ function openMine() {
     return;
   }
   if (zone && typeof canEnterFarmZone === "function" && !canEnterFarmZone(zone)) {
-    toast("Недостаточно силы фарма для зоны", "warn");
+    if (typeof migrateFarmZone === "function") migrateFarmZone();
+    zoneId = state.farmZone || "banana_mine";
+    zone = typeof farmZoneById === "function" ? farmZoneById(zoneId) : null;
+  }
+  if (zone && typeof canEnterFarmZone === "function" && !canEnterFarmZone(zone)) {
+    const hint =
+      typeof farmZoneLockHint === "function" ? farmZoneLockHint(zone) : "";
+    toast(hint || "Нет доступной зоны — закрой главу или открой Охоту", "warn");
     if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
     return;
   }
@@ -298,6 +306,7 @@ function openMineContinue(zoneId, zone) {
   if (typeof renderMineStoryBar === "function") renderMineStoryBar(zoneId);
   show("mine");
   Audio2.open();
+  if (typeof mentorEmit === "function") mentorEmit("mine_open");
   clearInterval(mineTimer);
   mineTimer = null;
   cancelMineSpawnQueue();
@@ -1090,6 +1099,7 @@ function finishMobKill(g, type, dropAt, guard) {
       if (typeof renderMineQuestHud === "function") renderMineQuestHud();
     }
   }
+  if (typeof mentorEmit === "function") mentorEmit("first_kill");
   const rewardKind = type === "boss" ? "treasure" : type === "golden" ? "treasure" : "coin";
   Audio2.mineKill();
   Audio2.mineReward(rewardKind);

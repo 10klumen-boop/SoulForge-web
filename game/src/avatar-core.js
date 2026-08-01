@@ -232,6 +232,25 @@ function createAvatar(name, raceId, classId, genderId) {
     professionId: null,
     professionTier: 0,
   }));
+  // Новый персонаж — Ючи стартует автоматически после пролога
+  if (typeof defaultMentorProgress === "function") {
+    ProgressStore.set(
+      "mentor",
+      Object.assign(defaultMentorProgress(), { autoStart: true, skipped: false })
+    );
+  } else {
+    ProgressStore.set("mentor", {
+      skipped: false,
+      autoStart: true,
+      bitId: null,
+      lineIndex: 0,
+      doneBits: {},
+      doneLessons: {},
+      chapterIntroSeen: {},
+      started: false,
+      kitGranted: false,
+    });
+  }
   if (typeof grantStarterWeapon === "function") {
     const item = grantStarterWeapon(classId);
     ProgressStore.update("avatar", (a) => ({ ...(a || {}), starterGranted: true }));

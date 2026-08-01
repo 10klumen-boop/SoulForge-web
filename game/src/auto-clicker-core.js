@@ -171,6 +171,15 @@ function buyAutoClickerPack(packId) {
     notifyAutoClickerUi("Неизвестный пакет автоудара", "warn");
     return false;
   }
+  // Урок Ючи: пакет 15 мин один раз бесплатно — только по клику
+  if (
+    packId === "short" &&
+    typeof mentorAutoClickerGiftAvailable === "function" &&
+    mentorAutoClickerGiftAvailable() &&
+    typeof claimMentorAutoClickerGift === "function"
+  ) {
+    return claimMentorAutoClickerGift();
+  }
   const now = Date.now();
   const can = autoClickerCanBuyPack(pack, now);
   if (!can.ok) {
@@ -208,6 +217,53 @@ function buyAutoClickerPack(packId) {
   startAutoClickerLoop();
   if (typeof renderAvatarScreen === "function") renderAvatarScreen();
   notifyAutoClickerUi("Автоудар: +" + pack.label, "ok");
+  return true;
+}
+
+/**
+ * Бесплатное время автоудара (обучение / награды).
+ * @param {number} durationMs
+ * @param {{ toast?: boolean, label?: string }=} opts
+ * @returns {boolean}
+ */
+function grantAutoClickerTime(durationMs, opts) {
+  opts = opts || {};
+  const ms = Math.max(0, Math.floor(Number(durationMs) || 0));
+  if (ms <= 0) return false;
+  ensureAutoClickerState();
+  clampAutoClickerToMax();
+  const now = Date.now();
+  const maxMs = autoClickerMaxStackMs();
+  const rem = autoClickerRemainingMs(now);
+  const room = Math.max(0, maxMs - rem);
+  const add = Math.min(ms, room);
+  if (add <= 0) {
+    if (opts.toast !== false) {
+      notifyAutoClickerUi("Автоудар уже на максимуме", "warn");
+    }
+    return false;
+  }
+  const curUntil = autoClickerEffectiveUntil(now);
+  const base = Math.max(now, curUntil);
+  ProgressStore.update("autoClicker", (a) => ({
+    ...(a || defaultAutoClickerState()),
+    until: Math.min(base + add, now + maxMs),
+    enabled: true,
+    pauseStartedAt: 0,
+    frozenRemainingMs: 0,
+  }));
+  if (typeof save === "function") save();
+  startAutoClickerLoop();
+  if (typeof renderAvatarScreen === "function") renderAvatarScreen();
+  if (typeof renderAutoClickerHud === "function") renderAutoClickerHud();
+  const label =
+    opts.label ||
+    (add >= 60 * 1000
+      ? Math.round(add / 60000) + " мин"
+      : Math.round(add / 1000) + " с");
+  if (opts.toast !== false) {
+    notifyAutoClickerUi("Автоудар: +" + label, "ok");
+  }
   return true;
 }
 

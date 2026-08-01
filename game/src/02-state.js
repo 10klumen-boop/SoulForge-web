@@ -64,6 +64,7 @@ function defaultState() {
     instanceLocks: {},
     overflowLoot: [],
     bananaCasino: { tokens: 0, pity: 0, pityJackpot: 0, pulls: 0, jackpots: 0, history: [] },
+    mentor: { skipped: false, autoStart: false, bitId: null, lineIndex: 0, doneBits: {}, doneLessons: {}, chapterIntroSeen: {}, started: false, kitGranted: false },
     accountWarehouse: { items: [], stacks: [] },
     accountMail: { messages: [] },
     devTune: {},
@@ -104,6 +105,7 @@ function freshCharacterProgressSnapshot() {
     "collectibles", "equipped", "materials", "shots", "scrolls", "autoShots", "achievements",
     "passiveIncome", "autoClicker", "resourceFavorites",
     "partyFarm", "instanceLocks", "overflowLoot", "bananaCasino",
+    "mentor",
   ];
   const p = {};
   keys.forEach((k) => { p[k] = JSON.parse(JSON.stringify(d[k])); });
@@ -215,6 +217,16 @@ function mergeSavedData(data) {
     for (const k of Object.keys(dv)) {
       if (typeof st.audioVol[k] !== "number") st.audioVol[k] = dv[k];
     }
+  }
+  if (!st.mentor || typeof st.mentor !== "object") {
+    st.mentor = typeof defaultMentorProgress === "function"
+      ? defaultMentorProgress()
+      : { skipped: false, autoStart: false, bitId: null, lineIndex: 0, doneBits: {}, doneLessons: {}, chapterIntroSeen: {}, started: false };
+  } else {
+    if (!st.mentor.doneBits) st.mentor.doneBits = {};
+    if (!st.mentor.doneLessons) st.mentor.doneLessons = {};
+    if (!st.mentor.chapterIntroSeen) st.mentor.chapterIntroSeen = {};
+    if (st.mentor.lineIndex == null) st.mentor.lineIndex = 0;
   }
   return st;
 }

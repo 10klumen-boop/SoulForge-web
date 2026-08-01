@@ -36,7 +36,9 @@ function cloneInvItem(it) {
 }
 
 function accountWarehouseStackKey(st) {
-  if (!st || st.kind !== "scroll") return null;
+  if (!st) return null;
+  if (st.kind === "adena") return "adena";
+  if (st.kind !== "scroll") return null;
   const target =
     typeof normalizeScrollTarget === "function"
       ? normalizeScrollTarget(st.target)
@@ -56,7 +58,9 @@ function accountWarehouseStackKey(st) {
 }
 
 function parseAccountWarehouseStackKey(key) {
-  const parts = String(key || "").split(":");
+  const raw = String(key || "");
+  if (raw === "adena") return { kind: "adena" };
+  const parts = raw.split(":");
   if (parts[0] !== "scroll" || parts.length < 4) return null;
   return {
     kind: "scroll",
@@ -64,6 +68,105 @@ function parseAccountWarehouseStackKey(key) {
     typeId: parts[2],
     grade: parts[3],
   };
+}
+
+function accountWarehouseAdena() {
+  ensureAccountStorage();
+  const st = (state.accountWarehouse.stacks || []).find((s) => s && s.kind === "adena");
+  return Math.max(0, Math.floor(Number(st && st.qty) || 0));
+}
+
+function characterAdenaBalance() {
+  return Math.max(0, Math.floor(Number(state.adena) || 0));
+}
+
+/**
+ * Положить адену активного персонажа на склад аккаунта.
+ * Одинаковый стек сливается; занимает 1 слот склада.
+ */
+function depositAdenaToWarehouse(qty) {
+  ensureAccountStorage();
+  if (!state.avatar?.created) {
+    if (typeof toast === "function") toast("Сначала создай персонажа", "warn");
+    return false;
+  }
+  const have = characterAdenaBalance();
+  const n = Math.max(1, Math.min(have, Math.floor(Number(qty) || 0)));
+  if (n < 1 || have < 1) {
+    if (typeof toast === "function") toast("Нет адены", "warn");
+    return false;
+  }
+  const stacks = state.accountWarehouse.stacks;
+  const existing = stacks.find((s) => s && s.kind === "adena");
+  if (!existing && accountWarehouseIsFull()) {
+    if (typeof toast === "function") toast("Склад аккаунта полон (" + ACCOUNT_WAREHOUSE_CAP + ")", "warn");
+    return false;
+  }
+  if (typeof ProgressStore !== "undefined") {
+    ProgressStore.update("adena", (a) => Math.max(0, Math.floor(Number(a) || 0) - n));
+  } else {
+    state.adena = Math.max(0, have - n);
+  }
+  if (existing) {
+    existing.qty = Math.max(0, Math.floor(Number(existing.qty) || 0)) + n;
+  } else {
+    stacks.push({ kind: "adena", qty: n });
+  }
+  persistAccountStorage();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("warehouse_deposit", {
+      kind: "adena",
+      qty: n,
+      fromCharId: state.activeCharacterId || null,
+    });
+  }
+  if (typeof toast === "function") {
+    const fmt = typeof fmtAdena === "function" ? fmtAdena : String;
+    toast("На склад: " + fmt(n) + " adena", "success");
+  }
+  return true;
+}
+
+/** Забрать адену со склада на активного персонажа. */
+function withdrawAdenaFromWarehouse(qty) {
+  ensureAccountStorage();
+  if (!state.avatar?.created) {
+    if (typeof toast === "function") toast("Сначала создай персонажа", "warn");
+    return false;
+  }
+  const stacks = state.accountWarehouse.stacks;
+  const idx = stacks.findIndex((s) => s && s.kind === "adena");
+  if (idx < 0) {
+    if (typeof toast === "function") toast("На складе нет адены", "warn");
+    return false;
+  }
+  const st = stacks[idx];
+  const have = Math.max(0, Math.floor(Number(st.qty) || 0));
+  const n = Math.max(1, Math.min(have, Math.floor(Number(qty) || have)));
+  if (n < 1) {
+    if (typeof toast === "function") toast("Нечего забирать", "warn");
+    return false;
+  }
+  if (typeof ProgressStore !== "undefined") {
+    ProgressStore.update("adena", (a) => Math.max(0, Math.floor(Number(a) || 0) + n));
+  } else {
+    state.adena = characterAdenaBalance() + n;
+  }
+  st.qty = have - n;
+  if (st.qty <= 0) stacks.splice(idx, 1);
+  persistAccountStorage();
+  if (typeof logCharacterEvent === "function") {
+    logCharacterEvent("warehouse_withdraw", {
+      kind: "adena",
+      qty: n,
+      fromCharId: state.activeCharacterId || null,
+    });
+  }
+  if (typeof toast === "function") {
+    const fmt = typeof fmtAdena === "function" ? fmtAdena : String;
+    toast("В кошелёк: " + fmt(n) + " adena", "success");
+  }
+  return true;
 }
 
 function accountWarehouseCount() {

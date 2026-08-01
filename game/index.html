@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m287" />
+<link rel="stylesheet" href="styles/main.css?v=m308" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d22" />
 <link rel="stylesheet" href="styles/sf-ui.css?v=52" />
 <link rel="stylesheet" href="styles/banana-casino.css?v=16" />
@@ -20,6 +20,10 @@
 
 </head>
 <body>
+<aside class="mine-side-panels" id="mineSidePanels" hidden aria-label="Панели дропа">
+  <aside class="mine-loot-drawer" id="mineSessionLootDrawer" hidden aria-label="Дроп за сессию"></aside>
+  <aside class="mine-loot-drawer mine-fav-drawer" id="mineResourceFavDrawer" hidden aria-label="Дофарм"></aside>
+</aside>
 <div class="shell">
 <aside class="game-log is-collapsed" id="gameLogPanel" aria-label="Журнал игры">
   <button type="button" class="game-log-tab" id="gameLogToggle" title="Журнал (L)" aria-expanded="false" aria-controls="gameLogBody">
@@ -228,6 +232,16 @@
           <button type="button" class="sett-toggle" id="settChatMobile">Выкл</button>
         </div>
         <div class="sett-hint">На ПК чат справа (клавиша C). На телефоне по умолчанию скрыт — включите здесь, если нужен.</div>
+        <div class="settings-row">
+          <span>Обучение Ючи</span>
+          <button type="button" class="sett-toggle" id="settMentorEnabled">Вкл</button>
+        </div>
+        <div class="sett-hint">Подсказки наставницы в меню и на поле. Выкл — больше не показывать.</div>
+        <div class="settings-row">
+          <span>Повторить обучение</span>
+          <button type="button" class="sett-toggle" id="settMentor">Снова</button>
+        </div>
+        <div class="sett-hint">Сбросить урок главы I и пройти с Ючи заново.</div>
         <div id="saveTransferBlock">
         <div class="settings-divider">Сохранение</div>
         <div class="settings-row">
@@ -286,6 +300,42 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.60.14</p>
+        <ul>
+          <li><b>Фарм</b> — «Дроп за сессию» и «Дофарм» открываются в тёмном поле слева от окна боя (вне карточки), сеткой друг под другом.</li>
+        </ul>
+        <p class="patch-ver">v0.60.13</p>
+        <ul>
+          <li><b>Фарм</b> — дроп/дофарм открываются полосой над полем (за его пределами); поле боя снова на всю ширину.</li>
+        </ul>
+        <p class="patch-ver">v0.60.12</p>
+        <ul>
+          <li><b>Фарм</b> — дроп/дофарм в отдельной непрозрачной колонке слева от рамки поля (не поверх арта боя).</li>
+        </ul>
+        <p class="patch-ver">v0.60.11</p>
+        <ul>
+          <li><b>Фарм</b> — «Дроп за сессию» и «Дофарм» открываются слева от поля боя; при обоих панелях делят колонку без наложения.</li>
+        </ul>
+        <p class="patch-ver">v0.60.10</p>
+        <ul>
+          <li><b>Фарм</b> — «Дроп за сессию» открывается слева на поле сеткой (без сдвига квеста/автоудара); Esc закрывает панель.</li>
+        </ul>
+        <p class="patch-ver">v0.60.9</p>
+        <ul>
+          <li><b>Фарм</b> — раскрытый «Дроп за сессию» больше не перекрывает строку квеста и автоудар (то же для дофарма).</li>
+        </ul>
+        <p class="patch-ver">v0.60.8</p>
+        <ul>
+          <li><b>Почта</b> — фильтры стеков (соски/кристаллы/…), иконки в списке; превью суммы адены; «Забрать все»; метка непрочитанных обновляется без захода в почту.</li>
+        </ul>
+        <p class="patch-ver">v0.60.7</p>
+        <ul>
+          <li><b>Склад</b> — можно положить и забрать адену (общий стек аккаунта, любой персонаж).</li>
+        </ul>
+        <p class="patch-ver">v0.60.6</p>
+        <ul>
+          <li><b>Инвентарь</b> — «Выделить всё» у кристаллизации: галочки на предметах, снять с тех что оставить, кристаллизовать пачкой.</li>
+        </ul>
         <p class="patch-ver">v0.60.4</p>
         <ul>
           <li><b>Статы</b> — честный лист PvE/PvP; раса/класс/уровень; hunting reqPower ×2; сюжетные главы без изменений.</li>
@@ -987,7 +1037,7 @@
         <div class="farm-hub-power"><small id="farmHubPower">Сила 0</small></div>
 
         <div class="farm-hub-entry" id="farmHubEntry">
-          <button type="button" class="farm-hub-entry-btn" id="farmEntryStory" data-farm-entry="story">
+          <button type="button" class="farm-hub-entry-btn" id="farmEntryStory" data-farm-entry="story" data-mentor="hub-story">
             <img class="farm-hub-entry-ico" src="icons/btn_story.png?v=4" alt="" draggable="false">
             <span class="farm-hub-entry-copy">
               <strong>История</strong>
@@ -1033,7 +1083,7 @@
                 </span>
               </button>
             </div>
-            <button type="button" class="mine-banner" id="mineBanner">
+            <button type="button" class="mine-banner" id="mineBanner" data-mentor="hub-play">
               <div><div class="mb-t" id="mineBannerTitle">Задание</div><div class="mb-d" id="mineBannerMeta">Prelude · лови цели за adena и оружие</div></div>
               <span class="mb-go" aria-hidden="true">
                 <img class="mb-go-ico" src="icons/btn_play.png?v=1" alt="">
@@ -1081,11 +1131,11 @@
           <span class="tile-hit"><img class="tile-ico" src="icons/char_menu.png?v=10" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Персонаж</span><span class="tcount" id="avatarTileMeta">Создать</span></span>
         </div>
-        <div class="tile" id="questTile" role="button" tabindex="0">
+        <div class="tile" id="questTile" role="button" tabindex="0" data-mentor="menu-quests">
           <span class="tile-hit"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Квесты</span><span class="tcount" id="questJournalMeta">Prelude</span></span>
         </div>
-        <div class="tile" id="invTile" role="button" tabindex="0">
+        <div class="tile" id="invTile" role="button" tabindex="0" data-mentor="menu-inv">
           <span class="tile-hit"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Инвентарь</span><span class="tcount" id="invCount">0 / 120</span></span>
         </div>
@@ -1114,7 +1164,7 @@
           </span>
           <span class="tile-cap"><span class="tname">Клан</span><span class="tcount" id="clanTileMeta">Создать</span></span>
         </div>
-        <div class="tile" id="shopTile" role="button" tabindex="0">
+        <div class="tile" id="shopTile" role="button" tabindex="0" data-mentor="menu-workshop">
           <span class="tile-hit"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Мастерская</span></span>
         </div>
@@ -1569,7 +1619,7 @@
           <div class="scrolls" id="scrolls"></div>
           <div class="odds">Шанс: <b id="oddsVal">—</b> · свиток: <b id="scrollQtyVal">—</b> · цена: <b id="costVal">—</b></div>
           <div class="actions">
-            <button class="btn btn-primary" id="enchBtn">Заточить ✦</button>
+            <button class="btn btn-primary" id="enchBtn" data-mentor="ench-btn">Заточить ✦</button>
             <button class="btn btn-ghost" id="newBtn" title="В инвентарь (N)">В инвентарь</button>
           </div>
           <p class="ench-market-note" id="enchMarketNote">Продажа — на рынке</p>
@@ -1630,8 +1680,8 @@
       </div>
       <div class="mine-session-loot" id="mineSessionLoot" hidden aria-label="Дроп за сессию"></div>
       <div class="mine-resource-fav" id="mineResourceFav" hidden aria-label="Избранное для дофарма"></div>
-      <div class="mine-quest-hud" id="mineQuestHud" hidden></div>
-      <div class="mine-autoclicker-row" id="mineAutoClickerRow" hidden>
+      <div class="mine-quest-hud" id="mineQuestHud" data-mentor="mine-quest-hud" hidden></div>
+      <div class="mine-autoclicker-row" id="mineAutoClickerRow" data-mentor="mine-autoclicker" hidden>
         <button type="button" class="mine-autoclicker-hud" id="mineAutoClickerHud" title="Вкл / выкл автоудар" aria-pressed="false">
           <img class="mine-autoclicker-ico" src="icons/auto_strike.png?v=1" alt="" aria-hidden="true">
           <span class="mine-autoclicker-label" id="mineAutoClickerLabel">Автоудар</span>
@@ -1639,7 +1689,7 @@
         </button>
         <div class="mine-autoclicker-packs" id="mineAutoClickerPacks" aria-label="Пакеты автоудара"></div>
       </div>
-      <div class="minefield" id="minefield">
+      <div class="minefield" id="minefield" data-mentor="mine-field">
         <div class="mine-skill-bar" id="mineSkillBar" hidden aria-label="Боевые умения"></div>
         <div class="mine-stage" id="mineStage">
           <div class="mine-stage-inner" id="mineStageInner">
@@ -1731,6 +1781,27 @@
     </div>
   </div>
 </div>
+<div class="mentor-veil" id="mentorVeil" hidden aria-hidden="true"></div>
+<div class="mentor-dock" id="mentorDock" hidden role="dialog" aria-modal="false" aria-labelledby="mentorName">
+  <div class="mentor-dock-inner">
+    <img class="mentor-avatar" id="mentorAvatar" src="icons/npc/yuchi_happy.png?v=5" alt="Ючи">
+    <div class="mentor-copy">
+      <div class="mentor-head">
+        <strong id="mentorName">Ючи</strong>
+        <span id="mentorRole">Наставница Кузницы душ</span>
+      </div>
+      <p class="mentor-text" id="mentorText"></p>
+      <div class="mentor-actions">
+        <button type="button" class="btn btn-primary mentor-cta" id="mentorCta" hidden>Далее</button>
+        <button type="button" class="btn btn-primary mentor-ok" id="mentorOk">Понятно</button>
+      </div>
+      <label class="mentor-dismiss" id="mentorDismissWrap">
+        <input type="checkbox" id="mentorDismissCheck" />
+        <span>Больше не показывать обучение</span>
+      </label>
+    </div>
+  </div>
+</div>
 <div class="story-backdrop" id="storyBackdrop" hidden>
   <div class="story-box" role="dialog" aria-modal="true" aria-labelledby="storyTitle">
     <div class="story-ornament" aria-hidden="true">◆</div>
@@ -1761,21 +1832,21 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=498"></script>
+<script src="src/01-constants.js?v=508"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
-<script src="src/02-state.js?v=53"></script>
+<script src="src/02-state.js?v=54"></script>
 <script src="src/data/audio-data.js?v=2"></script>
 <script src="src/03-audio.js?v=3"></script>
-<script src="src/04-settings.js?v=2"></script>
-<script src="src/05-dom.js?v=58"></script>
+<script src="src/04-settings.js?v=3"></script>
+<script src="src/05-dom.js?v=64"></script>
 <script src="src/data/enchant-balance.js?v=10"></script>
-<script src="src/data/armor-sets-data.js?v=14"></script>
-<script src="src/data/jewelry-sets-data.js?v=6"></script>
+<script src="src/data/armor-sets-data.js?v=15"></script>
+<script src="src/data/jewelry-sets-data.js?v=7"></script>
 <script src="src/06-rules.js?v=14"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
-<script src="src/workshop-core.js?v=10"></script>
+<script src="src/workshop-core.js?v=11"></script>
 <script src="src/jewelry-sets-core.js?v=6"></script>
-<script src="src/07-workshop.js?v=26"></script>
+<script src="src/07-workshop.js?v=28"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
 <script src="src/data/farm-zones-balance.js?v=10"></script>
 <script src="src/data/clan-territories-data.js?v=14"></script>
@@ -1791,25 +1862,25 @@
 <script src="src/09-inventory.js?v=72"></script>
 <script src="src/enchant-ui.js?v=8"></script>
 <script src="src/item-tooltip-ui.js?v=5"></script>
-<script src="src/inventory-ui.js?v=24"></script>
-<script src="src/account-storage-core.js?v=6"></script>
-<script src="src/account-storage-ui.js?v=7"></script>
+<script src="src/inventory-ui.js?v=25"></script>
+<script src="src/account-storage-core.js?v=7"></script>
+<script src="src/account-storage-ui.js?v=8"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js?v=4"></script>
-<script src="src/11-enchant.js?v=19"></script>
-<script src="src/mine-ui.js?v=4"></script>
-<script src="src/mine-core.js?v=34"></script>
+<script src="src/11-enchant.js?v=22"></script>
+<script src="src/mine-ui.js?v=8"></script>
+<script src="src/mine-core.js?v=37"></script>
 <script src="src/13-portable-save.js"></script>
 <script src="src/cloud-core.js?v=7"></script>
 <script src="src/cloud-ui.js?v=4"></script>
 <script src="src/market-core.js?v=10"></script>
 <script src="src/market-ui.js?v=14"></script>
-<script src="src/player-mail-core.js?v=8"></script>
-<script src="src/player-mail-ui.js?v=6"></script>
+<script src="src/player-mail-core.js?v=9"></script>
+<script src="src/player-mail-ui.js?v=7"></script>
 <script src="src/chat-core.js?v=15"></script>
 <script src="src/clan-core.js?v=20"></script>
 <script src="src/clan-siege-power-core.js?v=2"></script>
-<script src="src/clan-boss-core.js?v=15"></script>
+<script src="src/clan-boss-core.js?v=17"></script>
 <script src="src/clan-map-ui.js?v=12"></script>
 <script src="src/clan-grounds-ui.js?v=16"></script>
 <script src="src/clan-ui.js?v=41"></script>
@@ -1818,13 +1889,13 @@
 <script src="src/party-core.js?v=22"></script>
 <script src="src/party-farm-core.js?v=5"></script>
 <script src="src/instance-core.js?v=45"></script>
-<script src="src/world-boss-core.js?v=32"></script>
-<script src="src/progress-store.js?v=6"></script>
+<script src="src/world-boss-core.js?v=34"></script>
+<script src="src/progress-store.js?v=7"></script>
 <script src="src/15-game-log.js?v=2"></script>
 <script src="src/16-accessory.js?v=5"></script>
 <script src="src/data/achievement-data.js?v=5"></script>
 <script src="src/data/economy-balance.js?v=4"></script>
-<script src="src/achievements-core.js?v=8"></script>
+<script src="src/achievements-core.js?v=9"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
 <script src="src/19-home.js?v=3"></script>
@@ -1834,7 +1905,14 @@
 <script src="src/glossary-core.js?v=2"></script>
 <script src="src/glossary-ui.js?v=4"></script>
 <script src="src/intro-core.js"></script>
-<script src="src/21-intro.js?v=10"></script>
+<script src="src/21-intro.js?v=12"></script>
+<script src="src/data/mentor-npc.js?v=11"></script>
+<script src="src/data/mentor-kit-balance.js?v=2"></script>
+<script src="src/data/mentor-ng-gear.js?v=1"></script>
+<script src="src/data/mentor-script.js?v=13"></script>
+<script src="src/mentor-core.js?v=15"></script>
+<script src="src/mentor-kit-core.js?v=6"></script>
+<script src="src/mentor-ui.js?v=21"></script>
 <script src="src/33-ui-icons.js?v=28"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=5"></script>
@@ -1845,7 +1923,7 @@
 <script src="src/data/passive-skills-data.js?v=2"></script>
 <script src="src/passive-skills-core.js?v=7"></script>
 <script src="src/professions-core.js?v=13"></script>
-<script src="src/avatar-core.js?v=9"></script>
+<script src="src/avatar-core.js?v=10"></script>
 <script src="src/22-avatar.js?v=34"></script>
 <script src="src/professions-ui.js?v=5"></script>
 <script src="src/avatar-gear-core.js?v=23"></script>
@@ -1859,9 +1937,9 @@
 <script src="src/data/mine-visuals-data.js?v=33"></script>
 <script src="src/26-mine-visuals.js?v=49"></script>
 <script src="src/data/quest-data.js?v=2"></script>
-<script src="src/quest-core.js?v=6"></script>
-<script src="src/27-quests.js?v=48"></script>
-<script src="src/quest-journal-core.js?v=5"></script>
+<script src="src/quest-core.js?v=10"></script>
+<script src="src/27-quests.js?v=50"></script>
+<script src="src/quest-journal-core.js?v=6"></script>
 <script src="src/29-quest-journal.js?v=9"></script>
 <script src="src/prelude-finale-core.js?v=4"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
@@ -1876,19 +1954,19 @@
 <script src="src/pvp-combat-ui.js?v=22"></script>
 <script src="src/32-debug-log.js"></script>
 <script src="src/avatar-math.js?v=31"></script>
-<script src="src/avatar-stats-core.js?v=12"></script>
-<script src="src/24-avatar-stats.js?v=50"></script>
-<script src="src/data/passive-income-balance.js?v=5"></script>
-<script src="src/passive-income-core.js?v=9"></script>
-<script src="src/passive-income-ui.js?v=3"></script>
+<script src="src/avatar-stats-core.js?v=17"></script>
+<script src="src/24-avatar-stats.js?v=52"></script>
+<script src="src/data/passive-income-balance.js?v=6"></script>
+<script src="src/passive-income-core.js?v=10"></script>
+<script src="src/passive-income-ui.js?v=4"></script>
 <script src="src/data/auto-clicker-balance.js?v=10"></script>
-<script src="src/auto-clicker-core.js?v=20"></script>
-<script src="src/auto-clicker-ui.js?v=9"></script>
+<script src="src/auto-clicker-core.js?v=22"></script>
+<script src="src/auto-clicker-ui.js?v=10"></script>
 <script src="src/data/banana-casino-balance.js?v=14"></script>
 <script src="src/banana-casino-core.js?v=8"></script>
 <script src="src/banana-casino-ui.js?v=14"></script>
-<script src="src/data-loader.js?v=39"></script>
-<script src="src/99-bootstrap.js?v=72"></script>
+<script src="src/data-loader.js?v=40"></script>
+<script src="src/99-bootstrap.js?v=78"></script>
 
 </body>
 </html>

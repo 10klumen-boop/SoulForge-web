@@ -309,10 +309,12 @@ function isBlockingOverlayOpen() {
     "avatarSetupBackdrop",
     "avatarEquipBackdrop",
   ];
-  return ids.some((id) => {
+  if (ids.some((id) => {
     const el = document.getElementById(id);
     return el && !el.hidden;
-  });
+  })) return true;
+  if (typeof isMentorBlockingPause === "function" && isMentorBlockingPause()) return true;
+  return false;
 }
 
 function syncGamePauseState() {

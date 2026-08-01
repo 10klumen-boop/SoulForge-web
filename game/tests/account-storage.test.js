@@ -143,4 +143,37 @@ test("jewelry alias deposits as armor scroll", () => {
   assert.strictEqual(state.accountWarehouse.stacks[0].target, "armor");
 });
 
+test("deposit and withdraw adena on warehouse", () => {
+  state.accountWarehouse = { items: [], stacks: [] };
+  state.adena = 10000;
+  assert.ok(depositAdenaToWarehouse(4000));
+  assert.strictEqual(state.adena, 6000);
+  assert.strictEqual(accountWarehouseAdena(), 4000);
+  assert.strictEqual(accountWarehouseCount(), 1);
+  assert.ok(depositAdenaToWarehouse(1000));
+  assert.strictEqual(accountWarehouseAdena(), 5000);
+  assert.strictEqual(accountWarehouseCount(), 1, "adena merges into one stack");
+  assert.ok(withdrawAdenaFromWarehouse(2000));
+  assert.strictEqual(state.adena, 7000);
+  assert.strictEqual(accountWarehouseAdena(), 3000);
+  assert.ok(withdrawAdenaFromWarehouse(3000));
+  assert.strictEqual(accountWarehouseAdena(), 0);
+  assert.strictEqual(state.accountWarehouse.stacks.length, 0);
+  assert.strictEqual(state.adena, 10000);
+});
+
+test("adena deposit blocked when empty or warehouse full", () => {
+  state.accountWarehouse = { items: [], stacks: [] };
+  state.adena = 0;
+  assert.ok(!depositAdenaToWarehouse(1));
+  state.adena = 500;
+  for (let i = 0; i < ACCOUNT_WAREHOUSE_CAP; i++) {
+    state.accountWarehouse.items.push({ uid: "fill" + i, id: "sword_a", plus: 0 });
+  }
+  assert.ok(!depositAdenaToWarehouse(100));
+  state.accountWarehouse.items.pop();
+  assert.ok(depositAdenaToWarehouse(100));
+  assert.strictEqual(accountWarehouseAdena(), 100);
+});
+
 console.log("All account-storage tests passed.");

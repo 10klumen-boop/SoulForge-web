@@ -534,6 +534,22 @@ function openWorldBossMine(payload) {
   if (farmStats) farmStats.hidden = true;
   const sessionLoot = document.getElementById("mineSessionLoot");
   if (sessionLoot) sessionLoot.hidden = true;
+  if (typeof closeMineSessionLootDrawer === "function") closeMineSessionLootDrawer();
+  if (typeof closeMineResourceFavDrawer === "function") closeMineResourceFavDrawer();
+  else {
+    const drawer = document.getElementById("mineSessionLootDrawer");
+    if (drawer) {
+      drawer.hidden = true;
+      drawer.innerHTML = "";
+    }
+    const fav = document.getElementById("mineResourceFavDrawer");
+    if (fav) {
+      fav.hidden = true;
+      fav.innerHTML = "";
+    }
+    const side = document.getElementById("mineSidePanels");
+    if (side) side.hidden = true;
+  }
   const resourceFav = document.getElementById("mineResourceFav");
   if (resourceFav) resourceFav.hidden = true;
   const autoRow = document.getElementById("mineAutoClickerRow");

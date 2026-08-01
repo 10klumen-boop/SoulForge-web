@@ -14,41 +14,58 @@ function formatAutoClickerRemaining(ms) {
 
 function autoClickerPacksSignature() {
   const packs = typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER.packs : [];
-  return packs
-    .map((p) => {
-      const price = typeof autoClickerPackPrice === "function" ? autoClickerPackPrice(p) : p.price;
-      const can = typeof autoClickerCanBuyPack === "function" ? autoClickerCanBuyPack(p) : { ok: true };
-      const poor = (state.adena || 0) < price;
-      return p.id + ":" + price + ":" + (can.ok && !poor ? "1" : "0");
-    })
-    .join("|");
+  const gift =
+    typeof mentorAutoClickerGiftAvailable === "function" && mentorAutoClickerGiftAvailable()
+      ? "1"
+      : "0";
+  return (
+    gift +
+    "|" +
+    packs
+      .map((p) => {
+        const price = typeof autoClickerPackPrice === "function" ? autoClickerPackPrice(p) : p.price;
+        const can = typeof autoClickerCanBuyPack === "function" ? autoClickerCanBuyPack(p) : { ok: true };
+        const free = p.id === "short" && gift === "1";
+        const poor = !free && (state.adena || 0) < price;
+        return p.id + ":" + (free ? 0 : price) + ":" + (can.ok && !poor ? "1" : "0");
+      })
+      .join("|")
+  );
 }
 
 function autoClickerPacksButtonsHtml() {
   const packs = typeof AUTO_CLICKER !== "undefined" ? AUTO_CLICKER.packs : [];
   const fmtA = typeof fmtAdena === "function" ? fmtAdena : (n) => String(n);
+  const giftOn =
+    typeof mentorAutoClickerGiftAvailable === "function" && mentorAutoClickerGiftAvailable();
   return packs
     .map((p) => {
+      const freeGift = giftOn && p.id === "short";
       const price = typeof autoClickerPackPrice === "function" ? autoClickerPackPrice(p) : p.price;
       const can = typeof autoClickerCanBuyPack === "function" ? autoClickerCanBuyPack(p) : { ok: true };
-      const poor = (state.adena || 0) < price;
-      const disabled = !can.ok || poor;
-      const title = !can.ok
-        ? can.reason || "Недоступно"
-        : poor
-          ? "Не хватает adena"
-          : p.label + " · " + fmtA(price);
+      const poor = !freeGift && (state.adena || 0) < price;
+      const disabled = freeGift ? !can.ok : !can.ok || poor;
+      const title = freeGift
+        ? "Подарок Ючи — 15 мин бесплатно (один раз)"
+        : !can.ok
+          ? can.reason || "Недоступно"
+          : poor
+            ? "Не хватает adena"
+            : p.label + " · " + fmtA(price);
+      const mentorAttr = freeGift ? ' data-mentor="autoclicker-gift"' : "";
+      const label = freeGift ? p.label + " · Бесплатно" : p.label + " · " + fmtA(price);
       return (
-        '<button type="button" class="mine-autoclicker-buy auto-clicker-buy"' +
+        '<button type="button" class="mine-autoclicker-buy auto-clicker-buy' +
+        (freeGift ? " is-gift" : "") +
+        '"' +
         (disabled ? " disabled" : "") +
+        mentorAttr +
         ' data-pack="' +
         p.id +
         '" title="' +
         title.replace(/"/g, "&quot;") +
         '">' +
-        p.label +
-        " · " +
-        fmtA(price) +
+        label +
         "</button>"
       );
     })
@@ -198,6 +215,16 @@ function renderAutoClickerHud() {
   }
 
   syncAutoClickerPackButtons(packsEl);
+
+  if (
+    typeof mentorRefreshSpotlight === "function" &&
+    document.body.classList.contains("mentor-active") &&
+    state.mentor?.bitId === "eyra_autoclicker"
+  ) {
+    requestAnimationFrame(() => {
+      try { mentorRefreshSpotlight(); } catch (e) {}
+    });
+  }
 
   if (!hud.dataset.wired) {
     hud.dataset.wired = "1";
