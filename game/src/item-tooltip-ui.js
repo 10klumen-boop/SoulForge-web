@@ -246,7 +246,11 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       actions: Array.isArray(ctx.actions)
         ? ctx.actions
         : equipActions || [
-            isEpic ? "Клик — детали" : "Клик — заточка",
+            typeof jewelryCanEnchant === "function" && jewelryCanEnchant(def)
+              ? "Клик — заточка"
+              : isEpic
+                ? "Клик — детали"
+                : "Клик — заточка",
             "Тяни на слот экипа" + (canCry ? " / кристаллизацию" : ""),
           ],
     });

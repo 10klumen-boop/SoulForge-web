@@ -38,6 +38,11 @@ assert.ok(Object.keys(JEWELRY_SETS).length === 8, "8 jewelry sets");
 assert.ok(COLLECTIBLES.elven_necklace, "elven merged into COLLECTIBLES");
 assert.ok(COLLECTIBLES.elven_necklace.epic === false, "graded not epic");
 assert.ok(COLLECTIBLES.zaken_blessed_earring.epic === true, "epic stays epic");
+assert.ok(COLLECTIBLES.zaken_blessed_earring.canEnchant === true, "blessed zaken enchantable");
+assert.ok(COLLECTIBLES.zaken_blessed_earring.grade === "C", "blessed zaken uses C scrolls");
+assert.ok(Math.abs(COLLECTIBLES.zaken_blessed_earring.bonuses.pvpCritChance - 0.1) < 1e-9, "blessed zaken +10% pvp crit");
+assert.ok(jewelryCanEnchant(COLLECTIBLES.zaken_blessed_earring), "jewelryCanEnchant allows blessed zaken");
+assert.ok(!jewelryCanEnchant(COLLECTIBLES.antharas_earring), "other epics still locked");
 assert.ok(ACCESSORY_FRAGS.elven_necklace_piece, "frag merged");
 assert.ok(ACCESSORY_CRAFT.some((r) => r.accessoryId === "elven_necklace" && r.graded), "graded craft");
 

@@ -1116,7 +1116,7 @@ function renderClanWarehouseCard() {
         fmtAdena(wh.rentAdded) +
         "</p>"
       : "") +
-    '<p class="clan-warehouse-note">Пожертвование в казну · без снятия · XP клану по сумме кнопки · рента с узлов → сюда</p>' +
+    '<p class="clan-warehouse-note">Адена только в казну, вывести нельзя. XP клану — по сумме кнопки. Рента с узлов приходит сюда.</p>' +
     '<div class="clan-warehouse-balance">У тебя: <b>' +
     myAdena +
     "</b></div>" +

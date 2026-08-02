@@ -1046,12 +1046,19 @@ function trackMineScrollDrop(zoneId, mobType, dropAt) {
     typeof scrollLabel === "function"
       ? scrollLabel(sDrop.target, sDrop.typeId, sDrop.grade)
       : "Свиток";
+  const icon =
+    typeof scrollDef === "function"
+      ? scrollDef(sDrop.target, sDrop.grade, sDrop.typeId).icon
+      : typeof scrollTierIcon === "function"
+        ? scrollTierIcon(sDrop.typeId, sDrop.grade, sDrop.target)
+        : "";
   trackMineSessionLoot({
     kind: "scroll",
     id: sDrop.target + ":" + sDrop.typeId + ":" + sDrop.grade,
     name: label,
     qty: sDrop.qty,
     grade: sDrop.grade,
+    icon: icon || undefined,
   });
   if (typeof floatText === "function" && dropAt) {
     floatText(dropAt.x, dropAt.y - 104, label + " ×" + sDrop.qty, "#ffe082");

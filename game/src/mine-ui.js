@@ -128,6 +128,24 @@ function closeMineResourceFavDrawer() {
   syncMineSidePanels();
 }
 
+function mineLootRowIcon(row) {
+  if (row && row.icon) return row.icon;
+  if (row && row.kind === "scroll") {
+    const parts = String(row.id || "").split(":");
+    if (parts.length >= 3) {
+      const target = parts[0];
+      const typeId = parts[1];
+      const grade = parts[2];
+      if (typeof scrollDef === "function") {
+        const def = scrollDef(target, grade, typeId);
+        if (def && def.icon) return def.icon;
+      }
+      if (typeof scrollTierIcon === "function") return scrollTierIcon(typeId, grade, target);
+    }
+  }
+  return "icons/char_menu.png?v=10";
+}
+
 function renderMineSessionLootDrawer(rows, totalQty) {
   const drawer = mineSessionLootDrawerEl();
   if (!drawer) return;
@@ -146,7 +164,7 @@ function renderMineSessionLootDrawer(rows, totalQty) {
       const gClass = row.kind === "accessory" ? "g-epic" : "g-" + grade;
       const plus = row.plus ? " +" + row.plus : "";
       const label = row.kind === "shots" ? row.name : (row.name || "?") + plus;
-      const icon = row.icon || "icons/char_menu.png?v=10";
+      const icon = mineLootRowIcon(row);
       const qty =
         row.qty > 1 ? '<span class="mine-loot-cell-qty">×' + row.qty + "</span>" : "";
       return (

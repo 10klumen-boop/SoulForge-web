@@ -191,6 +191,41 @@ function farmZoneLootBandLabel(zoneOrId) {
   return map[band] || "";
 }
 
+/**
+ * XP с килла на поле.
+ * Сюжет: линейно от narrative chapter (калибровка глав).
+ * Охота: от XP-порога на reqLevel зоны — высокие поля дают заметно больше.
+ * Цель ≈ HUNTING_XP_KILLS_PER_LEVEL обычных киллов ≈ 1 уровень на гейте зоны.
+ */
+const HUNTING_XP_KILLS_PER_LEVEL = 220;
+const HUNTING_XP_GOLDEN_KILLS_PER_LEVEL = 80;
+const HUNTING_XP_MIN = 5;
+
+function farmZoneMineXpNeedAtGate(zone) {
+  const req = Math.max(1, Math.floor(Number(zone?.reqLevel) || 1));
+  if (typeof avatarXpToLevel === "function") return Math.max(1, avatarXpToLevel(req));
+  return Math.max(1, Math.floor(100 * Math.pow(1.32, req - 1)));
+}
+
+function farmZoneMineXp(zoneOrId, golden) {
+  const zone =
+    typeof zoneOrId === "string"
+      ? typeof farmZoneById === "function"
+        ? farmZoneById(zoneOrId)
+        : null
+      : zoneOrId;
+  const ch = typeof farmZoneProgressChapter === "function" ? farmZoneProgressChapter(zone) : zone?.chapter || 1;
+  if (zone && zone.side) {
+    const need = farmZoneMineXpNeedAtGate(zone);
+    const normal = Math.max(HUNTING_XP_MIN, Math.round(need / HUNTING_XP_KILLS_PER_LEVEL));
+    if (!golden) return normal;
+    const fromGate = Math.round(need / HUNTING_XP_GOLDEN_KILLS_PER_LEVEL);
+    return Math.max(normal * 2, fromGate, HUNTING_XP_MIN * 2);
+  }
+  // Сюжет / fallback
+  return golden ? 10 + ch * 3 : 3 + ch * 2;
+}
+
 function resolveFarmZoneId(id) {
   const raw = String(id || "");
   if (!raw) return raw;

@@ -162,7 +162,7 @@ function sanitizeGearItem(it) {
   const uid = String(it.uid || "").slice(0, 64);
   if (!id || !uid) return null;
   const out = { kind, uid, id };
-  if (kind === "weapon" || kind === "armor") {
+  if (kind === "weapon" || kind === "armor" || kind === "accessory") {
     out.plus = Math.max(0, Math.floor(Number(it.plus) || 0));
     out.spent = Math.max(0, Math.floor(Number(it.spent) || 0));
   }
@@ -194,12 +194,11 @@ function giveGearToProgress(progress, item) {
     return { ok: false, error: "Инвентарь полон (" + MAIL_INV_CAP + ")" };
   }
   const row = { uid: snap.uid, id: snap.id };
-  if (snap.kind === "armor") {
-    row.kind = "armor";
+  if (snap.kind === "armor" || snap.kind === "accessory") {
+    row.kind = snap.kind;
     row.plus = snap.plus || 0;
     row.spent = snap.spent || 0;
-  } else if (snap.kind === "accessory") row.kind = "accessory";
-  else {
+  } else {
     row.plus = snap.plus || 0;
     row.spent = snap.spent || 0;
   }

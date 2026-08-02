@@ -28,14 +28,15 @@ function jewelryEnchantMdefBonus(plus) {
   return Math.max(0, plus | 0);
 }
 
-/** Можно ли точить эту бижу (грейдовая, не эпик). */
+/** Можно ли точить эту бижу (грейдовая; эпик — только с canEnchant). */
 function jewelryCanEnchant(itemOrDef) {
   let def = itemOrDef;
   if (!def) return false;
   if (def.uid || (def.id && !def.name)) {
     def = typeof accessoryDef === "function" ? accessoryDef(def) : null;
   }
-  if (!def || def.epic) return false;
+  if (!def || def.noEnchant) return false;
+  if (def.epic && !def.canEnchant) return false;
   return !!(def.grade && def.grade !== "NG");
 }
 

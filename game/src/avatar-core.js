@@ -335,12 +335,16 @@ function onEnchantAvatarXp(win, plus, behavior, broken) {
 function onMineAvatarXp(golden) {
   if (!state.avatar?.created) return;
   const zone = typeof farmZoneById === "function" ? farmZoneById(state.farmZone || "banana_mine") : { chapter: 1 };
-  const ch =
-    typeof farmZoneProgressChapter === "function"
-      ? farmZoneProgressChapter(zone)
-      : zone.chapter || 1;
-  // Сюжет: chapter; охота: банд reqLevel — киллы ведут к гейтам без golden-такса
-  let amt = golden ? 10 + ch * 3 : 3 + ch * 2;
+  let amt =
+    typeof farmZoneMineXp === "function"
+      ? farmZoneMineXp(zone, !!golden)
+      : (() => {
+          const ch =
+            typeof farmZoneProgressChapter === "function"
+              ? farmZoneProgressChapter(zone)
+              : zone.chapter || 1;
+          return golden ? 10 + ch * 3 : 3 + ch * 2;
+        })();
   if (typeof passiveEffectMult === "function") {
     amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar));
   } else if (typeof racialEffectMult === "function") {

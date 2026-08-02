@@ -44,11 +44,13 @@ function openEnchant(item, opts) {
   if (isAcc) {
     def = typeof accessoryDef === "function" ? accessoryDef(item) : typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[item.id] : null;
     if (!def) return;
-    if (def.epic) {
+    const canJew =
+      typeof jewelryCanEnchant === "function" ? jewelryCanEnchant(def) : !!(def.grade && def.grade !== "NG" && !def.epic);
+    if (def.epic && !canJew) {
       if (typeof openAccessory === "function") openAccessory(item);
       return;
     }
-    if (typeof jewelryCanEnchant === "function" ? !jewelryCanEnchant(def) : !def.grade || def.grade === "NG") {
+    if (!canJew) {
       toast("«" + def.name + "» без грейда — не точится.", "warn");
       return;
     }

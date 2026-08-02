@@ -266,7 +266,13 @@ function sanitizeAccessoryItem(it) {
   const id = String(it.id || "").slice(0, 64);
   const uid = String(it.uid || "").slice(0, 64);
   if (!id || !uid) return null;
-  return { kind: "accessory", uid, id };
+  return {
+    kind: "accessory",
+    uid,
+    id,
+    plus: Math.max(0, Math.floor(Number(it.plus) || 0)),
+    spent: Math.max(0, Math.floor(Number(it.spent) || 0)),
+  };
 }
 
 function takeAccessory(progress, uid) {
@@ -297,6 +303,8 @@ function giveAccessory(progress, item) {
     uid: snap.uid,
     id: snap.id,
     kind: "accessory",
+    plus: snap.plus || 0,
+    spent: snap.spent || 0,
   });
   return { ok: true };
 }

@@ -206,7 +206,7 @@ store.persistPlayerSave(
   (store.getSave(seller.id).seq || 1) + 1,
   now + 30,
   "0.42",
-  makeSave(100000, [{ uid: "jew1", id: "zaken_earring", kind: "accessory" }], { name: "SellerHero" })
+  makeSave(100000, [{ uid: "jew1", id: "zaken_earring", kind: "accessory", plus: 12, spent: 999 }], { name: "SellerHero" })
 );
 const accList = store.marketCreateListing(
   seller,
@@ -215,6 +215,7 @@ const accList = store.marketCreateListing(
 );
 ok("list accessory", accList.ok === true, accList.error);
 ok("accessory left inv", accList.data?.characters[0].progress.inventory.length === 0);
+ok("listing keeps plus", accList.listing?.item?.plus === 12, JSON.stringify(accList.listing?.item));
 
 store.persistPlayerSave(buyer, (store.getSave(buyer.id).seq || 1) + 1, now + 32, "0.42", makeSave(500000, [], { name: "BuyerHero" }));
 const accBuy = store.marketBuyListing(buyer, accList.listing.id, { characterId: "c1" }, now + 33);
@@ -224,7 +225,7 @@ ok(
   !!(
     accBuy.buyer &&
     accBuy.buyer.data.characters[0].progress.inventory.some(
-      (x) => x.uid === "jew1" && x.kind === "accessory" && x.id === "zaken_earring"
+      (x) => x.uid === "jew1" && x.kind === "accessory" && x.id === "zaken_earring" && x.plus === 12
     )
   )
 );

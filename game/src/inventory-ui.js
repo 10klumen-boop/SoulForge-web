@@ -893,7 +893,9 @@ function appendInvItemSlot(grid, it, idx) {
     slot.onclick = () => {
       if (invClickBlocked()) return;
       Audio2.click();
-      if (isEpic) {
+      const canJew =
+        typeof jewelryCanEnchant === "function" ? jewelryCanEnchant(def) : !isEpic && !!def.grade;
+      if (isEpic && !canJew) {
         openAccessory(it);
         return;
       }
