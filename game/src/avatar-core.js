@@ -7,6 +7,10 @@
 
 const AVATAR_MAX_LEVEL = 45;
 const AVATAR_XP_BASE = 100;
+/** До какого уровня (включительно) мягче порог XP. */
+const AVATAR_XP_SOFT_UNTIL = 10;
+/** Множитель порога на 1 уровне (0.88 ≈ +14% скорости). К softUntil → 1.0. */
+const AVATAR_XP_SOFT_START = 0.88;
 
 function avatarArchetypeIcon(raceId, classId) {
   const map = L2_ARCHETYPE_ICONS[raceId];
@@ -110,7 +114,13 @@ function migrateAvatar() {
 }
 
 function avatarXpToLevel(level) {
-  return Math.floor(AVATAR_XP_BASE * Math.pow(1.32, Math.max(0, level - 1)));
+  const L = Math.max(1, Math.floor(Number(level) || 1));
+  const raw = Math.floor(AVATAR_XP_BASE * Math.pow(1.32, Math.max(0, L - 1)));
+  if (L > AVATAR_XP_SOFT_UNTIL) return raw;
+  const span = Math.max(1, AVATAR_XP_SOFT_UNTIL - 1);
+  const t = (L - 1) / span;
+  const mult = AVATAR_XP_SOFT_START + (1 - AVATAR_XP_SOFT_START) * t;
+  return Math.max(1, Math.round(raw * mult));
 }
 
 function avatarTitle(level) {

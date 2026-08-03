@@ -35,6 +35,7 @@ global.state = {
 };
 
 loadScripts([
+  "src/data/farm-zones-balance.js",
   "src/data/quest-data.js",
   "src/avatar-core.js",
   "src/quest-core.js",
@@ -44,7 +45,9 @@ loadScripts([
 ]);
 
 function xpNeed(level) {
-  return Math.floor(AVATAR_XP_BASE * Math.pow(1.32, Math.max(0, level - 1)));
+  return typeof avatarXpToLevel === "function"
+    ? avatarXpToLevel(level)
+    : Math.floor(AVATAR_XP_BASE * Math.pow(1.32, Math.max(0, level - 1)));
 }
 
 function xpToReach(target, start) {
@@ -59,8 +62,9 @@ function expectedChapterKillXp(ch) {
   const g = typeof zoneQuestGoldenTarget === "function" ? zoneQuestGoldenTarget(ch) : 2;
   const gIn = Math.min(g, kills[1] || 0);
   const grind = typeof ZONE_BOSS_GRIND_KILLS === "number" ? ZONE_BOSS_GRIND_KILLS : 16;
-  const nk = Math.max(1, Math.ceil((2 + ch) / 12));
-  const gk = Math.max(1, Math.round((8 + ch * 2) / 12));
+  const z = { chapter: ch, side: false };
+  const nk = farmZoneMineXp(z, false);
+  const gk = farmZoneMineXp(z, true);
   return (k - gIn) * nk + gIn * gk + grind * nk + gk;
 }
 
@@ -126,17 +130,19 @@ function runTests() {
     assert.strictEqual(canEnterFarmZone(farmZoneById(state.farmZone)), true);
   });
 
-  test("story XP per chapter lands near next reqLevel", () => {
+  test("full story XP reaches about level 10 without hunting", () => {
+    const need = xpToReach(10, 1);
     const chain = storyFarmZones().filter((z) => z.active).sort((a, b) => a.chapter - b.chapter);
-    for (let i = 0; i < chain.length - 1; i++) {
-      const cur = chain[i];
-      const next = chain[i + 1];
-      const need = xpToReach(next.reqLevel, cur.reqLevel);
-      const got = expectedChapterKillXp(cur.chapter) + expectedChapterQuestXp(cur.chapter, cur.id);
-      const ratio = got / Math.max(1, need);
-      // ~1/12 XP/килл + −35%: глава ≈ 0.08–0.3 гейта
-      assert.ok(ratio >= 0.08 && ratio <= 0.35, cur.id + " XP ratio " + ratio.toFixed(2) + " (got " + got + " need " + need + ")");
-    }
+    let got = 0;
+    chain.forEach((z) => {
+      got += expectedChapterKillXp(z.chapter) + expectedChapterQuestXp(z.chapter, z.id);
+    });
+    const ratio = got / Math.max(1, need);
+    // Prelude без охоты → уверенный Lv10 (не улетая далеко в 11).
+    assert.ok(
+      ratio >= 0.95 && ratio <= 1.25,
+      "story XP ratio to Lv10 " + ratio.toFixed(2) + " (got " + got + " need " + need + ")"
+    );
   });
 
   console.log("\nStory gate/XP: " + passed + " passed, " + failed + " failed");

@@ -983,7 +983,7 @@ let _cloudPushBusy = false;
 let _cloudPushAgain = false;
 const CLOUD_GATED_SCREENS = new Set([
   "home", "menu", "characters", "leaderboard",
-  "inv", "ench", "shop", "mine", "acc", "ach", "avatar", "quests", "pvp-arena",
+  "inv", "ench", "shop", "mine", "acc", "ach", "avatar", "quests", "engagement", "pvp-arena",
   "party", "clan",
 ]);
 

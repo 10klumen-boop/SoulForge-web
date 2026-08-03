@@ -30,11 +30,11 @@ function zoneQuestStepRewardDef(zoneId, step) {
   } else if (s === 2 && ch >= 4) {
     crystals.D = 1;
   }
-  // XP шагов ~×0.65 от ⅛-базы; глава ≈ 0.08–0.25 гейта.
-  // Кривая: avatarXpToLevel = 100 * 1.32^(L-1). Гейты сюжета: 1→4→6→8→10.
+  // XP шагов: мелочь к киллам; основная масса — farmZoneMineXp (цель: prelude → ~Lv10).
+  // Кривая: avatarXpToLevel (+ soft 1–10). Гейты сюжета: 1→4→6→8→10.
   const stepXp = [
-    [1, 1, 1],
-    [1, 1, 2],
+    [2, 2, 3],
+    [2, 2, 3],
     [3, 4, 5],
     [9, 10, 12],
     [3, 3, 4],

@@ -109,6 +109,7 @@ function doEnchant() {
   const estimate = adenaCost;
   cur.item.spent = (cur.item.spent || 0) + estimate;
   ProgressStore.update("totals", (t) => ({ ...(t || { tries: 0, fails: 0, earned: 0 }), tries: (t?.tries || 0) + 1 }));
+  if (typeof engagementEmit === "function") engagementEmit("enchant", { kind: cur.kind });
   const hour = new Date().getHours();
   if (hour >= 0 && hour < 5 && typeof achStat === "function") achStat("nightEnchants", 1);
   Audio2.charge();

@@ -118,6 +118,7 @@ function buyOre(type, qty) {
   renderWorkshop();
   if ($("#screen-inv").classList.contains("active")) renderInventory();
   toast("Куплено " + ORE[type].name + " ×" + qty + " за " + fmtAdena(cost), "craft");
+  if (typeof engagementEmit === "function") engagementEmit("workshop", { kind: "buy_ore", type, qty });
   if (typeof checkAchievements === "function") checkAchievements();
 }
 
@@ -147,6 +148,7 @@ function craftShot(type, grade) {
   if (typeof achStat === "function") achStat("shotsCrafted", batch);
   if (typeof checkAchievements === "function") checkAchievements();
   if (typeof mentorEmit === "function") mentorEmit("shot_crafted");
+  if (typeof engagementEmit === "function") engagementEmit("workshop", { kind: "craft_shot", type, grade });
 }
 
 function shotsTotalValue() {
@@ -280,6 +282,7 @@ function craftAccessory(accessoryId) {
   }
   if (typeof renderWorkshop === "function") renderWorkshop();
   if (typeof renderInventory === "function") renderInventory();
+  if (typeof engagementEmit === "function") engagementEmit("workshop", { kind: "craft_accessory", id: accessoryId });
   return granted;
 }
 

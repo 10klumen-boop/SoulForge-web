@@ -1657,6 +1657,10 @@ function renderPvpPracticeFight(body) {
     d.result = { winner: "b", reason: "forfeit" };
     d.pending = false;
     d.logEntries.push({ kind: "text", text: "Вы сдались." });
+    if (typeof engagementEmit === "function" && !d._engagementNoted) {
+      d._engagementNoted = true;
+      engagementEmit("pvp", { youWin: false, draw: false, mode: "practice" });
+    }
     renderPvpArena();
   };
   const logEl = document.getElementById("pvpFightLog");
@@ -1711,6 +1715,14 @@ function pvpSubmitPracticeAction(actionA) {
     }
     d.result = { winner, reason: "end" };
     d.pending = false;
+    if (typeof engagementEmit === "function" && !d._engagementNoted) {
+      d._engagementNoted = true;
+      engagementEmit("pvp", {
+        youWin: winner === "a",
+        draw: winner === "draw",
+        mode: "practice",
+      });
+    }
   }
   renderPvpArena();
 }

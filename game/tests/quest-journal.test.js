@@ -76,8 +76,8 @@ function runTests() {
   });
 
   test("zoneQuestStepRewardDef grants story XP on early chapters", () => {
-    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).xp, 1);
-    assert.strictEqual(zoneQuestStepRewardDef("elven_ruins", 2).xp, 1);
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).xp, 2);
+    assert.strictEqual(zoneQuestStepRewardDef("elven_ruins", 2).xp, 2);
     assert.strictEqual(zoneQuestStepRewardDef("orc_barracks", 3).xp, 5);
   });
 

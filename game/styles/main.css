@@ -5344,6 +5344,87 @@
   .ach-progress-val { font-size: 11px; color: var(--txt-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .ach-ico { width:52px; height:52px; flex-shrink:0; object-fit:contain; border-radius:8px; image-rendering:auto; background:rgba(0,0,0,.28); border:1px solid rgba(74,58,36,.7); filter:drop-shadow(0 2px 8px rgba(0,0,0,.45)); }
   .ach-card.locked .ach-ico { filter:grayscale(.55) brightness(.88) drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+
+  /* —— Поручения (daily / weekly) —— */
+  .eng-sticky-meta {
+    padding: 8px 14px 4px;
+    border-bottom: 1px solid rgba(74,58,36,.55);
+    background: rgba(0,0,0,.18);
+  }
+  .eng-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin-bottom: 8px;
+  }
+  .eng-summary { font-weight: 800; color: var(--gold-soft); letter-spacing: .02em; }
+  .eng-reset { font-size: 12px; color: var(--txt-dim); }
+  .eng-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .eng-tab {
+    border: 1px solid rgba(74,58,36,.9); border-radius: 8px; padding: 6px 12px;
+    background: rgba(0,0,0,.22); color: var(--txt-dim); cursor: var(--cursor-l2);
+    font-weight: 700; font-size: 13px;
+  }
+  .eng-tab.sel { color: var(--gold-soft); border-color: rgba(201,168,106,.45); background: rgba(201,168,106,.08); }
+  .eng-streak {
+    margin-bottom: 10px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid rgba(74,58,36,.85);
+    background: linear-gradient(135deg, rgba(12,8,5,.7), rgba(24,16,10,.5));
+  }
+  .eng-streak-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .eng-streak-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+  .eng-streak-rw { font-size: 12px; color: var(--txt-dim); margin-top: 2px; }
+  .eng-streak-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+  .eng-streak-dot {
+    width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; color: var(--txt-dim);
+    border: 1px solid rgba(74,58,36,.9); background: rgba(0,0,0,.28);
+  }
+  .eng-streak-dot.on {
+    color: #1a1208; border-color: rgba(201,168,106,.55);
+    background: linear-gradient(135deg, #c9a86a, #8a6a3a);
+  }
+  .eng-milestone { margin-bottom: 8px; }
+  .eng-mile-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border-radius: 10px;
+    border: 1px solid rgba(74,58,36,.9);
+    background: linear-gradient(135deg, rgba(201,168,106,.08), rgba(12,8,5,.55));
+  }
+  .eng-mile-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+  .eng-mile-card.ready { border-color: rgba(201,168,106,.5); box-shadow: 0 0 16px rgba(201,168,106,.1); }
+  .eng-mile-card.claimed { opacity: .72; }
+  .eng-scroll { padding: 8px 12px 24px; }
+  .eng-list { display: flex; flex-direction: column; gap: 10px; }
+  .eng-empty { color: var(--txt-dim); padding: 24px 8px; text-align: center; }
+  .eng-card {
+    display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+    padding: 12px 14px; border-radius: 12px;
+    border: 1px solid rgba(74,58,36,.9);
+    background: linear-gradient(135deg, rgba(12,8,5,.75), rgba(24,16,10,.55));
+  }
+  .eng-card.ready {
+    border-color: rgba(201,168,106,.45);
+    background: linear-gradient(135deg, rgba(201,168,106,.1), rgba(24,16,10,.5));
+  }
+  .eng-card.claimed { opacity: .7; }
+  .eng-ico {
+    width: 52px; height: 52px; flex-shrink: 0; object-fit: contain; border-radius: 8px;
+    image-rendering: auto; background: rgba(0,0,0,.28); border: 1px solid rgba(74,58,36,.7);
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,.45));
+  }
+  .eng-ico-sm { width: 40px; height: 40px; }
+  .eng-card.claimed .eng-ico { filter: grayscale(.45) brightness(.88) drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+  .eng-body { flex: 1; min-width: 0; }
+  .eng-title { font-weight: 800; color: var(--gold-soft); margin-bottom: 2px; }
+  .eng-desc { font-size: 13px; color: var(--txt-dim); margin-bottom: 6px; }
+  .eng-progress-row { display: flex; align-items: center; gap: 8px; margin: 4px 0 6px; }
+  .eng-progress-bar { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .eng-progress-bar i { display: block; height: 100%; background: linear-gradient(90deg, #6a5030, var(--gold-soft)); border-radius: 3px; }
+  .eng-progress-val { font-size: 11px; color: var(--txt-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .eng-reward { font-size: 12px; color: #cbb88a; }
+  .eng-actions { flex-shrink: 0; display: flex; align-items: center; }
+  .eng-claimed, .eng-pending { font-size: 12px; color: var(--txt-dim); white-space: nowrap; }
+  .eng-claim-btn { white-space: nowrap; }
+
   .ach-secret-head { margin-top:18px; padding:10px 4px 6px; font-size:13px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--txt-dim); border-top:1px solid var(--edge); }
   .ach-card.secret-locked { border-style:dashed; border-color:rgba(140,120,90,.28); background:rgba(0,0,0,.14); }
   .ach-card.secret-locked .ach-title { color:var(--txt-dim); letter-spacing:.12em; }

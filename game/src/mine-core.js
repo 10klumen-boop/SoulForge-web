@@ -313,6 +313,7 @@ function openMineContinue(zoneId, zone) {
   if (typeof syncGamePauseState === "function") syncGamePauseState();
   if (typeof debugLog === "function") debugLog("info", "mine", "openMine", { zone: zoneId });
   if (typeof achStat === "function") achStat("mineVisits", 1);
+  if (typeof engagementEmit === "function") engagementEmit("mine_enter", { zoneId });
   if (typeof checkAchievements === "function") checkAchievements();
   if (zone && zone.party) {
     // Server drives spawns
@@ -1104,6 +1105,9 @@ function finishMobKill(g, type, dropAt, guard) {
       if (typeof addZoneBossGrindKill === "function") addZoneBossGrindKill(zoneId);
       if (typeof renderMineQuestHud === "function") renderMineQuestHud();
     }
+  }
+  if (typeof engagementEmit === "function") {
+    if (type !== "boss") engagementEmit("mob_kill", { zoneId, type });
   }
   if (typeof mentorEmit === "function") mentorEmit("first_kill");
   const rewardKind = type === "boss" ? "treasure" : type === "golden" ? "treasure" : "coin";

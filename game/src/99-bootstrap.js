@@ -72,6 +72,7 @@ if (bananaCasinoTile) {
 if (typeof bindMarketUi === "function") bindMarketUi();
 if (typeof bindPvpArenaUi === "function") bindPvpArenaUi();
 $("#achTile").onclick = openAchievements;
+if (typeof bindEngagementUi === "function") bindEngagementUi();
 if ($("#glossaryTile")) {
   $("#glossaryTile").onclick = () => {
     if (typeof openGlossaryScreen === "function") openGlossaryScreen({ from: "menu" });
@@ -165,7 +166,7 @@ document.addEventListener("keydown", (e) => {
     if (typeof exitInvCrySelectMode === "function") exitInvCrySelectMode();
     if (typeof renderInventory === "function") renderInventory();
   }
-  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active") || $("#screen-glossary")?.classList.contains("active"))) { show("menu"); }
+  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-engagement")?.classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active") || $("#screen-glossary")?.classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
 

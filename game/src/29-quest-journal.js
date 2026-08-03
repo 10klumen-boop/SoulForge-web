@@ -91,47 +91,36 @@ function renderQuestJournal() {
   }
   if (meta) meta.textContent = questJournalProgressSummary();
   list.innerHTML = "";
-  const storyZones = typeof storyFarmZones === "function" ? storyFarmZones() : FARM_ZONES.filter((z) => !z.side);
-  const farmZones = typeof freeFarmZones === "function" ? freeFarmZones() : FARM_ZONES.filter((z) => z.side);
+  const storyZones = typeof storyFarmZones === "function" ? storyFarmZones() : FARM_ZONES.filter((z) => !z.side && !z.party);
   function appendZoneCard(zone) {
-    if (!zone.active) return;
+    if (!zone.active || zone.side || zone.party) return;
     const view = typeof zoneRaceView === "function" ? zoneRaceView(zone) : zone;
     const st = typeof farmZoneStatus === "function" ? farmZoneStatus(zone) : { ok: true };
-    const complete = !zone.side && typeof isZoneChapterComplete === "function" && isZoneChapterComplete(zone.id);
-    const bossPending = !zone.side && typeof isZoneBossPending === "function" && isZoneBossPending(zone.id);
+    const complete = typeof isZoneChapterComplete === "function" && isZoneChapterComplete(zone.id);
+    const bossPending = typeof isZoneBossPending === "function" && isZoneBossPending(zone.id);
     const rewardOk = isChapterRewardClaimed(zone.id);
     const card = document.createElement("article");
-    card.className = "qj-chapter" + (complete ? " complete" : "") + (state.farmZone === zone.id ? " current" : "") + (!st.ok ? " locked" : "") + (zone.side ? " farm" : "");
+    card.className = "qj-chapter" + (complete ? " complete" : "") + (state.farmZone === zone.id ? " current" : "") + (!st.ok ? " locked" : "");
     const head = document.createElement("div");
     head.className = "qj-chapter-head";
     head.innerHTML =
       '<img class="qj-chapter-icon" src="' + (typeof uiZoneChipIcon === "function" ? uiZoneChipIcon(zone.id, state.avatar?.raceId) : (view.icon || zone.icon)) + '" alt="">' +
       '<div class="qj-chapter-titles">' +
-      '<b>' + (zone.side ? "Фарм" : (view.storyTag || zone.storyTag)) + "</b>" +
+      '<b>' + (view.storyTag || zone.storyTag) + "</b>" +
       "<span>" + (view.name || zone.name) + "</span>" +
       "</div>" +
       '<span class="qj-chapter-badge">' +
-      (zone.side
-        ? st.ok
-          ? "фарм"
-          : "🔒"
-        : complete
-          ? rewardOk
-            ? "✓ награда"
-            : "✓"
-          : bossPending
-            ? "☠ босс"
-            : st.ok
-              ? "активна"
-              : "🔒") +
+      (complete
+        ? rewardOk
+          ? "✓ награда"
+          : "✓"
+        : bossPending
+          ? "☠ босс"
+          : st.ok
+            ? "активна"
+            : "🔒") +
       "</span>";
     card.appendChild(head);
-    if (zone.side) {
-      const hint = document.createElement("p");
-      hint.className = "qj-farm-hint";
-      hint.textContent = "Только фарм: куски брони и бижутерии с поля → крафт в Мастерской. Без квестов и босса главы.";
-      card.appendChild(hint);
-    } else {
     const steps = typeof zoneQuestSteps === "function" ? zoneQuestSteps(zone.id) : [];
     const stepsEl = document.createElement("div");
     stepsEl.className = "qj-steps";
@@ -170,7 +159,6 @@ function renderQuestJournal() {
       '<span class="' + bossStatusClass + '">' + bossStatus + "</span>";
     stepsEl.appendChild(bossRow);
     card.appendChild(stepsEl);
-    }
     const actions = document.createElement("div");
     actions.className = "qj-actions";
     if (st.ok) {
@@ -184,7 +172,7 @@ function renderQuestJournal() {
         if (typeof openMine === "function") openMine();
       };
       actions.appendChild(playBtn);
-      if (!complete && !zone.side) {
+      if (!complete) {
         const briefBtn = document.createElement("button");
         briefBtn.type = "button";
         briefBtn.className = "btn btn-ghost btn-sm";
@@ -206,13 +194,6 @@ function renderQuestJournal() {
     list.appendChild(card);
   }
   storyZones.forEach(appendZoneCard);
-  if (farmZones.some((z) => z.active)) {
-    const hd = document.createElement("p");
-    hd.className = "qj-section-hd";
-    hd.textContent = "Фарм";
-    list.appendChild(hd);
-    farmZones.forEach(appendZoneCard);
-  }
 }
 
 function openQuestJournal() {

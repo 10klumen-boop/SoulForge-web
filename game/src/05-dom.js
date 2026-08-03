@@ -74,7 +74,7 @@ function show(screen) {
   }
 
   const app = gameDoc().querySelector(".app");
-  const subScreens = new Set(["mine", "ach", "avatar", "quests", "inv", "shop", "ench", "acc", "account-storage", "player-mail", "market", "pvp-arena", "party", "clan", "clan-grounds", "clan-warehouse", "clan-buffs", "clan-raid", "aden-map", "glossary", "banana-casino"]);
+  const subScreens = new Set(["mine", "ach", "avatar", "quests", "engagement", "inv", "shop", "ench", "acc", "account-storage", "player-mail", "market", "pvp-arena", "party", "clan", "clan-grounds", "clan-warehouse", "clan-buffs", "clan-raid", "aden-map", "glossary", "banana-casino"]);
   if (app) {
     const titleScreens = ["home", "settings", "patch", "author", "characters"];
     app.classList.toggle("hub-screen", screen === "menu");

@@ -334,6 +334,9 @@ function onQuestMobKill(zoneId, mobType) {
         loot: loot?.summary || null,
       });
     }
+    if (typeof engagementEmit === "function") {
+      engagementEmit("quest_step", { zoneId, questId: def.id, step: def.step });
+    }
     if (typeof notifyFarmZoneUnlocks === "function") notifyFarmZoneUnlocks();
     if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
     if (typeof renderStoryArcBar === "function") renderStoryArcBar();
@@ -349,6 +352,7 @@ function onQuestMobKill(zoneId, mobType) {
 function onZoneBossDefeated(zoneId) {
   if (!zoneId || isZoneBossDefeated(zoneId)) return;
   markZoneBossDefeated(zoneId);
+  if (typeof engagementEmit === "function") engagementEmit("zone_boss", { zoneId });
   const boss = zoneBossDef(zoneId);
   const view = typeof zoneRaceView === "function" ? zoneRaceView(zoneId) : { name: zoneId };
   if (typeof gameLog === "function") gameLog(view.name + ": " + boss.name + " повержен — путь дальше открыт", "success");

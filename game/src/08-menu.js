@@ -35,6 +35,7 @@ function renderMenu() {
     const { done, total } = achievementsProgress();
     achEl.textContent = done + "/" + total;
   }
+  if (typeof syncEngagementMenuTile === "function") syncEngagementMenuTile();
   const glossMeta = document.getElementById("glossaryTileMeta");
   if (glossMeta && typeof glossaryAll === "function") {
     const n = glossaryAll().length;

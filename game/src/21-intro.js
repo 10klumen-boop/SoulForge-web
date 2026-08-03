@@ -201,6 +201,16 @@ async function runGameEntryModals() {
     }
   }
 
+  if (typeof ensureEngagementPeriod === "function") {
+    try {
+      ensureEngagementPeriod(Date.now(), { touchLogin: true });
+      if (typeof engagementEmit === "function") engagementEmit("login");
+      if (typeof maybeAnnounceEngagementEntry === "function") maybeAnnounceEngagementEntry();
+    } catch (e) {
+      console.error("engagement entry failed:", e);
+    }
+  }
+
   if (typeof isStoryBackdropOpen === "function" && isStoryBackdropOpen()) return;
 
   if (typeof needsIntro === "function" && needsIntro()) {

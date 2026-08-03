@@ -65,6 +65,21 @@ function defaultState() {
     overflowLoot: [],
     bananaCasino: { tokens: 0, pity: 0, pityJackpot: 0, pulls: 0, jackpots: 0, history: [] },
     mentor: { skipped: false, autoStart: false, bitId: null, lineIndex: 0, doneBits: {}, doneLessons: {}, chapterIntroSeen: {}, started: false, kitGranted: false },
+    engagement: typeof defaultEngagementState === "function"
+      ? defaultEngagementState()
+      : {
+          dailyPeriod: "",
+          weeklyPeriod: "",
+          dailyIds: [],
+          weeklyIds: [],
+          progress: {},
+          claimed: {},
+          dailyMilestoneClaimed: false,
+          weeklyMilestoneClaimed: false,
+          lastLoginDay: "",
+          loginStreak: 0,
+          streakClaimedDay: "",
+        },
     accountWarehouse: { items: [], stacks: [] },
     accountMail: { messages: [] },
     devTune: {},
@@ -105,7 +120,7 @@ function freshCharacterProgressSnapshot() {
     "collectibles", "equipped", "materials", "shots", "scrolls", "autoShots", "achievements",
     "passiveIncome", "autoClicker", "resourceFavorites",
     "partyFarm", "instanceLocks", "overflowLoot", "bananaCasino",
-    "mentor",
+    "mentor", "engagement",
   ];
   const p = {};
   keys.forEach((k) => { p[k] = JSON.parse(JSON.stringify(d[k])); });

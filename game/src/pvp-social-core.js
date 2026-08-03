@@ -169,6 +169,13 @@ function recordPvpOutcome(opts) {
   if (opts.rating != null && typeof achStatMax === "function") {
     achStatMax("pvpRating", Math.max(0, Math.floor(Number(opts.rating) || 0)));
   }
+  if (typeof engagementEmit === "function") {
+    engagementEmit("pvp", {
+      youWin: !!opts.youWin,
+      draw: !!opts.draw,
+      mode: opts.mode || "duel",
+    });
+  }
   if (typeof checkAchievements === "function") checkAchievements();
   if (typeof noteLeaderboardEvent === "function") {
     try {

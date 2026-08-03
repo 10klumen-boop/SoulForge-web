@@ -203,6 +203,10 @@ const HUNTING_XP_GOLDEN_KILLS_PER_LEVEL = 1350;
 const HUNTING_XP_MIN = 1;
 const HUNTING_XP_HIGH_REQ = 24;
 const HUNTING_XP_HIGH_MULT = 0.25;
+/** Низкие охотничьи гейты (reqLevel < N): меньше киллов на уровень ≈ чуть больше XP. */
+const HUNTING_XP_LOW_REQ = 16;
+const HUNTING_XP_LOW_KILLS_PER_LEVEL = 3000;
+const HUNTING_XP_LOW_GOLDEN_KILLS_PER_LEVEL = 1100;
 
 function farmZoneMineXpNeedAtGate(zone) {
   const req = Math.max(1, Math.floor(Number(zone?.reqLevel) || 1));
@@ -221,11 +225,17 @@ function farmZoneMineXp(zoneOrId, golden) {
   if (zone && zone.side) {
     const need = farmZoneMineXpNeedAtGate(zone);
     const req = Math.max(1, Math.floor(Number(zone.reqLevel) || 1));
-    let normal = Math.max(HUNTING_XP_MIN, Math.round(need / HUNTING_XP_KILLS_PER_LEVEL));
+    const killsPer =
+      req < HUNTING_XP_LOW_REQ ? HUNTING_XP_LOW_KILLS_PER_LEVEL : HUNTING_XP_KILLS_PER_LEVEL;
+    const goldenPer =
+      req < HUNTING_XP_LOW_REQ
+        ? HUNTING_XP_LOW_GOLDEN_KILLS_PER_LEVEL
+        : HUNTING_XP_GOLDEN_KILLS_PER_LEVEL;
+    let normal = Math.max(HUNTING_XP_MIN, Math.round(need / killsPer));
     let xp;
     if (!golden) xp = normal;
     else {
-      const fromGate = Math.round(need / HUNTING_XP_GOLDEN_KILLS_PER_LEVEL);
+      const fromGate = Math.round(need / goldenPer);
       xp = Math.max(normal * 2, fromGate, HUNTING_XP_MIN * 2);
     }
     if (req >= HUNTING_XP_HIGH_REQ) {
@@ -233,7 +243,9 @@ function farmZoneMineXp(zoneOrId, golden) {
     }
     return xp;
   }
-  // Сюжет
+  // Сюжет: 5 глав суммарно ≈ Lv10 без охоты (порог ~3332 XP).
+  // Килл 5 XP × цели/гринд + шаги/глава → ~3.7k XP (уверенный 10-й).
+  if (ch >= 1 && ch <= 5) return golden ? 5 : 5;
   return golden ? Math.max(1, Math.round((8 + ch * 2) / 12)) : Math.max(1, Math.ceil((2 + ch) / 12));
 }
 

@@ -10,7 +10,7 @@ const CHARACTER_PROGRESS_KEYS = [
   "collectibles", "equipped", "materials", "shots", "scrolls", "autoShots", "achievements",
   "passiveIncome", "autoClicker", "resourceFavorites",
   "partyFarm", "instanceLocks", "overflowLoot", "bananaCasino",
-  "mentor",
+  "mentor", "engagement",
 ];
 
 const ProgressStore = (function () {

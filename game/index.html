@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m308" />
+<link rel="stylesheet" href="styles/main.css?v=m310" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d22" />
 <link rel="stylesheet" href="styles/sf-ui.css?v=54" />
 <link rel="stylesheet" href="styles/banana-casino.css?v=16" />
@@ -300,6 +300,17 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.61.0</p>
+        <ul>
+          <li><b>Поручения</b> — ежедневные и еженедельные задания: фарм, заточка, квесты, мастерская, инстансы, арена; стрик входа (награда только за полный ×7); бонус за комплект дня/недели.</li>
+          <li><b>Поручения</b> — инстанс всегда в наборе дня и недели; свои иконки заданий.</li>
+          <li><b>Журнал квестов</b> — убраны карточки чистого фарма (охота); только сюжетные главы.</li>
+          <li><b>XP</b> — мягче пороги на 1–10; сюжетный фарм 5 XP/килл; весь Prelude без охоты выводит примерно на 10 уровень.</li>
+        </ul>
+        <p class="patch-ver">v0.60.22</p>
+        <ul>
+          <li><b>Поручения</b> — ежедневные и еженедельные задания, стрик входа и бонус за комплект (плитка в меню хаба).</li>
+        </ul>
         <p class="patch-ver">v0.60.21</p>
         <ul>
           <li><b>Создание персонажа (моб.)</b> — окно шире/выше на всех шагах; карточки класса и рас без обрезки текста; шаг имени при клавиатуре не сжимается в ноль.</li>
@@ -1146,6 +1157,13 @@
           <span class="tile-hit"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Квесты</span><span class="tcount" id="questJournalMeta">Prelude</span></span>
         </div>
+        <div class="tile" id="engagementTile" role="button" tabindex="0">
+          <span class="tile-hit">
+            <img class="tile-ico" src="icons/engagement/quest.png?v=1" alt="" aria-hidden="true">
+            <span class="tile-badge" id="engagementTileBadge" hidden>0</span>
+          </span>
+          <span class="tile-cap"><span class="tname">Поручения</span><span class="tcount" id="engagementTileMeta">День</span></span>
+        </div>
         <div class="tile" id="invTile" role="button" tabindex="0" data-mentor="menu-inv">
           <span class="tile-hit"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"></span>
           <span class="tile-cap"><span class="tname">Инвентарь</span><span class="tcount" id="invCount">0 / 120</span></span>
@@ -1281,6 +1299,32 @@
         </div>
       </div>
       <div class="quest-journal-list sf-scroll" id="questJournalList"></div>
+    </section>
+
+    <section class="screen" id="screen-engagement">
+      <div class="panel-head panel-head-ornate">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2><img src="icons/engagement/quest.png?v=1" alt="" class="inv-head-ico"> Поручения</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--quests" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Ежедневный долг</h3>
+          <p>Задания дня и недели, стрик входа и награда за комплект.</p>
+        </div>
+      </div>
+      <div class="eng-sticky-meta">
+        <div class="eng-head">
+          <div class="eng-summary" id="engagementSummary">День · 0 / 4</div>
+          <div class="eng-reset" id="engagementResetHint">Сброс UTC</div>
+        </div>
+        <div class="eng-tabs" id="engagementTabs"></div>
+        <div class="eng-streak" id="engagementStreak"></div>
+        <div class="eng-milestone" id="engagementMilestone"></div>
+      </div>
+      <div class="eng-scroll sf-scroll" id="engagementScroll">
+        <div class="eng-list" id="engagementList"></div>
+      </div>
     </section>
 
     <section class="screen" id="screen-inv">
@@ -1843,23 +1887,23 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=515"></script>
+<script src="src/01-constants.js?v=517"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
-<script src="src/02-state.js?v=54"></script>
+<script src="src/02-state.js?v=55"></script>
 <script src="src/data/audio-data.js?v=3"></script>
 <script src="src/03-audio.js?v=5"></script>
 <script src="src/04-settings.js?v=3"></script>
-<script src="src/05-dom.js?v=64"></script>
+<script src="src/05-dom.js?v=65"></script>
 <script src="src/data/enchant-balance.js?v=11"></script>
 <script src="src/data/armor-sets-data.js?v=15"></script>
 <script src="src/data/jewelry-sets-data.js?v=7"></script>
 <script src="src/06-rules.js?v=14"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
-<script src="src/workshop-core.js?v=11"></script>
+<script src="src/workshop-core.js?v=12"></script>
 <script src="src/jewelry-sets-core.js?v=7"></script>
 <script src="src/07-workshop.js?v=28"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
-<script src="src/data/farm-zones-balance.js?v=17"></script>
+<script src="src/data/farm-zones-balance.js?v=19"></script>
 <script src="src/data/clan-territories-data.js?v=14"></script>
 <script src="src/data/clan-hunting-catalog-data.js?v=7"></script>
 <script src="src/data/clan-map-regions-data.js?v=4"></script>
@@ -1869,7 +1913,7 @@
 <script src="src/data/clan-boss-data.js?v=6"></script>
 <script src="src/data/scroll-drop-balance.js?v=7"></script>
 <script src="src/scroll-core.js?v=9"></script>
-<script src="src/08-menu.js?v=12"></script>
+<script src="src/08-menu.js?v=13"></script>
 <script src="src/09-inventory.js?v=72"></script>
 <script src="src/enchant-ui.js?v=9"></script>
 <script src="src/item-tooltip-ui.js?v=6"></script>
@@ -1878,11 +1922,11 @@
 <script src="src/account-storage-ui.js?v=8"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js?v=4"></script>
-<script src="src/11-enchant.js?v=22"></script>
+<script src="src/11-enchant.js?v=23"></script>
 <script src="src/mine-ui.js?v=9"></script>
-<script src="src/mine-core.js?v=40"></script>
+<script src="src/mine-core.js?v=41"></script>
 <script src="src/13-portable-save.js"></script>
-<script src="src/cloud-core.js?v=7"></script>
+<script src="src/cloud-core.js?v=8"></script>
 <script src="src/cloud-ui.js?v=4"></script>
 <script src="src/market-core.js?v=10"></script>
 <script src="src/market-ui.js?v=14"></script>
@@ -1899,9 +1943,9 @@
 <script src="src/data/party-content-data.js?v=39"></script>
 <script src="src/party-core.js?v=22"></script>
 <script src="src/party-farm-core.js?v=5"></script>
-<script src="src/instance-core.js?v=45"></script>
+<script src="src/instance-core.js?v=46"></script>
 <script src="src/world-boss-core.js?v=34"></script>
-<script src="src/progress-store.js?v=7"></script>
+<script src="src/progress-store.js?v=8"></script>
 <script src="src/15-game-log.js?v=2"></script>
 <script src="src/16-accessory.js?v=5"></script>
 <script src="src/data/achievement-data.js?v=5"></script>
@@ -1916,7 +1960,7 @@
 <script src="src/glossary-core.js?v=2"></script>
 <script src="src/glossary-ui.js?v=4"></script>
 <script src="src/intro-core.js"></script>
-<script src="src/21-intro.js?v=12"></script>
+<script src="src/21-intro.js?v=13"></script>
 <script src="src/data/mentor-npc.js?v=11"></script>
 <script src="src/data/mentor-kit-balance.js?v=2"></script>
 <script src="src/data/mentor-ng-gear.js?v=1"></script>
@@ -1927,14 +1971,14 @@
 <script src="src/33-ui-icons.js?v=28"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=5"></script>
-<script src="src/35-characters.js?v=47"></script>
+<script src="src/35-characters.js?v=48"></script>
 <script src="src/data/avatar-data.js?v=2"></script>
 <script src="src/data/avatar-stats-data.js?v=3"></script>
 <script src="src/data/professions-data.js?v=18"></script>
 <script src="src/data/passive-skills-data.js?v=2"></script>
 <script src="src/passive-skills-core.js?v=7"></script>
 <script src="src/professions-core.js?v=13"></script>
-<script src="src/avatar-core.js?v=19"></script>
+<script src="src/avatar-core.js?v=20"></script>
 <script src="src/22-avatar.js?v=34"></script>
 <script src="src/professions-ui.js?v=5"></script>
 <script src="src/avatar-gear-core.js?v=23"></script>
@@ -1948,10 +1992,10 @@
 <script src="src/data/mine-visuals-data.js?v=33"></script>
 <script src="src/26-mine-visuals.js?v=49"></script>
 <script src="src/data/quest-data.js?v=3"></script>
-<script src="src/quest-core.js?v=10"></script>
+<script src="src/quest-core.js?v=11"></script>
 <script src="src/27-quests.js?v=50"></script>
-<script src="src/quest-journal-core.js?v=11"></script>
-<script src="src/29-quest-journal.js?v=9"></script>
+<script src="src/quest-journal-core.js?v=13"></script>
+<script src="src/29-quest-journal.js?v=10"></script>
 <script src="src/prelude-finale-core.js?v=4"></script>
 <script src="src/30-prelude-finale.js?v=3"></script>
 <script src="src/data/combat-skills-data.js?v=3"></script>
@@ -1961,8 +2005,8 @@
 <script src="src/31-combat-skills.js?v=13"></script>
 <script src="src/data/pvp-balance.js?v=5"></script>
 <script src="src/pvp-combat-core.js?v=17"></script>
-<script src="src/pvp-social-core.js?v=3"></script>
-<script src="src/pvp-combat-ui.js?v=22"></script>
+<script src="src/pvp-social-core.js?v=4"></script>
+<script src="src/pvp-combat-ui.js?v=23"></script>
 <script src="src/32-debug-log.js"></script>
 <script src="src/avatar-math.js?v=31"></script>
 <script src="src/avatar-stats-core.js?v=17"></script>
@@ -1973,11 +2017,14 @@
 <script src="src/data/auto-clicker-balance.js?v=10"></script>
 <script src="src/auto-clicker-core.js?v=22"></script>
 <script src="src/auto-clicker-ui.js?v=10"></script>
+<script src="src/data/engagement-balance.js?v=5"></script>
+<script src="src/engagement-core.js?v=4"></script>
+<script src="src/engagement-ui.js?v=3"></script>
 <script src="src/data/banana-casino-balance.js?v=14"></script>
 <script src="src/banana-casino-core.js?v=8"></script>
 <script src="src/banana-casino-ui.js?v=14"></script>
 <script src="src/data-loader.js?v=40"></script>
-<script src="src/99-bootstrap.js?v=78"></script>
+<script src="src/99-bootstrap.js?v=80"></script>
 
 </body>
 </html>

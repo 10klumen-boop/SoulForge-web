@@ -1408,6 +1408,11 @@ function pickInstanceWeaponByGrade(grade) {
 
 function applyInstanceLoot(loot) {
   if (!loot) return null;
+  if (typeof engagementEmit === "function") {
+    engagementEmit("instance_clear", {
+      dungeonId: instanceRunState?.dungeonId || loot.dungeonId || "",
+    });
+  }
   if (loot.adena) {
     ProgressStore.update("adena", (a) => Math.max(0, Math.floor(Number(a) || 0) + loot.adena));
   }

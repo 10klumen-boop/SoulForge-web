@@ -28,8 +28,10 @@ function snapshotProgressFromState() {
 
 function applyProgressToState(progress) {
   if (!progress) return;
+  const defaults = defaultState();
   CHARACTER_PROGRESS_KEYS.forEach((k) => {
     if (progress[k] !== undefined) state[k] = JSON.parse(JSON.stringify(progress[k]));
+    else if (defaults[k] !== undefined) state[k] = JSON.parse(JSON.stringify(defaults[k]));
   });
 }
 
@@ -43,6 +45,7 @@ function syncUiAfterCharacterSwap() {
   if (typeof resetMineSkillRuntime === "function") resetMineSkillRuntime();
   if (typeof ensurePassiveIncomeState === "function") ensurePassiveIncomeState();
   if (typeof ensureAutoClickerState === "function") ensureAutoClickerState();
+  if (typeof ensureEngagementState === "function") ensureEngagementState();
   if (typeof collectPassiveIncome === "function") {
     try { collectPassiveIncome({ queueNotice: false }); } catch (e) {}
   }
