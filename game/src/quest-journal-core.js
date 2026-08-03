@@ -33,11 +33,11 @@ function zoneQuestStepRewardDef(zoneId, step) {
   // XP: киллы главы + эти награды ≈ XP до reqLevel следующей главы (±5–8%).
   // Кривая: avatarXpToLevel = 100 * 1.32^(L-1). Гейты сюжета: 1→4→6→8→10.
   const stepXp = [
-    [12, 14, 16],
-    [14, 18, 22],
-    [50, 60, 70],
-    [140, 170, 200],
-    [40, 50, 60],
+    [10, 11, 13],
+    [11, 14, 17],
+    [38, 46, 54],
+    [105, 128, 150],
+    [30, 38, 46],
   ];
   const xp = (stepXp[ch - 1] && stepXp[ch - 1][s - 1]) || 0;
   return { adena, soul, spirit, crystals, xp };

@@ -354,7 +354,6 @@ function stopMine() {
   mineGnomes.clear();
   const lootLayer = document.getElementById("mineLootLayer");
   if (lootLayer) lootLayer.innerHTML = "";
-  if (typeof Audio2.stopDwarfVoice === "function") Audio2.stopDwarfVoice();
   if (mineSession && typeof logCharacterEvent === "function") {
     const adenaNow = Math.max(0, Math.floor(Number(state.adena) || 0));
     logCharacterEvent("farm_session", {

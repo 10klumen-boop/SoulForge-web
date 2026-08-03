@@ -20,24 +20,27 @@ SFX
   enchant_fail    sys_break (разрушение оружия)
   jackpot         quest_jackpot (≤4.5s)
   treasure        quest_itemget
-  mine_hit*       goblin/skeleton/werewolf dmg — WIP, в игре пока click
-  mine_kill       goblin_Death — WIP, не используется
-  quest           quest_accept_01
-  levelup         levelup (≤3s)
+  mine_hit*       armor_leather_* — пул ударов по мобу (Audio2.mineHit)
+  mine_kill       короткий kill — Audio2.mineKill
+  quest           quest_accept_01 — принять / завершить поручение
+  levelup         levelup (≤3s) — Audio2.levelup при апе уровня
 
-Ambient
-  menu            jura_01 (legacy, заменён OST на главном экране)
-  mine            Lava_Bubble_Loop_01
-  indoor          wind_light_loop_1
+Ambient (в игре)
+  mine            Lava_Bubble_Loop_01 — только экран mine
 
-Music (главное меню)
+Ambient (legacy на диске, НЕ в SCREEN_AMB)
+  menu            jura_01 — заменён OST menu_theme.m4a на title
+  indoor          wind_light_loop_1 — шипит в хабе, не подключать
+
+Music (title-экраны)
   menu_theme.m4a  The Call of Destiny — Chaotic Chronicle (NCsoft)
   python game/tools/fetch_l2_music.py
 
 Dwarf voices
-  dwarf/M.wav     MDwarf_Death
-  dwarf/F.wav     FDwarf_Death
+  dwarf/M.wav     MDwarf_Death → Audio2.dwarfCatch(false, reward)
+  dwarf/F.wav     FDwarf_Death → Audio2.dwarfCatch(true, reward)
+  (корневые MDwarf_Death.wav / FDwarf_Death.wav — сырьё, не грузить в игру)
 
-Кэш в игре: SOUND_VER в 03-audio.js. После пересборки — Ctrl+F5.
+Кэш в игре: SOUND_VER в game/src/data/audio-data.js. После пересборки — Ctrl+F5.
 
 Детали: picked.manifest.json

@@ -3,11 +3,12 @@
 /** Убийств по шагам: [зачистка, элита, финал] — подтягивает lvl/силу к боссу и частично к гейту след. зоны */
 function zoneQuestKillTargets(chapter) {
   const ch = Math.min(5, Math.max(1, chapter || 1));
-  if (ch === 1) return [22, 14, 24];
+  // Больше киллов при меньшем XP/килл — глава дольше, сумма ≈ гейт след. зоны
+  if (ch === 1) return [38, 25, 40];
   return [
-    12 + ch * 4,
-    8 + ch * 3,
-    14 + ch * 3,
+    Math.round((12 + ch * 4) * 2),
+    Math.round((8 + ch * 3) * 2),
+    Math.round((14 + ch * 3) * 2),
   ];
 }
 

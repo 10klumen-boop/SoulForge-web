@@ -197,9 +197,9 @@ function farmZoneLootBandLabel(zoneOrId) {
  * Охота: от XP-порога на reqLevel зоны — высокие поля дают заметно больше.
  * Цель ≈ HUNTING_XP_KILLS_PER_LEVEL обычных киллов ≈ 1 уровень на гейте зоны.
  */
-const HUNTING_XP_KILLS_PER_LEVEL = 220;
-const HUNTING_XP_GOLDEN_KILLS_PER_LEVEL = 80;
-const HUNTING_XP_MIN = 5;
+const HUNTING_XP_KILLS_PER_LEVEL = 300;
+const HUNTING_XP_GOLDEN_KILLS_PER_LEVEL = 110;
+const HUNTING_XP_MIN = 4;
 
 function farmZoneMineXpNeedAtGate(zone) {
   const req = Math.max(1, Math.floor(Number(zone?.reqLevel) || 1));
@@ -222,8 +222,8 @@ function farmZoneMineXp(zoneOrId, golden) {
     const fromGate = Math.round(need / HUNTING_XP_GOLDEN_KILLS_PER_LEVEL);
     return Math.max(normal * 2, fromGate, HUNTING_XP_MIN * 2);
   }
-  // Сюжет / fallback
-  return golden ? 10 + ch * 3 : 3 + ch * 2;
+  // Сюжет / fallback (ниже прежнего 3+2ch / 10+3ch — главы длиннее по киллам)
+  return golden ? 8 + ch * 2 : 2 + ch;
 }
 
 function resolveFarmZoneId(id) {

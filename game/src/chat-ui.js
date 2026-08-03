@@ -108,7 +108,7 @@ function initGameChat() {
       const r = await chatSendMessage(text);
       if (r.ok) {
         input.value = "";
-        if (typeof Audio2 !== "undefined" && Audio2.ui) Audio2.ui();
+        if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
       }
     });
   }

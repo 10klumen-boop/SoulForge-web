@@ -58,9 +58,9 @@ function expectedChapterKillXp(ch) {
   const k = kills.reduce((a, b) => a + b, 0);
   const g = typeof zoneQuestGoldenTarget === "function" ? zoneQuestGoldenTarget(ch) : 2;
   const gIn = Math.min(g, kills[1] || 0);
-  const grind = typeof ZONE_BOSS_GRIND_KILLS === "number" ? ZONE_BOSS_GRIND_KILLS : 12;
-  const nk = 3 + ch * 2;
-  const gk = 10 + ch * 3;
+  const grind = typeof ZONE_BOSS_GRIND_KILLS === "number" ? ZONE_BOSS_GRIND_KILLS : 16;
+  const nk = 2 + ch;
+  const gk = 8 + ch * 2;
   return (k - gIn) * nk + gIn * gk + grind * nk + gk;
 }
 

@@ -261,6 +261,7 @@ function markQuestBriefingSeen(questId) {
 function acceptZoneQuest(questId) {
   ensureQuestProgress();
   if (state.questProgress.completed[questId]) return;
+  const firstAccept = !questBriefingSeen(questId);
   ProgressStore.update("questProgress", (q) => {
     const next = { ...(q || {}) };
     if (next.kills?.[questId] == null) next.kills = { ...next.kills, [questId]: 0 };
@@ -269,6 +270,7 @@ function acceptZoneQuest(questId) {
     return next;
   });
   save();
+  if (firstAccept && typeof Audio2 !== "undefined" && Audio2.quest) Audio2.quest();
   if (typeof mentorEmit === "function") mentorEmit("quest_accepted");
 }
 
@@ -298,6 +300,7 @@ function onQuestMobKill(zoneId, mobType) {
   const done = isQuestStepObjectivesMet(def);
   if (done) {
     markQuestStepComplete(def.id);
+    if (typeof Audio2 !== "undefined" && Audio2.quest) Audio2.quest();
     const loot =
       typeof grantQuestStepReward === "function"
         ? grantQuestStepReward(zoneId, def.step, def.id)

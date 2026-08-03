@@ -80,7 +80,7 @@ function dismissQuestBriefing() {
   }
   if (typeof syncGamePauseState === "function") syncGamePauseState();
   else if (typeof setGamePaused === "function") setGamePaused(false);
-  if (typeof Audio2 !== "undefined") Audio2.click();
+  if (!questId && typeof Audio2 !== "undefined") Audio2.click();
   if (typeof renderMenuFarmHub === "function") renderMenuFarmHub();
   if (typeof renderMineQuestHud === "function") renderMineQuestHud();
   if (typeof flushPendingQuestBriefing === "function") flushPendingQuestBriefing();

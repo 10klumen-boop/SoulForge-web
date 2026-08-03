@@ -289,6 +289,7 @@ function grantAvatarXp(amount, opts) {
     return next;
   });
   const a = state.avatar;
+  if (leveled && typeof Audio2 !== "undefined" && Audio2.levelup) Audio2.levelup();
   if (leveled && !opts.silent) {
     toast("Уровень " + a.level + " — " + avatarTitle(a.level), "success");
     if (typeof gameLog === "function") {
@@ -326,9 +327,9 @@ function onEnchantAvatarXp(win, plus, behavior, broken) {
   if (!state.avatar?.created) return;
   if (win) {
     const risky = plus >= safeLevel();
-    grantAvatarXp((risky ? 8 : 3) + Math.min(6, plus || 0), { silent: true });
+    grantAvatarXp((risky ? 5 : 2) + Math.min(4, plus || 0), { silent: true });
   } else {
-    grantAvatarXp(broken ? 6 : 4, { silent: true });
+    grantAvatarXp(broken ? 4 : 2, { silent: true });
   }
 }
 
@@ -343,7 +344,7 @@ function onMineAvatarXp(golden) {
             typeof farmZoneProgressChapter === "function"
               ? farmZoneProgressChapter(zone)
               : zone.chapter || 1;
-          return golden ? 10 + ch * 3 : 3 + ch * 2;
+          return golden ? 8 + ch * 2 : 2 + ch;
         })();
   if (typeof passiveEffectMult === "function") {
     amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar));

@@ -2,7 +2,7 @@
 // Вынесено из 03-audio.js; плеер и synth-логика остались в 03-audio.js.
 
   const AUDIO_BASE = { ui: 0.55, sfx: 0.72, amb: 0.24, dwarf: 0.88, mine: 0.48, music: 0.4 };
-  const SOUND_VER = 8;
+  const SOUND_VER = 9;
 
   const v = (path) => path + "?v=" + SOUND_VER;
 
@@ -31,8 +31,8 @@
       mineKill: v("assets/sounds/sfx/mine_kill.wav"),
     },
     amb: {
+      // indoor/menu — legacy на диске (pick_l2_sounds), в SCREEN_AMB не подключать (шипение в хабе)
       mine: v("assets/sounds/ambient/mine.wav"),
-      indoor: v("assets/sounds/ambient/indoor.wav"),
     },
     dwarf: {
       M: v("assets/sounds/dwarf/M.wav"),

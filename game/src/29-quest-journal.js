@@ -13,7 +13,8 @@ function dismissChapterReward() {
   }
   if (typeof syncGamePauseState === "function") syncGamePauseState();
   else if (typeof setGamePaused === "function") setGamePaused(false);
-  if (typeof Audio2 !== "undefined") Audio2.click();
+  if (typeof Audio2 !== "undefined" && Audio2.quest) Audio2.quest();
+  else if (typeof Audio2 !== "undefined") Audio2.click();
   if (zoneId && typeof toast === "function") {
     const view = typeof zoneRaceView === "function" ? zoneRaceView(zoneId) : { name: zoneId };
     toast("Награда главы «" + (view.name || zoneId) + "» получена", "success");

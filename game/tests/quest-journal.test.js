@@ -76,15 +76,15 @@ function runTests() {
   });
 
   test("zoneQuestStepRewardDef grants story XP on early chapters", () => {
-    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).xp, 12);
-    assert.strictEqual(zoneQuestStepRewardDef("elven_ruins", 2).xp, 18);
-    assert.strictEqual(zoneQuestStepRewardDef("orc_barracks", 3).xp, 70);
+    assert.strictEqual(zoneQuestStepRewardDef("banana_mine", 1).xp, 10);
+    assert.strictEqual(zoneQuestStepRewardDef("elven_ruins", 2).xp, 14);
+    assert.strictEqual(zoneQuestStepRewardDef("orc_barracks", 3).xp, 54);
   });
 
   test("zoneChapterRewardDef includes XP for ch1–3", () => {
-    assert.strictEqual(zoneChapterRewardDef("banana_mine").xp, 12);
-    assert.strictEqual(zoneChapterRewardDef("elven_ruins").xp, 18);
-    assert.strictEqual(zoneChapterRewardDef("orc_barracks").xp, 70);
+    assert.strictEqual(zoneChapterRewardDef("banana_mine").xp, 10);
+    assert.strictEqual(zoneChapterRewardDef("elven_ruins").xp, 14);
+    assert.strictEqual(zoneChapterRewardDef("orc_barracks").xp, 55);
   });
 
   test("formatQuestStepLootLines includes XP when present", () => {

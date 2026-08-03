@@ -39,7 +39,7 @@ function runTests() {
   });
 
   test("quest formula helpers still work", () => {
-    assert.deepStrictEqual(zoneQuestKillTargets(1), [22, 14, 24]);
+    assert.deepStrictEqual(zoneQuestKillTargets(1), [38, 25, 40]);
     assert.strictEqual(zoneQuestGoldenTarget(1), 2);
   });
 

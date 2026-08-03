@@ -1841,7 +1841,7 @@ async function instanceHandleHit(g, opts) {
       }
       if (typeof Audio2 !== "undefined") {
         if (r.windowHit && r.colorOk) Audio2.mineHit();
-        else if (Audio2.uiClick) Audio2.uiClick();
+        else if (Audio2.click) Audio2.click();
       }
       if (r.anvilWiped) {
         if (typeof toast === "function") toast("Тиран Кузни казнил группу — провал наковальни!", "warn");

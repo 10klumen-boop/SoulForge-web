@@ -184,7 +184,8 @@ const Audio2 = (() => {
   let ambEl = null;
   let ambKey = null;
   let dwarfVoice = null;
-
+  let dwarfRewardTimer = null;
+  let dwarfCatchToken = 0;
 
   function fadeElVolume(el, target, timerRef, step = 0.022) {
     if (!el) return;
@@ -262,6 +263,11 @@ const Audio2 = (() => {
   }
 
   function stopDwarfVoice() {
+    dwarfCatchToken++;
+    if (dwarfRewardTimer) {
+      clearTimeout(dwarfRewardTimer);
+      dwarfRewardTimer = null;
+    }
     if (!dwarfVoice) return;
     try {
       dwarfVoice.pause();
@@ -453,6 +459,7 @@ const Audio2 = (() => {
     dwarfCatch(female, reward = null) {
       if (isSilent()) return DWARF_CATCH.rewardDelayMs;
       stopDwarfVoice();
+      const token = dwarfCatchToken;
       const src = female ? FILES.dwarf.F : FILES.dwarf.M;
       const delay = DWARF_CATCH.rewardDelayMs;
       unlock();
@@ -466,7 +473,9 @@ const Audio2 = (() => {
           markSample(src, false);
           synth.fail();
         });
-      setTimeout(() => {
+      dwarfRewardTimer = setTimeout(() => {
+        dwarfRewardTimer = null;
+        if (token !== dwarfCatchToken) return;
         if (dwarfVoice === a) stopDwarfVoice();
         if (isSilent() || !reward) return;
         if (reward === "coin") playOrSynth(FILES.ui.coin, eff(BASE.ui, "ui"), synth.coin);
