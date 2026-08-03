@@ -196,10 +196,13 @@ function farmZoneLootBandLabel(zoneOrId) {
  * Сюжет: линейно от narrative chapter (калибровка глав).
  * Охота: от XP-порога на reqLevel зоны — высокие поля дают заметно больше.
  * Цель ≈ HUNTING_XP_KILLS_PER_LEVEL обычных киллов ≈ 1 уровень на гейте зоны.
+ * Хай-локи (reqLevel ≥ HUNTING_XP_HIGH_REQ): XP × HUNTING_XP_HIGH_MULT.
  */
-const HUNTING_XP_KILLS_PER_LEVEL = 2400;
-const HUNTING_XP_GOLDEN_KILLS_PER_LEVEL = 880;
+const HUNTING_XP_KILLS_PER_LEVEL = 3700;
+const HUNTING_XP_GOLDEN_KILLS_PER_LEVEL = 1350;
 const HUNTING_XP_MIN = 1;
+const HUNTING_XP_HIGH_REQ = 24;
+const HUNTING_XP_HIGH_MULT = 0.25;
 
 function farmZoneMineXpNeedAtGate(zone) {
   const req = Math.max(1, Math.floor(Number(zone?.reqLevel) || 1));
@@ -217,13 +220,21 @@ function farmZoneMineXp(zoneOrId, golden) {
   const ch = typeof farmZoneProgressChapter === "function" ? farmZoneProgressChapter(zone) : zone?.chapter || 1;
   if (zone && zone.side) {
     const need = farmZoneMineXpNeedAtGate(zone);
-    const normal = Math.max(HUNTING_XP_MIN, Math.round(need / HUNTING_XP_KILLS_PER_LEVEL));
-    if (!golden) return normal;
-    const fromGate = Math.round(need / HUNTING_XP_GOLDEN_KILLS_PER_LEVEL);
-    return Math.max(normal * 2, fromGate, HUNTING_XP_MIN * 2);
+    const req = Math.max(1, Math.floor(Number(zone.reqLevel) || 1));
+    let normal = Math.max(HUNTING_XP_MIN, Math.round(need / HUNTING_XP_KILLS_PER_LEVEL));
+    let xp;
+    if (!golden) xp = normal;
+    else {
+      const fromGate = Math.round(need / HUNTING_XP_GOLDEN_KILLS_PER_LEVEL);
+      xp = Math.max(normal * 2, fromGate, HUNTING_XP_MIN * 2);
+    }
+    if (req >= HUNTING_XP_HIGH_REQ) {
+      xp = Math.max(HUNTING_XP_MIN, Math.round(xp * HUNTING_XP_HIGH_MULT));
+    }
+    return xp;
   }
-  // Сюжет: ~⅛ от базы (2+ch / 8+2ch)
-  return golden ? Math.max(1, Math.round((8 + ch * 2) / 8)) : Math.max(1, Math.ceil((2 + ch) / 8));
+  // Сюжет
+  return golden ? Math.max(1, Math.round((8 + ch * 2) / 12)) : Math.max(1, Math.ceil((2 + ch) / 12));
 }
 
 function resolveFarmZoneId(id) {

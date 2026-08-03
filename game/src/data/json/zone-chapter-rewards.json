@@ -4,7 +4,7 @@
       "adena": 112500,
       "soul": 28,
       "spirit": 0,
-      "xp": 2,
+      "xp": 1,
       "crystals": {
         "D": 3
       },
@@ -17,7 +17,7 @@
       "adena": 225000,
       "soul": 36,
       "spirit": 16,
-      "xp": 2,
+      "xp": 1,
       "crystals": {
         "D": 3,
         "C": 1
@@ -31,7 +31,7 @@
       "adena": 393750,
       "soul": 48,
       "spirit": 28,
-      "xp": 7,
+      "xp": 5,
       "crystals": {
         "D": 2,
         "C": 2
@@ -45,7 +45,7 @@
       "adena": 618750,
       "soul": 62,
       "spirit": 40,
-      "xp": 19,
+      "xp": 12,
       "crystals": {
         "C": 3
       },
@@ -58,7 +58,7 @@
       "adena": 900000,
       "soul": 80,
       "spirit": 55,
-      "xp": 9,
+      "xp": 6,
       "crystals": {
         "C": 2,
         "B": 1

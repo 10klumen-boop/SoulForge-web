@@ -35,12 +35,22 @@ function runTests() {
   test("high hunting zones grant much more XP than low", () => {
     const low = farmZoneMineXp({ side: true, reqLevel: 5, lvlMin: 1, lvlMax: 15 }, false);
     const mid = farmZoneMineXp({ side: true, reqLevel: 16, lvlMin: 20, lvlMax: 30 }, false);
+    const midHigh = farmZoneMineXp({ side: true, reqLevel: 18, lvlMin: 25, lvlMax: 35 }, false);
     const hi = farmZoneMineXp({ side: true, reqLevel: 25, lvlMin: 30, lvlMax: 40 }, false);
     const top = farmZoneMineXp({ side: true, reqLevel: 32, lvlMin: 40, lvlMax: 50 }, false);
     assert.ok(low >= HUNTING_XP_MIN);
-    assert.ok(mid >= low * 2, "mid " + mid + " vs low " + low);
-    assert.ok(hi > mid * 4, "hi " + hi + " vs mid " + mid);
-    assert.ok(top > hi * 2, "top " + top + " vs hi " + hi);
+    assert.ok(mid >= low, "mid " + mid + " vs low " + low);
+    assert.ok(midHigh > mid, "midHigh " + midHigh + " vs mid " + mid);
+    // req≥24: XP ×0.25 — хай всё ещё выше mid soft, но не раздувается
+    assert.ok(hi > mid, "hi " + hi + " vs mid " + mid);
+    assert.ok(top >= hi, "top " + top + " vs hi " + hi);
+  });
+
+  test("high loc XP is quartered vs raw curve", () => {
+    const need = farmZoneMineXpNeedAtGate({ reqLevel: 32 });
+    const raw = Math.max(HUNTING_XP_MIN, Math.round(need / HUNTING_XP_KILLS_PER_LEVEL));
+    const got = farmZoneMineXp({ side: true, reqLevel: 32 }, false);
+    assert.strictEqual(got, Math.max(HUNTING_XP_MIN, Math.round(raw * HUNTING_XP_HIGH_MULT)));
   });
 
   test("golden hunting XP > normal at same gate", () => {
@@ -53,7 +63,7 @@ function runTests() {
     assert.ok(swamp && swamp.side, "need a high side zone");
     const got = farmZoneMineXp(swamp, false);
     const oldLinear = 3 + farmZoneProgressChapter(swamp) * 2;
-    assert.ok(got > oldLinear * 10, "got " + got + " old " + oldLinear);
+    assert.ok(got > oldLinear * 5, "got " + got + " old " + oldLinear);
   });
 
   console.log("\nHunting mine XP: " + passed + " passed, " + failed + " failed");

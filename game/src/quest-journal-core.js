@@ -30,14 +30,14 @@ function zoneQuestStepRewardDef(zoneId, step) {
   } else if (s === 2 && ch >= 4) {
     crystals.D = 1;
   }
-  // XP шагов ~⅛ базы; вместе с киллами ≈ 0.12–0.25 гейта — дофарм на поле.
+  // XP шагов ~×0.65 от ⅛-базы; глава ≈ 0.08–0.25 гейта.
   // Кривая: avatarXpToLevel = 100 * 1.32^(L-1). Гейты сюжета: 1→4→6→8→10.
   const stepXp = [
-    [2, 2, 2],
-    [2, 2, 3],
-    [5, 6, 7],
-    [14, 16, 19],
-    [4, 5, 6],
+    [1, 1, 1],
+    [1, 1, 2],
+    [3, 4, 5],
+    [9, 10, 12],
+    [3, 3, 4],
   ];
   const xp = (stepXp[ch - 1] && stepXp[ch - 1][s - 1]) || 0;
   return { adena, soul, spirit, crystals, xp };

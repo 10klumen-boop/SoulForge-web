@@ -319,7 +319,7 @@ function grantAvatarXp(amount, opts) {
   renderAvatarHub();
   renderMenu();
   if (typeof refreshZoneStoryUnlocks === "function") refreshZoneStoryUnlocks();
-  if ($("#screen-avatar")?.classList.contains("active")) renderAvatarScreen();
+  if (typeof $ === "function" && $("#screen-avatar")?.classList.contains("active")) renderAvatarScreen();
   if (typeof renderAvatarSkillsPanel === "function") renderAvatarSkillsPanel();
 }
 
@@ -345,8 +345,8 @@ function onMineAvatarXp(golden) {
               ? farmZoneProgressChapter(zone)
               : zone.chapter || 1;
           return golden
-            ? Math.max(1, Math.round((8 + ch * 2) / 8))
-            : Math.max(1, Math.ceil((2 + ch) / 8));
+            ? Math.max(1, Math.round((8 + ch * 2) / 12))
+            : Math.max(1, Math.ceil((2 + ch) / 12));
         })();
   if (typeof passiveEffectMult === "function") {
     amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar));
