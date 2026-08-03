@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
 <title>SoulForge Lineage 2 — Enchant Sim</title>
 <link rel="icon" href="favicon.png?v=1" type="image/png" sizes="32x32" />
 <link rel="icon" href="favicon-48.png?v=1" type="image/png" sizes="48x48" />
@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles/main.css?v=m308" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d22" />
-<link rel="stylesheet" href="styles/sf-ui.css?v=52" />
+<link rel="stylesheet" href="styles/sf-ui.css?v=54" />
 <link rel="stylesheet" href="styles/banana-casino.css?v=16" />
 <script src="cloud-config.js"></script>
 
@@ -300,6 +300,10 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.60.21</p>
+        <ul>
+          <li><b>Создание персонажа (моб.)</b> — окно шире/выше на всех шагах; карточки класса и рас без обрезки текста; шаг имени при клавиатуре не сжимается в ноль.</li>
+        </ul>
         <p class="patch-ver">v0.60.15</p>
         <ul>
           <li><b>Охота</b> — XP с киллов в высоких hunting-зонах сильно вырос (от гейта зоны ≈220 киллов на уровень); сюжетные главы без изменений.</li>
@@ -1839,7 +1843,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=514"></script>
+<script src="src/01-constants.js?v=515"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
 <script src="src/02-state.js?v=54"></script>
 <script src="src/data/audio-data.js?v=3"></script>
