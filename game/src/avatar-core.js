@@ -327,7 +327,7 @@ function onEnchantAvatarXp(win, plus, behavior, broken) {
   if (!state.avatar?.created) return;
   if (win) {
     const risky = plus >= safeLevel();
-    grantAvatarXp((risky ? 2 : 1) + Math.min(1, plus || 0), { silent: true });
+    grantAvatarXp(risky ? 1 + Math.min(1, plus || 0) : 1, { silent: true });
   } else {
     grantAvatarXp(1, { silent: true });
   }
@@ -345,8 +345,8 @@ function onMineAvatarXp(golden) {
               ? farmZoneProgressChapter(zone)
               : zone.chapter || 1;
           return golden
-            ? Math.max(1, Math.round((8 + ch * 2) / 4))
-            : Math.max(1, Math.ceil((2 + ch) / 4));
+            ? Math.max(1, Math.round((8 + ch * 2) / 8))
+            : Math.max(1, Math.ceil((2 + ch) / 8));
         })();
   if (typeof passiveEffectMult === "function") {
     amt = Math.round(amt * passiveEffectMult("mineXpMult", state.avatar));

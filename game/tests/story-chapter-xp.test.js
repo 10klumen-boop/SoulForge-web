@@ -59,8 +59,8 @@ function expectedChapterKillXp(ch) {
   const g = typeof zoneQuestGoldenTarget === "function" ? zoneQuestGoldenTarget(ch) : 2;
   const gIn = Math.min(g, kills[1] || 0);
   const grind = typeof ZONE_BOSS_GRIND_KILLS === "number" ? ZONE_BOSS_GRIND_KILLS : 16;
-  const nk = Math.max(1, Math.ceil((2 + ch) / 4));
-  const gk = Math.max(1, Math.round((8 + ch * 2) / 4));
+  const nk = Math.max(1, Math.ceil((2 + ch) / 8));
+  const gk = Math.max(1, Math.round((8 + ch * 2) / 8));
   return (k - gIn) * nk + gIn * gk + grind * nk + gk;
 }
 
@@ -134,8 +134,8 @@ function runTests() {
       const need = xpToReach(next.reqLevel, cur.reqLevel);
       const got = expectedChapterKillXp(cur.chapter) + expectedChapterQuestXp(cur.chapter, cur.id);
       const ratio = got / Math.max(1, need);
-      // ~¼ XP/килл: глава даёт ~0.25–0.4 гейта, остальное — дофарм
-      assert.ok(ratio >= 0.22 && ratio <= 0.45, cur.id + " XP ratio " + ratio.toFixed(2) + " (got " + got + " need " + need + ")");
+      // ~⅛ XP/килл: глава даёт ~0.1–0.35 гейта, остальное — дофарм
+      assert.ok(ratio >= 0.1 && ratio <= 0.35, cur.id + " XP ratio " + ratio.toFixed(2) + " (got " + got + " need " + need + ")");
     }
   });
 

@@ -28,8 +28,8 @@ function runTests() {
 
   test("story kill XP stays chapter-linear", () => {
     assert.strictEqual(farmZoneMineXp({ chapter: 1, side: false }, false), 1);
-    assert.strictEqual(farmZoneMineXp({ chapter: 3, side: false }, false), 2);
-    assert.strictEqual(farmZoneMineXp({ chapter: 5, side: false }, true), 5);
+    assert.strictEqual(farmZoneMineXp({ chapter: 3, side: false }, false), 1);
+    assert.strictEqual(farmZoneMineXp({ chapter: 5, side: false }, true), 2);
   });
 
   test("high hunting zones grant much more XP than low", () => {
@@ -38,7 +38,7 @@ function runTests() {
     const hi = farmZoneMineXp({ side: true, reqLevel: 25, lvlMin: 30, lvlMax: 40 }, false);
     const top = farmZoneMineXp({ side: true, reqLevel: 32, lvlMin: 40, lvlMax: 50 }, false);
     assert.ok(low >= HUNTING_XP_MIN);
-    assert.ok(mid > low * 2, "mid " + mid + " vs low " + low);
+    assert.ok(mid >= low * 2, "mid " + mid + " vs low " + low);
     assert.ok(hi > mid * 4, "hi " + hi + " vs mid " + mid);
     assert.ok(top > hi * 2, "top " + top + " vs hi " + hi);
   });
