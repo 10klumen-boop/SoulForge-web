@@ -5,7 +5,7 @@
 // ===== Персонаж: логика и UI создания =====
 // Данные рас/классов (L2_CLASSES, L2_RACES, L2_RACE_CLASSES) вынесены в data/avatar-data.js.
 
-const AVATAR_MAX_LEVEL = 40;
+const AVATAR_MAX_LEVEL = 45;
 const AVATAR_XP_BASE = 100;
 
 function avatarArchetypeIcon(raceId, classId) {
