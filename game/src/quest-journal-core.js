@@ -30,14 +30,14 @@ function zoneQuestStepRewardDef(zoneId, step) {
   } else if (s === 2 && ch >= 4) {
     crystals.D = 1;
   }
-  // XP: киллы главы + эти награды ≈ XP до reqLevel следующей главы (±5–8%).
+  // XP шагов ~¼ базы; вместе с киллами ≈ 0.25–0.4 гейта — дофарм на поле.
   // Кривая: avatarXpToLevel = 100 * 1.32^(L-1). Гейты сюжета: 1→4→6→8→10.
   const stepXp = [
-    [10, 11, 13],
-    [11, 14, 17],
-    [38, 46, 54],
-    [105, 128, 150],
-    [30, 38, 46],
+    [3, 3, 4],
+    [3, 4, 5],
+    [10, 12, 14],
+    [27, 32, 38],
+    [8, 10, 12],
   ];
   const xp = (stepXp[ch - 1] && stepXp[ch - 1][s - 1]) || 0;
   return { adena, soul, spirit, crystals, xp };

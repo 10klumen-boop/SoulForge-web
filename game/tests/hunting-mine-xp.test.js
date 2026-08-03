@@ -27,9 +27,9 @@ function runTests() {
   console.log("\n--- hunting mine XP ---");
 
   test("story kill XP stays chapter-linear", () => {
-    assert.strictEqual(farmZoneMineXp({ chapter: 1, side: false }, false), 3);
-    assert.strictEqual(farmZoneMineXp({ chapter: 3, side: false }, false), 5);
-    assert.strictEqual(farmZoneMineXp({ chapter: 5, side: false }, true), 18);
+    assert.strictEqual(farmZoneMineXp({ chapter: 1, side: false }, false), 1);
+    assert.strictEqual(farmZoneMineXp({ chapter: 3, side: false }, false), 2);
+    assert.strictEqual(farmZoneMineXp({ chapter: 5, side: false }, true), 5);
   });
 
   test("high hunting zones grant much more XP than low", () => {
