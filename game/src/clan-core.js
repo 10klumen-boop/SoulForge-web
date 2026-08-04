@@ -246,9 +246,36 @@ async function clanCreate(name) {
 
 async function clanLeave() {
   if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  if (typeof clanMyRole === "function" && clanMyRole() === "leader") {
+    const clan = typeof getChatClan === "function" ? getChatClan() : null;
+    const n = (clan && clan.members && clan.members.length) || 0;
+    if (n > 1) {
+      return {
+        ok: false,
+        error: "leader",
+        message: "Лидер не может покинуть клан — сначала передайте лидерство",
+      };
+    }
+  }
   const r = await clanApi("/chat/clan/leave", { method: "POST", body: {} });
   if (r.ok && typeof chatSocial !== "undefined") {
     chatSocial = { party: r.party || chatSocial.party, clan: null };
+  }
+  return r;
+}
+
+async function clanTransferLeadership(charName) {
+  const raw = String(charName || "").trim();
+  if (raw.length < 2) {
+    return { ok: false, error: "name", message: "Укажи имя персонажа" };
+  }
+  if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  const r = await clanApi("/chat/clan/transfer", {
+    method: "POST",
+    body: { charName: raw },
+  });
+  if (r.ok && typeof chatSocial !== "undefined") {
+    chatSocial = { party: r.party || chatSocial.party, clan: r.clan || chatSocial.clan };
   }
   return r;
 }
@@ -358,6 +385,165 @@ async function clanReleaseTerritory(territoryId) {
   });
   if (r && r.ok && typeof applyClanTerritoryHolders === "function") {
     applyClanTerritoryHolders(r.holders || []);
+  }
+  return r;
+}
+
+async function clanPlaceSiegeBid(territoryId) {
+  if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  const r = await clanApi("/chat/clan/territories/siege-bid", {
+    method: "POST",
+    body: { territoryId },
+  });
+  if (r && r.ok && typeof applyClanTerritoryHolders === "function" && r.holders) {
+    applyClanTerritoryHolders(r.holders || []);
+  }
+  if (r && r.ok && r.warehouseAdena != null) {
+    clanWarehouseState = Object.assign({}, clanWarehouseState || {}, {
+      adena: r.warehouseAdena,
+    });
+  }
+  return r;
+}
+
+async function clanSiegeStatus(territoryId) {
+  if (!clanCloudReady()) return { ok: false };
+  return clanApi(
+    "/chat/clan/territories/siege-status?territoryId=" + encodeURIComponent(territoryId),
+    { method: "GET" }
+  );
+}
+
+async function clanResolveSieges(opts) {
+  if (!clanCloudReady()) return { ok: false };
+  opts = opts || {};
+  return clanApi("/chat/clan/territories/siege-resolve", {
+    method: "POST",
+    body: opts,
+  });
+}
+
+async function clanReportSiegeArenaResult(territoryId, matchId) {
+  if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  const body = { territoryId };
+  const mid = Math.floor(Number(matchId) || 0);
+  if (mid) body.matchId = mid;
+  const r = await clanApi("/chat/clan/territories/arena-result", {
+    method: "POST",
+    body,
+  });
+  if (r && r.ok && typeof applyClanTerritoryHolders === "function" && r.holders) {
+    applyClanTerritoryHolders(r.holders || []);
+  }
+  return r;
+}
+
+/** @type {object|null} */
+let clanSealsState = null;
+/** @type {object|null} */
+let clanLeaderboardState = null;
+
+async function clanRefreshSeals() {
+  if (!clanCloudReady() || !getChatClan()) {
+    clanSealsState = null;
+    return { ok: false };
+  }
+  try {
+    const r = await clanApi("/chat/clan/seals", { method: "GET" });
+    if (r && r.ok) clanSealsState = r;
+    return r || { ok: false };
+  } catch (_) {
+    return { ok: false, offline: true };
+  }
+}
+
+async function clanAccrueSeals(territoryId, hits) {
+  if (!clanCloudReady() || !getChatClan()) return { ok: false };
+  const r = await clanApi("/chat/clan/seals/accrue", {
+    method: "POST",
+    body: { territoryId, hits },
+  });
+  if (r && r.ok && clanSealsState) {
+    const list = (clanSealsState.seals || []).slice();
+    const i = list.findIndex((s) => s.territoryId === territoryId);
+    if (i >= 0) list[i] = Object.assign({}, list[i], { amount: r.amount });
+    else if (r.amount)
+      list.push({
+        territoryId,
+        amount: r.amount,
+        labelRu: territoryId,
+      });
+    clanSealsState = Object.assign({}, clanSealsState, { seals: list });
+  }
+  if (r && r.ok && r.gained > 0) {
+    if (typeof syncMineClanTerritoryHud === "function") syncMineClanTerritoryHud();
+    if (typeof toast === "function" && r.gained >= 5) {
+      toast("+" + r.gained + " печатей угодья", "info");
+    }
+  }
+  return r;
+}
+
+async function clanSpendSeals(territoryId, amount, purpose) {
+  if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  const r = await clanApi("/chat/clan/seals/spend", {
+    method: "POST",
+    body: { territoryId, amount, purpose: purpose || "banner" },
+  });
+  if (r && r.ok) await clanRefreshSeals();
+  return r;
+}
+
+async function clanRefreshLeaderboard() {
+  if (!clanCloudReady()) {
+    clanLeaderboardState = null;
+    return { ok: false };
+  }
+  try {
+    const r = await clanApi("/chat/clan/leaderboard?limit=100", { method: "GET" });
+    if (r && r.ok) clanLeaderboardState = r;
+    return r || { ok: false };
+  } catch (_) {
+    return { ok: false, offline: true };
+  }
+}
+
+/** @type {object|null} */
+let clanWeekTaskState = null;
+
+async function clanRefreshWeekTask() {
+  if (!clanCloudReady() || !getChatClan()) {
+    clanWeekTaskState = null;
+    return { ok: false };
+  }
+  try {
+    const r = await clanApi("/chat/clan/week-task", { method: "GET" });
+    if (r && r.ok) clanWeekTaskState = r;
+    return r || { ok: false };
+  } catch (_) {
+    return { ok: false, offline: true };
+  }
+}
+
+async function clanClaimWeekTask() {
+  if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  const r = await clanApi("/chat/clan/week-task/claim", { method: "POST", body: {} });
+  if (r && r.ok) {
+    if (r.task) clanWeekTaskState = r.task;
+    else await clanRefreshWeekTask();
+    if (typeof clanRefreshLeaderboard === "function") await clanRefreshLeaderboard();
+  }
+  return r;
+}
+
+async function clanSetAnnounce(text) {
+  if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  const r = await clanApi("/chat/clan/announce", {
+    method: "POST",
+    body: { text: text == null ? "" : String(text) },
+  });
+  if (r && r.ok && r.clan && typeof chatSocial !== "undefined") {
+    chatSocial.clan = r.clan;
   }
   return r;
 }
@@ -507,6 +693,8 @@ async function clanRefreshSocial() {
     await clanRefreshWarehouse();
     await clanRefreshBuffs();
     if (typeof clanRefreshBoss === "function") await clanRefreshBoss();
+    if (typeof clanRefreshSeals === "function") await clanRefreshSeals();
+    if (typeof clanResolveSieges === "function") clanResolveSieges({}).catch(() => {});
   } else {
     clanWarehouseState = null;
     clanBuffState = null;
@@ -527,8 +715,11 @@ async function clanHydrateWorldState(force) {
   try {
     await refreshClanInvites();
     await clanRefreshTerritories();
-    if (getChatClan()) await clanRefreshBuffs();
-    else clanBuffState = null;
+    if (getChatClan()) {
+      await clanRefreshBuffs();
+      await clanPollNotices();
+    } else clanBuffState = null;
+    clanWatchSiegeTimers();
     _clanHydrateAt = Date.now();
     if (typeof syncClanTileMeta === "function") syncClanTileMeta();
     if (typeof syncMineClanTerritoryHud === "function") syncMineClanTerritoryHud();
@@ -542,6 +733,95 @@ async function clanHydrateWorldState(force) {
   }
 }
 
+/** @type {number} */
+let clanNoticeCursor = 0;
+/** @type {Record<string, boolean>} */
+let _clanSiegeOpenSeen = Object.create(null);
+/** @type {Record<string, boolean>} */
+let _clanSiegeWarn15Seen = Object.create(null);
+
+async function clanPollNotices() {
+  if (!clanCloudReady() || !getChatClan()) return { ok: false };
+  try {
+    const r = await clanApi(
+      "/chat/clan/notices?after=" + encodeURIComponent(clanNoticeCursor),
+      { method: "GET" }
+    );
+    if (!r || !r.ok) return r || { ok: false };
+    const list = Array.isArray(r.notices) ? r.notices : [];
+    for (const n of list) {
+      if (n && n.message && typeof toast === "function") {
+        const kind =
+          n.kind === "lost" || n.kind === "release" ? "warn" : "info";
+        toast(n.message, kind);
+      }
+    }
+    if (r.lastId != null) clanNoticeCursor = Math.max(clanNoticeCursor, Number(r.lastId) || 0);
+    return r;
+  } catch (_) {
+    return { ok: false };
+  }
+}
+
+/** Тосты: окно осады открылось / через ~15 мин. */
+function clanWatchSiegeTimers() {
+  if (typeof CLAN_TERRITORIES === "undefined" || !CLAN_TERRITORIES) return;
+  if (typeof clanSiegeWindowForTerritory !== "function") return;
+  const now = Date.now();
+  const me = typeof clanMyClanRef === "function" ? clanMyClanRef() : null;
+  const myId = me ? String(me.clanId || "") : "";
+  (CLAN_TERRITORIES || []).forEach((t) => {
+    if (!t || !clanTerritoryIsEliteWar(t)) return;
+    const win = clanSiegeWindowForTerritory(t, now);
+    if (!win) return;
+    const key = t.id + ":" + win.startAt;
+    const holder =
+      typeof clanTerritoryHolder === "function" ? clanTerritoryHolder(t.id) : null;
+    const relevant =
+      !myId ||
+      (holder && String(holder.clanId) === myId) ||
+      !holder;
+
+    if (win.open) {
+      if (!_clanSiegeOpenSeen[key] && relevant) {
+        _clanSiegeOpenSeen[key] = true;
+        if (typeof toast === "function") {
+          toast(
+            "Осада открыта: " + (t.labelRu || t.id) + " · заявки",
+            "info"
+          );
+        }
+      }
+    } else {
+      const left = win.startAt - now;
+      if (left > 0 && left <= 15 * 60 * 1000 && !_clanSiegeWarn15Seen[key] && relevant) {
+        _clanSiegeWarn15Seen[key] = true;
+        if (typeof toast === "function") {
+          toast(
+            "Осада через " +
+              (typeof clanFormatRemainRu === "function"
+                ? clanFormatRemainRu(left)
+                : "15 мин") +
+              ": " +
+              (t.labelRu || t.id),
+            "info"
+          );
+        }
+      }
+    }
+  });
+}
+
+async function clanTerritoryHistory(territoryId) {
+  if (!clanCloudReady()) return { ok: false };
+  return clanApi(
+    "/chat/clan/territories/history?territoryId=" +
+      encodeURIComponent(territoryId) +
+      "&limit=12",
+    { method: "GET" }
+  );
+}
+
 function startClanPanelPoll() {
   if (clanPollTimer) return;
   clanPollTimer = setInterval(() => {
@@ -549,7 +829,9 @@ function startClanPanelPoll() {
     const groundsOn = document.getElementById("screen-clan-grounds")?.classList.contains("active");
     const whOn = document.getElementById("screen-clan-warehouse")?.classList.contains("active");
     const buffsOn = document.getElementById("screen-clan-buffs")?.classList.contains("active");
-    if ((!clanOn && !groundsOn && !whOn && !buffsOn) || !clanCloudReady()) return;
+    const raidOn = document.getElementById("screen-clan-raid")?.classList.contains("active");
+    const rankOn = document.getElementById("screen-clan-rank")?.classList.contains("active");
+    if ((!clanOn && !groundsOn && !whOn && !buffsOn && !raidOn && !rankOn) || !clanCloudReady()) return;
     clanRefreshSocial().then(() => {
       if (typeof applyClanScreenLiveRefresh === "function") applyClanScreenLiveRefresh();
       else if (typeof renderClanScreen === "function") renderClanScreen();

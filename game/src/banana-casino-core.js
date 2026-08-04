@@ -315,6 +315,13 @@ function resolveCasinoPull(rng) {
 
   const label = res.ok ? res.text : loot.label + " (" + (res.text || "fail") + ")";
 
+  if (res.ok && isJackpot && typeof announceWorldEvent === "function") {
+    announceWorldEvent("casino_jackpot", {
+      itemName: res.text || loot.label || "Талисман Банана",
+      collectibleId: loot.collectibleId || (typeof BANANA_CASINO !== "undefined" ? BANANA_CASINO.charmId : null),
+    });
+  }
+
   return { loot, res, tier, label };
 }
 

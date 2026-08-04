@@ -18,6 +18,9 @@ function openClanScreen() {
     if (typeof clanRefreshWarehouse === "function") clanRefreshWarehouse().then(refreshHub);
     if (typeof clanRefreshBuffs === "function") clanRefreshBuffs().then(refreshHub);
     if (typeof clanRefreshBoss === "function") clanRefreshBoss().then(refreshHub);
+    if (typeof clanRefreshSeals === "function") clanRefreshSeals().then(refreshHub);
+    if (typeof clanRefreshWeekTask === "function") clanRefreshWeekTask().then(refreshHub);
+    if (typeof clanRefreshLeaderboard === "function") clanRefreshLeaderboard().then(refreshHub);
   }
   startClanPanelPoll();
 }
@@ -42,9 +45,11 @@ function roleRu(role) {
 }
 
 function roleRuHint(role) {
-  if (role === "leader") return "полное управление · назначает офицеров";
-  if (role === "officer") return "приглашения · захват · склад · отбитие";
-  return "взносы · фарм бонус";
+  if (role === "leader")
+    return "всё · офицеры · передача лидерства · роспуск";
+  if (role === "officer")
+    return "приглашения · захват/отбитие · осада · баффы · печати · склад (взнос)";
+  return "взносы · фарм на своём узле · печати · рейд";
 }
 
 function clanEscHtml(s) {
@@ -177,6 +182,10 @@ function renderClanRosterCard(clan) {
       const initial = String(displayName).trim().charAt(0).toUpperCase() || "?";
       let roleActs = "";
       if (canRoles && !isLeader && !isMe) {
+        roleActs +=
+          '<button type="button" class="clan-role-act is-leader-transfer" data-clan-transfer="' +
+          clanEscHtml(displayName) +
+          '" title="Сделать лидером">Лидерство</button>';
         if (isOfficer) {
           roleActs +=
             '<button type="button" class="clan-role-act" data-clan-role="member" data-clan-role-name="' +
@@ -273,11 +282,54 @@ function renderClanRosterCard(clan) {
     (slots || '<li class="clan-member-empty">Пока никого нет</li>') +
     "</ul>" +
     (canRoles
-      ? '<p class="party-panel-hint">Лидер: «Офицер» / «Участник» у игрока (макс. 5 офицеров).</p>'
+      ? '<p class="party-panel-hint">Лидер: «Лидерство» / «Офицер» / «Участник». Уйти можно только после передачи лидерства (или если вы один в клане).</p>'
       : "") +
     '<div class="party-panel-actions">' +
-    '<button type="button" class="party-panel-btn ghost" id="clanLeaveBtn">Покинуть клан</button>' +
+    (role === "leader" && members.length > 1
+      ? '<button type="button" class="party-panel-btn ghost" id="clanLeaveBtn" disabled title="Сначала передайте лидерство">Покинуть клан</button>' +
+        '<p class="party-panel-hint">Чтобы уйти — передайте лидерство кнопкой у участника.</p>'
+      : '<button type="button" class="party-panel-btn ghost" id="clanLeaveBtn">' +
+        (role === "leader" ? "Распустить клан" : "Покинуть клан") +
+        "</button>") +
     "</div></div>"
+  );
+}
+
+function renderClanWeekTaskCard() {
+  const t =
+    typeof clanWeekTaskState !== "undefined" && clanWeekTaskState ? clanWeekTaskState : null;
+  if (!t || !t.ok) {
+    return (
+      '<div class="clan-week-task">' +
+      "<strong>Неделя клана</strong>" +
+      '<p class="party-panel-hint">Фармьте печати на своих угодьях — задание подтянется из облака.</p>' +
+      "</div>"
+    );
+  }
+  const seals = t.seals || 0;
+  const target = t.target || 40;
+  const pct = Math.min(100, Math.floor((seals / target) * 100));
+  const role = typeof clanMyRole === "function" ? clanMyRole() : null;
+  const canClaim = (role === "leader" || role === "officer") && t.ready && !t.claimed;
+  return (
+    '<div class="clan-week-task">' +
+    "<strong>" +
+    clanEscHtml(t.labelRu || "Неделя клана") +
+    "</strong>" +
+    '<div class="clan-week-task-bar"><span style="width:' +
+    pct +
+    '%"></span></div>' +
+    "<small>" +
+    seals +
+    " / " +
+    target +
+    " печатей" +
+    (t.claimed ? " · награда получена" : t.ready ? " · можно забрать +" + (t.rewardPts || 25) : "") +
+    "</small>" +
+    (canClaim
+      ? '<button type="button" class="party-panel-btn party-inst-primary" id="clanWeekTaskClaimBtn">Забрать награду</button>'
+      : "") +
+    "</div>"
   );
 }
 
@@ -322,12 +374,27 @@ function renderClanHubNav() {
       : raidSt && raidSt.locked
         ? "лимит недели"
         : boss?.labelRu || boss?.name || "Хранитель Клятвы";
+  const rankEntries =
+    typeof clanLeaderboardState !== "undefined" && clanLeaderboardState && clanLeaderboardState.entries
+      ? clanLeaderboardState.entries
+      : [];
+  const meClan = clan ? String(clan.id || "") : "";
+  const myRank = meClan
+    ? rankEntries.find((e) => String(e.clanId) === meClan)
+    : null;
+  const rankMeta = !clanCloudReady()
+    ? "нужно облако"
+    : myRank
+      ? "#" + myRank.rank + " · " + (typeof fmt === "function" ? fmt(myRank.points) : myRank.points) + " очк."
+      : rankEntries.length
+        ? "топ " + rankEntries.length + " кланов"
+        : "владение · осады · рейды";
 
   return (
-    '<div class="clan-hub-nav clan-hub-nav--4">' +
+    '<div class="clan-hub-nav clan-hub-nav--5">' +
     '<div class="clan-hub-nav-head">' +
     "<strong>Разделы клана</strong>" +
-    '<p class="party-panel-hint">Угодья, склад, баффы и рейд — отдельные экраны.</p>' +
+    '<p class="party-panel-hint">Угодья, склад, баффы, рейд и рейтинг — отдельные экраны.</p>' +
     "</div>" +
     (clan
       ? '<div class="clan-hub-glance">' +
@@ -368,6 +435,39 @@ function renderClanHubNav() {
     "<b>Рейд клана</b><small>" +
     clanEscHtml(raidMeta) +
     '</small><span class="clan-hub-nav-go" aria-hidden="true">›</span></button>' +
+    '<button type="button" class="clan-hub-nav-btn clan-hub-nav-btn--rank" data-clan-open="rank">' +
+    '<span class="clan-hub-nav-veil" aria-hidden="true"></span>' +
+    "<b>Рейтинг</b><small>" +
+    clanEscHtml(rankMeta) +
+    '</small><span class="clan-hub-nav-go" aria-hidden="true">›</span></button>' +
+    (clan ? '<div class="clan-hub-extra">' + renderClanWeekTaskCard() + renderClanSealsCard() + "</div>" : "") +
+    "</div>"
+  );
+}
+
+function renderClanSealsCard() {
+  const seals =
+    typeof clanSealsState !== "undefined" && clanSealsState && clanSealsState.seals
+      ? clanSealsState.seals
+      : [];
+  const lines = seals
+    .map((s) => {
+      return (
+        "<li><b>" +
+        clanEscHtml(s.labelRu || s.territoryId) +
+        "</b> · " +
+        s.amount +
+        ' <button type="button" class="party-panel-btn ghost" data-clan-seal-spend="' +
+        clanEscHtml(s.territoryId) +
+        '" data-amount="10">×10 в знамя</button></li>'
+      );
+    })
+    .join("");
+  return (
+    '<div class="clan-seals-card">' +
+    "<strong>Печати угодий</strong>" +
+    '<p class="party-panel-hint">Фарм на своём узле копит печати. Вложи в знамя — XP и рейтинг клана.</p>' +
+    (lines ? "<ul>" + lines + "</ul>" : '<p class="party-panel-hint">Пока нет — держи угодье и фарми online.</p>') +
     "</div>"
   );
 }
@@ -415,6 +515,127 @@ function openClanRaidScreen() {
   renderClanRaidScreen();
   if (typeof clanRefreshBoss === "function") clanRefreshBoss().then(() => renderClanRaidScreen());
   startClanPanelPoll();
+}
+
+function openClanRankScreen() {
+  if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
+  else if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+  clanRightTab = "rank";
+  if (typeof show === "function") show("clan-rank");
+  renderClanRankScreen();
+  if (typeof clanRefreshLeaderboard === "function") {
+    clanRefreshLeaderboard().then(() => renderClanRankScreen());
+  }
+  startClanPanelPoll();
+}
+
+function renderClanRankCard() {
+  const entries =
+    typeof clanLeaderboardState !== "undefined" && clanLeaderboardState && clanLeaderboardState.entries
+      ? clanLeaderboardState.entries
+      : [];
+  const mine =
+    typeof clanLeaderboardState !== "undefined" && clanLeaderboardState
+      ? clanLeaderboardState.mine
+      : null;
+  const legend =
+    (typeof clanLeaderboardState !== "undefined" &&
+      clanLeaderboardState &&
+      clanLeaderboardState.legend) ||
+    {};
+  const me = typeof getChatClan === "function" ? getChatClan() : null;
+  const meId = me ? String(me.id || "") : "";
+  const rows = entries
+    .map((e) => {
+      const mineRow = meId && String(e.clanId) === meId;
+      return (
+        '<tr class="clan-rank-row' +
+        (mineRow ? " is-mine" : "") +
+        '">' +
+        '<td class="clan-rank-col-pos">#' +
+        e.rank +
+        "</td>" +
+        '<td class="clan-rank-col-name">' +
+        clanEscHtml(e.clanName || "?") +
+        (mineRow ? ' <span class="clan-rank-you">вы</span>' : "") +
+        "</td>" +
+        '<td class="clan-rank-col-pts">' +
+        (typeof fmt === "function" ? fmt(e.points) : e.points) +
+        "</td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+
+  let breakHtml = "";
+  if (mine && mine.breakdown) {
+    const labels = mine.legend || {};
+    const parts = Object.keys(mine.breakdown)
+      .filter((k) => mine.breakdown[k] > 0)
+      .map(
+        (k) =>
+          "<li>" +
+          clanEscHtml(labels[k] || k) +
+          ": +" +
+          (typeof fmt === "function" ? fmt(mine.breakdown[k]) : mine.breakdown[k]) +
+          "</li>"
+      );
+    if (parts.length) {
+      breakHtml =
+        '<div class="clan-rank-mine"><strong>Ваш вклад</strong><ul>' +
+        parts.join("") +
+        "</ul></div>";
+    }
+  }
+  const legendBits = Object.keys(legend)
+    .map((k) => clanEscHtml(legend[k]))
+    .filter(Boolean);
+  return (
+    '<div class="clan-rank-screen">' +
+    '<div class="clan-rank-toolbar">' +
+    '<p class="party-panel-hint">' +
+    (legendBits.length
+      ? legendBits.join(" · ")
+      : "Очки за владение, захваты, осады и задания. До 100 позиций.") +
+    "</p>" +
+    '<button type="button" class="party-panel-btn ghost" id="clanRefreshRankBtn">Обновить</button>' +
+    "</div>" +
+    breakHtml +
+    (rows
+      ? '<div class="clan-rank-table-wrap sf-scroll">' +
+        '<table class="clan-rank-table">' +
+        "<thead><tr><th>#</th><th>Клан</th><th>Очки</th></tr></thead>" +
+        "<tbody>" +
+        rows +
+        "</tbody></table></div>"
+      : '<p class="party-panel-hint">Пока пусто — захватывайте угодья и побеждайте в осадах.</p>') +
+    "</div>"
+  );
+}
+
+function renderClanRankScreen() {
+  const el = document.getElementById("clanRankScreenBody");
+  if (!el) return;
+  bindClanSubBackButtons();
+  if (!clanCloudReady()) {
+    el.innerHTML = clanSubShellHtml('<p class="party-panel-hint">Нужен вход в облако.</p>');
+    return;
+  }
+  el.innerHTML = clanSubShellHtml(renderClanRankCard());
+  wireClanRankActions(el);
+}
+
+function wireClanRankActions(root) {
+  const box = root || document;
+  const rankBtn = box.querySelector("#clanRefreshRankBtn");
+  if (rankBtn) {
+    rankBtn.onclick = async () => {
+      rankBtn.disabled = true;
+      if (typeof clanRefreshLeaderboard === "function") await clanRefreshLeaderboard();
+      rankBtn.disabled = false;
+      renderClanRankScreen();
+    };
+  }
 }
 
 /** Единая оболочка подэкранов — та же ширина/карточка, что у хаба. */
@@ -483,6 +704,7 @@ function bindClanSubBackButtons() {
     ["clanWarehouseBackBtn", openClanScreen],
     ["clanBuffsBackBtn", openClanScreen],
     ["clanRaidBackBtn", openClanScreen],
+    ["clanRankBackBtn", openClanScreen],
   ];
   pairs.forEach(([id, fn]) => {
     const btn = document.getElementById(id);
@@ -1211,7 +1433,8 @@ function applyClanScreenLiveRefresh() {
   const whOn = document.getElementById("screen-clan-warehouse")?.classList.contains("active");
   const buffsOn = document.getElementById("screen-clan-buffs")?.classList.contains("active");
   const raidOn = document.getElementById("screen-clan-raid")?.classList.contains("active");
-  if (!clanOn && !groundsOn && !whOn && !buffsOn && !raidOn) return;
+  const rankOn = document.getElementById("screen-clan-rank")?.classList.contains("active");
+  if (!clanOn && !groundsOn && !whOn && !buffsOn && !raidOn && !rankOn) return;
   const typing =
     document.activeElement &&
     (document.activeElement.id === "clanCreateName" ||
@@ -1231,6 +1454,7 @@ function applyClanScreenLiveRefresh() {
   else if (whOn) renderClanWarehouseScreen();
   else if (buffsOn) renderClanBuffsScreen();
   else if (raidOn) renderClanRaidScreen();
+  else if (rankOn) renderClanRankScreen();
   else renderClanScreen();
 }
 
@@ -1304,19 +1528,48 @@ function wireClanScreenActions(root) {
   }
 
   const leaveBtn = root.querySelector("#clanLeaveBtn");
-  if (leaveBtn) {
+  if (leaveBtn && !leaveBtn.disabled) {
     leaveBtn.onclick = async () => {
+      const isLeaderAlone =
+        typeof clanMyRole === "function" &&
+        clanMyRole() === "leader" &&
+        ((typeof getChatClan === "function" && getChatClan()?.members?.length) || 0) <= 1;
+      if (isLeaderAlone) {
+        const ok = window.confirm("Вы единственный в клане. Покинуть = распустить клан?");
+        if (!ok) return;
+      }
       const r = await clanLeave();
       if (!r.ok) {
         clanSetStatus(r.message || r.error || "Ошибка", "warn");
         renderClanScreen();
         return;
       }
-      clanSetStatus("Вы покинули клан");
+      clanSetStatus(isLeaderAlone ? "Клан распущен" : "Вы покинули клан");
       if (typeof syncChatComposeUi === "function") syncChatComposeUi();
       renderClanScreen();
     };
   }
+
+  root.querySelectorAll("[data-clan-transfer]").forEach((el) => {
+    el.onclick = async () => {
+      const name = el.getAttribute("data-clan-transfer");
+      const ok = window.confirm("Передать лидерство игроку «" + name + "»? Вы станете офицером.");
+      if (!ok) return;
+      el.disabled = true;
+      const r =
+        typeof clanTransferLeadership === "function"
+          ? await clanTransferLeadership(name)
+          : { ok: false, message: "Нет API" };
+      el.disabled = false;
+      if (!r.ok) {
+        clanSetStatus(r.message || r.error || "Не удалось передать лидерство", "warn");
+        renderClanScreen();
+        return;
+      }
+      clanSetStatus(r.message || "Лидерство передано");
+      renderClanScreen();
+    };
+  });
 
   root.querySelectorAll("[data-clan-kick]").forEach((el) => {
     el.onclick = async () => {
@@ -1358,8 +1611,40 @@ function wireClanScreenActions(root) {
       else if (which === "warehouse") openClanWarehouseScreen();
       else if (which === "buffs") openClanBuffsScreen();
       else if (which === "raid") openClanRaidScreen();
+      else if (which === "rank") openClanRankScreen();
     };
   });
+
+  root.querySelectorAll("[data-clan-seal-spend]").forEach((btn) => {
+    btn.onclick = async () => {
+      const tid = btn.getAttribute("data-clan-seal-spend");
+      const amount = Math.max(1, Math.floor(Number(btn.getAttribute("data-amount")) || 10));
+      btn.disabled = true;
+      const r =
+        typeof clanSpendSeals === "function"
+          ? await clanSpendSeals(tid, amount, "banner")
+          : { ok: false, message: "Нет API" };
+      btn.disabled = false;
+      clanSetStatus(r.message || (r.ok ? "Печати вложены" : "Ошибка"), r.ok ? "" : "warn");
+      if (typeof clanRefreshLeaderboard === "function") await clanRefreshLeaderboard();
+      renderClanScreen();
+    };
+  });
+
+  const weekBtn = root.querySelector("#clanWeekTaskClaimBtn");
+  if (weekBtn) {
+    weekBtn.onclick = async () => {
+      weekBtn.disabled = true;
+      const r =
+        typeof clanClaimWeekTask === "function"
+          ? await clanClaimWeekTask()
+          : { ok: false, message: "Нет API" };
+      weekBtn.disabled = false;
+      clanSetStatus(r.message || (r.ok ? "Награда получена" : "Ошибка"), r.ok ? "" : "warn");
+      if (typeof toast === "function" && r.ok) toast(r.message || "Неделя засчитана", "success");
+      renderClanScreen();
+    };
+  }
 
   const promptBtn = root.querySelector("#clanInvitePromptBtn");
   if (promptBtn) {

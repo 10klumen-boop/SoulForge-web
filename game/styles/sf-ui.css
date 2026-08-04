@@ -446,6 +446,89 @@
   box-sizing: border-box !important;
 }
 
+/* Монумент героев (Olympiad) на пирсе экрана входа — правее панели, клик → рейтинг */
+.login-olympiad {
+  position: fixed;
+  z-index: 4;
+  left: auto;
+  right: clamp(3vw, 8vw, 140px);
+  bottom: clamp(5vh, 8vh, 96px);
+  width: clamp(88px, 11vw, 148px);
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: var(--cursor-l2, pointer);
+  filter:
+    drop-shadow(0 10px 18px rgba(0, 0, 0, 0.72))
+    drop-shadow(0 0 12px rgba(201, 168, 90, 0.22));
+  transition: transform 0.18s ease, filter 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.login-olympiad:hover,
+.login-olympiad:focus-visible {
+  transform: translateY(-4px) scale(1.04);
+  filter:
+    drop-shadow(0 14px 22px rgba(0, 0, 0, 0.78))
+    drop-shadow(0 0 20px rgba(230, 190, 100, 0.5))
+    brightness(1.08);
+  outline: none;
+}
+.login-olympiad:active {
+  transform: translateY(-1px) scale(1.01);
+}
+.login-olympiad-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  image-rendering: auto;
+}
+.login-olympiad-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+  padding: 5px 10px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 168, 106, 0.45);
+  background: linear-gradient(180deg, rgba(28, 20, 12, 0.94), rgba(10, 8, 5, 0.96));
+  color: #f0e2c0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.login-olympiad:hover .login-olympiad-tip,
+.login-olympiad:focus-visible .login-olympiad-tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#screen-login:not(.active) .login-olympiad {
+  display: none;
+}
+@media (max-width: 720px) {
+  .login-olympiad {
+    right: 3vw;
+    bottom: 12vh;
+    width: clamp(56px, 15vw, 84px);
+  }
+  .login-olympiad-tip { font-size: 11px; }
+}
+@media (max-width: 520px) {
+  .login-olympiad {
+    right: 2vw;
+    bottom: 16vh;
+    width: 52px;
+  }
+}
+
 .l2-login-btn,
 .login-corner-btn,
 .login-settings-btn,
@@ -468,6 +551,14 @@
   line-height: 1.15 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   transition: filter 0.12s ease, transform 0.12s ease, color 0.12s ease;
+}
+.login-dev-skip[hidden],
+.login-corner-btn[hidden],
+.login-settings-btn[hidden],
+.home-nav-btn[hidden],
+.home-login-link[hidden],
+.l2-login-btn[hidden] {
+  display: none !important;
 }
 .l2-login-btn {
   width: 100%;

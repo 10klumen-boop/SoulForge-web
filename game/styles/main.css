@@ -598,6 +598,25 @@
   .game-chat-line.ch-party { border-left-color: #6a9bc9; }
   .game-chat-line.ch-clan { border-left-color: #c96a8a; }
   .game-chat-line.ch-whisper { border-left-color: #9b6ac9; }
+  .game-chat-line.is-announce {
+    border-left-color: #e8b84a;
+    background: linear-gradient(90deg, rgba(180, 120, 30, 0.22), rgba(40, 28, 12, 0.35));
+  }
+  .game-chat-line.is-announce .game-chat-who.is-system {
+    color: #ffd978;
+    cursor: default;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .game-chat-line.is-announce .game-chat-who.is-system:hover {
+    color: #ffd978;
+    text-decoration: none;
+  }
+  .game-chat-line.is-announce .game-chat-body-text {
+    color: #ffe7a8;
+    font-weight: 600;
+  }
   .game-chat-line.is-mine {
     background: rgba(201, 168, 106, 0.14);
     border-left-color: var(--gold-soft);
@@ -1481,6 +1500,7 @@
   .app > .card:has(#screen-clan-warehouse.active),
   .app > .card:has(#screen-clan-buffs.active),
   .app > .card:has(#screen-clan-raid.active),
+  .app > .card:has(#screen-clan-rank.active),
   .app > .card:has(#screen-banana-casino.active),
   .app.sub-screen > .card {
     flex: 1;
@@ -1509,6 +1529,7 @@
   .app:has(#screen-clan-warehouse.active),
   .app:has(#screen-clan-buffs.active),
   .app:has(#screen-clan-raid.active),
+  .app:has(#screen-clan-rank.active),
   .app:has(#screen-glossary.active),
   .app:has(#screen-banana-casino.active) { overflow: hidden; }
   .screen { display: none; }
@@ -1567,6 +1588,8 @@
   #screen-clan-buffs.is-leaving,
   #screen-clan-raid.active,
   #screen-clan-raid.is-leaving,
+  #screen-clan-rank.active,
+  #screen-clan-rank.is-leaving,
   #screen-glossary.active,
   #screen-glossary.is-leaving,
   #screen-banana-casino.active,
@@ -1601,6 +1624,8 @@
   #screen-clan-buffs .sf-screen-hero,
   #screen-clan-raid .panel-head,
   #screen-clan-raid .sf-screen-hero,
+  #screen-clan-rank .panel-head,
+  #screen-clan-rank .sf-screen-hero,
   #screen-glossary .panel-head,
   #screen-glossary .sf-screen-hero,
   #screen-glossary .glossary-toolbar,
@@ -1609,7 +1634,8 @@
   #screen-clan .sf-screen-hero,
   #screen-clan-grounds .sf-screen-hero,
   #screen-clan-warehouse .sf-screen-hero,
-  #screen-clan-raid .sf-screen-hero {
+  #screen-clan-raid .sf-screen-hero,
+  #screen-clan-rank .sf-screen-hero {
     margin: 0 6px 10px;
     min-height: 110px;
   }
@@ -1674,6 +1700,7 @@
   #screen-clan-warehouse .clan-sub-screen-body,
   #screen-clan-buffs .clan-sub-screen-body,
   #screen-clan-raid .clan-sub-screen-body,
+  #screen-clan-rank .clan-sub-screen-body,
   #screen-banana-casino .banana-casino-body {
     flex: 1;
     min-height: 0;
@@ -13178,7 +13205,11 @@
 .clan-hub-nav-btn--raid {
   background-image: var(--sf-card-clan-raid);
 }
-.clan-hub-nav--4 .clan-hub-nav-btn {
+.clan-hub-nav-btn--rank {
+  background-image: var(--sf-card-clan-grounds, var(--sf-card-clan-raid));
+}
+.clan-hub-nav--4 .clan-hub-nav-btn,
+.clan-hub-nav--5 .clan-hub-nav-btn {
   flex: 0 0 auto;
   min-height: 72px;
 }
@@ -14624,6 +14655,116 @@
   border-color: rgba(160, 150, 130, 0.35);
   color: #b8ae98 !important;
 }
+
+.clan-hub-extra {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+.clan-rank-card,
+.clan-seals-card {
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  background: rgba(0, 0, 0, 0.28);
+}
+.clan-rank-card strong,
+.clan-seals-card strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #e8d5a8;
+  font-size: 13px;
+}
+.clan-rank-list {
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+  font-size: 12px;
+  color: #c8b896;
+}
+.clan-rank-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+.clan-rank-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.clan-rank-toolbar .party-panel-hint {
+  margin: 0;
+  flex: 1;
+}
+.clan-rank-table-wrap {
+  max-height: min(62vh, 520px);
+  overflow: auto;
+  border: 1px solid rgba(201, 168, 106, 0.22);
+  background: rgba(0, 0, 0, 0.22);
+}
+.clan-rank-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.clan-rank-table th,
+.clan-rank-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(201, 168, 106, 0.12);
+}
+.clan-rank-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(18, 14, 10, 0.95);
+  color: #d8c49a;
+  font-weight: 700;
+  z-index: 1;
+}
+.clan-rank-col-pos {
+  width: 52px;
+  color: #c9a86a;
+  font-variant-numeric: tabular-nums;
+}
+.clan-rank-col-pts {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  color: #e8d5a8;
+  white-space: nowrap;
+}
+.clan-rank-row.is-mine {
+  background: rgba(80, 110, 50, 0.22);
+}
+.clan-rank-you {
+  margin-left: 6px;
+  font-size: 11px;
+  color: #b8e0a8;
+  font-weight: 700;
+}
+.sf-screen-hero--clan-rank {
+  background-image: var(--sf-card-clan-grounds, none);
+  background-size: cover;
+  background-position: center;
+}
+.clan-seals-card ul {
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: 12px;
+  color: #c8b896;
+}
+.clan-grounds-tile-flag.elite {
+  background: rgba(140, 60, 40, 0.75);
+}
+.clan-grounds-tile-flag.flagship {
+  background: rgba(120, 40, 90, 0.8);
+}
+.clan-map-pin.is-elite {
+  box-shadow: 0 0 0 2px rgba(180, 80, 40, 0.55);
+}
+.clan-map-pin.is-flagship {
+  box-shadow: 0 0 0 2px rgba(180, 60, 140, 0.65);
+}
+
 .hunting-cta-modal p { margin: 8px 0; line-height: 1.45; }
 
 /* Clan grounds: city → hunting list (no map) */
@@ -15080,6 +15221,99 @@
   margin: 8px 0 0;
   font-size: 11px;
   line-height: 1.35;
+  color: var(--txt-dim);
+}
+.clan-grounds-status {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 168, 106, 0.35);
+  background: rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.clan-grounds-status b {
+  font-size: 12px;
+  color: #e8d5a8;
+}
+.clan-grounds-status small {
+  font-size: 11px;
+  color: var(--txt-dim);
+}
+.clan-grounds-status.is-siege_open {
+  border-color: rgba(200, 90, 70, 0.55);
+  background: rgba(60, 20, 16, 0.45);
+}
+.clan-grounds-status.is-mine {
+  border-color: rgba(120, 180, 100, 0.45);
+}
+.clan-grounds-siege-live,
+.clan-grounds-siege-panel {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--txt-dim);
+}
+.clan-grounds-siege-panel ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+.clan-grounds-history {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--txt-dim);
+}
+.clan-grounds-history ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+.clan-announce-card,
+.clan-week-task {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 106, 0.28);
+  background: rgba(0, 0, 0, 0.22);
+}
+.clan-announce-text {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e6d7b0;
+}
+.clan-announce-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.clan-announce-edit input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.clan-week-task-bar {
+  margin: 8px 0 4px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.clan-week-task-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #8a6a2e, #c9a86a);
+}
+.clan-rank-mine {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(120, 180, 100, 0.3);
+  background: rgba(30, 50, 28, 0.35);
+  font-size: 12px;
+}
+.clan-rank-mine ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
   color: var(--txt-dim);
 }
 .clan-grounds .party-panel-actions {

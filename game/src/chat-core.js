@@ -243,26 +243,37 @@ function appendChatMessage(msg, opts) {
     chatKnownIdsByChannel[channel] = new Set([...known].slice(-200));
   }
 
+  const isAnnounce = msg.msgType === "announce" || msg.msg_type === "announce";
   const row = document.createElement("div");
-  const mine = !!(msg.nick && msg.nick === chatMyNick());
-  row.className = "game-chat-line ch-" + channel + (mine ? " is-mine" : "");
+  const mine = !isAnnounce && !!(msg.nick && msg.nick === chatMyNick());
+  row.className =
+    "game-chat-line ch-" +
+    channel +
+    (mine ? " is-mine" : "") +
+    (isAnnounce ? " is-announce" : "");
   row.dataset.id = String(msg.id);
 
   const meta = document.createElement("div");
   meta.className = "game-chat-meta";
   const who = document.createElement("button");
   who.type = "button";
-  who.className = "game-chat-who";
-  const display = msg.charName || msg.nick || "?";
-  who.textContent = display;
-  who.title = msg.nick ? "ЛС → " + msg.nick : display;
-  who.addEventListener("click", () => {
-    if (!msg.nick || msg.nick === chatMyNick()) return;
-    setChatWhisperTarget(msg.nick);
-    setChatChannel("whisper");
-  });
+  who.className = "game-chat-who" + (isAnnounce ? " is-system" : "");
+  if (isAnnounce) {
+    who.textContent = "★ Мир";
+    who.title = "Мировое оповещение";
+    who.disabled = true;
+  } else {
+    const display = msg.charName || msg.nick || "?";
+    who.textContent = display;
+    who.title = msg.nick ? "ЛС → " + msg.nick : display;
+    who.addEventListener("click", () => {
+      if (!msg.nick || msg.nick === chatMyNick()) return;
+      setChatWhisperTarget(msg.nick);
+      setChatChannel("whisper");
+    });
+  }
 
-  if (channel === "whisper") {
+  if (!isAnnounce && channel === "whisper") {
     const me = chatMyNick();
     const arrow = document.createElement("span");
     arrow.className = "game-chat-whisper-dir";
@@ -294,6 +305,42 @@ function appendChatMessage(msg, opts) {
   }
 
   if (opts?.scroll !== false) scrollChatFeedToEnd();
+}
+
+/**
+ * Мировое оповещение о редком событии (нужен cloud-логин).
+ * Текст собирает сервер; fire-and-forget.
+ * @param {"enchant_high"|"banan_zaken"|"banan_adena"|"casino_jackpot"} type
+ * @param {object} [payload]
+ */
+function announceWorldEvent(type, payload) {
+  if (!chatCanUse()) return { ok: false, skipped: "auth" };
+  const t = String(type || "").trim();
+  if (!t) return { ok: false, skipped: "type" };
+  chatApi("/chat/announce", {
+    method: "POST",
+    body: {
+      type: t,
+      payload: payload && typeof payload === "object" ? payload : {},
+      charName: chatActiveCharName(),
+    },
+  })
+    .then((r) => {
+      if (r && r.ok && r.message) {
+        const id = Number(r.message.id) || 0;
+        if (id > (chatLastIdByChannel.world || 0)) chatLastIdByChannel.world = id;
+        chatBootstrapped.world = true;
+        // Сразу показать себе, не дожидаясь poll
+        if (chatActiveChannel === "world") {
+          appendChatMessage(r.message, { scroll: !isChatCollapsed() });
+        } else {
+          chatUnreadByChannel.world = (chatUnreadByChannel.world || 0) + 1;
+          updateChatTabBadges();
+        }
+      }
+    })
+    .catch(() => {});
+  return { ok: true, queued: true };
 }
 
 function setChatStatus(text, kind) {

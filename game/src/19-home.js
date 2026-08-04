@@ -112,6 +112,15 @@ function wireLoginCornerMenu() {
       show("author");
     };
   }
+  const olympiad = document.getElementById("loginOlympiadBtn");
+  if (olympiad && !olympiad.dataset.wired) {
+    olympiad.dataset.wired = "1";
+    olympiad.onclick = () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      if (typeof openLeaderboard === "function") openLeaderboard({ from: "login" });
+      else if (typeof toast === "function") toast("Монумент героев · рейтинг недоступен", "warn");
+    };
+  }
 }
 
 function wireHomeMenu() {

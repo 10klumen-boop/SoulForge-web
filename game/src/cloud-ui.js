@@ -250,9 +250,10 @@ function openLeaderboard(opts) {
   opts = opts || {};
   const back = document.querySelector("#screen-leaderboard .back[data-to], #screen-leaderboard .panel-head .back");
   if (back) {
-    const to = opts.from === "home" ? "home" : "menu";
+    const to = opts.from === "login" ? "login" : opts.from === "home" ? "home" : "menu";
     back.dataset.to = to;
-    back.textContent = to === "home" ? "← Главное меню" : "← В меню";
+    back.textContent =
+      to === "login" ? "← Вход" : to === "home" ? "← Главное меню" : "← В меню";
     back.onclick = () => {
       if (typeof Audio2 !== "undefined") Audio2.click();
       show(to);

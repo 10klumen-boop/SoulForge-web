@@ -1,7 +1,7 @@
 const CATEGORIES = window.CATEGORIES || [];
 const WEAPONS = window.WEAPONS || [];
 /** Версия клиента — патчноут, главное меню, cloud API */
-const GAME_VERSION = "0.61.0";
+const GAME_VERSION = "0.61.3";
 /** Кэш фона главного меню (assets/ui/home_bg.png) */
 const HOME_BG_VER = 1;
 const WMAP = {}; WEAPONS.forEach((w) => { WMAP[w.id] = w; });
@@ -63,11 +63,13 @@ const SCROLL_TYPES = [
     descArmor:"Провал — заточка сбрасывается до +0, броня / бижутерия цела" },
   { id:"destruction", name:"Свиток разрушения оружия", nameArmor:"Свиток разрушения брони", mult:30, behavior:"destruction",
     desc:"Низкий шанс до +15 — провал не ломает оружие",
-    descArmor:"Низкий шанс — провал не ломает (броня до +15, бижу до +12)" },
+    descArmor:"Низкий шанс до +12 — провал не ломает броню / бижутерию" },
   { id:"crystal", name:"Кристальный свиток оружия", nameArmor:"Кристальный свиток брони", mult:150, behavior:"guarantee",
     desc:"100% успех на любом уровне",
-    descArmor:"100% успех (броня до +16, бижутерия до +12)" },
+    descArmor:"100% успех (броня / бижутерия до +12)" },
 ];
+/** Макс. заточка брони (свиток брони). */
+const ARMOR_MAX_PLUS = 12;
 /** Макс. заточка бижутерии (свиток брони). */
 const JEWELRY_MAX_PLUS = 12;
 const SAFE_LEVEL = 3;

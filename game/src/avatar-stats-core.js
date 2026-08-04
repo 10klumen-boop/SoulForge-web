@@ -100,6 +100,10 @@ function selectFarmZone(zoneId) {
     logCharacterEvent("zone_change", { from, to: zoneId });
   }
 
+  if (typeof Audio2 !== "undefined" && Audio2.refreshMineAmbience) {
+    Audio2.refreshMineAmbience();
+  }
+
   renderMenuFarmHub();
   if (typeof renderMenuHero === "function") renderMenuHero();
 

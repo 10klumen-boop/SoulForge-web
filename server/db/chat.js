@@ -1,19 +1,30 @@
 "use strict";
 
 const crypto = require("crypto");
+const { parseSavePayload, resolveActiveCharacterId } = require("./save-utils");
 
 const CHAT_MAX_LEN = 200;
 const CHAT_MIN_LEN = 1;
 const CHAT_RATE_MS = 2500;
+const CHAT_ANNOUNCE_RATE_MS = 8000;
 const CHAT_HISTORY_DEFAULT = 60;
 const CHAT_HISTORY_MAX = 100;
 const CHAT_KEEP_ROWS = 5000;
 const CHAT_CHANNELS = new Set(["world", "trade", "party", "clan", "whisper"]);
 const CHAT_PUBLIC = new Set(["world", "trade"]);
+const CHAT_ANNOUNCE_NICK = "Мир";
 const CLAN_NAME_RE = /^[a-zA-Zа-яА-ЯёЁ0-9][a-zA-Zа-яА-ЯёЁ0-9 _-]{1,22}[a-zA-Zа-яА-ЯёЁ0-9]$/;
 const NICK_RE = /^[a-zA-Z]{2,16}$/;
 /** Парти-контент: группа 2–4 (раньше было 8 для чата). */
 const PARTY_MAX_MEMBERS = 4;
+
+/** Типы мировых оповещений — текст собирает сервер, клиент не шлёт произвольный body. */
+const CHAT_ANNOUNCE_TYPES = new Set([
+  "enchant_high",
+  "banan_zaken",
+  "banan_adena",
+  "casino_jackpot",
+]);
 
 function ensureChatSchema(db) {
   db.exec(`
@@ -72,12 +83,15 @@ function ensureChatSchema(db) {
   addCol("target_user_id", "INTEGER");
   addCol("target_nick", "TEXT");
   addCol("scope_id", "TEXT");
+  addCol("msg_type", "TEXT NOT NULL DEFAULT 'user'");
 
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_chat_messages_created
       ON chat_messages(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_chat_messages_channel
       ON chat_messages(channel, id);
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_type
+      ON chat_messages(msg_type, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_chat_whisper
       ON chat_messages(channel, user_id, target_user_id, id);
     CREATE INDEX IF NOT EXISTS idx_chat_scope
@@ -92,6 +106,15 @@ function ensureChatSchema(db) {
   const clanMemberCols = db.prepare("PRAGMA table_info(chat_clan_members)").all().map((c) => c.name);
   if (!clanMemberCols.includes("role")) {
     db.exec(`ALTER TABLE chat_clan_members ADD COLUMN role TEXT NOT NULL DEFAULT 'member'`);
+  }
+
+  // Объявление лидера на хабе клана
+  const clanCols = db.prepare("PRAGMA table_info(chat_clans)").all().map((c) => c.name);
+  if (!clanCols.includes("announce_text")) {
+    db.exec(`ALTER TABLE chat_clans ADD COLUMN announce_text TEXT`);
+  }
+  if (!clanCols.includes("announce_at")) {
+    db.exec(`ALTER TABLE chat_clans ADD COLUMN announce_at INTEGER`);
   }
 }
 
@@ -127,15 +150,21 @@ function attachChatMethods(db, store) {
   const stmtInsert = db.prepare(`
     INSERT INTO chat_messages (
       user_id, nick, char_name, body, created_at,
-      channel, target_user_id, target_nick, scope_id
+      channel, target_user_id, target_nick, scope_id, msg_type
     ) VALUES (
       @user_id, @nick, @char_name, @body, @created_at,
-      @channel, @target_user_id, @target_nick, @scope_id
+      @channel, @target_user_id, @target_nick, @scope_id, @msg_type
     )
   `);
   const stmtLastByUser = db.prepare(`
     SELECT created_at FROM chat_messages
-    WHERE user_id = ?
+    WHERE user_id = ? AND IFNULL(msg_type, 'user') = 'user'
+    ORDER BY id DESC
+    LIMIT 1
+  `);
+  const stmtLastAnnounceByUser = db.prepare(`
+    SELECT created_at FROM chat_messages
+    WHERE user_id = ? AND msg_type = 'announce'
     ORDER BY id DESC
     LIMIT 1
   `);
@@ -241,6 +270,9 @@ function attachChatMethods(db, store) {
   `);
   const stmtClanCount = db.prepare(`SELECT COUNT(*) AS n FROM chat_clan_members WHERE clan_id = ?`);
   const stmtClanSetLeader = db.prepare(`UPDATE chat_clans SET leader_user_id = ? WHERE id = ?`);
+  const stmtClanAnnounce = db.prepare(
+    `UPDATE chat_clans SET announce_text = ?, announce_at = ? WHERE id = ?`
+  );
 
   function mapRow(row) {
     return {
@@ -254,7 +286,55 @@ function attachChatMethods(db, store) {
       targetUserId: row.target_user_id || null,
       targetNick: row.target_nick || null,
       scopeId: row.scope_id || null,
+      msgType: row.msg_type || "user",
     };
+  }
+
+  function formatAdenaShort(n) {
+    const v = Math.max(0, Math.floor(Number(n) || 0));
+    if (v >= 1_000_000_000) {
+      const kk = v / 1_000_000_000;
+      return (Number.isInteger(kk) ? String(kk) : kk.toFixed(1).replace(/\.0$/, "")) + "ккк";
+    }
+    if (v >= 1_000_000) {
+      const kk = v / 1_000_000;
+      return (Number.isInteger(kk) ? String(kk) : kk.toFixed(1).replace(/\.0$/, "")) + "кк";
+    }
+    return String(v);
+  }
+
+  function buildAnnounceBody(type, payload, displayName) {
+    const name = String(displayName || "Герой").slice(0, 24);
+    const p = payload && typeof payload === "object" ? payload : {};
+    if (type === "enchant_high") {
+      const plus = Math.max(0, Math.floor(Number(p.plus) || 0));
+      const kind = String(p.kind || "weapon").toLowerCase();
+      const itemName = String(p.itemName || p.weaponName || "предмет").slice(0, 48);
+      const grade = String(p.grade || "").toUpperCase().slice(0, 4);
+      const gradeBit = grade ? " [" + grade + "]" : "";
+      const isJew = kind === "jewelry" || kind === "jew" || kind === "accessory";
+      const isArmor = kind === "armor";
+      // Оружие — только +16; броня/бижутерия — только +12
+      if (isJew || isArmor) {
+        if (plus < 12) return null;
+        return "★ " + name + " заточил " + itemName + gradeBit + " до +" + plus + "!";
+      }
+      if (plus < 16) return null;
+      return "★ " + name + ": " + itemName + gradeBit + " +" + plus + " — ЛЕГЕНДА!";
+    }
+    if (type === "banan_zaken") {
+      return "★ " + name + " выбил Благословенную серьгу ЗакАна у редкого гнома!";
+    }
+    if (type === "banan_adena") {
+      const amount = Math.max(0, Math.floor(Number(p.amount) || 0));
+      if (amount < 100_000_000) return null;
+      return "★ " + name + " сорвал джекпот гнома: " + formatAdenaShort(amount) + " adena!";
+    }
+    if (type === "casino_jackpot") {
+      const item = String(p.itemName || "Талисман Банана").slice(0, 64);
+      return "★ " + name + " сорвал джекпот Банана — " + item + "!";
+    }
+    return null;
   }
 
   function pruneIfNeeded() {
@@ -397,12 +477,48 @@ function attachChatMethods(db, store) {
         members: members.map((m) => {
           let role = m.role || "member";
           if (m.user_id === c?.leader_user_id) role = "leader";
+          let profession = null;
+          try {
+            const save = store.getSave(m.user_id);
+            if (save) {
+              const data = parseSavePayload(save);
+              if (data) {
+                const cid = resolveActiveCharacterId(data);
+                const chars = Array.isArray(data.characters) ? data.characters : [];
+                const slot =
+                  chars.find((ch) => ch && String(ch.id) === String(cid)) || chars[0];
+                const av = slot?.progress?.avatar || data.avatar || null;
+                if (av) {
+                  let tier = 0;
+                  let combatRole = "unknown";
+                  if (av.professionId) {
+                    tier = Math.max(
+                      0,
+                      Math.min(
+                        2,
+                        Math.floor(
+                          Number(av.professionTier) || Number(av.profTier) || 1
+                        )
+                      )
+                    );
+                    combatRole = String(av.professionRole || av.combatRole || "melee");
+                  } else if (av.classId === "mystic" || av.classId === "shaman") {
+                    combatRole = "mage";
+                  } else if (av.classId) {
+                    combatRole = "melee";
+                  }
+                  profession = { tier, role: combatRole };
+                }
+              }
+            }
+          } catch (_) {}
           return {
             userId: m.user_id,
             nick: m.nick,
             name: memberDisplayName(m.user_id, m.nick),
             role,
             joinedAt: m.joined_at || null,
+            profession,
           };
         }),
       };
@@ -765,27 +881,105 @@ function attachChatMethods(db, store) {
     return row?.role || "member";
   }
 
+  const CLAN_MAX_OFFICERS = 5;
+
   store.chatLeaveClan = function chatLeaveClan(user, opts = {}) {
     const clanId = getClanId(user.id);
     if (!clanId) return { ok: false, error: "none", message: "Вы не в клане" };
     const clan = stmtClanGet.get(clanId);
     const now = Number(opts.now) || Date.now();
+    const isLeader = !!(clan && Number(clan.leader_user_id) === Number(user.id));
+    const memberCount = Number(stmtClanCount.get(clanId)?.n || 0);
+    // Лидер не может уйти, пока в клане есть другие — сначала передать лидерство.
+    if (isLeader && memberCount > 1) {
+      return {
+        ok: false,
+        error: "leader",
+        message: "Лидер не может покинуть клан — сначала передайте лидерство другому участнику",
+      };
+    }
     const tx = db.transaction(() => {
       stmtClanMemberDelete.run(user.id);
       const left = Number(stmtClanCount.get(clanId)?.n || 0);
       if (left === 0) {
         stmtClanDeleteIfEmpty.run(clanId, clanId);
-      } else if (clan && clan.leader_user_id === user.id) {
-        const next = stmtClanMembers.all(clanId)[0];
-        if (next) {
-          stmtClanSetLeader.run(next.user_id, clanId);
-          stmtClanSetRole.run("leader", clanId, next.user_id);
-        }
       }
     });
     tx();
     logChatAudit(user, "chat_clan_leave", { clanId, name: clan?.name || null }, opts.charName);
     return { ok: true, leftAt: now, ...socialSnapshot(user.id) };
+  };
+
+  /** Лидер передаёт лидерство другому участнику клана. */
+  store.chatTransferClanLeader = function chatTransferClanLeader(user, opts = {}) {
+    const raw = String(opts.charName || opts.name || opts.nick || "")
+      .trim()
+      .slice(0, 48);
+    if (raw.length < 2) {
+      return { ok: false, error: "name", message: "Укажи имя персонажа" };
+    }
+    const clanId = getClanId(user.id);
+    if (!clanId) return { ok: false, error: "none", message: "Вы не в клане" };
+    const clan = stmtClanGet.get(clanId);
+    if (!clan || Number(clan.leader_user_id) !== Number(user.id)) {
+      return { ok: false, error: "leader", message: "Передаёт только лидер" };
+    }
+
+    let target = null;
+    let label = raw;
+    if (typeof store.mailResolveName === "function") {
+      const dest = store.mailResolveName(raw);
+      if (dest.ok) {
+        target = store.getUserById(dest.userId);
+        label = dest.name || raw;
+      }
+    }
+    if (!target) {
+      const members = stmtClanMembers.all(clanId);
+      const needle = raw.toLowerCase();
+      const hit = members.find((m) => {
+        const cn = String(memberDisplayName(m.user_id, m.nick) || "").toLowerCase();
+        const nk = String(m.nick || "").toLowerCase();
+        return cn === needle || nk === needle;
+      });
+      if (hit) {
+        target = store.getUserById(hit.user_id);
+        label = memberDisplayName(hit.user_id, hit.nick);
+      }
+    }
+    if (!target) {
+      return { ok: false, error: "not_found", message: "Персонаж не найден в клане" };
+    }
+    if (Number(target.id) === Number(user.id)) {
+      return { ok: false, error: "self", message: "Нельзя передать лидерство себе" };
+    }
+    if (getClanId(target.id) !== clanId) {
+      return { ok: false, error: "member", message: "Игрок не в вашем клане" };
+    }
+
+    const tx = db.transaction(() => {
+      stmtClanSetLeader.run(target.id, clanId);
+      stmtClanSetRole.run("leader", clanId, target.id);
+      // Бывший лидер становится офицером (если есть слот), иначе участником.
+      const officers = stmtClanMembers
+        .all(clanId)
+        .filter((m) => m.role === "officer" && Number(m.user_id) !== Number(user.id)).length;
+      const exRole = officers < CLAN_MAX_OFFICERS ? "officer" : "member";
+      stmtClanSetRole.run(exRole, clanId, user.id);
+    });
+    tx();
+    logChatAudit(
+      user,
+      "chat_clan_transfer",
+      { clanId, toUserId: target.id, to: label },
+      opts.charName
+    );
+    return {
+      ok: true,
+      leader: label,
+      message: "Лидерство передано: " + label,
+      ...socialSnapshot(user.id),
+    };
   };
 
   /** Приглашение — pending, пока цель не примет. Лидер или офицер. По имени персонажа (как party). */
@@ -964,8 +1158,6 @@ function attachChatMethods(db, store) {
     return { ok: true, kicked: kickedLabel, ...socialSnapshot(user.id) };
   };
 
-  const CLAN_MAX_OFFICERS = 5;
-
   /** Лидер назначает / снимает офицера по имени персонажа. */
   store.chatSetClanRole = function chatSetClanRole(user, opts = {}) {
     const raw = String(opts.charName || opts.name || opts.nick || "")
@@ -1043,6 +1235,28 @@ function attachChatMethods(db, store) {
         nextRole === "officer"
           ? label + " теперь офицер"
           : label + " снова участник",
+      ...socialSnapshot(user.id),
+    };
+  };
+
+  store.chatSetClanAnnounce = function chatSetClanAnnounce(user, opts = {}) {
+    const clanId = getClanId(user.id);
+    if (!clanId) return { ok: false, error: "clan", message: "Нужен клан" };
+    const role = clanMemberRole(clanId, user.id);
+    if (role !== "leader") {
+      return { ok: false, error: "role", message: "Объявление пишет только лидер" };
+    }
+    let text = String(opts.text || "")
+      .replace(/\r\n/g, "\n")
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+      .trim()
+      .slice(0, 200);
+    const now = Number(opts.now) || Date.now();
+    stmtClanAnnounce.run(text || null, text ? now : null, clanId);
+    logChatAudit(user, "chat_clan_announce", { clanId, len: text.length }, opts.charName);
+    return {
+      ok: true,
+      message: text ? "Объявление обновлено" : "Объявление снято",
       ...socialSnapshot(user.id),
     };
   };
@@ -1174,6 +1388,7 @@ function attachChatMethods(db, store) {
       target_user_id: targetUserId,
       target_nick: targetNick,
       scope_id: scopeId,
+      msg_type: "user",
     });
     pruneIfNeeded();
     const message = {
@@ -1187,6 +1402,7 @@ function attachChatMethods(db, store) {
       targetUserId,
       targetNick,
       scopeId,
+      msgType: "user",
     };
     logChatAudit(
       user,
@@ -1202,6 +1418,72 @@ function attachChatMethods(db, store) {
       charName
     );
     return { ok: true, message };
+  };
+
+  /**
+   * Мировое оповещение о редком событии.
+   * Клиент шлёт type + payload; текст собирает сервер (антиспам / без произвольного body).
+   */
+  store.chatAnnounceWorld = function chatAnnounceWorld(user, opts = {}) {
+    const type = String(opts.type || opts.announceType || "").trim().toLowerCase();
+    if (!CHAT_ANNOUNCE_TYPES.has(type)) {
+      return { ok: false, error: "type", message: "Неизвестный тип оповещения" };
+    }
+    const now = Number(opts.now) || Date.now();
+    const lastAnn = stmtLastAnnounceByUser.get(user.id);
+    if (lastAnn && now - Number(lastAnn.created_at || 0) < CHAT_ANNOUNCE_RATE_MS) {
+      return { ok: false, error: "rate", message: "Слишком часто" };
+    }
+
+    const charName = sanitizeCharName(opts.charName);
+    const displayName = charName || memberDisplayName(user.id, user.nick) || user.nick || "Герой";
+    const body = buildAnnounceBody(type, opts.payload || {}, displayName);
+    if (!body) {
+      return { ok: false, error: "payload", message: "Событие не подходит для оповещения" };
+    }
+    const safeBody = sanitizeChatBody(body);
+    if (safeBody.length < CHAT_MIN_LEN) {
+      return { ok: false, error: "empty", message: "Пустое оповещение" };
+    }
+
+    const info = stmtInsert.run({
+      user_id: user.id,
+      nick: CHAT_ANNOUNCE_NICK,
+      char_name: charName,
+      body: safeBody,
+      created_at: now,
+      channel: "world",
+      target_user_id: null,
+      target_nick: null,
+      scope_id: null,
+      msg_type: "announce",
+    });
+    pruneIfNeeded();
+    const message = {
+      id: Number(info.lastInsertRowid),
+      userId: user.id,
+      nick: CHAT_ANNOUNCE_NICK,
+      charName,
+      body: safeBody,
+      createdAt: now,
+      channel: "world",
+      targetUserId: null,
+      targetNick: null,
+      scopeId: null,
+      msgType: "announce",
+    };
+    logChatAudit(
+      user,
+      "chat_announce",
+      {
+        messageId: message.id,
+        type,
+        body: safeBody,
+        payload: opts.payload || {},
+      },
+      charName
+    );
+    return { ok: true, message, type };
   };
 
   const stmtAdminChatCount = db.prepare(`
@@ -1262,6 +1544,7 @@ function attachChatMethods(db, store) {
       targetNick: row.target_nick || null,
       targetUserId: row.target_user_id || null,
       scopeId: row.scope_id || null,
+      msgType: row.msg_type || "user",
       createdAt: row.created_at,
     }));
     const latestId = rows.length ? Math.max(...rows.map((r) => r.id)) : after || 0;
@@ -1283,5 +1566,7 @@ module.exports = {
   sanitizeChatBody,
   CHAT_MAX_LEN,
   CHAT_RATE_MS,
+  CHAT_ANNOUNCE_RATE_MS,
   CHAT_CHANNELS,
+  CHAT_ANNOUNCE_TYPES,
 };

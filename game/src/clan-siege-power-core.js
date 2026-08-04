@@ -29,8 +29,7 @@ function clanSiegeLocalProfessionEntry() {
 
 /**
  * Оценка силы осады текущего клана (клиент).
- * Профессии соклановцев пока не приходят с API — учитываем известные
- * (сейчас: ваш персонаж, если вы в клане) + состав + вложения.
+ * Профессии соклановцев — из social snapshot (поле profession).
  */
 function clanSiegePowerState() {
   const clan = typeof getChatClan === "function" ? getChatClan() : null;
@@ -42,9 +41,19 @@ function clanSiegePowerState() {
     1;
 
   const professions = [];
-  const local = clanSiegeLocalProfessionEntry();
-  if (local && typeof clanMyClanRef === "function" && clanMyClanRef()) {
-    professions.push(local);
+  (clan.members || []).forEach((m) => {
+    if (m && m.profession && (m.profession.tier != null || m.profession.role)) {
+      professions.push({
+        tier: Number(m.profession.tier) || 0,
+        role: m.profession.role || "unknown",
+      });
+    }
+  });
+  if (!professions.length) {
+    const local = clanSiegeLocalProfessionEntry();
+    if (local && typeof clanMyClanRef === "function" && clanMyClanRef()) {
+      professions.push(local);
+    }
   }
 
   const weekScore =
@@ -52,13 +61,10 @@ function clanSiegePowerState() {
       ? Number(clanBuffState.score) || 0
       : 0;
 
-  // Недельные депозиты отдельно не кэшируем — приближаем из score×веса
-  // и текущего склада как «вложения» (мягкая оценка).
   const warehouseAdena =
     typeof clanWarehouseState !== "undefined" && clanWarehouseState
       ? Number(clanWarehouseState.adena) || 0
       : 0;
-  // Не считаем весь склад — только доля как proxy вложений недели
   const weekDepositAdena = Math.min(warehouseAdena, weekScore * 10000);
 
   const power = computeClanSiegePower({

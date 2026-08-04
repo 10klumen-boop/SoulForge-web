@@ -255,14 +255,21 @@ function armorPiecePowerMult(def, avatar) {
   return m;
 }
 
+/** Макс. заточка брони (+12). */
+function armorMaxPlus() {
+  return typeof ARMOR_MAX_PLUS === "number" ? ARMOR_MAX_PLUS : 12;
+}
+
 /** Бонус P.Def от заточки брони (+N). */
 function armorEnchantPdefBonus(plus) {
-  return Math.max(0, plus | 0) * 2;
+  const cap = armorMaxPlus();
+  return Math.max(0, Math.min(cap, plus | 0)) * 2;
 }
 
 /** Бонус M.Def от заточки брони (+N). */
 function armorEnchantMdefBonus(plus) {
-  return Math.max(0, plus | 0);
+  const cap = armorMaxPlus();
+  return Math.max(0, Math.min(cap, plus | 0));
 }
 
 /** P.Def/M.Def от кусков брони (+ legacy set flat) — не в farm power. */

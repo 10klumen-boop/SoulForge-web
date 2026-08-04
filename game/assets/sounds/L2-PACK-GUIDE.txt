@@ -7,7 +7,7 @@ SoulForge — звуки из L2 Interlude (NevesOma_il_sounds)
   python game/tools/pick_l2_sounds.py
   python game/tools/pick_l2_sounds.py "D:/path/NevesOma_il_sounds"
 
-Скрипт: trim silence, normalize peak, trim длинных, fade для loop ambient.
+Скрипт: trim silence, normalize peak, trim длинных, seamless crossfade для ambient loops.
 
 UI
   click.wav       InterfaceSound/click_01
@@ -20,17 +20,23 @@ SFX
   enchant_fail    sys_break (разрушение оружия)
   jackpot         quest_jackpot (≤4.5s)
   treasure        quest_itemget
-  mine_hit*       armor_leather_* — пул ударов по мобу (Audio2.mineHit)
-  mine_kill       короткий kill — Audio2.mineKill
+  mine_hit*       sword_mid/small — пул ударов по мобу (Audio2.mineHit)
+  mine_kill       sword_big — Audio2.mineKill
+  equip_weapon    itemequip_sword — Audio2.equip(weapon)
+  equip_armor     itemequip_armor_leather — броня
+  equip_jewelry   itemequip_etc_jewel — бижутерия
   quest           quest_accept_01 — принять / завершить поручение
   levelup         levelup (≤3s) — Audio2.levelup при апе уровня
 
 Ambient (в игре)
-  mine            Lava_Bubble_Loop_01 — только экран mine
+  ambient/zones/{zoneId}.wav  — свой loop на каждую farm-зону (ZONE_AMB / resolveZoneAmbienceKey)
+  mine                        fallback wind_light_loop_1 (legacy ключ)
 
-Ambient (legacy на диске, НЕ в SCREEN_AMB)
+  Обработка: trim:false + seamless_ms + min_loop_sec≈4 (без fade-to-silence на краях).
+
+Ambient (legacy на диске, НЕ в хабе)
   menu            jura_01 — заменён OST menu_theme.m4a на title
-  indoor          wind_light_loop_1 — шипит в хабе, не подключать
+  indoor          wind_light_loop_2 — шипит в хабе, не подключать
 
 Music (title-экраны)
   menu_theme.m4a  The Call of Destiny — Chaotic Chronicle (NCsoft)
@@ -39,7 +45,6 @@ Music (title-экраны)
 Dwarf voices
   dwarf/M.wav     MDwarf_Death → Audio2.dwarfCatch(false, reward)
   dwarf/F.wav     FDwarf_Death → Audio2.dwarfCatch(true, reward)
-  (корневые MDwarf_Death.wav / FDwarf_Death.wav — сырьё, не грузить в игру)
 
 Кэш в игре: SOUND_VER в game/src/data/audio-data.js. После пересборки — Ctrl+F5.
 

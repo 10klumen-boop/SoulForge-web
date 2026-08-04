@@ -1,6 +1,6 @@
 // ===== Clan boss / Рейд клана =====
 // Shared HP hit-loop · участникам — Символы Клятвы (+ adena на склад).
-// Временно: без недельного lockout (weeklyClears: 0), HP = 1_000_000.
+// Временно: без недельного lockout (weeklyClears: 0).
 
 const CLAN_BOSS = {
   id: "clan_oathkeeper",
@@ -34,7 +34,7 @@ const CLAN_BOSS = {
 };
 
 function clanBossHpHits(memberCount) {
-  const base = Math.max(1, Math.floor(Number(CLAN_BOSS.baseHpHits) || 1_000_000));
+  const base = Math.max(1, Math.floor(Number(CLAN_BOSS.baseHpHits) || 50_000));
   const per = Math.max(0, Math.floor(Number(CLAN_BOSS.hpPerExtraMember) || 0));
   const n = Math.max(
     1,

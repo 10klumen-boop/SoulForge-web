@@ -2,6 +2,235 @@
 
 const CLAN_TERRITORY_HOLD_MAX = { farm: 2, city: 1 };
 
+/** Суммарный кап clan farm-бонусов: holder + online/study buffs (adena/XP). */
+const CLAN_FARM_BONUS_CAPS = { adenaPct: 28, xpPct: 22 };
+
+/**
+ * Тест: окна осады каждые 2 часа (UTC), без привязки к сб/вс.
+ * Перед продом → false (и зеркало в server/db/clan-war.js).
+ */
+const CLAN_SIEGE_DAILY_TEST = false;
+/** Период тестового цикла осады. */
+const CLAN_SIEGE_TEST_PERIOD_MS = 2 * 60 * 60 * 1000;
+/** Длительность открытого окна внутри цикла (1 час из двух). */
+const CLAN_SIEGE_TEST_WINDOW_MS = 60 * 60 * 1000;
+
+/** Подписи слотов осады (UTC). */
+const CLAN_SIEGE_SLOT_META = {
+  sat_16: { dow: 6, hour: 16, labelRu: "Сб 16:00 UTC", windowMin: 60 },
+  sat_18: { dow: 6, hour: 18, labelRu: "Сб 18:00 UTC", windowMin: 60 },
+  sat_20: { dow: 6, hour: 20, labelRu: "Сб 20:00 UTC", windowMin: 60 },
+  sun_16: { dow: 0, hour: 16, labelRu: "Вс 16:00 UTC", windowMin: 60 },
+  sun_18: { dow: 0, hour: 18, labelRu: "Вс 18:00 UTC", windowMin: 60 },
+  sun_20: { dow: 0, hour: 20, labelRu: "Вс 20:00 UTC", windowMin: 60 },
+};
+
+function clanSiegePeriodMs() {
+  if (CLAN_SIEGE_DAILY_TEST) {
+    return (
+      (typeof CLAN_SIEGE_TEST_PERIOD_MS === "number" && CLAN_SIEGE_TEST_PERIOD_MS) ||
+      2 * 60 * 60 * 1000
+    );
+  }
+  return 7 * 24 * 60 * 60 * 1000;
+}
+
+function clanTerritoryWarTier(t) {
+  const w = t && t.warTier ? String(t.warTier) : "normal";
+  if (w === "flagship" || w === "elite" || w === "normal") return w;
+  return "normal";
+}
+
+function clanTerritoryIsEliteWar(t) {
+  const w = clanTerritoryWarTier(t);
+  return w === "elite" || w === "flagship";
+}
+
+function clanTerritoryIsFlagship(t) {
+  return clanTerritoryWarTier(t) === "flagship";
+}
+
+function clanTerritoryWarTierLabelRu(t) {
+  const w = clanTerritoryWarTier(t);
+  if (w === "flagship") return "флагман · арена";
+  if (w === "elite") return "осада (расписание)";
+  return "захват (казна)";
+}
+
+function clanSiegeSlotMeta(slotId) {
+  return CLAN_SIEGE_SLOT_META[String(slotId || "")] || null;
+}
+
+function clanSiegeSlotLabelRu(slotId) {
+  const m = clanSiegeSlotMeta(slotId);
+  if (!m) return String(slotId || "—");
+  if (typeof CLAN_SIEGE_DAILY_TEST !== "undefined" && CLAN_SIEGE_DAILY_TEST) {
+    return "каждые 2 ч UTC (тест)";
+  }
+  return m.labelRu;
+}
+
+/**
+ * Окно осады вокруг слота.
+ * Прод: день недели + час UTC.
+ * Тест: каждые 2 часа (1 час открыто / 1 час закрыто), все elite-узлы синхронно.
+ * @returns {{ open: boolean, startAt: number, endAt: number, labelRu: string } | null}
+ */
+function clanSiegeWindowForTerritory(t, nowMs) {
+  if (!t || !clanTerritoryIsEliteWar(t)) return null;
+  const meta = clanSiegeSlotMeta(t.siegeSlotUtc);
+  if (!meta) return null;
+  const now = Number(nowMs) || Date.now();
+  const daily = typeof CLAN_SIEGE_DAILY_TEST !== "undefined" && CLAN_SIEGE_DAILY_TEST;
+
+  if (daily) {
+    const period = clanSiegePeriodMs();
+    const winMs =
+      (typeof CLAN_SIEGE_TEST_WINDOW_MS === "number" && CLAN_SIEGE_TEST_WINDOW_MS) ||
+      Math.floor(period / 2);
+    let startAt = Math.floor(now / period) * period;
+    let endAt = startAt + winMs;
+    if (now >= endAt) {
+      startAt += period;
+      endAt = startAt + winMs;
+    }
+    return {
+      open: now >= startAt && now < endAt,
+      startAt,
+      endAt,
+      labelRu: clanSiegeSlotLabelRu(t.siegeSlotUtc),
+      slotId: t.siegeSlotUtc,
+      dailyTest: true,
+    };
+  }
+
+  const d = new Date(now);
+  const period = clanSiegePeriodMs();
+  const day = d.getUTCDay();
+  let delta = meta.dow - day;
+  if (delta > 3) delta -= 7;
+  if (delta < -3) delta += 7;
+  const windowMin = Number(meta.windowMin) || 60;
+  let startAt = Date.UTC(
+    d.getUTCFullYear(),
+    d.getUTCMonth(),
+    d.getUTCDate() + delta,
+    meta.hour,
+    0,
+    0,
+    0
+  );
+  let endAt = startAt + windowMin * 60 * 1000;
+  if (now > endAt + Math.min(period / 2, 12 * 3600 * 1000)) {
+    startAt += period;
+    endAt += period;
+  }
+  return {
+    open: now >= startAt && now < endAt,
+    startAt,
+    endAt,
+    labelRu: clanSiegeSlotLabelRu(t.siegeSlotUtc),
+    slotId: t.siegeSlotUtc,
+    dailyTest: false,
+  };
+}
+
+/** «через 12 мин» / «ещё 45 мин». */
+function clanFormatRemainRu(ms) {
+  const t = Math.max(0, Math.floor(Number(ms) || 0));
+  if (t < 60_000) return "меньше минуты";
+  const mins = Math.floor(t / 60_000);
+  if (mins < 60) return mins + " мин";
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m ? h + " ч " + m + " мин" : h + " ч";
+}
+
+/**
+ * Понятный статус узла для угодий/карты.
+ * @returns {{ title: string, sub: string, kind: string }}
+ */
+function clanTerritoryActionStatus(t, opts) {
+  opts = opts || {};
+  const now = Number(opts.now) || Date.now();
+  const holder = opts.holder != null ? opts.holder : clanTerritoryHolder(t && t.id);
+  const me = opts.me != null ? opts.me : clanMyClanRef();
+  const meId = me ? String(me.clanId || "") : "";
+  const holderId = holder ? String(holder.clanId || "") : "";
+  const isMine = !!(meId && holderId && holderId === meId);
+
+  if (!t || !t.siegeEnabled) {
+    return { title: "Захват выключен", sub: "фарм без войны за узел", kind: "off" };
+  }
+
+  const elite = clanTerritoryIsEliteWar(t);
+  const flagship = clanTerritoryIsFlagship(t);
+  const lockMs =
+    Number(holder && holder.contestLockMs) > 0
+      ? Number(holder.contestLockMs)
+      : 2 * 60 * 60 * 1000;
+  const claimedAt = holder ? Number(holder.claimedAt) || 0 : 0;
+  const lockLeft = claimedAt ? Math.max(0, claimedAt + lockMs - now) : 0;
+
+  if (!elite) {
+    if (!holder) {
+      return {
+        title: "Свободно · захват казной",
+        sub: "лидер/офицер платит со склада",
+        kind: "claim",
+      };
+    }
+    if (isMine) {
+      return {
+        title: "Ваш узел · казна",
+        sub: "фармьте online → печати" + (lockLeft ? " · защита ещё " + clanFormatRemainRu(lockLeft) : ""),
+        kind: "mine",
+      };
+    }
+    return {
+      title: "Чужой · отбить казной",
+      sub:
+        "«" +
+        (holder.clanName || "?") +
+        "»" +
+        (lockLeft ? " · защита ещё " + clanFormatRemainRu(lockLeft) : " · можно оспаривать"),
+      kind: "contest",
+    };
+  }
+
+  const win = clanSiegeWindowForTerritory(t, now);
+  const slot =
+    typeof clanSiegeSlotLabelRu === "function"
+      ? clanSiegeSlotLabelRu(t.siegeSlotUtc)
+      : String(t.siegeSlotUtc || "");
+  const mode = flagship ? "флагман · сила / арена" : "elite · сила осады";
+
+  if (win && win.open) {
+    return {
+      title: "Осада ОТКРЫТА · заявки",
+      sub: mode + " · ещё " + clanFormatRemainRu(win.endAt - now) + " · eco-отбитие закрыто",
+      kind: "siege_open",
+    };
+  }
+  if (win) {
+    return {
+      title: isMine ? "Ваш elite · ждём осаду" : holder ? "Чужой elite · ждём осаду" : "Свободно · ждать осаду",
+      sub:
+        mode +
+        " · через " +
+        clanFormatRemainRu(win.startAt - now) +
+        (slot ? " · " + slot : "") +
+        (holder && !isMine && !lockLeft ? " · вне окна можно отбить казной" : ""),
+      kind: "siege_wait",
+    };
+  }
+  return {
+    title: flagship ? "Флагман" : "Elite",
+    sub: mode,
+    kind: "elite",
+  };
+}
+
 /** L2BaseMap overlay CRS (1812×2620). Source: L2jBrasil/L2BaseMap. */
 const CLAN_MAP_CRS = {
   mapW: 1812,
@@ -47,8 +276,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "flagship",
     siegeSlotUtc: "sat_18",
-    holderBonus: { adenaPct: 6 },
+    holderBonus: { adenaPct: 12, xpPct: 4 },
     rentPerDay: 80000,
     portrait: "assets/locations/blazing-swamp.jpg",
   },
@@ -64,8 +294,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_20",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 35500,
     portrait: "assets/locations/school-of-dark-arts.jpg",
   },
@@ -81,8 +312,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
     siegeSlotUtc: "sun_18",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 10, xpPct: 3 },
     rentPerDay: 60000,
     portrait: "assets/locations/ant-nest.jpg",
   },
@@ -98,8 +330,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_20",
-    holderBonus: { adenaPct: 3 },
+    holderBonus: { adenaPct: 5, xpPct: 2 },
     rentPerDay: 50500,
     portrait: "assets/locations/bee-hive.jpg",
   },
@@ -115,8 +348,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
     siegeSlotUtc: "sat_16",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 10, xpPct: 3 },
     rentPerDay: 60000,
     portrait: "assets/locations/cruma-marsh.jpg",
   },
@@ -132,8 +366,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_16",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 6, xpPct: 2 },
     rentPerDay: 64000,
     portrait: "assets/locations/cruma-tower.jpg",
   },
@@ -149,8 +384,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_18",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 47500,
     portrait: "assets/locations/dion-hills.jpg",
   },
@@ -166,8 +402,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.8,
     capturable: true,
     siegeEnabled: true,
+    warTier: "flagship",
     siegeSlotUtc: "sun_18",
-    holderBonus: { adenaPct: 5 },
+    holderBonus: { adenaPct: 11, xpPct: 4 },
     rentPerDay: 65000,
     portrait: "assets/locations/execution-grounds.jpg",
   },
@@ -183,8 +420,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_18",
-    holderBonus: { adenaPct: 3 },
+    holderBonus: { adenaPct: 5, xpPct: 2 },
     rentPerDay: 57500,
     portrait: "assets/locations/floran.jpg",
   },
@@ -200,8 +438,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_20",
-    holderBonus: { adenaPct: 3 },
+    holderBonus: { adenaPct: 5, xpPct: 2 },
     rentPerDay: 53500,
     portrait: "assets/locations/partisans.jpg",
   },
@@ -217,8 +456,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_16",
-    holderBonus: { adenaPct: 3 },
+    holderBonus: { adenaPct: 5, xpPct: 2 },
     rentPerDay: 51500,
     portrait: "assets/locations/plains-dion.jpg",
   },
@@ -234,8 +474,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_16",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 40000,
     portrait: "assets/locations/abandoned-coal-mines.jpg",
   },
@@ -251,8 +492,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_18",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 37000,
     portrait: "assets/locations/elven-ruins-hunt.jpg",
   },
@@ -268,8 +510,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_20",
-    holderBonus: { adenaPct: 3 },
+    holderBonus: { adenaPct: 5, xpPct: 2 },
     rentPerDay: 58500,
     portrait: "assets/locations/breka.jpg",
   },
@@ -285,8 +528,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_18",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 6, xpPct: 2 },
     rentPerDay: 60000,
     portrait: "assets/locations/death-pass.jpg",
   },
@@ -302,8 +546,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_20",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 6, xpPct: 2 },
     rentPerDay: 67500,
     portrait: "assets/locations/dragon-valley.jpg",
   },
@@ -319,8 +564,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_16",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 6, xpPct: 2 },
     rentPerDay: 60000,
     portrait: "assets/locations/gorgon-garden.jpg",
   },
@@ -336,8 +582,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_16",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 45000,
     portrait: "assets/locations/fellmere.jpg",
   },
@@ -353,8 +600,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_18",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 45000,
     portrait: "assets/locations/windmill-hill.jpg",
   },
@@ -370,8 +618,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_20",
-    holderBonus: { adenaPct: 3 },
+    holderBonus: { adenaPct: 5, xpPct: 2 },
     rentPerDay: 45000,
     portrait: "assets/locations/abandoned-camp.jpg",
   },
@@ -387,8 +636,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_18",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 50000,
     portrait: "assets/locations/evil-grounds.jpg",
   },
@@ -404,8 +654,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_20",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 50000,
     portrait: "assets/locations/langk.jpg",
   },
@@ -421,8 +672,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_16",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 50000,
     portrait: "assets/locations/maille.jpg",
   },
@@ -438,8 +690,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_16",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 45000,
     portrait: "assets/locations/neutral-zone.jpg",
   },
@@ -455,8 +708,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sat_18",
-    holderBonus: { adenaPct: 3 },
+    holderBonus: { adenaPct: 5, xpPct: 2 },
     rentPerDay: 54500,
     portrait: "assets/locations/orc-barracks-hunt.jpg",
   },
@@ -472,8 +726,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_20",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 6, xpPct: 2 },
     rentPerDay: 55000,
     portrait: "assets/locations/ruins-agony.jpg",
   },
@@ -489,8 +744,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
     siegeSlotUtc: "sun_18",
-    holderBonus: { adenaPct: 2 },
+    holderBonus: { adenaPct: 4, xpPct: 1 },
     rentPerDay: 50000,
     portrait: "assets/locations/ruins-despair.jpg",
   },
@@ -506,8 +762,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.8,
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
     siegeSlotUtc: "sat_18",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 9, xpPct: 3 },
     rentPerDay: 50000,
     portrait: "assets/locations/wasteland.jpg",
   },
@@ -523,8 +780,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
     siegeSlotUtc: "sat_16",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 10, xpPct: 3 },
     rentPerDay: 70000,
     portrait: "assets/locations/alligator-island.jpg",
   },
@@ -540,8 +798,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
     siegeSlotUtc: "sun_16",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 10, xpPct: 3 },
     rentPerDay: 70000,
     portrait: "assets/locations/enchanted-valley.jpg",
   },
@@ -557,8 +816,9 @@ const CLAN_TERRITORIES = [
     hitR: 2.6,
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
     siegeSlotUtc: "sat_18",
-    holderBonus: { adenaPct: 4 },
+    holderBonus: { adenaPct: 11, xpPct: 4 },
     rentPerDay: 70000,
     portrait: "assets/locations/sea-of-spores.jpg",
   },
@@ -807,7 +1067,10 @@ function clanTerritoryStatusForZone(zoneId) {
   const me = clanMyClanRef();
   const isMyClan = !!(holder && me && holder.clanId === me.clanId);
   const holderBonusPct = Math.max(0, Number(t.holderBonus?.adenaPct) || 0);
+  const holderXpPct = Math.max(0, Number(t.holderBonus?.xpPct) || 0);
   const bonusPct = t.siegeEnabled && isMyClan ? holderBonusPct : 0;
+  const xpBonusPct = t.siegeEnabled && isMyClan ? holderXpPct : 0;
+  const warTier = clanTerritoryWarTier(t);
   let lineShort = "";
   let lineMeta = "";
   if (!t.capturable) {
@@ -815,27 +1078,39 @@ function clanTerritoryStatusForZone(zoneId) {
   } else if (!holder) {
     lineShort = "нейтрал";
     lineMeta = t.siegeEnabled
-      ? "Спорная · нейтрал · holder +" + holderBonusPct + "% online"
+      ? "Свободно · " +
+        clanTerritoryWarTierLabelRu(t) +
+        " · holder +" +
+        holderBonusPct +
+        "% adena" +
+        (holderXpPct ? " / +" + holderXpPct + "% XP" : "") +
+        " online"
       : "Нейтрал";
   } else if (isMyClan) {
     lineShort = "ваш +" + bonusPct + "%";
     lineMeta =
-      "Клан «" +
-      holder.clanName +
-      "»" +
-      (bonusPct ? " · +" + bonusPct + "% adena online" : "");
+      "Ваше угодье · +" +
+      bonusPct +
+      "% adena" +
+      (xpBonusPct ? " · +" + xpBonusPct + "% XP" : "") +
+      " online";
   } else {
     lineShort = holder.clanName;
-    lineMeta = "Владеет «" + holder.clanName + "»";
+    lineMeta = "Чужое · клан «" + holder.clanName + "»";
   }
   return {
     territory: t,
     capturable: !!t.capturable,
     siegeEnabled: !!t.siegeEnabled,
+    warTier,
+    isEliteWar: clanTerritoryIsEliteWar(t),
+    isFlagship: clanTerritoryIsFlagship(t),
     holder,
     isMyClan,
     bonusPct,
+    xpBonusPct,
     holderBonusPct,
+    holderXpPct,
     lineShort,
     lineMeta,
   };
@@ -843,6 +1118,27 @@ function clanTerritoryStatusForZone(zoneId) {
 
 function clanTerritoryAdenaBonusPct(zoneId) {
   return clanTerritoryStatusForZone(zoneId).bonusPct;
+}
+
+function clanTerritoryXpBonusPct(zoneId) {
+  return clanTerritoryStatusForZone(zoneId).xpBonusPct || 0;
+}
+
+/** Combined adena% from holder + clan buffs, capped. */
+function clanCombinedFarmAdenaPct(zoneId) {
+  const holder = clanTerritoryAdenaBonusPct(zoneId);
+  const buff = typeof clanBuffAdenaPct === "function" ? clanBuffAdenaPct() : 0;
+  const cap =
+    (typeof CLAN_FARM_BONUS_CAPS !== "undefined" && CLAN_FARM_BONUS_CAPS.adenaPct) || 28;
+  return Math.min(cap, holder + buff);
+}
+
+function clanCombinedFarmXpPct(zoneId) {
+  const holder = clanTerritoryXpBonusPct(zoneId);
+  const buff = typeof clanBuffXpPct === "function" ? clanBuffXpPct() : 0;
+  const cap =
+    (typeof CLAN_FARM_BONUS_CAPS !== "undefined" && CLAN_FARM_BONUS_CAPS.xpPct) || 22;
+  return Math.min(cap, holder + buff);
 }
 
 /** Цена отбития чужого узла (база; сервер умножает на силу осады владельца). */

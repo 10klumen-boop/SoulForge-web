@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m310" />
+<link rel="stylesheet" href="styles/main.css?v=m315" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d22" />
-<link rel="stylesheet" href="styles/sf-ui.css?v=54" />
+<link rel="stylesheet" href="styles/sf-ui.css?v=57" />
 <link rel="stylesheet" href="styles/banana-casino.css?v=16" />
 <script src="cloud-config.js"></script>
 
@@ -112,6 +112,10 @@
   <div class="card">
 
     <section class="screen active" id="screen-login">
+      <button type="button" class="login-olympiad" id="loginOlympiadBtn" title="Монумент героев — рейтинг">
+        <img class="login-olympiad-img" src="assets/ui/olympiad_monument.png?v=2" alt="" width="277" height="780" decoding="async" />
+        <span class="login-olympiad-tip">Монумент героев</span>
+      </button>
       <div class="login-stage">
         <h1 class="login-logo">SoulForge Prelude</h1>
         <div class="login-panel">
@@ -148,8 +152,7 @@
           <button type="button" class="login-corner-btn" id="loginSettingsBtn" title="Настройки">⚙ Настройки</button>
         </div>
       </div>
-      <button type="button" class="login-dev-skip" id="loginDevSkip" hidden>DEV · пропустить вход</button>
-    </section>
+</section>
 
     <section class="screen home-screen" id="screen-home">
       <div class="home-wrap">
@@ -300,6 +303,20 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.61.3</p>
+        <ul>
+          <li><b>Кланы · угодья</b> — война за землю: захват/отбитие казной, осады elite по расписанию, флагманы (сила/арена), печати угодий, рейтинг, история узла.</li>
+          <li><b>Кланы</b> — авторезолв осады, уведомления об окне/потере узла, недельное задание на печати; защита после захвата 2 ч, лимит отбитий.</li>
+        </ul>
+        <p class="patch-ver">v0.61.2</p>
+        <ul>
+          <li><b>Заточка</b> — броня теперь тоже до +12 (как бижутерия); оружие по-прежнему до +16.</li>
+          <li><b>Чат · Мир</b> — оповещение только на максимуме: оружие +16, броня/бижутерия +12.</li>
+        </ul>
+        <p class="patch-ver">v0.61.1</p>
+        <ul>
+          <li><b>Чат · Мир</b> — оповещения о редких событиях: заточка +14…+16, блесс ЗакАна и джекпот адены с редкого гнома, джекпот Банана (талисман). Нужен вход в облако.</li>
+        </ul>
         <p class="patch-ver">v0.61.0</p>
         <ul>
           <li><b>Поручения</b> — ежедневные и еженедельные задания: фарм, заточка, квесты, мастерская, инстансы, арена; стрик входа (награда только за полный ×7); бонус за комплект дня/недели.</li>
@@ -1445,10 +1462,25 @@
         <div class="sf-screen-hero-veil"></div>
         <div class="sf-screen-hero-body">
           <h3>Рейд клана</h3>
-          <p>Общий босс · 1 000 000 HP · награда: Символ Клятвы · без недельного лимита (временно).</p>
+          <p>Общий босс · 50 000 HP (тест) · награда: Символ Клятвы · без недельного лимита (временно).</p>
         </div>
       </div>
       <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanRaidScreenBody"></div>
+    </section>
+
+    <section class="screen" id="screen-clan-rank">
+      <div class="panel-head">
+        <button type="button" class="back" id="clanRankBackBtn">← К клану</button>
+        <h2>Рейтинг кланов</h2>
+      </div>
+      <div class="sf-screen-hero sf-screen-hero--clan-rank" aria-hidden="true">
+        <div class="sf-screen-hero-veil"></div>
+        <div class="sf-screen-hero-body">
+          <h3>Сила земель</h3>
+          <p>Очки за владение угодьями, захваты, осады и рейды. Топ обновляется с облака.</p>
+        </div>
+      </div>
+      <div class="clan-sub-screen-body party-screen-body sf-scroll" id="clanRankScreenBody"></div>
     </section>
 
     <section class="screen" id="screen-aden-map">
@@ -1887,58 +1919,59 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=517"></script>
+<script src="src/01-constants.js?v=519"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
 <script src="src/02-state.js?v=55"></script>
-<script src="src/data/audio-data.js?v=3"></script>
-<script src="src/03-audio.js?v=5"></script>
+<script src="src/data/audio-data.js?v=5"></script>
+<script src="src/03-audio.js?v=7"></script>
 <script src="src/04-settings.js?v=3"></script>
-<script src="src/05-dom.js?v=65"></script>
+<script src="src/05-dom.js?v=66"></script>
 <script src="src/data/enchant-balance.js?v=11"></script>
 <script src="src/data/armor-sets-data.js?v=15"></script>
 <script src="src/data/jewelry-sets-data.js?v=7"></script>
-<script src="src/06-rules.js?v=14"></script>
+<script src="src/06-rules.js?v=15"></script>
 <script src="src/data/workshop-balance.js?v=2"></script>
 <script src="src/workshop-core.js?v=12"></script>
 <script src="src/jewelry-sets-core.js?v=7"></script>
 <script src="src/07-workshop.js?v=28"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
 <script src="src/data/farm-zones-balance.js?v=19"></script>
-<script src="src/data/clan-territories-data.js?v=14"></script>
+<script src="src/data/clan-territories-data.js?v=19"></script>
 <script src="src/data/clan-hunting-catalog-data.js?v=7"></script>
 <script src="src/data/clan-map-regions-data.js?v=4"></script>
 <script src="src/data/clan-buffs-balance.js?v=9"></script>
-<script src="src/data/clan-siege-power-balance.js?v=1"></script>
+<script src="src/data/clan-siege-power-balance.js?v=3"></script>
 <script src="src/data/oath-symbol-data.js?v=1"></script>
-<script src="src/data/clan-boss-data.js?v=6"></script>
+<script src="src/data/clan-seals-data.js?v=1"></script>
+<script src="src/data/clan-boss-data.js?v=8"></script>
 <script src="src/data/scroll-drop-balance.js?v=7"></script>
 <script src="src/scroll-core.js?v=9"></script>
 <script src="src/08-menu.js?v=13"></script>
 <script src="src/09-inventory.js?v=72"></script>
-<script src="src/enchant-ui.js?v=9"></script>
+<script src="src/enchant-ui.js?v=10"></script>
 <script src="src/item-tooltip-ui.js?v=6"></script>
 <script src="src/inventory-ui.js?v=26"></script>
 <script src="src/account-storage-core.js?v=7"></script>
 <script src="src/account-storage-ui.js?v=8"></script>
 <script src="src/data/dev-data.js"></script>
 <script src="src/dev-core.js?v=4"></script>
-<script src="src/11-enchant.js?v=23"></script>
+<script src="src/11-enchant.js?v=25"></script>
 <script src="src/mine-ui.js?v=9"></script>
-<script src="src/mine-core.js?v=41"></script>
+<script src="src/mine-core.js?v=43"></script>
 <script src="src/13-portable-save.js"></script>
-<script src="src/cloud-core.js?v=8"></script>
-<script src="src/cloud-ui.js?v=4"></script>
+<script src="src/cloud-core.js?v=9"></script>
+<script src="src/cloud-ui.js?v=5"></script>
 <script src="src/market-core.js?v=10"></script>
 <script src="src/market-ui.js?v=14"></script>
 <script src="src/player-mail-core.js?v=9"></script>
 <script src="src/player-mail-ui.js?v=7"></script>
-<script src="src/chat-core.js?v=15"></script>
-<script src="src/clan-core.js?v=20"></script>
-<script src="src/clan-siege-power-core.js?v=2"></script>
+<script src="src/chat-core.js?v=16"></script>
+<script src="src/clan-core.js?v=25"></script>
+<script src="src/clan-siege-power-core.js?v=3"></script>
 <script src="src/clan-boss-core.js?v=17"></script>
-<script src="src/clan-map-ui.js?v=12"></script>
-<script src="src/clan-grounds-ui.js?v=16"></script>
-<script src="src/clan-ui.js?v=42"></script>
+<script src="src/clan-map-ui.js?v=13"></script>
+<script src="src/clan-grounds-ui.js?v=19"></script>
+<script src="src/clan-ui.js?v=47"></script>
 <script src="src/chat-ui.js?v=5"></script>
 <script src="src/data/party-content-data.js?v=39"></script>
 <script src="src/party-core.js?v=22"></script>
@@ -1953,7 +1986,7 @@
 <script src="src/achievements-core.js?v=9"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
-<script src="src/19-home.js?v=3"></script>
+<script src="src/19-home.js?v=5"></script>
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js?v=2"></script>
 <script src="src/data/glossary-data.js?v=4"></script>
@@ -1978,11 +2011,11 @@
 <script src="src/data/passive-skills-data.js?v=2"></script>
 <script src="src/passive-skills-core.js?v=7"></script>
 <script src="src/professions-core.js?v=13"></script>
-<script src="src/avatar-core.js?v=20"></script>
+<script src="src/avatar-core.js?v=21"></script>
 <script src="src/22-avatar.js?v=34"></script>
 <script src="src/professions-ui.js?v=5"></script>
-<script src="src/avatar-gear-core.js?v=23"></script>
-<script src="src/armor-sets-core.js?v=15"></script>
+<script src="src/avatar-gear-core.js?v=25"></script>
+<script src="src/armor-sets-core.js?v=16"></script>
 <script src="src/resource-favorites-core.js?v=1"></script>
 <script src="src/avatar-armor-display.js?v=2"></script>
 <script src="src/23-avatar-gear.js?v=24"></script>
@@ -2009,7 +2042,7 @@
 <script src="src/pvp-combat-ui.js?v=23"></script>
 <script src="src/32-debug-log.js"></script>
 <script src="src/avatar-math.js?v=31"></script>
-<script src="src/avatar-stats-core.js?v=17"></script>
+<script src="src/avatar-stats-core.js?v=18"></script>
 <script src="src/24-avatar-stats.js?v=52"></script>
 <script src="src/data/passive-income-balance.js?v=6"></script>
 <script src="src/passive-income-core.js?v=10"></script>
@@ -2021,10 +2054,10 @@
 <script src="src/engagement-core.js?v=4"></script>
 <script src="src/engagement-ui.js?v=3"></script>
 <script src="src/data/banana-casino-balance.js?v=14"></script>
-<script src="src/banana-casino-core.js?v=8"></script>
+<script src="src/banana-casino-core.js?v=9"></script>
 <script src="src/banana-casino-ui.js?v=14"></script>
 <script src="src/data-loader.js?v=40"></script>
-<script src="src/99-bootstrap.js?v=80"></script>
+<script src="src/99-bootstrap.js?v=82"></script>
 
 </body>
 </html>

@@ -466,7 +466,8 @@ function equipAvatarSlot(slotId, invItem) {
     return next;
   });
   save();
-  Audio2.success();
+  if (typeof Audio2 !== "undefined" && Audio2.equip) Audio2.equip(slotId);
+  else if (typeof Audio2 !== "undefined" && Audio2.open) Audio2.open();
   const def = avatarGearItemDef(snap);
   const slotLabel = AVATAR_GEAR_SLOTS.find((s) => s.id === slotId)?.label || "Слот";
   toast("Надето: " + (def?.name || "?") + " · " + slotLabel, "success");

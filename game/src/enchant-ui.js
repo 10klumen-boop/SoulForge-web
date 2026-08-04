@@ -107,6 +107,13 @@ function openEnchant(item, opts) {
     scroll: "regular",
     equipped: !!equipped,
   };
+  const openCap =
+    typeof enchantItemCapPlus === "function" ? enchantItemCapPlus(kind, "regular") : kind === "weapon" ? 16 : 12;
+  if ((cur.plus | 0) > openCap) {
+    cur.plus = openCap;
+    item.plus = openCap;
+    if (typeof syncEnchantItemToStore === "function") syncEnchantItemToStore();
+  }
   $("#enchTitle").textContent = def.name + (equipped ? " · надето" : "") + enchantKindTitleSuffix();
   renderScrolls();
   renderEnch(true);
@@ -310,8 +317,8 @@ function renderEnch(resetVerdict) {
   if (broken) {
     note.textContent = ItemCap + " разрушена — возьми новое";
     note.style.color = "var(--red)";
-  } else if (maxed && isJew) {
-    note.textContent = "+12 — максимальная заточка бижутерии!";
+  } else if (maxed && (isJew || isArmor)) {
+    note.textContent = "+12 — максимальная заточка " + (isJew ? "бижутерии" : "брони") + "!";
     note.style.color = "var(--red)";
   } else if (maxed && capPlus >= MAX_PLUS) {
     note.textContent = "+16 — максимальная заточка!";

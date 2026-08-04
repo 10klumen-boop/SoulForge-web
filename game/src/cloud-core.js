@@ -18,6 +18,7 @@ const CLOUD_CONFIG = {
 (function applyCloudBootstrap() {
   try {
     const cfg = typeof window !== "undefined" ? window.SOULFORGE_CLOUD : null;
+    const PROD_CLOUD_URL = "https://soulfgonline.com";
     if (cfg && typeof cfg === "object") {
       if (cfg.baseUrl != null && cfg.baseUrl !== "") CLOUD_CONFIG.baseUrl = String(cfg.baseUrl);
       if (cfg.enabled != null) CLOUD_CONFIG.enabled = !!cfg.enabled;
@@ -41,8 +42,14 @@ const CLOUD_CONFIG = {
       const isHttpish = location.protocol === "http:" || location.protocol === "https:";
       const isLocalApi = isHttpish && (port === "8787" || /soulforge/i.test(host));
       const isVpsOrigin = isHttpish && !isLocalHost && !isStaticPages;
+      const isDesktop = !!(typeof window !== "undefined" && window.soulforgeDesktop?.isDesktop);
+      // Tauri / localhost:1420 — статика без API; ходим на прод
+      const isTauriStatic = isHttpish && isLocalHost && (port === "1420" || isDesktop);
       if (isLocalApi || isVpsOrigin) {
         CLOUD_CONFIG.baseUrl = CLOUD_CONFIG.baseUrl || location.origin;
+        CLOUD_CONFIG.enabled = true;
+      } else if (isTauriStatic) {
+        CLOUD_CONFIG.baseUrl = CLOUD_CONFIG.baseUrl || PROD_CLOUD_URL;
         CLOUD_CONFIG.enabled = true;
       } else if (cfg && cfg.enabled && !CLOUD_CONFIG.baseUrl && !isDevPort) {
         CLOUD_CONFIG.baseUrl = location.origin;

@@ -386,6 +386,18 @@ const Audio2 = (() => {
     });
   }
 
+  function currentMineAmbKey() {
+    let zoneId = null;
+    if (typeof currentMineZoneId === "function") {
+      try {
+        zoneId = currentMineZoneId();
+      } catch (_) {}
+    }
+    if (!zoneId && typeof state !== "undefined") zoneId = state.farmZone;
+    if (typeof resolveZoneAmbienceKey === "function") return resolveZoneAmbienceKey(zoneId);
+    return zoneId && FILES.amb[zoneId] ? zoneId : "banana_mine";
+  }
+
   function setScreen(screen) {
     if (shouldPlayMusic(screen)) {
       startMusic(screen);
@@ -393,9 +405,17 @@ const Audio2 = (() => {
       return;
     }
     stopMusicImmediate();
-    const key = SCREEN_AMB[screen];
-    if (key) startAmbience(key);
-    else stopAmbience();
+    if (SCREEN_AMB[screen]) {
+      startAmbience(currentMineAmbKey());
+    } else {
+      stopAmbience();
+    }
+  }
+
+  function refreshMineAmbience() {
+    if (isSilent()) return;
+    if (activeScreenId() !== "mine") return;
+    startAmbience(currentMineAmbKey());
   }
 
   function refreshVolumes() {
@@ -418,6 +438,7 @@ const Audio2 = (() => {
     fail() { noise(0, 0.5, 0.3, "sfx"); tone(160, 0, 0.5, "square", 0.18, 60, "sfx"); },
     click() { tone(440, 0, 0.05, "square", 0.06, null, "ui"); },
     open() { tone(520, 0, 0.06, "triangle", 0.07, null, "ui"); tone(780, 0.04, 0.08, "sine", 0.05, null, "ui"); },
+    equip() { tone(380, 0, 0.08, "triangle", 0.1, 520, "ui"); tone(620, 0.05, 0.1, "sine", 0.06, null, "ui"); },
     jackpot() { [523, 659, 784, 1047, 1318, 1568].forEach((f, i) => tone(f, i * 0.07, 0.5, "triangle", 0.2, null, "sfx")); },
     coin() { tone(880, 0, 0.08, "triangle", 0.14, 1320, "ui"); tone(1320, 0.05, 0.12, "sine", 0.1, null, "ui"); },
     treasure() { [659, 880, 1047, 1318].forEach((f, i) => tone(f, i * 0.06, 0.3, "triangle", 0.16, null, "sfx")); },
@@ -429,8 +450,10 @@ const Audio2 = (() => {
     unlock,
     preload: preloadAll,
     refreshAmbience,
+    refreshMineAmbience,
     refreshVolumes,
     setScreen,
+    currentMineAmbKey,
     stopAmbience() { stopAmbience(); },
     stopMusic() { stopMusicImmediate(); },
     charge() { playOrSynth(FILES.sfx.charge, eff(BASE.sfx, "sfx"), synth.charge); },
@@ -438,6 +461,17 @@ const Audio2 = (() => {
     fail() { playOrSynth(FILES.sfx.fail, eff(BASE.sfx, "sfx"), synth.fail); },
     click() { playOrSynth(FILES.ui.click, eff(BASE.ui, "ui"), synth.click); },
     open() { playOrSynth(FILES.ui.open, eff(BASE.ui, "ui") * 0.85, synth.open); },
+    equip(slotId) {
+      const meta =
+        typeof AVATAR_GEAR_SLOTS !== "undefined"
+          ? AVATAR_GEAR_SLOTS.find((s) => s.id === slotId)
+          : null;
+      let src = FILES.sfx.equipWeapon;
+      if (slotId === "weapon") src = FILES.sfx.equipWeapon;
+      else if (meta?.jewelry) src = FILES.sfx.equipJewelry;
+      else src = FILES.sfx.equipArmor;
+      playOrSynth(src, eff(BASE.ui, "ui") * 0.95, synth.equip);
+    },
     jackpot() { playOrSynth(FILES.sfx.jackpot, eff(BASE.sfx, "sfx"), synth.jackpot); },
     coin() { playOrSynth(FILES.ui.coin, eff(BASE.ui, "ui"), synth.coin); },
     treasure() { playOrSynth(FILES.sfx.treasure, eff(BASE.sfx, "sfx"), synth.treasure); },

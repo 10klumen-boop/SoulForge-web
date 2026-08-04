@@ -150,13 +150,18 @@ document.addEventListener("keydown", (e) => {
     const to = back?.dataset?.to || "home";
     show(to);
   }
-  else if (e.key === "Escape" && ($("#screen-characters").classList.contains("active") || $("#screen-leaderboard")?.classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
+  else if (e.key === "Escape" && $("#screen-leaderboard")?.classList.contains("active")) {
+    Audio2.click();
+    const back = document.querySelector("#screen-leaderboard .back[data-to], #screen-leaderboard .panel-head .back");
+    show(back?.dataset?.to || "home");
+  }
+  else if (e.key === "Escape" && ($("#screen-characters").classList.contains("active") || $("#screen-home").classList.contains("active"))) { Audio2.click(); show("home"); }
   else if (e.key === "Escape" && $("#screen-aden-map")?.classList.contains("active")) {
     Audio2.click();
     if (typeof closeAdenMapScreen === "function") closeAdenMapScreen();
     else show("clan");
   }
-  else if (e.key === "Escape" && ($("#screen-clan-grounds")?.classList.contains("active") || $("#screen-clan-warehouse")?.classList.contains("active") || $("#screen-clan-buffs")?.classList.contains("active"))) {
+  else if (e.key === "Escape" && ($("#screen-clan-grounds")?.classList.contains("active") || $("#screen-clan-warehouse")?.classList.contains("active") || $("#screen-clan-buffs")?.classList.contains("active") || $("#screen-clan-raid")?.classList.contains("active") || $("#screen-clan-rank")?.classList.contains("active"))) {
     Audio2.click();
     if (typeof openClanScreen === "function") openClanScreen();
     else show("clan");

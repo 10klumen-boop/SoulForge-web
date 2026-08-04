@@ -26,6 +26,9 @@ function clanMapPinClass(t) {
   const isMine = !!(holder && me && holder.clanId === me.clanId);
   let cls = "clan-map-pin kind-" + (t.kind || "farm");
   if (t.siegeEnabled) cls += " siege is-mvp";
+  const wt = typeof clanTerritoryWarTier === "function" ? clanTerritoryWarTier(t) : t.warTier;
+  if (wt === "elite") cls += " is-elite";
+  if (wt === "flagship") cls += " is-flagship";
   if (!holder) cls += " is-neutral";
   else if (isMine) cls += " is-mine is-owned";
   else cls += " is-owned";
@@ -321,11 +324,11 @@ function adenMapDetailHtml() {
   if (clanMapSelectedId) return clanMapDetailHtml(clanMapSelectedId);
   if (clanMapSelectedRegionId) return adenMapRegionDetailHtml(clanMapSelectedRegionId);
   return (
-    '<p class="party-panel-hint">Клик по <b>зоне</b> или золотому пину (<b>Пустошь</b> / <b>Поле казни</b>). Holder → +adena% online; рента → склад.</p>' +
+    '<p class="party-panel-hint">Клик по зоне или пину. <b>Захват (казна)</b> — будни; <b>осада</b> — elite по слоту UTC; флагман — арена.</p>' +
     '<div class="clan-map-legend-row"><span class="clan-map-swatch is-neutral"></span> нейтрал</div>' +
     '<div class="clan-map-legend-row"><span class="clan-map-swatch is-mine"></span> ваш клан</div>' +
     '<div class="clan-map-legend-row"><span class="clan-map-swatch is-owned"></span> чужой</div>' +
-    '<div class="clan-map-legend-row"><span class="clan-map-swatch siege"></span> MVP захват</div>'
+    '<div class="clan-map-legend-row"><span class="clan-map-swatch siege"></span> захват / осада</div>'
   );
 }
 
@@ -349,6 +352,12 @@ function clanMapDetailHtml(id) {
       t.farmZoneId +
       '">К зоне фарма</button>';
   }
+  const isElite =
+    typeof clanTerritoryIsEliteWar === "function" && clanTerritoryIsEliteWar(t);
+  const win =
+    isElite && typeof clanSiegeWindowForTerritory === "function"
+      ? clanSiegeWindowForTerritory(t, Date.now())
+      : null;
   if (canClaim) {
     if (!holder) {
       const claimCost =
@@ -359,14 +368,31 @@ function clanMapDetailHtml(id) {
       actions +=
         '<button type="button" class="party-panel-btn party-inst-primary" data-clan-claim="' +
         t.id +
-        '">Заявить</button>';
+        '">Захватить (казна)</button>';
       actions +=
-        '<p class="party-panel-hint">Захват: ' + claimTxt + " со склада</p>";
+        '<p class="party-panel-hint">Захват (казна): ' + claimTxt + " со склада · защита 30 мин</p>";
     } else if (isMine) {
       actions +=
         '<button type="button" class="party-panel-btn ghost" data-clan-release="' +
         t.id +
         '">Снять заявку</button>';
+      if (isElite && win && win.open) {
+        actions +=
+          '<button type="button" class="party-panel-btn party-inst-primary" data-clan-siege-bid="' +
+          t.id +
+          '">Заявка на осаду</button>';
+      }
+    } else if (isElite && win && win.open) {
+      actions +=
+        '<button type="button" class="party-panel-btn party-inst-primary" data-clan-siege-bid="' +
+        t.id +
+        '">Заявка на осаду</button>';
+      actions +=
+        '<p class="party-panel-hint">Осада (расписание) · eco-отбитие закрыто · исход по силе' +
+        (typeof clanTerritoryIsFlagship === "function" && clanTerritoryIsFlagship(t)
+          ? " / арена"
+          : "") +
+        "</p>";
     } else {
       const cost =
         typeof clanTerritoryContestCost === "function"
@@ -377,9 +403,9 @@ function clanMapDetailHtml(id) {
       actions +=
         '<button type="button" class="party-panel-btn party-inst-primary" data-clan-contest="' +
         t.id +
-        '">Отбить</button>';
+        '">Отбить (казна)</button>';
       actions +=
-        '<p class="party-panel-hint">Цена ' +
+        '<p class="party-panel-hint">Захват (казна) · ' +
         costTxt +
         powerRu +
         " · защита 30 мин</p>";
@@ -392,6 +418,16 @@ function clanMapDetailHtml(id) {
     ? '<img class="clan-map-portrait" src="' + t.portrait + '" alt="" draggable="false" />'
     : "";
 
+  const xpB = t.holderBonus?.xpPct || 0;
+  const warLabel =
+    typeof clanTerritoryWarTierLabelRu === "function"
+      ? clanTerritoryWarTierLabelRu(t)
+      : "";
+  const slotLabel =
+    isElite && typeof clanSiegeSlotLabelRu === "function"
+      ? clanSiegeSlotLabelRu(t.siegeSlotUtc)
+      : "";
+
   return (
     portrait +
     "<h4>" +
@@ -400,6 +436,7 @@ function clanMapDetailHtml(id) {
     '<p class="party-panel-hint">' +
     clanMapEsc(t.labelL2 || "") +
     (t.farmZoneId ? " · " + t.farmZoneId : "") +
+    (warLabel ? " · " + warLabel : "") +
     "</p>" +
     "<p>Владелец: <b>" +
     clanMapEsc(holder?.clanName || "нейтрал") +
@@ -407,9 +444,14 @@ function clanMapDetailHtml(id) {
     (t.siegeEnabled
       ? '<p class="party-panel-hint">Holder · +' +
         (t.holderBonus?.adenaPct || 0) +
-        "% adena online · рента " +
+        "% adena" +
+        (xpB ? " · +" + xpB + "% XP" : "") +
+        " online · рента " +
         (typeof fmt === "function" ? fmt(t.rentPerDay || 0) : t.rentPerDay || 0) +
-        "/сутки · claim +50 к активности (T1 с 100)</p>"
+        "/сутки" +
+        (slotLabel ? " · слот " + slotLabel : "") +
+        (win && win.open ? " · окно ОТКРЫТО" : "") +
+        "</p>"
       : '<p class="party-panel-hint">Город / хаб — ориентир, захват позже</p>') +
     (actions ? '<div class="party-panel-actions">' + actions + "</div>" : "")
   );
@@ -636,6 +678,22 @@ function wireAdenMapDetailActions(box) {
         typeof clanReleaseTerritory === "function"
           ? await clanReleaseTerritory(btn.getAttribute("data-clan-release"))
           : releaseClanTerritoryMock(btn.getAttribute("data-clan-release"));
+      btn.disabled = false;
+      await clanMapAfterTerritoryMutation(r);
+    };
+  });
+  box.querySelectorAll("[data-clan-siege-bid]").forEach((btn) => {
+    btn.onclick = async () => {
+      btn.disabled = true;
+      let r = { ok: false, message: "Ошибка" };
+      try {
+        r =
+          typeof clanPlaceSiegeBid === "function"
+            ? await clanPlaceSiegeBid(btn.getAttribute("data-clan-siege-bid"))
+            : { ok: false, message: "Осада только онлайн" };
+      } catch (_) {
+        r = { ok: false, message: "Нет связи с облаком" };
+      }
       btn.disabled = false;
       await clanMapAfterTerritoryMutation(r);
     };

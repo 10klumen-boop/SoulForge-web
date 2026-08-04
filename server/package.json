@@ -12,7 +12,9 @@
     "test:chat": "node scripts/test-chat.js",
     "test:account-snapshots": "node scripts/test-account-snapshots.js",
     "smoke:vps": "node scripts/smoke-api.mjs --base http://109.196.103.50",
-    "smoke:local": "node scripts/smoke-api.mjs --base http://127.0.0.1:8787"
+    "smoke:local": "node scripts/smoke-api.mjs --base http://127.0.0.1:8787",
+    "swarm:clans": "node scripts/clan-swarm-bots.js --minutes 5",
+    "swarm:clans:2h": "node scripts/clan-swarm-bots.js --hours 2 --bots 30"
   },
   "engines": {
     "node": ">=18"

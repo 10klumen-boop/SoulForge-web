@@ -10,8 +10,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Пылающее болото",
     capturable: true,
     siegeEnabled: true,
+    warTier: "flagship",
+    siegeSlotUtc: "sat_18",
     rentPerDay: 80000,
-    holderBonusAdenaPct: 6,
+    holderBonusAdenaPct: 12,
+    holderBonusXpPct: 4,
   },
   school_of_dark_arts: {
     id: "school_of_dark_arts",
@@ -19,8 +22,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Школа тёмных искусств",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_20",
     rentPerDay: 35500,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   ant_nest: {
     id: "ant_nest",
@@ -28,8 +34,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Муравейник",
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
+    siegeSlotUtc: "sun_18",
     rentPerDay: 60000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 10,
+    holderBonusXpPct: 3,
   },
   bee_hive: {
     id: "bee_hive",
@@ -37,8 +46,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Улей",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_20",
     rentPerDay: 50500,
-    holderBonusAdenaPct: 3,
+    holderBonusAdenaPct: 5,
+    holderBonusXpPct: 2,
   },
   cruma_marshlands: {
     id: "cruma_marshlands",
@@ -46,8 +58,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Болота Крумы",
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
+    siegeSlotUtc: "sat_16",
     rentPerDay: 60000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 10,
+    holderBonusXpPct: 3,
   },
   cruma_tower_entrance: {
     id: "cruma_tower_entrance",
@@ -55,8 +70,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Башня Крумы (вход)",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_16",
     rentPerDay: 64000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 6,
+    holderBonusXpPct: 2,
   },
   dion_hills: {
     id: "dion_hills",
@@ -64,8 +82,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Холмы Диона",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_18",
     rentPerDay: 47500,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   execution_grounds: {
     id: "execution_grounds",
@@ -73,8 +94,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Поле казни",
     capturable: true,
     siegeEnabled: true,
+    warTier: "flagship",
+    siegeSlotUtc: "sun_18",
     rentPerDay: 65000,
-    holderBonusAdenaPct: 5,
+    holderBonusAdenaPct: 11,
+    holderBonusXpPct: 4,
   },
   floran_agricultural: {
     id: "floran_agricultural",
@@ -82,8 +106,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Флоранские поля",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_18",
     rentPerDay: 57500,
-    holderBonusAdenaPct: 3,
+    holderBonusAdenaPct: 5,
+    holderBonusXpPct: 2,
   },
   partisans_hideaway: {
     id: "partisans_hideaway",
@@ -91,8 +118,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Укрытие партизан",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_20",
     rentPerDay: 53500,
-    holderBonusAdenaPct: 3,
+    holderBonusAdenaPct: 5,
+    holderBonusXpPct: 2,
   },
   plains_of_dion: {
     id: "plains_of_dion",
@@ -100,8 +130,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Равнины Диона",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_16",
     rentPerDay: 51500,
-    holderBonusAdenaPct: 3,
+    holderBonusAdenaPct: 5,
+    holderBonusXpPct: 2,
   },
   abandoned_coal_low: {
     id: "abandoned_coal_low",
@@ -109,8 +142,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Угольные шахты",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_16",
     rentPerDay: 40000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   elven_ruins_hunt: {
     id: "elven_ruins_hunt",
@@ -118,8 +154,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Руины эльфов (охота)",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_18",
     rentPerDay: 37000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   breka_stronghold: {
     id: "breka_stronghold",
@@ -127,8 +166,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Крепость Брека",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_20",
     rentPerDay: 58500,
-    holderBonusAdenaPct: 3,
+    holderBonusAdenaPct: 5,
+    holderBonusXpPct: 2,
   },
   death_pass: {
     id: "death_pass",
@@ -136,8 +178,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Ущелье смерти",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_18",
     rentPerDay: 60000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 6,
+    holderBonusXpPct: 2,
   },
   dragon_valley_entrance: {
     id: "dragon_valley_entrance",
@@ -145,8 +190,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Долина драконов (вход)",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_20",
     rentPerDay: 67500,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 6,
+    holderBonusXpPct: 2,
   },
   gorgon_flower_garden: {
     id: "gorgon_flower_garden",
@@ -154,8 +202,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Сад горгон",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_16",
     rentPerDay: 60000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 6,
+    holderBonusXpPct: 2,
   },
   fellmere_harvesting: {
     id: "fellmere_harvesting",
@@ -163,8 +214,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Жатва Феллмер",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_16",
     rentPerDay: 45000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   windmill_hill: {
     id: "windmill_hill",
@@ -172,8 +226,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Ветряной холм",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_18",
     rentPerDay: 45000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   abandoned_camp: {
     id: "abandoned_camp",
@@ -181,8 +238,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Заброшенный лагерь",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_20",
     rentPerDay: 45000,
-    holderBonusAdenaPct: 3,
+    holderBonusAdenaPct: 5,
+    holderBonusXpPct: 2,
   },
   evil_hunting_grounds: {
     id: "evil_hunting_grounds",
@@ -190,8 +250,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Злые охотничьи угодья",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_18",
     rentPerDay: 50000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   langk_lizardman: {
     id: "langk_lizardman",
@@ -199,8 +262,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Жилище ящеров Лангк",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_20",
     rentPerDay: 50000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   maille_lizardman: {
     id: "maille_lizardman",
@@ -208,8 +274,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Казарма ящеров Мейл",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_16",
     rentPerDay: 50000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   neutral_zone: {
     id: "neutral_zone",
@@ -217,8 +286,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Нейтральная зона",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_16",
     rentPerDay: 45000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   orc_barracks_hunt: {
     id: "orc_barracks_hunt",
@@ -226,8 +298,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Казарма орков",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sat_18",
     rentPerDay: 54500,
-    holderBonusAdenaPct: 3,
+    holderBonusAdenaPct: 5,
+    holderBonusXpPct: 2,
   },
   ruins_agony: {
     id: "ruins_agony",
@@ -235,8 +310,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Руины Агонии",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_20",
     rentPerDay: 55000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 6,
+    holderBonusXpPct: 2,
   },
   ruins_despair: {
     id: "ruins_despair",
@@ -244,8 +322,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Руины Отчаяния",
     capturable: true,
     siegeEnabled: true,
+    warTier: "normal",
+    siegeSlotUtc: "sun_18",
     rentPerDay: 50000,
-    holderBonusAdenaPct: 2,
+    holderBonusAdenaPct: 4,
+    holderBonusXpPct: 1,
   },
   wasteland: {
     id: "wasteland",
@@ -253,8 +334,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Пустошь",
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
+    siegeSlotUtc: "sat_18",
     rentPerDay: 50000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 9,
+    holderBonusXpPct: 3,
   },
   alligator_island: {
     id: "alligator_island",
@@ -262,8 +346,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Остров аллигаторов",
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
+    siegeSlotUtc: "sat_16",
     rentPerDay: 70000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 10,
+    holderBonusXpPct: 3,
   },
   enchanted_valley: {
     id: "enchanted_valley",
@@ -271,8 +358,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Зачарованная долина",
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
+    siegeSlotUtc: "sun_16",
     rentPerDay: 70000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 10,
+    holderBonusXpPct: 3,
   },
   sea_of_spores: {
     id: "sea_of_spores",
@@ -280,8 +370,11 @@ const CLAN_TERRITORIES = {
     labelRu: "Море спор",
     capturable: true,
     siegeEnabled: true,
+    warTier: "elite",
+    siegeSlotUtc: "sat_18",
     rentPerDay: 70000,
-    holderBonusAdenaPct: 4,
+    holderBonusAdenaPct: 11,
+    holderBonusXpPct: 4,
   },
   gludin: {
     id: "gludin",
@@ -379,8 +472,10 @@ const HOLD_MAX = { farm: 2, city: 1 };
 /** Safe JS integer — раньше 50ккк резало крупные взносы. */
 const DEPOSIT_MAX = Number.MAX_SAFE_INTEGER;
 const MS_DAY = 24 * 60 * 60 * 1000;
-/** После захвата узел нельзя отбить сразу. */
-const CONTEST_LOCK_MS = 30 * 60 * 1000;
+/** После захвата узел нельзя отбить сразу (антиснайп). */
+const CONTEST_LOCK_MS = 2 * 60 * 60 * 1000;
+/** Лимит eco-отбитий одним кланом за UTC-сутки. */
+const CONTEST_DAY_CAP = 3;
 /** База отбития: max(floor, rent × дней). */
 const CONTEST_COST_FLOOR = 10_000_000;
 const CONTEST_RENT_DAYS = 200;
@@ -468,6 +563,10 @@ function attachClanEconomyMethods(db, store, deps) {
   const stmtWhLog = db.prepare(`
     INSERT INTO chat_clan_warehouse_log (clan_id, user_id, kind, amount, note, created_at)
     VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  const stmtContestDayCount = db.prepare(`
+    SELECT COUNT(*) AS n FROM chat_clan_warehouse_log
+    WHERE clan_id = ? AND kind = 'contest' AND created_at >= ?
   `);
   const stmtTerrAll = db.prepare("SELECT * FROM chat_clan_territories");
   const stmtTerrGet = db.prepare("SELECT * FROM chat_clan_territories WHERE territory_id = ?");
@@ -594,6 +693,13 @@ function attachClanEconomyMethods(db, store, deps) {
       const clan = stmtClanGet.get(row.clan_id);
       const quote = contestCostFor(meta, row.clan_id, null, now);
       const power = siegePower(row.clan_id, now);
+      const warTier = meta.warTier || "normal";
+      let siegeWindow = null;
+      if (typeof store.clanSiegeWindowInfo === "function") {
+        try {
+          siegeWindow = store.clanSiegeWindowInfo(row.territory_id, now);
+        } catch (_) {}
+      }
       return {
         territoryId: row.territory_id,
         clanId: row.clan_id,
@@ -603,14 +709,19 @@ function attachClanEconomyMethods(db, store, deps) {
         labelRu: meta.labelRu || row.territory_id,
         rentPerDay: meta.rentPerDay || 0,
         holderBonusAdenaPct: meta.holderBonusAdenaPct || 0,
+        holderBonusXpPct: meta.holderBonusXpPct || 0,
+        warTier,
+        siegeSlotUtc: meta.siegeSlotUtc || null,
         siegeEnabled: !!meta.siegeEnabled,
         contestCost: quote.cost,
         contestBase: quote.base,
         claimCost: claimCostFor(meta),
         contestLockMs: CONTEST_LOCK_MS,
+        contestDayCap: CONTEST_DAY_CAP,
         siegeScore: power.score,
         siegeTier: power.tier,
         siegePowerRu: power.labelRu,
+        siegeWindow,
       };
     });
   }
@@ -721,6 +832,9 @@ function attachClanEconomyMethods(db, store, deps) {
       if (typeof store.clanAddActivityScore === "function") {
         store.clanAddActivityScore(clanId, 50, { now });
       }
+      if (typeof store.clanOnTerritoryClaimed === "function") {
+        store.clanOnTerritoryClaimed(clanId, territoryId, now);
+      }
       return {
         ok: true,
         claimCost: cost,
@@ -761,6 +875,19 @@ function attachClanEconomyMethods(db, store, deps) {
     }
     const now = Number(opts.now) || Date.now();
 
+    // Elite/flagship: during siege window eco-contest is closed
+    if (
+      (meta.warTier === "elite" || meta.warTier === "flagship") &&
+      typeof store.clanIsSiegeWindowOpen === "function" &&
+      store.clanIsSiegeWindowOpen(territoryId, now)
+    ) {
+      return {
+        ok: false,
+        error: "siege_window",
+        message: "Окно осады: eco-отбитие закрыто — подайте заявку на осаду",
+      };
+    }
+
     return db.transaction(() => {
       const cur = stmtTerrGet.get(territoryId);
       if (!cur) {
@@ -788,6 +915,23 @@ function attachClanEconomyMethods(db, store, deps) {
           unlockAt,
           ...quote,
           contestCost: cost,
+        };
+      }
+
+      const dayStart = Date.UTC(
+        new Date(now).getUTCFullYear(),
+        new Date(now).getUTCMonth(),
+        new Date(now).getUTCDate()
+      );
+      const usedToday = Number(stmtContestDayCount.get(clanId, dayStart)?.n) || 0;
+      if (usedToday >= CONTEST_DAY_CAP) {
+        return {
+          ok: false,
+          error: "day_cap",
+          message:
+            "Лимит отбитий казной: " + CONTEST_DAY_CAP + " / сутки UTC (уже " + usedToday + ")",
+          contestsUsedToday: usedToday,
+          contestDayCap: CONTEST_DAY_CAP,
         };
       }
 
@@ -836,6 +980,9 @@ function attachClanEconomyMethods(db, store, deps) {
       if (typeof store.clanAddActivityScore === "function") {
         store.clanAddActivityScore(clanId, 75, { now });
       }
+      if (typeof store.clanOnTerritoryContested === "function") {
+        store.clanOnTerritoryContested(clanId, territoryId, now, cur.clan_id);
+      }
 
       const other = stmtClanGet.get(cur.clan_id);
       return {
@@ -877,6 +1024,9 @@ function attachClanEconomyMethods(db, store, deps) {
       // flush rent before release
       accrueRentForClan(clanId, opts.now || Date.now());
       stmtTerrDelete.run(territoryId);
+      if (typeof store.clanOnTerritoryReleased === "function") {
+        store.clanOnTerritoryReleased(clanId, territoryId, opts.now || Date.now());
+      }
       return { ok: true, message: "Снято: " + meta.labelRu, holders: holdersPublic() };
     })();
   };

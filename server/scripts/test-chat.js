@@ -93,15 +93,106 @@ const viaCmd = store.chatPostMessage(user2, {
 });
 assert(viaCmd.ok && viaCmd.message.channel === "whisper", "slash whisper");
 
+store.persistPlayerSave(user3, 1, Date.now(), "test", {
+  activeCharacterId: "c3",
+  characters: [{ id: "c3", progress: { avatar: { created: true, name: "HeroC", level: 10, raceId: "human", classId: "fighter", genderId: "male" }, adena: 0 } }],
+  avatar: { created: true, name: "HeroC", level: 10, raceId: "human", classId: "fighter", genderId: "male" },
+  adena: 0,
+});
+
 const clan = store.chatCreateClan(user1, { name: "Forge", now: 17000 });
 assert(clan.ok && clan.clan.name === "Forge", "clan create");
-store.chatInviteClan(user1, { nick: "ChatTri", now: 17100 });
+const clanInv = store.chatInviteClan(user1, { charName: "HeroC", now: 17100 });
+assert(clanInv.ok && clanInv.pending, "clan invite pending");
+const clanInvList = store.chatListClanInvites(user3);
+assert(clanInvList.invites.length === 1, "clan invite listed");
+const clanAccept = store.chatRespondClanInvite(user3, {
+  inviteId: clanInvList.invites[0].id,
+  accept: true,
+  now: 17200,
+});
+assert(clanAccept.ok && clanAccept.accepted, "clan invite accept");
 const cMsg = store.chatPostMessage(user1, { channel: "clan", body: "клан ок", now: 20000 });
 assert(cMsg.ok, "clan msg");
 const cTri = store.chatListMessages(user3, { channel: "clan" });
 assert(cTri.messages.some((m) => m.body === "клан ок"), "clan member sees");
 const cTwo = store.chatListMessages(user2, { channel: "clan" });
 assert(cTwo.reason === "no_clan", "non-clan");
+
+// --- Мировые оповещения ---
+const annLow = store.chatAnnounceWorld(user2, {
+  type: "enchant_high",
+  payload: { itemName: "Sword", grade: "D", plus: 14, kind: "weapon" },
+  charName: "HeroB",
+  now: 25000,
+});
+assert(!annLow.ok && annLow.error === "payload", "enchant +14 weapon not announced");
+
+const annArmorLow = store.chatAnnounceWorld(user2, {
+  type: "enchant_high",
+  payload: { itemName: "Plate", grade: "C", plus: 10, kind: "armor" },
+  charName: "HeroB",
+  now: 25000,
+});
+assert(!annArmorLow.ok && annArmorLow.error === "payload", "armor +10 not announced");
+
+const annOk = store.chatAnnounceWorld(user2, {
+  type: "enchant_high",
+  payload: { itemName: "Sword", grade: "C", plus: 16, kind: "weapon" },
+  charName: "HeroB",
+  now: 25000,
+});
+assert(annOk.ok && annOk.message.msgType === "announce", "enchant +16 announce");
+assert(annOk.message.channel === "world", "announce channel world");
+assert(/ЛЕГЕНДА/.test(annOk.message.body) && /HeroB/.test(annOk.message.body), "legend copy");
+assert(annOk.message.nick === "Мир", "announce nick Мир");
+
+const annRate = store.chatAnnounceWorld(user2, {
+  type: "banan_zaken",
+  charName: "HeroB",
+  now: 26000,
+});
+assert(!annRate.ok && annRate.error === "rate", "announce rate limit");
+
+const annArmor = store.chatAnnounceWorld(user2, {
+  type: "enchant_high",
+  payload: { itemName: "Plate", grade: "C", plus: 12, kind: "armor" },
+  charName: "HeroB",
+  now: 35000,
+});
+assert(annArmor.ok && /\+12/.test(annArmor.message.body), "armor +12 announce");
+
+const annZaken = store.chatAnnounceWorld(user3, {
+  type: "banan_zaken",
+  charName: "HeroC",
+  now: 36000,
+});
+assert(annZaken.ok && /ЗакАна/.test(annZaken.message.body), "zaken announce");
+
+const annAdena = store.chatAnnounceWorld(user1, {
+  type: "banan_adena",
+  payload: { amount: 500_000_000 },
+  charName: "HeroA",
+  now: 37000,
+});
+assert(annAdena.ok && /500кк/.test(annAdena.message.body), "adena jackpot announce");
+
+const annCasino = store.chatAnnounceWorld(user3, {
+  type: "casino_jackpot",
+  payload: { itemName: "Талисман Банана" },
+  charName: "HeroC",
+  now: 45000,
+});
+assert(annCasino.ok && /Талисман/.test(annCasino.message.body), "casino jackpot announce");
+
+const worldAfter = store.chatListMessages(user3, { channel: "world", after: 0 });
+assert(
+  worldAfter.messages.filter((m) => m.msgType === "announce").length >= 3,
+  "announces visible in world"
+);
+
+const badType = store.chatAnnounceWorld(user1, { type: "fake_event", now: 50000 });
+assert(!badType.ok && badType.error === "type", "reject unknown type");
 
 console.log("chat tests ok");
 try {

@@ -77,50 +77,101 @@
       "channels": 2
     },
     "sfx/mine_hit.wav": {
-      "source": "ItemSound/Sound/armor_leather_4.wav",
+      "source": "ItemSound/Sound/sword_mid_3.wav",
       "opts": {
-        "peak": 0.6,
-        "max_sec": 0.26,
-        "lowpass_hz": 3200,
-        "fade_ms": 40
+        "peak": 0.72,
+        "max_sec": 0.28,
+        "fade_ms": 35
       },
-      "seconds": 0.26,
+      "seconds": 0.28,
       "rate": 22050,
       "channels": 1
     },
     "sfx/mine_hit_2.wav": {
-      "source": "ItemSound/Sound/armor_wood_1.wav",
+      "source": "ItemSound/Sound/sword_mid_5.wav",
       "opts": {
-        "peak": 0.56,
+        "peak": 0.7,
         "max_sec": 0.28,
-        "lowpass_hz": 2600,
-        "fade_ms": 45
+        "fade_ms": 35
       },
       "seconds": 0.28,
       "rate": 22050,
       "channels": 1
     },
     "sfx/mine_hit_3.wav": {
-      "source": "ItemSound/Sound/armor_leather_2.wav",
+      "source": "ItemSound/Sound/sword_small_2.wav",
       "opts": {
-        "peak": 0.58,
-        "max_sec": 0.3,
-        "lowpass_hz": 3000,
-        "fade_ms": 40
+        "peak": 0.68,
+        "max_sec": 0.24,
+        "fade_ms": 30
       },
-      "seconds": 0.3,
+      "seconds": 0.24,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/mine_hit_4.wav": {
+      "source": "ItemSound/Sound/sword_mid_7.wav",
+      "opts": {
+        "peak": 0.7,
+        "max_sec": 0.28,
+        "fade_ms": 35
+      },
+      "seconds": 0.28,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/mine_hit_5.wav": {
+      "source": "ItemSound/Sound/sword_small_4.wav",
+      "opts": {
+        "peak": 0.66,
+        "max_sec": 0.24,
+        "fade_ms": 30
+      },
+      "seconds": 0.24,
       "rate": 22050,
       "channels": 1
     },
     "sfx/mine_kill.wav": {
-      "source": "ItemSound/Sound/armor_leather_3.wav",
+      "source": "ItemSound/Sound/sword_big_2.wav",
       "opts": {
-        "peak": 0.52,
-        "max_sec": 0.36,
-        "lowpass_hz": 2400,
-        "fade_ms": 55
+        "peak": 0.74,
+        "max_sec": 0.38,
+        "fade_ms": 50
       },
-      "seconds": 0.36,
+      "seconds": 0.38,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/equip_weapon.wav": {
+      "source": "ItemSound/Sound/itemequip_sword.wav",
+      "opts": {
+        "peak": 0.85,
+        "max_sec": 0.8,
+        "fade_ms": 40
+      },
+      "seconds": 0.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/equip_armor.wav": {
+      "source": "ItemSound/Sound/itemequip_armor_leather.wav",
+      "opts": {
+        "peak": 0.82,
+        "max_sec": 0.8,
+        "fade_ms": 40
+      },
+      "seconds": 0.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "sfx/equip_jewelry.wav": {
+      "source": "ItemSound/Sound/itemequip_etc_jewel.wav",
+      "opts": {
+        "peak": 0.8,
+        "max_sec": 0.7,
+        "fade_ms": 40
+      },
+      "seconds": 0.3,
       "rate": 22050,
       "channels": 1
     },
@@ -148,29 +199,32 @@
       "source": "AmbSound2/Sound/jura_01.wav",
       "opts": {
         "peak": 0.55,
-        "loop_fade_ms": 80
+        "trim": false,
+        "seamless_ms": 180
       },
-      "seconds": 5.46,
+      "seconds": 5.35,
       "rate": 22050,
       "channels": 2
     },
     "ambient/mine.wav": {
-      "source": "AmbSound2/Sound/Lava_Bubble_Loop_01.wav",
-      "opts": {
-        "peak": 0.5,
-        "loop_fade_ms": 60
-      },
-      "seconds": 3.56,
-      "rate": 22050,
-      "channels": 1
-    },
-    "ambient/indoor.wav": {
       "source": "AmbSound2/Sound/wind_light_loop_1.wav",
       "opts": {
-        "peak": 0.45,
-        "loop_fade_ms": 80
+        "peak": 0.48,
+        "trim": false,
+        "seamless_ms": 200
       },
-      "seconds": 5.2,
+      "seconds": 5.0,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/indoor.wav": {
+      "source": "AmbSound2/Sound/wind_light_loop_2.wav",
+      "opts": {
+        "peak": 0.45,
+        "trim": false,
+        "seamless_ms": 180
+      },
+      "seconds": 14.5,
       "rate": 22050,
       "channels": 2
     },
@@ -193,6 +247,452 @@
       "seconds": 1.2,
       "rate": 22050,
       "channels": 1
+    },
+    "ambient/zones/banana_mine.wav": {
+      "source": "AmbSound2/Sound/wind_light_loop_1.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 5.0,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/elven_ruins.wav": {
+      "source": "AmbSound2/Sound/jura_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.5
+      },
+      "seconds": 5.33,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/wasteland.wav": {
+      "source": "AmbSound2/Sound/wind_light_loop_2.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.48
+      },
+      "seconds": 14.48,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/race_outskirts.wav": {
+      "source": "AmbSound2/Sound/leaf_1.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.48
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/abandoned_camp.wav": {
+      "source": "AmbSound2/Sound/wind_light_1.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 15.45,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/ruins_agony.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.44
+      },
+      "seconds": 5.99,
+      "rate": 44100,
+      "channels": 1
+    },
+    "ambient/zones/abandoned_coal_low.wav": {
+      "source": "AmbSound2/Sound/foundry_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.42
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/execution_grounds.wav": {
+      "source": "AmbSound2/Sound/wind_light_loop_3.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 12.06,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/windmill_hill.wav": {
+      "source": "AmbSound2/Sound/wind_light_2.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.48
+      },
+      "seconds": 13.52,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/fellmere_harvesting.wav": {
+      "source": "AmbSound2/Sound/leaf_2.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.48
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/neutral_zone.wav": {
+      "source": "AmbSound2/Sound/wind_light_3.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 16.75,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/langk_lizardman.wav": {
+      "source": "AmbSound2/Sound/jura_02.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.5
+      },
+      "seconds": 4.24,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/maille_lizardman.wav": {
+      "source": "AmbSound2/Sound/jura_03.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.5
+      },
+      "seconds": 6.64,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/ruins_despair.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_02.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.44
+      },
+      "seconds": 4.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/evil_hunting_grounds.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_03.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.44
+      },
+      "seconds": 3.9,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/orc_barracks_hunt.wav": {
+      "source": "AmbSound2/Sound/fire_loop_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.42
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/dion_hills.wav": {
+      "source": "AmbSound2/Sound/leaf_3.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.48
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/bee_hive.wav": {
+      "source": "AmbSound2/Sound/jura_04.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.5
+      },
+      "seconds": 35.0,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/plains_of_dion.wav": {
+      "source": "AmbSound2/Sound/wind_light_4.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 9.02,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/partisans_hideaway.wav": {
+      "source": "AmbSound2/Sound/jura_05.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.5
+      },
+      "seconds": 5.23,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/floran_agricultural.wav": {
+      "source": "AmbSound/Sound/ms_wind_loop_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 3.84,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/cruma_marshlands.wav": {
+      "source": "AmbSound2/Sound/rain_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.44
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/ant_nest.wav": {
+      "source": "AmbSound/Sound/d_drone_loop_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.4
+      },
+      "seconds": 5.39,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/cruma_tower_entrance.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_04.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.44
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/school_of_dark_arts.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_05.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.42
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/elven_ruins_hunt.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_06.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/death_pass.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_07.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/gorgon_flower_garden.wav": {
+      "source": "AmbSound2/Sound/rain_02.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.44
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/breka_stronghold.wav": {
+      "source": "AmbSound/Sound/d_wind_loop_08.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.46
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/dragon_valley_entrance.wav": {
+      "source": "AmbSound2/Sound/lava_1.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.4
+      },
+      "seconds": 6.12,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/enchanted_valley.wav": {
+      "source": "AmbSound/Sound/d_fountain_loop_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.42
+      },
+      "seconds": 10.27,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/sea_of_spores.wav": {
+      "source": "AmbSound2/Sound/under_water_1.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.4
+      },
+      "seconds": 4.01,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/alligator_island.wav": {
+      "source": "AmbSound2/Sound/under_water_2.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.4
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/blazing_swamp.wav": {
+      "source": "AmbSound/Sound/flame_big_loop.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.4
+      },
+      "seconds": 3.8,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/orc_barracks.wav": {
+      "source": "AmbSound2/Sound/lava_2.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.4
+      },
+      "seconds": 4.13,
+      "rate": 22050,
+      "channels": 1
+    },
+    "ambient/zones/dark_cavern.wav": {
+      "source": "AmbSound/Sound/cd_crystal_loop.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.4
+      },
+      "seconds": 4.05,
+      "rate": 22050,
+      "channels": 2
+    },
+    "ambient/zones/dwarven_depths.wav": {
+      "source": "AmbSound/Sound/t_black_smith_loop_01.wav",
+      "opts": {
+        "trim": false,
+        "seamless_ms": 200,
+        "peak": 0.42
+      },
+      "seconds": 4.32,
+      "rate": 22050,
+      "channels": 1
     }
-  }
+  },
+  "zones": [
+    "banana_mine",
+    "elven_ruins",
+    "wasteland",
+    "race_outskirts",
+    "abandoned_camp",
+    "ruins_agony",
+    "abandoned_coal_low",
+    "execution_grounds",
+    "windmill_hill",
+    "fellmere_harvesting",
+    "neutral_zone",
+    "langk_lizardman",
+    "maille_lizardman",
+    "ruins_despair",
+    "evil_hunting_grounds",
+    "orc_barracks_hunt",
+    "dion_hills",
+    "bee_hive",
+    "plains_of_dion",
+    "partisans_hideaway",
+    "floran_agricultural",
+    "cruma_marshlands",
+    "ant_nest",
+    "cruma_tower_entrance",
+    "school_of_dark_arts",
+    "elven_ruins_hunt",
+    "death_pass",
+    "gorgon_flower_garden",
+    "breka_stronghold",
+    "dragon_valley_entrance",
+    "enchanted_valley",
+    "sea_of_spores",
+    "alligator_island",
+    "blazing_swamp",
+    "orc_barracks",
+    "dark_cavern",
+    "dwarven_depths"
+  ]
 }

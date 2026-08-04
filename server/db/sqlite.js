@@ -23,6 +23,7 @@ const { attachPartyLfgMethods } = require("./party-lfg");
 const { attachClanEconomyMethods } = require("./clan-warehouse");
 const { attachClanBuffMethods } = require("./clan-buffs");
 const { attachClanBossMethods } = require("./clan-boss");
+const { attachClanWarMethods } = require("./clan-war");
 
 function ensureScoreColumn(db, name, ddl) {
   const cols = db.prepare("PRAGMA table_info(scores)").all();
@@ -1851,6 +1852,7 @@ function createSqliteStore(opts) {
   attachClanEconomyMethods(db, store, persistDeps);
   attachClanBuffMethods(db, store, persistDeps);
   attachClanBossMethods(db, store, persistDeps);
+  attachClanWarMethods(db, store, persistDeps);
 
   return store;
 }

@@ -274,6 +274,7 @@ function openMineContinue(zoneId, zone) {
   const hintEl = document.getElementById("mineHint");
   if (hintEl) hintEl.textContent = cfg.hint || "Один враг на экране — уничтожь до конца таймера";
   mineActive = true;
+  mineClanSealSession = 0;
   mineOverlayPaused = false;
   if (!(zone && zone.party) && typeof startAutoClickerLoop === "function") {
     startAutoClickerLoop();
@@ -541,7 +542,11 @@ function mineNormalReward() {
   return amt;
 }
 
-/** Holder +adena% только online mine; не трогает passive. */
+/** Holder +adena% только online mine; не трогает passive. Кап с clan buff. */
+let mineClanSealBuf = null;
+/** Печати, нафармленные за текущую сессию фарма (для HUD). */
+let mineClanSealSession = 0;
+
 function mineApplyClanTerritoryAdena(amount) {
   const zoneId = typeof currentMineZoneId === "function" ? currentMineZoneId() : state.farmZone;
   const pct = typeof clanTerritoryAdenaBonusPct === "function" ? clanTerritoryAdenaBonusPct(zoneId) : 0;
@@ -549,11 +554,19 @@ function mineApplyClanTerritoryAdena(amount) {
   return Math.round(amount * (1 + pct / 100));
 }
 
-/** Clan C weekly buff +adena% (online mine only). */
+/** Clan weekly buff +adena% (online mine only). Respects combined farm cap with holder. */
 function mineApplyClanBuffAdena(amount) {
-  const pct = typeof clanBuffAdenaPct === "function" ? clanBuffAdenaPct() : 0;
-  if (!pct || !amount) return amount;
-  return Math.round(amount * (1 + pct / 100));
+  if (!amount) return amount;
+  const zoneId = typeof currentMineZoneId === "function" ? currentMineZoneId() : state.farmZone;
+  const holder = typeof clanTerritoryAdenaBonusPct === "function" ? clanTerritoryAdenaBonusPct(zoneId) : 0;
+  const buff = typeof clanBuffAdenaPct === "function" ? clanBuffAdenaPct() : 0;
+  if (!buff) return amount;
+  const cap =
+    (typeof CLAN_FARM_BONUS_CAPS !== "undefined" && CLAN_FARM_BONUS_CAPS.adenaPct) || 28;
+  const room = Math.max(0, cap - holder);
+  const apply = Math.min(buff, room);
+  if (!apply) return amount;
+  return Math.round(amount * (1 + apply / 100));
 }
 
 function mineGoldenReward() {
@@ -606,15 +619,24 @@ function syncMineClanTerritoryHud() {
     el.className =
       "mh mine-clan-territory" +
       (st.isMyClan ? " is-mine" : st.holder ? " is-held" : " is-neutral");
+    const xpBit = st.xpBonusPct ? " · +" + st.xpBonusPct + "% XP" : "";
     if (st.isMyClan && st.bonusPct) {
-      el.textContent = "Клан · +" + st.bonusPct + "% adena";
+      el.textContent = "Ваше угодье · +" + st.bonusPct + "% адены" + xpBit;
       el.title = st.lineMeta || "Бонус владельца (только online)";
+      if (mineClanSealSession > 0) {
+        el.textContent += " · печати +" + mineClanSealSession;
+        el.title += " · печати за сессию: " + mineClanSealSession;
+      }
     } else if (st.holder) {
-      el.textContent = "Владеет: " + st.holder.clanName;
+      el.textContent = "Чужое · клан " + st.holder.clanName;
       el.title = "Бонус только у клана-владельца";
     } else {
-      el.textContent = "Спорная · нейтрал";
-      el.title = "Захват — в меню Клан → Угодья";
+      const tier =
+        typeof clanTerritoryWarTierLabelRu === "function"
+          ? clanTerritoryWarTierLabelRu(st.territory)
+          : "захват";
+      el.textContent = "Свободно · " + tier;
+      el.title = st.lineMeta || "Захват — в меню Клан → Угодья";
     }
   } else {
     el.className = "mh mine-clan-territory is-mine";
@@ -954,6 +976,25 @@ function catchBanan(g) {
   if (res.ok && typeof grantBananaCasinoTokens === "function") {
     grantBananaCasinoTokens(1);
   }
+  if (res.ok && typeof announceWorldEvent === "function") {
+    if (loot.kind === "earring" && res.epic) {
+      announceWorldEvent("banan_zaken", {
+        itemName: res.text || (typeof COLLECTIBLES !== "undefined" && COLLECTIBLES[ZAKEN_EARRING_ID]?.name) || "Благословенную серьгу ЗакАна",
+        itemId: ZAKEN_EARRING_ID,
+      });
+    } else if (loot.kind === "adena" && Number(loot.amount) >= 100_000_000) {
+      announceWorldEvent("banan_adena", { amount: loot.amount });
+    }
+  }
+  if (res.ok && typeof logCharacterEvent === "function") {
+    logCharacterEvent("banan_catch", {
+      kind: loot.kind,
+      amount: loot.amount || null,
+      plus: loot.plus || null,
+      epic: !!res.epic,
+      text: res.text || null,
+    });
+  }
   mineBurst(x, y, color, 40);
   if (typeof achStat === "function") achStat("bananWins", 1);
   save();
@@ -1113,6 +1154,33 @@ function finishMobKill(g, type, dropAt, guard) {
   const rewardKind = type === "boss" ? "treasure" : type === "golden" ? "treasure" : "coin";
   Audio2.mineKill();
   Audio2.mineReward(rewardKind);
+  // Печати угодий: holder-mine
+  if (typeof clanTerritoryByFarmZone === "function" && typeof clanAccrueSeals === "function") {
+    const st =
+      typeof clanTerritoryStatusForZone === "function" ? clanTerritoryStatusForZone(zoneId) : null;
+    if (st && st.isMyClan && st.siegeEnabled && st.territory) {
+      if (!mineClanSealBuf) mineClanSealBuf = { territoryId: "", hits: 0, flushAt: 0 };
+      if (mineClanSealBuf.territoryId !== st.territory.id) {
+        mineClanSealBuf.territoryId = st.territory.id;
+        mineClanSealBuf.hits = 0;
+      }
+      mineClanSealBuf.hits += 1;
+      const now = Date.now();
+      if (mineClanSealBuf.hits >= 5 || now > (mineClanSealBuf.flushAt || 0)) {
+        const hits = mineClanSealBuf.hits;
+        mineClanSealBuf.hits = 0;
+        mineClanSealBuf.flushAt = now + 15000;
+        clanAccrueSeals(st.territory.id, hits)
+          .then((r) => {
+            if (r && r.ok && r.gained > 0) {
+              mineClanSealSession += r.gained;
+              if (typeof syncMineClanTerritoryHud === "function") syncMineClanTerritoryHud();
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }
   const caught = (parseInt($("#mineCaught").textContent) || 0) + 1;
   $("#mineCaught").textContent = caught;
 

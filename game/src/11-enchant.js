@@ -9,6 +9,18 @@ function syncEnchantItemToStore() {
   if (!cur || !cur.item) return;
   const isArmor = cur.kind === "armor";
   const isJew = cur.kind === "accessory" || cur.kind === "jewelry";
+  const cap =
+    typeof enchantItemCapPlus === "function"
+      ? enchantItemCapPlus(cur.kind, cur.scroll)
+      : isArmor || isJew
+        ? 12
+        : typeof MAX_PLUS === "number"
+          ? MAX_PLUS
+          : 16;
+  if ((cur.plus | 0) > cap) {
+    cur.plus = cap;
+    if (cur.item) cur.item.plus = cap;
+  }
   if (cur.equipped) {
     const uid = cur.item.uid;
     const id = cur.item.id;
@@ -144,13 +156,18 @@ function doEnchant() {
       enchantFirework(gi.color, maxed ? 52 : 36);
       playEnchantPlusPop(cur.plus, {
         maxed: maxed,
-        capLabel: isJew ? "+12!" : capPlus >= MAX_PLUS ? "+16!" : "+" + capPlus + "!",
+        capLabel:
+          isJew || isArmor
+            ? "+12!"
+            : capPlus >= MAX_PLUS
+              ? "+16!"
+              : "+" + capPlus + "!",
       });
       animMs = 520;
       setTimeout(() => stage.classList.remove("success"), animMs);
       setTimeout(() => stage.classList.remove("success-flash"), 880);
       setVerdict(
-        maxed && isJew
+        maxed && (isJew || isArmor)
           ? "+12 МАКСИМУМ!"
           : maxed && capPlus >= MAX_PLUS
             ? "+16 МАКСИМУМ — ЛЕГЕНДА!"
@@ -182,6 +199,23 @@ function doEnchant() {
           scrollTarget: target,
           cost: estimate,
         });
+      }
+      // Мировое оповещение: оружие только +16, броня/бижутерия только +12
+      {
+        const kind = cur.kind || "weapon";
+        const jew = kind === "accessory" || kind === "jewelry" || kind === "jew";
+        const armor = kind === "armor";
+        const announce =
+          (jew || armor) ? cur.plus >= 12 : cur.plus >= 16;
+        if (announce && typeof announceWorldEvent === "function") {
+          announceWorldEvent("enchant_high", {
+            itemName: cur.weapon.name,
+            weaponName: cur.weapon.name,
+            grade: cur.weapon.grade,
+            plus: cur.plus,
+            kind: jew ? "jewelry" : kind,
+          });
+        }
       }
     } else {
       ProgressStore.update("totals", (t) => ({ ...(t || { tries: 0, fails: 0, earned: 0 }), fails: (t?.fails || 0) + 1 }));

@@ -279,8 +279,25 @@ function grantAvatarXp(amount, opts) {
   migrateAvatar();
   if (!state.avatar.created) return;
   if (!opts.noClanBuff && typeof clanBuffXpPct === "function") {
-    const xpPct = clanBuffXpPct();
+    let xpPct = clanBuffXpPct();
+    if (!opts.noClanTerritory && typeof clanTerritoryXpBonusPct === "function") {
+      const zoneId =
+        opts.zoneId ||
+        (typeof currentMineZoneId === "function" ? currentMineZoneId() : null) ||
+        (typeof state !== "undefined" ? state.farmZone : null);
+      const holderXp = clanTerritoryXpBonusPct(zoneId);
+      const cap =
+        (typeof CLAN_FARM_BONUS_CAPS !== "undefined" && CLAN_FARM_BONUS_CAPS.xpPct) || 22;
+      xpPct = Math.min(cap, holderXp + xpPct);
+    }
     if (xpPct > 0) amount = Math.round(amount * (1 + xpPct / 100));
+  } else if (!opts.noClanTerritory && typeof clanTerritoryXpBonusPct === "function") {
+    const zoneId =
+      opts.zoneId ||
+      (typeof currentMineZoneId === "function" ? currentMineZoneId() : null) ||
+      (typeof state !== "undefined" ? state.farmZone : null);
+    const holderXp = clanTerritoryXpBonusPct(zoneId);
+    if (holderXp > 0) amount = Math.round(amount * (1 + holderXp / 100));
   }
   if (typeof avatarGearXpMult === "function") amount = Math.round(amount * avatarGearXpMult());
   let leveled = false;

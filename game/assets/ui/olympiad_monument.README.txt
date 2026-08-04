@@ -1,0 +1,4 @@
+olympiad_monument.png — Монумент героев (Monument of Heroes / Olympiad pillar) L2 Interlude.
+Референс: C4 Heroes (legacylineage2.fandom) + нейроген v2 (золотые руны, чистый cutout).
+Клик на экране входа (#loginOlympiadBtn) → рейтинг (openLeaderboard from login).
+Cache-buster: ?v= в index.html (login-olympiad-img).

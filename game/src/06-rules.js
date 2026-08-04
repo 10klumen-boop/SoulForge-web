@@ -95,10 +95,14 @@ function scrollMaxPlus(scrollId) {
   return MAX_PLUS;
 }
 
-/** Кап заточки с учётом типа предмета (бижутерия — до +12). */
+/** Кап заточки с учётом типа предмета (броня/бижутерия — до +12, оружие — до +16 / destruction +15). */
 function enchantItemCapPlus(kind, scrollId) {
   if (kind === "accessory" || kind === "jewelry") {
     const max = typeof JEWELRY_MAX_PLUS === "number" ? JEWELRY_MAX_PLUS : 12;
+    return max;
+  }
+  if (kind === "armor") {
+    const max = typeof ARMOR_MAX_PLUS === "number" ? ARMOR_MAX_PLUS : 12;
     return max;
   }
   return scrollMaxPlus(scrollId);

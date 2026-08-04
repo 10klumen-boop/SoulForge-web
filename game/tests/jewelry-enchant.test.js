@@ -9,6 +9,7 @@ global.save = () => {};
 global.tune = (_k, fb) => fb;
 global.MAX_PLUS = 16;
 global.DESTRUCTION_MAX_PLUS = 15;
+global.ARMOR_MAX_PLUS = 12;
 global.JEWELRY_MAX_PLUS = 12;
 global.GRADE_BASE_PRICE = { D: 50000, C: 280000, B: 1100000, A: 4500000 };
 global.SCROLL_TIER = { regular: 1, blessed: 2, destruction: 3, crystal: 4 };
@@ -82,7 +83,11 @@ assert.strictEqual(scrollQty("armor", "regular", "D"), 4);
 
 assert.strictEqual(enchantItemCapPlus("accessory", "regular"), 12);
 assert.strictEqual(enchantItemCapPlus("accessory", "destruction"), 12);
+assert.strictEqual(enchantItemCapPlus("armor", "regular"), 12);
+assert.strictEqual(enchantItemCapPlus("armor", "crystal"), 12);
+assert.strictEqual(enchantItemCapPlus("armor", "destruction"), 12);
 assert.strictEqual(enchantItemCapPlus("weapon", "destruction"), 15);
+assert.strictEqual(enchantItemCapPlus("weapon", "regular"), 16);
 
 assert.ok(jewelryCanEnchant({ id: "jew_d" }));
 assert.ok(!jewelryCanEnchant({ id: "epic_z" }));
