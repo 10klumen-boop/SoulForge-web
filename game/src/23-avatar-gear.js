@@ -448,9 +448,13 @@ function renderAvatarEquipList() {
       const baseM = (def.bonuses && def.bonuses.mdef) || def.mdef || 0;
       sub = "M.Def " + (baseM + mAdd);
     } else sub = typeof weaponEquipStatLabel === "function" ? weaponEquipStatLabel(def, it.plus || 0) : "P.Atk " + fmt(statAt(def.patk, def.ps, it.plus || 0));
+    const nameHtml =
+      it.craftOpt && it.craftOpt.rarity === "rare"
+        ? '<strong class="craft-rare-name">' + def.name + plus + badge + "</strong>"
+        : "<strong>" + def.name + plus + badge + "</strong>";
     btn.innerHTML =
       '<img src="' + def.icon + '" alt="">' +
-      "<div><strong>" + def.name + plus + badge + "</strong>" +
+      "<div>" + nameHtml +
       "<span>" + sub + "</span></div>";
     btn.onclick = () => {
       if (equipAvatarSlot(_avatarEquipSlot, it)) setAvatarEquipOpen(false);

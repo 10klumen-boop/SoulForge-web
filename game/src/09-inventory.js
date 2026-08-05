@@ -508,13 +508,16 @@ function inventoryShardCount(shardId) {
 /** Осколок бижутерии в сумку (стак по id). */
 function addShardToInventory(shardId, qty, meta) {
   meta = meta || {};
-  const def = shardItemDef(shardId);
+  const resolved =
+    typeof resolveJewelryFragId === "function" ? resolveJewelryFragId(shardId) : shardId;
+  const def = shardItemDef(resolved) || shardItemDef(shardId);
   if (!def) return null;
+  const id = resolved;
   const add = Math.max(0, Math.floor(Number(qty) || 0));
   if (add <= 0) return null;
   if (!state.inventory) state.inventory = [];
   const inv = (state.inventory || []).slice();
-  const idx = inv.findIndex((it) => it && it.kind === "shard" && it.id === shardId);
+  const idx = inv.findIndex((it) => it && it.kind === "shard" && it.id === id);
   if (idx >= 0) {
     const cur = inv[idx];
     inv[idx] = Object.assign({}, cur, { qty: Math.max(0, Math.floor(Number(cur.qty) || 0) + add) });
@@ -522,7 +525,7 @@ function addShardToInventory(shardId, qty, meta) {
     if (typeof isInventoryFull === "function" && isInventoryFull()) {
       const overflowItem = {
         uid: typeof uid === "function" ? uid() : "sh_" + Date.now(),
-        id: shardId,
+        id,
         kind: "shard",
         qty: add,
       };
@@ -534,7 +537,7 @@ function addShardToInventory(shardId, qty, meta) {
     }
     inv.push({
       uid: typeof uid === "function" ? uid() : "sh_" + Date.now(),
-      id: shardId,
+      id,
       kind: "shard",
       qty: add,
     });
@@ -545,7 +548,7 @@ function addShardToInventory(shardId, qty, meta) {
   }
   if (typeof renderMenu === "function") renderMenu();
   if (typeof renderInventory === "function") renderInventory();
-  return inv.find((it) => it && it.kind === "shard" && it.id === shardId) || null;
+  return inv.find((it) => it && it.kind === "shard" && it.id === id) || null;
 }
 
 function consumeShardsFromInventory(shardId, qty) {
@@ -597,11 +600,12 @@ function invItemDef(it) {
   return WMAP[it.id] || null;
 }
 
-function addCollectibleToInventory(collectibleId) {
+function addCollectibleToInventory(collectibleId, meta) {
   const def = COLLECTIBLES[collectibleId];
   if (!def) return null;
   if (!state.inventory) state.inventory = [];
   const it = { uid: uid(), id: collectibleId, kind: "accessory", plus: 0, spent: 0 };
+  if (meta?.craftOpt) it.craftOpt = meta.craftOpt;
   if (isInventoryFull()) {
     if (typeof enqueueOverflowLoot === "function" && enqueueOverflowLoot(it, { source: "accessory" })) {
       return it;
@@ -617,13 +621,13 @@ function addCollectibleToInventory(collectibleId) {
   return it;
 }
 
-function grantCollectible(id, qty) {
+function grantCollectible(id, qty, meta) {
   const def = COLLECTIBLES[id];
   if (!def) return null;
   qty = Math.max(1, qty | 0);
   let added = 0;
   for (let i = 0; i < qty; i++) {
-    if (!addCollectibleToInventory(id)) break;
+    if (!addCollectibleToInventory(id, meta)) break;
     added++;
   }
   if (added > 0 && typeof checkAchievements === "function") checkAchievements();
@@ -700,6 +704,8 @@ function migrateAccessoryShardsToInventory() {
 }
 
 function openInventory() {
+  if (typeof migrateArmorSetMaterials === "function") migrateArmorSetMaterials();
+  if (typeof migrateJewelrySetPieces === "function") migrateJewelrySetPieces();
   migrateAccessoryShardsToInventory();
   if (typeof flushOverflowLoot === "function") flushOverflowLoot({ silent: false });
   renderInventory();
@@ -707,6 +713,8 @@ function openInventory() {
   Audio2.open();
 }
 function goInventory() {
+  if (typeof migrateArmorSetMaterials === "function") migrateArmorSetMaterials();
+  if (typeof migrateJewelrySetPieces === "function") migrateJewelrySetPieces();
   migrateAccessoryShardsToInventory();
   if (typeof flushOverflowLoot === "function") flushOverflowLoot({ silent: false });
   renderInventory();

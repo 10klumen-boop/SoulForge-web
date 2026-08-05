@@ -192,8 +192,6 @@ ARMOR.forEach((a) => {
   AMAP[a.id] = a;
 });
 
-/** Фрагменты (= wiki Material / Piece). Хранятся в state.materials[fragId]. */
-const ARMOR_FRAGS = {};
 /** Одна иконка Material на сет (wiki etc_*), чтобы куски не мешались визуально. */
 const ARMOR_SET_FRAG_ICONS = {
   bone: "icons/etc_piece_bone_white_i00.png",
@@ -215,23 +213,27 @@ const ARMOR_SET_FRAG_ICONS = {
   demon: "icons/etc_piece_of_cloth_red_i00.png",
 };
 const _FRAG_FALLBACK = "icons/etc_lump_gray_i00.png";
-ARMOR.forEach((a) => {
-  if (a.starter || a.grade === "NG") return;
-  const fragId = a.id + "_piece";
-  ARMOR_FRAGS[fragId] = {
-    id: fragId,
-    name: a.name + " Material",
-    armorId: a.id,
-    icon: ARMOR_SET_FRAG_ICONS[a.setId] || _FRAG_FALLBACK,
-  };
-});
+
+/** Id материала сета (один на все слоты). */
+function armorSetMaterialId(setId) {
+  return String(setId || "") + "_material";
+}
 
 /**
  * Крафт в мастерской (wiki: piece + mats + crystals).
  * cry — кристаллы грейда куска; oreSoul — Soul Ore; adena — плата кузни.
+ * fragId — общий материал сета (не слота).
  */
 function _armorCraftRow(armorId, fragQty, cry, oreSoul, adena) {
-  return { armorId, fragId: armorId + "_piece", fragQty, cry, oreSoul, adena };
+  const setId = AMAP[armorId]?.setId;
+  return {
+    armorId,
+    fragId: armorSetMaterialId(setId),
+    fragQty,
+    cry,
+    oreSoul,
+    adena,
+  };
 }
 
 const ARMOR_CRAFT = [
@@ -553,6 +555,31 @@ const ARMOR_SETS = {
     },
   },
 };
+
+/**
+ * Фрагменты (= wiki Material). Один id на сет: `{setId}_material`.
+ * Хранятся в state.materials[fragId].
+ */
+const ARMOR_FRAGS = {};
+Object.keys(ARMOR_SETS).forEach((setId) => {
+  const set = ARMOR_SETS[setId];
+  if (!set || set.starter || set.grade === "NG") return;
+  const fragId = armorSetMaterialId(setId);
+  const label = String(set.name || setId).replace(/\s+Set$/i, "");
+  ARMOR_FRAGS[fragId] = {
+    id: fragId,
+    name: label + " Material",
+    setId,
+    icon: ARMOR_SET_FRAG_ICONS[setId] || _FRAG_FALLBACK,
+  };
+});
+
+/** Старые слот-куски `{armorId}_piece` → setId (миграция сейва). */
+const LEGACY_ARMOR_FRAG_TO_SET = {};
+ARMOR.forEach((a) => {
+  if (a.starter || a.grade === "NG" || !a.setId) return;
+  LEGACY_ARMOR_FRAG_TO_SET[a.id + "_piece"] = a.setId;
+});
 
 /** Подвиды брони в Мастерской (порядок хаба). */
 const ARMOR_KINDS = [

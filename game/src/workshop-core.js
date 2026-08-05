@@ -273,12 +273,20 @@ function craftAccessory(accessoryId) {
   if (r.adena > 0) {
     ProgressStore.update("adena", (a) => Math.max(0, (a || 0) - r.adena));
   }
-  const granted = typeof grantCollectible === "function" ? grantCollectible(accessoryId) : null;
+  const craftOpt = typeof rollCraftOpt === "function" ? rollCraftOpt("jewelry") : null;
+  const granted =
+    typeof grantCollectible === "function"
+      ? grantCollectible(accessoryId, 1, craftOpt ? { craftOpt } : undefined)
+      : null;
   if (!granted) return null;
   if (typeof Audio2 !== "undefined" && Audio2.success) Audio2.success();
   if (typeof save === "function") save();
   if (typeof toast === "function") {
-    toast("🔨 Скрафчено: " + check.def.name + (check.def.grade ? " [" + check.def.grade + "]" : ""), "craft");
+    let msg = "🔨 Скрафчено: " + check.def.name + (check.def.grade ? " [" + check.def.grade + "]" : "");
+    if (craftOpt && typeof formatCraftOpt === "function") {
+      msg += " · Редкий крафт: " + formatCraftOpt(craftOpt);
+    }
+    toast(msg, "craft");
   }
   if (typeof renderWorkshop === "function") renderWorkshop();
   if (typeof renderInventory === "function") renderInventory();

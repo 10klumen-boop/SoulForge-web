@@ -195,18 +195,19 @@ function farmZoneLootBandLabel(zoneOrId) {
  * XP с килла на поле.
  * Сюжет: линейно от narrative chapter (калибровка глав).
  * Охота: от XP-порога на reqLevel зоны — высокие поля дают заметно больше.
- * Цель ≈ HUNTING_XP_KILLS_PER_LEVEL обычных киллов ≈ 1 уровень на гейте зоны.
- * Хай-локи (reqLevel ≥ HUNTING_XP_HIGH_REQ): XP × HUNTING_XP_HIGH_MULT.
+ * Цель ≈ kills/level обычных киллов ≈ 1 уровень на гейте зоны.
+ * Mid/low (req < HIGH): HUNTING_XP_LOW_* (~1100 киллов/ур до 24).
+ * Хай-локи (reqLevel ≥ HUNTING_XP_HIGH_REQ): mid-кривая × HUNTING_XP_HIGH_MULT.
  */
 const HUNTING_XP_KILLS_PER_LEVEL = 3700;
 const HUNTING_XP_GOLDEN_KILLS_PER_LEVEL = 1350;
 const HUNTING_XP_MIN = 1;
 const HUNTING_XP_HIGH_REQ = 24;
-const HUNTING_XP_HIGH_MULT = 0.25;
-/** Низкие охотничьи гейты (reqLevel < N): меньше киллов на уровень ≈ чуть больше XP. */
-const HUNTING_XP_LOW_REQ = 16;
-const HUNTING_XP_LOW_KILLS_PER_LEVEL = 3000;
-const HUNTING_XP_LOW_GOLDEN_KILLS_PER_LEVEL = 1100;
+const HUNTING_XP_HIGH_MULT = 0.45;
+/** Охота до хай-гейта (reqLevel < N): меньше киллов на уровень ≈ быстрее mid 10–24. */
+const HUNTING_XP_LOW_REQ = 24;
+const HUNTING_XP_LOW_KILLS_PER_LEVEL = 1100;
+const HUNTING_XP_LOW_GOLDEN_KILLS_PER_LEVEL = 400;
 
 function farmZoneMineXpNeedAtGate(zone) {
   const req = Math.max(1, Math.floor(Number(zone?.reqLevel) || 1));

@@ -165,7 +165,7 @@ function renderEngagementStreak() {
     "</div>";
 }
 
-function renderEngagementTaskCard(task) {
+function renderEngagementTaskCard(task, period) {
   const p =
     typeof engagementTaskProgress === "function"
       ? engagementTaskProgress(task.id)
@@ -189,6 +189,36 @@ function renderEngagementTaskCard(task) {
       '">Забрать</button>';
   } else {
     action = '<span class="eng-pending">В процессе</span>';
+  }
+  let rerollHtml = "";
+  if (period === "daily" && !p.claimed && task.id !== "login") {
+    const can =
+      typeof canRerollEngagementTask === "function" ? canRerollEngagementTask(task.id) : { ok: false };
+    const quote =
+      can.quote ||
+      (typeof engagementRerollQuote === "function" ? engagementRerollQuote() : { free: true, adena: 0 });
+    const costLabel = quote.free
+      ? "бесплатно"
+      : (typeof fmtAdena === "function" ? fmtAdena(quote.adena) : quote.adena) + " ad.";
+    const disabled = !can.ok && can.reason !== "adena";
+    const title =
+      can.reason === "empty"
+        ? "Нет замены в пуле"
+        : can.reason === "adena"
+          ? "Нужно " + costLabel
+          : "Сменить поручение · " + costLabel;
+    rerollHtml =
+      '<button type="button" class="btn eng-reroll-btn' +
+      (can.ok ? "" : " dim") +
+      '" data-eng-claim="reroll" data-id="' +
+      task.id +
+      '"' +
+      (disabled ? ' aria-disabled="true"' : "") +
+      ' title="' +
+      title +
+      '">Сменить · ' +
+      costLabel +
+      "</button>";
   }
   const card = document.createElement("article");
   card.className =
@@ -218,6 +248,7 @@ function renderEngagementTaskCard(task) {
     "</div>" +
     '<div class="eng-actions">' +
     action +
+    rerollHtml +
     "</div>";
   return card;
 }
@@ -289,7 +320,16 @@ function renderEngagementScreen() {
   if (summary) {
     if (period === "daily") {
       const d = engagementDailyDoneCount();
-      summary.textContent = "День · " + d.done + " / " + d.total;
+      const q =
+        typeof engagementRerollQuote === "function" ? engagementRerollQuote() : null;
+      let extra = "";
+      if (q) {
+        extra = q.free
+          ? " · смена бесплатно"
+          : " · смена " +
+            (typeof fmtAdena === "function" ? fmtAdena(q.adena) : q.adena);
+      }
+      summary.textContent = "День · " + d.done + " / " + d.total + extra;
     } else {
       const e = ensureEngagementState();
       let done = 0;
@@ -308,7 +348,7 @@ function renderEngagementScreen() {
     if (!tasks.length) {
       list.innerHTML = '<div class="eng-empty">Нет поручений на этот период</div>';
     } else {
-      tasks.forEach((t) => list.appendChild(renderEngagementTaskCard(t)));
+      tasks.forEach((t) => list.appendChild(renderEngagementTaskCard(t, period)));
     }
   }
   renderEngagementMilestone(period);
@@ -331,6 +371,12 @@ function wireEngagementClaims() {
     else if (kind === "milestone")
       res = claimEngagementMilestone(btn.getAttribute("data-period") || "daily");
     else if (kind === "streak") res = claimEngagementStreak();
+    else if (kind === "reroll") {
+      res =
+        typeof rerollEngagementTask === "function"
+          ? rerollEngagementTask(btn.getAttribute("data-id"))
+          : { ok: false };
+    }
     if (res && res.ok) {
       const adenaEl = document.getElementById("adena");
       if (adenaEl && typeof fmt === "function") adenaEl.textContent = fmt(state.adena);

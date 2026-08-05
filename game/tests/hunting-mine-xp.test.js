@@ -41,12 +41,18 @@ function runTests() {
     assert.ok(low >= HUNTING_XP_MIN);
     assert.ok(mid >= low, "mid " + mid + " vs low " + low);
     assert.ok(midHigh > mid, "midHigh " + midHigh + " vs mid " + mid);
-    // req≥24: XP ×0.25 — хай всё ещё выше mid soft, но не раздувается
-    assert.ok(hi > mid, "hi " + hi + " vs mid " + mid);
+    // req≥24: XP × HIGH_MULT — хай выше mid soft, но не раздувается как сырая кривая
+    assert.ok(hi >= mid, "hi " + hi + " vs mid " + mid);
     assert.ok(top >= hi, "top " + top + " vs hi " + hi);
   });
 
-  test("high loc XP is quartered vs raw curve", () => {
+  test("mid hunting uses low kills/level band until high gate", () => {
+    const need = farmZoneMineXpNeedAtGate({ reqLevel: 18 });
+    const expected = Math.max(HUNTING_XP_MIN, Math.round(need / HUNTING_XP_LOW_KILLS_PER_LEVEL));
+    assert.strictEqual(farmZoneMineXp({ side: true, reqLevel: 18 }, false), expected);
+  });
+
+  test("high loc XP is scaled by HIGH_MULT vs raw curve", () => {
     const need = farmZoneMineXpNeedAtGate({ reqLevel: 32 });
     const raw = Math.max(HUNTING_XP_MIN, Math.round(need / HUNTING_XP_KILLS_PER_LEVEL));
     const got = farmZoneMineXp({ side: true, reqLevel: 32 }, false);

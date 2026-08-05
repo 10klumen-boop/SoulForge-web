@@ -61,6 +61,16 @@ function runTests() {
   const dayGap = Date.UTC(2026, 7, 6, 12, 0, 0); // Thu
   const nextWeek = Date.UTC(2026, 7, 10, 12, 0, 0); // Mon Aug 10
 
+  function withDateNow(ts, fn) {
+    const orig = Date.now;
+    Date.now = () => ts;
+    try {
+      return fn();
+    } finally {
+      Date.now = orig;
+    }
+  }
+
   test("ensureEngagementPeriod picks daily with login fixed", () => {
     resetEngagement();
     ensureEngagementPeriod(dayA, { touchLogin: true });
@@ -89,27 +99,34 @@ function runTests() {
 
   test("daily rollover clears daily progress, keeps weekly", () => {
     resetEngagement();
-    ensureEngagementPeriod(dayA, { touchLogin: true });
-    const weekIds = state.engagement.weeklyIds.slice();
-    engagementEmit("mob_kill", { type: "normal" });
-    engagementEmit("mob_kill", { type: "normal" });
-    const weeklyId = weekIds.find((id) => engagementTaskById(id).event === "mob_kill" && !engagementTaskById(id).match);
-    if (weeklyId) {
-      assert.ok((state.engagement.progress[weeklyId] || 0) >= 2);
+    const origNow = Date.now;
+    Date.now = () => dayA;
+    try {
+      ensureEngagementPeriod(dayA, { touchLogin: true });
+      const weekIds = state.engagement.weeklyIds.slice();
+      engagementEmit("mob_kill", { type: "normal" });
+      engagementEmit("mob_kill", { type: "normal" });
+      const weeklyId = weekIds.find((id) => engagementTaskById(id).event === "mob_kill" && !engagementTaskById(id).match);
+      if (weeklyId) {
+        assert.ok((state.engagement.progress[weeklyId] || 0) >= 2);
+      }
+      const dailyKill = state.engagement.dailyIds.find(
+        (id) => engagementTaskById(id).event === "mob_kill" && !engagementTaskById(id).match
+      );
+      Date.now = () => dayB;
+      ensureEngagementPeriod(dayB, { touchLogin: true });
+      assert.strictEqual(state.engagement.dailyPeriod, "2026-08-04");
+      assert.deepStrictEqual(state.engagement.weeklyIds, weekIds);
+      if (dailyKill) {
+        assert.strictEqual(state.engagement.progress[dailyKill] || 0, 0);
+      }
+      if (weeklyId) {
+        assert.ok((state.engagement.progress[weeklyId] || 0) >= 2);
+      }
+      assert.strictEqual(state.engagement.loginStreak, 2);
+    } finally {
+      Date.now = origNow;
     }
-    const dailyKill = state.engagement.dailyIds.find(
-      (id) => engagementTaskById(id).event === "mob_kill" && !engagementTaskById(id).match
-    );
-    ensureEngagementPeriod(dayB, { touchLogin: true });
-    assert.strictEqual(state.engagement.dailyPeriod, "2026-08-04");
-    assert.deepStrictEqual(state.engagement.weeklyIds, weekIds);
-    if (dailyKill) {
-      assert.strictEqual(state.engagement.progress[dailyKill] || 0, 0);
-    }
-    if (weeklyId) {
-      assert.ok((state.engagement.progress[weeklyId] || 0) >= 2);
-    }
-    assert.strictEqual(state.engagement.loginStreak, 2);
   });
 
   test("streak breaks after gap day", () => {
@@ -133,54 +150,59 @@ function runTests() {
 
   test("emit increments matching tasks only", () => {
     resetEngagement();
-    ensureEngagementPeriod(dayA, { touchLogin: false });
-    // force known daily set
-    state.engagement.dailyIds = ["login", "farm_kills_30", "farm_golden_3", "enchant_5"];
-    state.engagement.weeklyIds = ["farm_kills_200"];
-    state.engagement.progress = {};
-    engagementEmit("mob_kill", { type: "golden" });
-    assert.strictEqual(state.engagement.progress.farm_golden_3, 1);
-    assert.strictEqual(state.engagement.progress.farm_kills_30, 1);
-    assert.strictEqual(state.engagement.progress.farm_kills_200, 1);
-    assert.strictEqual(state.engagement.progress.enchant_5 || 0, 0);
+    withDateNow(dayA, () => {
+      ensureEngagementPeriod(dayA, { touchLogin: false });
+      state.engagement.dailyIds = ["login", "farm_kills_30", "farm_golden_3", "enchant_5"];
+      state.engagement.weeklyIds = ["farm_kills_200"];
+      state.engagement.progress = {};
+      engagementEmit("mob_kill", { type: "golden" });
+      assert.strictEqual(state.engagement.progress.farm_golden_3, 1);
+      assert.strictEqual(state.engagement.progress.farm_kills_30, 1);
+      assert.strictEqual(state.engagement.progress.farm_kills_200, 1);
+      assert.strictEqual(state.engagement.progress.enchant_5 || 0, 0);
+    });
   });
 
   test("claim task once", () => {
     resetEngagement();
-    ensureEngagementPeriod(dayA, { touchLogin: true });
-    state.engagement.dailyIds = ["login", "mine_visit_1", "enchant_5", "workshop_craft_1"];
-    state.engagement.progress = { login: 1 };
-    state.engagement.claimed = {};
-    const before = state.adena;
-    const r1 = claimEngagementTask("login");
-    assert.strictEqual(r1.ok, true);
-    assert.ok(state.adena > before);
-    const mid = state.adena;
-    const r2 = claimEngagementTask("login");
-    assert.strictEqual(r2.ok, false);
-    assert.strictEqual(state.adena, mid);
+    withDateNow(dayA, () => {
+      ensureEngagementPeriod(dayA, { touchLogin: true });
+      state.engagement.dailyIds = ["login", "mine_visit_1", "enchant_5", "workshop_craft_1"];
+      state.engagement.progress = { login: 1 };
+      state.engagement.claimed = {};
+      const before = state.adena;
+      const r1 = claimEngagementTask("login");
+      assert.strictEqual(r1.ok, true);
+      assert.ok(state.adena > before);
+      const mid = state.adena;
+      const r2 = claimEngagementTask("login");
+      assert.strictEqual(r2.ok, false);
+      assert.strictEqual(state.adena, mid);
+    });
   });
 
   test("milestone only after all claimed", () => {
     resetEngagement();
-    ensureEngagementPeriod(dayA, { touchLogin: false });
-    state.engagement.dailyIds = ["login", "mine_visit_1"];
-    state.engagement.progress = { login: 1, mine_visit_1: 1 };
-    state.engagement.claimed = { login: true };
-    state.engagement.dailyMilestoneClaimed = false;
-    assert.strictEqual(claimEngagementMilestone("daily").ok, false);
-    state.engagement.claimed.mine_visit_1 = true;
-    const before = state.adena;
-    assert.strictEqual(claimEngagementMilestone("daily").ok, true);
-    assert.ok(state.adena > before);
-    assert.strictEqual(claimEngagementMilestone("daily").ok, false);
+    withDateNow(dayA, () => {
+      ensureEngagementPeriod(dayA, { touchLogin: false });
+      state.engagement.dailyIds = ["login", "mine_visit_1"];
+      state.engagement.progress = { login: 1, mine_visit_1: 1 };
+      state.engagement.claimed = { login: true };
+      state.engagement.dailyMilestoneClaimed = false;
+      assert.strictEqual(claimEngagementMilestone("daily").ok, false);
+      state.engagement.claimed.mine_visit_1 = true;
+      const before = state.adena;
+      assert.strictEqual(claimEngagementMilestone("daily").ok, true);
+      assert.ok(state.adena > before);
+      assert.strictEqual(claimEngagementMilestone("daily").ok, false);
+    });
   });
 
   test("weekly rollover resets weekly, keeps daily progress", () => {
     resetEngagement();
     ensureEngagementPeriod(dayA, { touchLogin: true });
     state.engagement.dailyIds = ["login", "farm_kills_30", "enchant_5", "mine_visit_1"];
-    state.engagement.weeklyIds = ["farm_kills_200", "enchant_25", "quest_steps_3"];
+    state.engagement.weeklyIds = ["farm_kills_200", "enchant_25", "chapter_or_boss_1"];
     state.engagement.progress = { farm_kills_30: 10, farm_kills_200: 50 };
     state.engagement.claimed = {};
     ensureEngagementPeriod(nextWeek, { touchLogin: true });
@@ -192,36 +214,88 @@ function runTests() {
 
   test("streak claimable only when full", () => {
     resetEngagement();
-    ensureEngagementPeriod(dayA, { touchLogin: true });
-    assert.strictEqual(engagementStreakClaimable(), false);
-    assert.strictEqual(claimEngagementStreak().ok, false);
-    state.engagement.loginStreak = engagementStreakFullDays();
-    state.engagement.lastLoginDay = "2026-08-03";
-    state.engagement.streakClaimedDay = "";
-    assert.strictEqual(engagementStreakClaimable(), true);
-    const before = state.adena;
-    assert.strictEqual(claimEngagementStreak().ok, true);
-    assert.ok(state.adena > before);
-    assert.strictEqual(engagementStreakClaimable(), false);
-    assert.strictEqual(claimEngagementStreak().ok, false);
+    withDateNow(dayA, () => {
+      ensureEngagementPeriod(dayA, { touchLogin: true });
+      assert.strictEqual(engagementStreakClaimable(), false);
+      assert.strictEqual(claimEngagementStreak().ok, false);
+      state.engagement.loginStreak = engagementStreakFullDays();
+      state.engagement.lastLoginDay = "2026-08-03";
+      state.engagement.streakClaimedDay = "";
+      assert.strictEqual(engagementStreakClaimable(), true);
+      const before = state.adena;
+      assert.strictEqual(claimEngagementStreak().ok, true);
+      assert.ok(state.adena > before);
+      assert.strictEqual(engagementStreakClaimable(), false);
+      assert.strictEqual(claimEngagementStreak().ok, false);
+    });
   });
 
   test("instance_clear and pvp hooks match pool tasks", () => {
     resetEngagement();
+    withDateNow(dayA, () => {
+      ensureEngagementPeriod(dayA, { touchLogin: false });
+      state.engagement.dailyIds = ["login", "instance_clear_1", "pvp_fight_1", "mine_visit_1"];
+      state.engagement.weeklyIds = ["instance_clear_2", "pvp_wins_3", "farm_kills_200"];
+      state.engagement.progress = {};
+      engagementEmit("instance_clear", { dungeonId: "test" });
+      assert.strictEqual(state.engagement.progress.instance_clear_1, 1);
+      assert.strictEqual(state.engagement.progress.instance_clear_2, 1);
+      engagementEmit("pvp", { youWin: false, draw: false, mode: "practice" });
+      assert.strictEqual(state.engagement.progress.pvp_fight_1, 1);
+      assert.strictEqual(state.engagement.progress.pvp_wins_3 || 0, 0);
+      engagementEmit("pvp", { youWin: true, mode: "duel" });
+      assert.strictEqual(state.engagement.progress.pvp_wins_3, 1);
+      engagementEmit("pvp", { youWin: true, mode: "practice" });
+      assert.strictEqual(state.engagement.progress.pvp_wins_3, 1);
+    });
+  });
+
+  test("daily pool excludes story quest steps", () => {
+    assert.ok(!ENGAGEMENT_DAILY_POOL.some((t) => t.id === "quest_step_1"));
+    assert.ok(!ENGAGEMENT_DAILY_POOL.some((t) => t.event === "quest_step"));
+    assert.ok(!ENGAGEMENT_WEEKLY_POOL.some((t) => t.id === "quest_steps_3"));
+    assert.ok(!ENGAGEMENT_WEEKLY_POOL.some((t) => t.event === "quest_step"));
+  });
+
+  test("reroll first free then adena progression", () => {
+    resetEngagement({ adena: 10_000_000 });
     ensureEngagementPeriod(dayA, { touchLogin: false });
-    state.engagement.dailyIds = ["login", "instance_clear_1", "pvp_fight_1", "mine_visit_1"];
-    state.engagement.weeklyIds = ["instance_clear_2", "pvp_wins_3", "farm_kills_200"];
-    state.engagement.progress = {};
-    engagementEmit("instance_clear", { dungeonId: "test" });
-    assert.strictEqual(state.engagement.progress.instance_clear_1, 1);
-    assert.strictEqual(state.engagement.progress.instance_clear_2, 1);
-    engagementEmit("pvp", { youWin: false, draw: false, mode: "practice" });
-    assert.strictEqual(state.engagement.progress.pvp_fight_1, 1);
-    assert.strictEqual(state.engagement.progress.pvp_wins_3 || 0, 0);
-    engagementEmit("pvp", { youWin: true, mode: "duel" });
-    assert.strictEqual(state.engagement.progress.pvp_wins_3, 1);
-    engagementEmit("pvp", { youWin: true, mode: "practice" });
-    assert.strictEqual(state.engagement.progress.pvp_wins_3, 1);
+    state.engagement.dailyIds = ["login", "farm_kills_30", "enchant_5", "mine_visit_1"];
+    state.engagement.dailyPeriod = "2026-08-03";
+    state.engagement.rosterVer = ENGAGEMENT.rosterVer;
+    state.engagement.dailyRerollCount = 0;
+    state.engagement.progress = { farm_kills_30: 5 };
+    state.engagement.claimed = {};
+
+    assert.ok(engagementRerollQuote().free);
+    assert.ok(canRerollEngagementTask("farm_kills_30", dayA).ok);
+    assert.strictEqual(canRerollEngagementTask("login", dayA).ok, false);
+
+    const before = state.adena;
+    const r1 = rerollEngagementTask("farm_kills_30", dayA);
+    assert.ok(r1.ok, r1.reason);
+    assert.notStrictEqual(r1.to, "farm_kills_30");
+    assert.ok(state.engagement.dailyIds.includes(r1.to));
+    assert.ok(!state.engagement.dailyIds.includes("farm_kills_30"));
+    assert.strictEqual(state.engagement.progress.farm_kills_30, undefined);
+    assert.strictEqual(state.adena, before, "first reroll free");
+    assert.strictEqual(state.engagement.dailyRerollCount, 1);
+
+    const q2 = engagementRerollQuote();
+    assert.ok(!q2.free);
+    assert.ok(q2.adena > 0);
+    const expected = Math.floor(ENGAGEMENT.reroll.baseAdena * Math.pow(ENGAGEMENT.reroll.growth, 0));
+    assert.strictEqual(q2.adena, expected);
+
+    const target = state.engagement.dailyIds.find((id) => id !== "login");
+    const r2 = rerollEngagementTask(target, dayA);
+    assert.ok(r2.ok, r2.reason);
+    assert.strictEqual(state.adena, before - expected);
+    assert.strictEqual(state.engagement.dailyRerollCount, 2);
+
+    const q3 = engagementRerollQuote();
+    const expected2 = Math.floor(ENGAGEMENT.reroll.baseAdena * Math.pow(ENGAGEMENT.reroll.growth, 1));
+    assert.strictEqual(q3.adena, expected2);
   });
 
   console.log("\nengagement: " + passed + " passed, " + failed + " failed");

@@ -9,11 +9,17 @@ const ENGAGEMENT = {
   /** Всегда в weekly-наборе. */
   weeklyFixedIds: ["instance_clear_2"],
   /** Bump → пересобрать текущие наборы (без сброса чужого прогресса по id). */
-  rosterVer: 2,
+  rosterVer: 4,
   streakDisplayDays: 7,
   /** Награду стрика можно забрать только при полном цикле. */
   streakClaimMinDays: 7,
   iconVer: 1,
+  /** Смена daily-поручения: 1-я бесплатно, дальше adena × growth^paidIndex. */
+  reroll: {
+    freePerDay: 1,
+    baseAdena: 250_000,
+    growth: 2.2,
+  },
 };
 
 const ENGAGEMENT_ICON_BASE = "icons/engagement/";
@@ -90,16 +96,6 @@ const ENGAGEMENT_DAILY_POOL = [
     reward: { adena: 700_000 },
   },
   {
-    id: "quest_step_1",
-    period: "daily",
-    title: "Поручение дня",
-    desc: "Завершить 1 шаг сюжетного поручения",
-    target: 1,
-    event: "quest_step",
-    icon: "quest",
-    reward: { adena: 900_000 },
-  },
-  {
     id: "workshop_craft_1",
     period: "daily",
     title: "Мастерская",
@@ -172,16 +168,6 @@ const ENGAGEMENT_WEEKLY_POOL = [
     event: "enchant",
     icon: "enchant",
     reward: { adena: 4_500_000 },
-  },
-  {
-    id: "quest_steps_3",
-    period: "weekly",
-    title: "Сюжетная неделя",
-    desc: "Завершить 3 шага поручений",
-    target: 3,
-    event: "quest_step",
-    icon: "quest",
-    reward: { adena: 5_000_000 },
   },
   {
     id: "chapter_or_boss_1",
@@ -276,7 +262,34 @@ function defaultEngagementState() {
     loginStreak: 0,
     streakClaimedDay: "",
     rosterVer: 0,
+    /** Сколько раз сегодня сменили daily-поручение (сбрасывается с dailyPeriod). */
+    dailyRerollCount: 0,
   };
+}
+
+/** Стоимость следующей смены daily: { free, adena, used, freeLeft }. */
+function engagementRerollQuote() {
+  const cfg = (ENGAGEMENT && ENGAGEMENT.reroll) || {};
+  const freePerDay = Math.max(0, Math.floor(Number(cfg.freePerDay) || 0));
+  const base = Math.max(0, Math.floor(Number(cfg.baseAdena) || 0));
+  const growth = Math.max(1, Number(cfg.growth) || 2);
+  const e =
+    typeof ensureEngagementState === "function"
+      ? ensureEngagementState()
+      : typeof state !== "undefined"
+        ? state.engagement
+        : null;
+  const used = Math.max(0, Math.floor(Number(e?.dailyRerollCount) || 0));
+  if (used < freePerDay) {
+    return { free: true, adena: 0, used, freeLeft: freePerDay - used };
+  }
+  const paidIndex = used - freePerDay;
+  const adena = Math.max(0, Math.floor(base * Math.pow(growth, paidIndex)));
+  return { free: false, adena, used, freeLeft: 0 };
+}
+
+function engagementRerollCostAdena() {
+  return engagementRerollQuote().adena;
 }
 
 function engagementTaskById(id) {
@@ -302,4 +315,6 @@ if (typeof window !== "undefined") {
   window.engagementStreakReward = engagementStreakReward;
   window.engagementIconUrl = engagementIconUrl;
   window.resolveEngagementIcon = resolveEngagementIcon;
+  window.engagementRerollQuote = engagementRerollQuote;
+  window.engagementRerollCostAdena = engagementRerollCostAdena;
 }

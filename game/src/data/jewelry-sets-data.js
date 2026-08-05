@@ -488,23 +488,43 @@ const JEWELRY_SET_FRAG_ICONS = {
 };
 const _JEWEL_FRAG_FALLBACK = "icons/etc_broken_crystal_silver_i00.png";
 
+/** Id куска бижи на сет (один на necklace/earring/ring). */
+function jewelrySetPieceId(setId) {
+  return String(setId || "") + "_piece";
+}
+
+/**
+ * Куски graded-бижи: один `{setId}_piece` на сет.
+ * Epic shards остаются в ACCESSORY_FRAGS (enchant-balance).
+ */
 const JEWELRY_FRAGS = {};
-JEWELRY.forEach((j) => {
-  if (j.starter || j.grade === "NG") return;
-  const fragId = j.id + "_piece";
+Object.keys(JEWELRY_SETS).forEach((setId) => {
+  const set = JEWELRY_SETS[setId];
+  if (!set || set.starter || set.grade === "NG") return;
+  const fragId = jewelrySetPieceId(setId);
+  const label = String(set.name || setId).replace(/\s+Jewelry Set$/i, "").replace(/\s+Set$/i, "");
   JEWELRY_FRAGS[fragId] = {
     id: fragId,
-    name: j.name + " Piece",
-    accessoryId: j.id,
-    icon: JEWELRY_SET_FRAG_ICONS[j.setId] || _JEWEL_FRAG_FALLBACK,
-    desc: "Материал для крафта «" + j.name + "» в мастерской.",
+    name: label + " Piece",
+    setId,
+    icon: JEWELRY_SET_FRAG_ICONS[setId] || _JEWEL_FRAG_FALLBACK,
+    desc: "Материал сета «" + (set.name || setId) + "» для крафта в мастерской.",
   };
 });
 
+/** Старые слот-куски `{accessoryId}_piece` → setId. */
+const LEGACY_JEWELRY_FRAG_TO_SET = {};
+JEWELRY.forEach((j) => {
+  if (j.starter || j.grade === "NG" || !j.setId) return;
+  LEGACY_JEWELRY_FRAG_TO_SET[j.id + "_piece"] = j.setId;
+});
+
 function _jewelryCraftRow(accessoryId, fragQty, cry, oreSoul, adena) {
+  const j = JEWELRY.find((x) => x.id === accessoryId);
+  const setId = j?.setId;
   return {
     accessoryId,
-    shardId: accessoryId + "_piece",
+    shardId: jewelrySetPieceId(setId),
     shardQty: fragQty,
     cry: cry || 0,
     oreSoul: oreSoul || 0,

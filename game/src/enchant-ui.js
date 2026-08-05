@@ -114,7 +114,12 @@ function openEnchant(item, opts) {
     item.plus = openCap;
     if (typeof syncEnchantItemToStore === "function") syncEnchantItemToStore();
   }
-  $("#enchTitle").textContent = def.name + (equipped ? " · надето" : "") + enchantKindTitleSuffix();
+  const enchTitle = $("#enchTitle");
+  if (enchTitle) {
+    const rare = !!(item.craftOpt && item.craftOpt.rarity === "rare");
+    enchTitle.textContent = def.name + (equipped ? " · надето" : "") + enchantKindTitleSuffix();
+    enchTitle.classList.toggle("craft-rare-name", rare);
+  }
   renderScrolls();
   renderEnch(true);
   show("ench");

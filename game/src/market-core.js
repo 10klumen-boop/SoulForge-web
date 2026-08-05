@@ -340,12 +340,17 @@ function marketStackOptions() {
       const n = Math.max(0, Math.floor(Number(mats[fragId]) || 0));
       if (n <= 0) return;
       const frag = ARMOR_FRAGS[fragId];
-      const armor = frag?.armorId && typeof AMAP !== "undefined" ? AMAP[frag.armorId] : null;
+      let grade = "";
+      if (frag?.armorId && typeof AMAP !== "undefined" && AMAP[frag.armorId]) {
+        grade = AMAP[frag.armorId].grade || "";
+      } else if (frag?.setId && typeof ARMOR_SETS !== "undefined" && ARMOR_SETS[frag.setId]) {
+        grade = ARMOR_SETS[frag.setId].grade || "";
+      }
       out.push({
         kind: "armor_piece",
         fragId,
         max: n,
-        grade: armor?.grade || "",
+        grade,
         label: (frag?.name || fragId) + " ×" + n,
         icon: frag?.icon || "",
       });
@@ -359,8 +364,16 @@ function marketStackOptions() {
           : 0;
       if (n <= 0) return;
       const frag = ACCESSORY_FRAGS[fragId];
-      const acc = frag?.accessoryId && typeof COLLECTIBLES !== "undefined" ? COLLECTIBLES[frag.accessoryId] : null;
-      const grade = acc?.epic ? "epic" : acc?.grade || "";
+      let grade = "";
+      if (frag?.accessoryId && typeof COLLECTIBLES !== "undefined" && COLLECTIBLES[frag.accessoryId]) {
+        const acc = COLLECTIBLES[frag.accessoryId];
+        grade = acc.epic ? "epic" : acc.grade || "";
+      } else if (frag?.setId && typeof JEWELRY_SETS !== "undefined" && JEWELRY_SETS[frag.setId]) {
+        grade = JEWELRY_SETS[frag.setId].grade || "";
+      } else if (frag?.setId && typeof COLLECTIBLES !== "undefined") {
+        const sample = Object.keys(COLLECTIBLES).find((id) => COLLECTIBLES[id]?.setId === frag.setId);
+        if (sample) grade = COLLECTIBLES[sample].grade || "";
+      }
       out.push({
         kind: "jewelry_piece",
         fragId,

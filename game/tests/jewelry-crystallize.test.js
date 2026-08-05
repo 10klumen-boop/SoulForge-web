@@ -67,9 +67,9 @@ assert.ok(!canCrystallizeInventoryItem({ uid: "2", id: "zaken_blessed_earring", 
   assert.strictEqual(state.crystals.D, before, "epic no crystals");
 
   // Frag tab stacks include jewelry shards
-  state.inventory = [{ uid: "s1", id: "elven_necklace_piece", kind: "shard", qty: 3 }];
+  state.inventory = [{ uid: "s1", id: "elven_piece", kind: "shard", qty: 3 }];
   const frags = listFragStacks();
-  assert.ok(frags.some((r) => r.id === "elven_necklace_piece" && r.qty === 3 && r.kind === "jewelry"));
+  assert.ok(frags.some((r) => r.id === "elven_piece" && r.qty === 3 && r.kind === "jewelry"));
 
   console.log("jewelry-crystallize.test.js OK");
 })().catch((e) => {

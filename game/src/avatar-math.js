@@ -94,8 +94,12 @@ function avatarStatBonusesFromGear() {
       const plus = item.plus || 0;
       const pAdd = typeof armorEnchantPdefBonus === "function" ? armorEnchantPdefBonus(plus) : plus * 2;
       const mAdd = typeof armorEnchantMdefBonus === "function" ? armorEnchantMdefBonus(plus) : plus;
-      out.pdef += Math.round(((def.pdef || 0) + pAdd) * mult);
-      out.mdef += Math.round(((def.mdef || 0) + mAdd) * mult);
+      let pBase = (def.pdef || 0) + pAdd;
+      let mBase = (def.mdef || 0) + mAdd;
+      if (item.craftOpt?.key === "pdef") pBase += Number(item.craftOpt.value) || 0;
+      if (item.craftOpt?.key === "mdef") mBase += Number(item.craftOpt.value) || 0;
+      out.pdef += Math.round(pBase * mult);
+      out.mdef += Math.round(mBase * mult);
       return;
     }
 
@@ -113,7 +117,7 @@ function avatarStatBonusesFromGear() {
 
     const b = def?.bonuses;
 
-    if (!b && !(def && (def.mdef || def.pdef))) return;
+    if (!b && !(def && (def.mdef || def.pdef)) && !item.craftOpt) return;
 
     if (b?.patk) out.patk += b.patk;
 
@@ -129,6 +133,7 @@ function avatarStatBonusesFromGear() {
     } else if (jewPlus) {
       mdef += jewPlus;
     }
+    if (item.craftOpt?.key === "mdef") mdef += Number(item.craftOpt.value) || 0;
     if (mdef) out.mdef += mdef;
 
   });
@@ -247,6 +252,8 @@ function buildAvatarStatPipeline(opts) {
   const jewDef = typeof avatarAccessoryPvpDef === "function" ? avatarAccessoryPvpDef() : 0;
   const jewHp =
     typeof avatarAccessoryBonusSum === "function" ? avatarAccessoryBonusSum("pvpHp") : 0;
+  const armorCraftHp =
+    typeof sumEquippedCraftOpt === "function" ? sumEquippedCraftOpt("pvpHp", "armor") : 0;
   const jewCrit =
     typeof avatarAccessoryPvpCritChance === "function" ? avatarAccessoryPvpCritChance() : 0;
   let passCrit = 0;
@@ -259,7 +266,7 @@ function buildAvatarStatPipeline(opts) {
   const critCap =
     typeof PVP_CRIT_CHANCE_CAP === "number" ? PVP_CRIT_CHANCE_CAP : 0.35;
   const critChance = Math.min(critCap, Math.max(0, jewCrit + passCrit));
-  const pvpHpAdd = jewHp + (set.pvpHp || 0) + passHp;
+  const pvpHpAdd = jewHp + armorCraftHp + (set.pvpHp || 0) + passHp;
   const gearEnchant =
     typeof avatarGearEnchantBonus === "function" && typeof safeLevel === "function"
       ? avatarGearEnchantBonus(safeLevel(), "regular")

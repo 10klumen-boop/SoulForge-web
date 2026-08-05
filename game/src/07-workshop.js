@@ -820,7 +820,7 @@ function renderWorkshopArmor(body) {
   armorSec.innerHTML =
     "<h3>🛡 " + (setDef.name || setId) +
     ' <span class="ws-armor-grade g-' + (setDef.grade || "?") + '">' + (setDef.grade || "?") + "</span></h3>" +
-    '<p class="ws-armor-hint">Фарм кусков: <b>' + zoneName + "</b>. Рецепт: Material + кристаллы " +
+    '<p class="ws-armor-hint">Фарм кусков: <b>' + zoneName + "</b>. Рецепт: Material сета + кристаллы " +
     (setDef.grade || "?") + " + Soul Ore.</p>" +
     (preview.length
       ? '<ul class="ws-armor-set-bonuses">' +

@@ -18,7 +18,19 @@ function armorSlotType(it) {
 
 function armorFragDef(fragId) {
   if (!fragId || typeof ARMOR_FRAGS === "undefined") return null;
-  return ARMOR_FRAGS[fragId] || null;
+  const resolved = typeof resolveArmorFragId === "function" ? resolveArmorFragId(fragId) : fragId;
+  return ARMOR_FRAGS[resolved] || ARMOR_FRAGS[fragId] || null;
+}
+
+/** Legacy `{armorId}_piece` → `{setId}_material`. */
+function resolveArmorFragId(fragId) {
+  const id = String(fragId || "");
+  if (!id) return id;
+  if (typeof ARMOR_FRAGS !== "undefined" && ARMOR_FRAGS[id]) return id;
+  const setId =
+    typeof LEGACY_ARMOR_FRAG_TO_SET !== "undefined" ? LEGACY_ARMOR_FRAG_TO_SET[id] : null;
+  if (setId && typeof armorSetMaterialId === "function") return armorSetMaterialId(setId);
+  return id;
 }
 
 /** Enchant: доля шанса → «+0.10% (~+0.1 к 100 зат.)». */
@@ -106,12 +118,13 @@ function armorFragCount(fragId) {
 }
 
 function addArmorFrag(fragId, qty, meta) {
-  const def = armorFragDef(fragId);
+  const resolved = resolveArmorFragId(fragId);
+  const def = armorFragDef(resolved);
   if (!def || !(qty > 0)) return null;
   if (typeof ensureWorkshopState === "function") ensureWorkshopState();
   ProgressStore.update("materials", (m) => {
     const next = { ...(m || { soul: 0, spirit: 0 }) };
-    next[fragId] = (next[fragId] || 0) + qty;
+    next[resolved] = (next[resolved] || 0) + qty;
     return next;
   });
   if (typeof save === "function") save();
@@ -121,14 +134,14 @@ function addArmorFrag(fragId, qty, meta) {
   }
   if (typeof logCharacterEvent === "function") {
     logCharacterEvent("loot_armor_frag", {
-      fragId,
+      fragId: resolved,
       qty,
       source: meta?.source || "unknown",
       zoneId: meta?.zoneId || state.farmZone || null,
     });
   }
   if (typeof renderMineResourceFavorites === "function") renderMineResourceFavorites();
-  return { def, qty };
+  return { def, qty, fragId: resolved };
 }
 
 function addArmorToInventory(armorId, meta) {
@@ -136,6 +149,7 @@ function addArmorToInventory(armorId, meta) {
   if (!def) return null;
   if (!state.inventory) state.inventory = [];
   const it = { uid: typeof uid === "function" ? uid() : String(Date.now()), id: armorId, kind: "armor" };
+  if (meta?.craftOpt) it.craftOpt = meta.craftOpt;
   if (typeof isInventoryFull === "function" && isInventoryFull()) {
     if (typeof enqueueOverflowLoot === "function" && enqueueOverflowLoot(it, { source: meta?.source || "armor" })) {
       return it;
@@ -157,6 +171,7 @@ function addArmorToInventory(armorId, meta) {
       slot: def.slot || null,
       source: meta?.source || "unknown",
       zoneId: meta?.zoneId || state.farmZone || null,
+      craftOpt: meta?.craftOpt || null,
     });
   }
   return it;
@@ -285,8 +300,12 @@ function avatarArmorDefBonuses() {
       const plus = item.plus || 0;
       const pAdd = typeof armorEnchantPdefBonus === "function" ? armorEnchantPdefBonus(plus) : plus * 2;
       const mAdd = typeof armorEnchantMdefBonus === "function" ? armorEnchantMdefBonus(plus) : plus;
-      out.pdef += Math.round(((def.pdef || 0) + pAdd) * mult);
-      out.mdef += Math.round(((def.mdef || 0) + mAdd) * mult);
+      let pBase = (def.pdef || 0) + pAdd;
+      let mBase = (def.mdef || 0) + mAdd;
+      if (item.craftOpt?.key === "pdef") pBase += Number(item.craftOpt.value) || 0;
+      if (item.craftOpt?.key === "mdef") mBase += Number(item.craftOpt.value) || 0;
+      out.pdef += Math.round(pBase * mult);
+      out.mdef += Math.round(mBase * mult);
     });
   }
   const set = avatarSetBonuses();
@@ -315,6 +334,9 @@ function avatarArmorSustainPct() {
   if (typeof avatarSetBonuses === "function") {
     pct += Math.max(0, avatarSetBonuses().armorSustain || 0);
   }
+  if (typeof sumEquippedCraftOpt === "function") {
+    pct += Math.max(0, sumEquippedCraftOpt("armorSustain", "armor") || 0);
+  }
   const totalCap = typeof ARMOR_SUSTAIN_TOTAL_CAP === "number" ? ARMOR_SUSTAIN_TOTAL_CAP : 0.15;
   return Math.min(totalCap, Math.max(0, pct));
 }
@@ -341,19 +363,14 @@ function armorFragIdsForZone(zoneId) {
   if (!setIds) return [];
   if (typeof setIds === "string") setIds = [setIds];
   if (!Array.isArray(setIds) || !setIds.length) return [];
-  if (typeof ARMOR_SETS === "undefined" || !ARMOR_SETS) return [];
-  const pieceIds = {};
+  if (typeof ARMOR_FRAGS === "undefined" || !ARMOR_FRAGS) return [];
+  const out = [];
   setIds.forEach((setId) => {
-    const pieces = ARMOR_SETS[setId]?.pieces || [];
-    pieces.forEach((pid) => {
-      pieceIds[pid] = true;
-    });
+    const fragId =
+      typeof armorSetMaterialId === "function" ? armorSetMaterialId(setId) : setId + "_material";
+    if (ARMOR_FRAGS[fragId]) out.push(fragId);
   });
-  const frags = typeof ARMOR_FRAGS !== "undefined" ? ARMOR_FRAGS : {};
-  return Object.keys(frags).filter((fid) => {
-    const armorId = frags[fid]?.armorId;
-    return armorId && pieceIds[armorId];
-  });
+  return out;
 }
 
 function farmZoneIdForArmorSet(setId) {
@@ -459,14 +476,44 @@ function craftArmor(armorId) {
   if (r.adena > 0) {
     ProgressStore.update("adena", (a) => Math.max(0, (a || 0) - r.adena));
   }
-  const it = addArmorToInventory(armorId, { source: "craft" });
+  const craftOpt = typeof rollCraftOpt === "function" ? rollCraftOpt("armor") : null;
+  const it = addArmorToInventory(armorId, {
+    source: "craft",
+    craftOpt: craftOpt || undefined,
+  });
   if (!it) return null;
   if (typeof Audio2 !== "undefined" && Audio2.success) Audio2.success();
   if (typeof save === "function") save();
   if (typeof toast === "function") {
-    toast("🔨 Скрафчено: " + check.armor.name + " [" + grade + "]", "craft");
+    let msg = "🔨 Скрафчено: " + check.armor.name + " [" + grade + "]";
+    if (craftOpt && typeof formatCraftOpt === "function") {
+      msg += " · Редкий крафт: " + formatCraftOpt(craftOpt);
+    }
+    toast(msg, "craft");
   }
   if (typeof achStat === "function") achStat("armorCrafted", 1);
   if (typeof checkAchievements === "function") checkAchievements();
   return it;
+}
+
+/** Слияние legacy слот-кусков брони в set-материал. */
+function migrateArmorSetMaterials() {
+  if (typeof LEGACY_ARMOR_FRAG_TO_SET === "undefined" || !LEGACY_ARMOR_FRAG_TO_SET) return;
+  if (!state.materials) return;
+  let changed = false;
+  ProgressStore.update("materials", (m) => {
+    const next = { ...(m || { soul: 0, spirit: 0 }) };
+    Object.keys(LEGACY_ARMOR_FRAG_TO_SET).forEach((legacyId) => {
+      const qty = Math.max(0, Math.floor(Number(next[legacyId]) || 0));
+      if (!qty) return;
+      const setId = LEGACY_ARMOR_FRAG_TO_SET[legacyId];
+      const neo =
+        typeof armorSetMaterialId === "function" ? armorSetMaterialId(setId) : setId + "_material";
+      next[neo] = (next[neo] || 0) + qty;
+      delete next[legacyId];
+      changed = true;
+    });
+    return next;
+  });
+  if (changed && typeof save === "function") save();
 }

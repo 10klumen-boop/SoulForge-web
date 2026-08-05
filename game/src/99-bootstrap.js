@@ -205,6 +205,8 @@ if (typeof migrateChapterRewards === "function") migrateChapterRewards();
 if (typeof migratePreludeFinale === "function") migratePreludeFinale();
 if (typeof wireCombatSkills === "function") wireCombatSkills();
 if (typeof migrateFarmZone === "function") migrateFarmZone();
+if (typeof migrateArmorSetMaterials === "function") migrateArmorSetMaterials();
+if (typeof migrateJewelrySetPieces === "function") migrateJewelrySetPieces();
 if (typeof applyUiIconsToFarmZones === "function") applyUiIconsToFarmZones();
 if (typeof applyUiIconsToQuestNpcs === "function") applyUiIconsToQuestNpcs();
 if (typeof wireStoryArcBar === "function") wireStoryArcBar();

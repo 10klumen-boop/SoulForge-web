@@ -13,6 +13,7 @@ function ensureEngagementState() {
   if (!e.claimed || typeof e.claimed !== "object") e.claimed = {};
   if (!Array.isArray(e.dailyIds)) e.dailyIds = [];
   if (!Array.isArray(e.weeklyIds)) e.weeklyIds = [];
+  if (e.dailyRerollCount == null || e.dailyRerollCount < 0) e.dailyRerollCount = 0;
   return e;
 }
 
@@ -166,6 +167,7 @@ function ensureEngagementPeriod(now, opts) {
       );
       e.dailyPeriod = dayKey;
       e.dailyMilestoneClaimed = false;
+      e.dailyRerollCount = 0;
     } else if (needRosterRefresh || !e.dailyIds.length) {
       e.dailyIds = engagementPickTaskIds(
         ENGAGEMENT_DAILY_POOL,
@@ -439,6 +441,103 @@ function engagementDailyDoneCount() {
   return { done, total: (e.dailyIds || []).length };
 }
 
+/**
+ * Можно ли сменить daily-поручение.
+ * Нельзя: weekly, claimed, login, нет замены в пуле, нехватка adena.
+ */
+function canRerollEngagementTask(taskId, now) {
+  ensureEngagementPeriod(now != null ? now : Date.now(), { touchLogin: false });
+  const task = engagementTaskById(taskId);
+  if (!task || task.period !== "daily") return { ok: false, reason: "period" };
+  if (taskId === "login") return { ok: false, reason: "fixed" };
+  const e = ensureEngagementState();
+  if ((e.dailyIds || []).indexOf(taskId) < 0) return { ok: false, reason: "inactive" };
+  if (e.claimed?.[taskId]) return { ok: false, reason: "claimed" };
+  const pool = (typeof ENGAGEMENT_DAILY_POOL !== "undefined" ? ENGAGEMENT_DAILY_POOL : []).filter(
+    (t) => t && t.id && (e.dailyIds || []).indexOf(t.id) < 0
+  );
+  if (!pool.length) return { ok: false, reason: "empty" };
+  const quote =
+    typeof engagementRerollQuote === "function"
+      ? engagementRerollQuote()
+      : { free: true, adena: 0 };
+  if (!quote.free && quote.adena > 0) {
+    const have = Math.max(0, Math.floor(Number(state.adena) || 0));
+    if (have < quote.adena) return { ok: false, reason: "adena", need: quote.adena, have, quote };
+  }
+  return { ok: true, quote, poolSize: pool.length };
+}
+
+/**
+ * Сменить daily-поручение на другое из пула.
+ * 1-я смена дня бесплатно, дальше — adena с нарастающей ценой.
+ */
+function rerollEngagementTask(taskId, now) {
+  const ts = now != null ? now : Date.now();
+  const check = canRerollEngagementTask(taskId, ts);
+  if (!check.ok) {
+    if (typeof toast === "function") {
+      if (check.reason === "adena") {
+        toast(
+          "Недостаточно adena (нужно " +
+            (typeof fmtAdena === "function" ? fmtAdena(check.need) : check.need) +
+            ")",
+          "warn"
+        );
+      } else if (check.reason === "claimed") toast("Поручение уже забрано", "warn");
+      else if (check.reason === "fixed") toast("Вход нельзя сменить", "warn");
+      else if (check.reason === "empty") toast("Нет других поручений для замены", "warn");
+      else if (check.reason === "period") toast("Смена только для ежедневных", "warn");
+      else toast("Нельзя сменить поручение", "warn");
+    }
+    return { ok: false, reason: check.reason };
+  }
+  const quote = check.quote;
+  const e0 = ensureEngagementState();
+  const pool = (ENGAGEMENT_DAILY_POOL || []).filter(
+    (t) => t && t.id && (e0.dailyIds || []).indexOf(t.id) < 0
+  );
+  if (!pool.length) return { ok: false, reason: "empty" };
+  const seed =
+    String(e0.dailyPeriod || "") +
+    "|" +
+    engagementCharacterSeedPart() +
+    "|reroll|" +
+    String(e0.dailyRerollCount || 0) +
+    "|" +
+    String(taskId);
+  const rng = engagementMulberry32(engagementHashSeed(seed));
+  const pick = pool[Math.floor(rng() * pool.length)];
+  if (!pick) return { ok: false, reason: "empty" };
+
+  if (!quote.free && quote.adena > 0) {
+    ProgressStore.update("adena", (a) => Math.max(0, (a || 0) - quote.adena));
+  }
+
+  let replaced = null;
+  engagementWrite((e) => {
+    const idx = (e.dailyIds || []).indexOf(taskId);
+    if (idx < 0) return;
+    e.dailyIds[idx] = pick.id;
+    delete e.progress[taskId];
+    delete e.claimed[taskId];
+    e.dailyRerollCount = Math.max(0, Math.floor(Number(e.dailyRerollCount) || 0)) + 1;
+    e.dailyMilestoneClaimed = false;
+    replaced = pick;
+  });
+
+  if (!replaced) return { ok: false, reason: "inactive" };
+  if (typeof save === "function") save();
+  if (typeof refreshEngagementUi === "function") refreshEngagementUi();
+  if (typeof toast === "function") {
+    const costLabel = quote.free
+      ? "бесплатно"
+      : (typeof fmtAdena === "function" ? fmtAdena(quote.adena) : quote.adena) + " adena";
+    toast("Новое поручение: " + replaced.title + " · " + costLabel, "success");
+  }
+  return { ok: true, from: taskId, to: replaced.id, task: replaced, quote };
+}
+
 function engagementMsUntilUtcMidnight(now) {
   const ts = Number(now) || Date.now();
   const d = new Date(ts);
@@ -476,4 +575,6 @@ if (typeof window !== "undefined") {
   window.engagementClaimableCount = engagementClaimableCount;
   window.formatEngagementReward = formatEngagementReward;
   window.grantEngagementReward = grantEngagementReward;
+  window.canRerollEngagementTask = canRerollEngagementTask;
+  window.rerollEngagementTask = rerollEngagementTask;
 }

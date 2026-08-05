@@ -27,6 +27,7 @@ loadScripts([
   "src/progress-store.js",
   "src/data/enchant-balance.js",
   "src/data/jewelry-sets-data.js",
+  "src/data/craft-quality-balance.js",
   "src/jewelry-sets-core.js",
   "src/avatar-gear-core.js",
   "src/09-inventory.js",
@@ -43,8 +44,12 @@ assert.ok(COLLECTIBLES.zaken_blessed_earring.grade === "C", "blessed zaken uses 
 assert.ok(Math.abs(COLLECTIBLES.zaken_blessed_earring.bonuses.pvpCritChance - 0.1) < 1e-9, "blessed zaken +10% pvp crit");
 assert.ok(jewelryCanEnchant(COLLECTIBLES.zaken_blessed_earring), "jewelryCanEnchant allows blessed zaken");
 assert.ok(!jewelryCanEnchant(COLLECTIBLES.antharas_earring), "other epics still locked");
-assert.ok(ACCESSORY_FRAGS.elven_necklace_piece, "frag merged");
+assert.ok(ACCESSORY_FRAGS.elven_piece, "set frag merged");
 assert.ok(ACCESSORY_CRAFT.some((r) => r.accessoryId === "elven_necklace" && r.graded), "graded craft");
+assert.ok(
+  ACCESSORY_CRAFT.some((r) => r.accessoryId === "elven_necklace" && r.shardId === "elven_piece"),
+  "craft uses set piece"
+);
 
 global.state = {
   adena: 100000,
@@ -75,9 +80,7 @@ global.state = {
 };
 
 ProgressStore.set("inventory", [
-  { uid: "s1", id: "elven_necklace_piece", kind: "shard", qty: 10 },
-  { uid: "s2", id: "elven_earring_piece", kind: "shard", qty: 10 },
-  { uid: "s3", id: "elven_ring_piece", kind: "shard", qty: 10 },
+  { uid: "s1", id: "elven_piece", kind: "shard", qty: 20 },
 ]);
 
 assert.ok(canCraftAccessory("elven_necklace").ok, "can craft elven necklace");
@@ -87,6 +90,8 @@ assert.ok(
   (state.inventory || []).some((it) => it.id === "elven_necklace" && it.kind === "accessory"),
   "necklace in inventory"
 );
+assert.ok(canCraftAccessory("elven_earring").ok, "same set piece crafts earring");
+assert.ok(craftAccessory("elven_earring"), "crafted earring from shared pool");
 
 // Equip full Elven set (1 neck + 2 ear + 2 ring)
 function equipAcc(id, slot) {

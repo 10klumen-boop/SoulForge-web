@@ -124,6 +124,9 @@ function itemTipSetName(def) {
 function itemTipShellHtml(opts) {
   const grade = opts.grade || "";
   const gradeCls = opts.gradeClass || (grade ? "g-" + grade : "");
+  const titleCls =
+    "item-tip-title" +
+    (opts.titleClass ? " " + opts.titleClass : opts.craftRare ? " item-tip-title--rare" : "");
   const icon = opts.icon
     ? '<img class="item-tip-ico" src="' +
       itemTipEsc(opts.icon) +
@@ -139,8 +142,11 @@ function itemTipShellHtml(opts) {
       if (typeof row === "string") {
         return '<div class="item-tip-stat">' + itemTipEsc(row) + "</div>";
       }
+      const rareCls = row.rare ? " item-tip-stat--rare" : "";
       return (
-        '<div class="item-tip-stat"><span>' +
+        '<div class="item-tip-stat' +
+        rareCls +
+        '"><span>' +
         itemTipEsc(row.k) +
         "</span><b>" +
         itemTipEsc(row.v) +
@@ -150,7 +156,13 @@ function itemTipShellHtml(opts) {
     .join("");
   const meta = (opts.meta || [])
     .filter(Boolean)
-    .map((line) => '<div class="item-tip-meta-line">' + itemTipEsc(line) + "</div>")
+    .map((line) => {
+      if (line && typeof line === "object" && line.text != null) {
+        const cls = line.rare ? " item-tip-meta-line--rare" : "";
+        return '<div class="item-tip-meta-line' + cls + '">' + itemTipEsc(line.text) + "</div>";
+      }
+      return '<div class="item-tip-meta-line">' + itemTipEsc(line) + "</div>";
+    })
     .join("");
   const actions = (opts.actions || [])
     .filter(Boolean)
@@ -160,7 +172,9 @@ function itemTipShellHtml(opts) {
     '<div class="item-tip-head">' +
     icon +
     '<div class="item-tip-head-text">' +
-    '<div class="item-tip-title">' +
+    '<div class="' +
+    titleCls +
+    '">' +
     itemTipEsc(opts.title || "—") +
     plus +
     "</div>" +
@@ -232,6 +246,9 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
     if (canCry && def.cc) meta.push("Кристаллизация: " + def.cc + " × " + (def.grade || "?"));
     if (isEpic) meta.push("Эпик — не кристаллизуется");
     if (def.uniqueEquipped || def.epic) meta.push("Уникальный — работает только один в экипе");
+    if (it.craftOpt && typeof formatCraftOpt === "function") {
+      meta.push({ text: "Редкий крафт: " + formatCraftOpt(it.craftOpt), rare: true });
+    }
     if (def.desc) meta.push(def.desc);
     if (Array.isArray(ctx.extraMeta)) meta.push(...ctx.extraMeta);
     return itemTipShellHtml({
@@ -241,6 +258,7 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       grade: itemTipGradeLabel(def),
       gradeClass: isEpic ? "g-epic" : "g-" + (def.grade || "C"),
       subtitle: isEpic ? "Эпическая бижутерия" : "Бижутерия",
+      craftRare: !!(it.craftOpt && it.craftOpt.rarity === "rare"),
       stats,
       meta,
       actions: Array.isArray(ctx.actions)
@@ -271,6 +289,19 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       typeof armorEnchantMdefBonus === "function" ? armorEnchantMdefBonus(plus) : plus;
     const pTot = (def.pdef || 0) + pBonus;
     const mTot = (def.mdef || 0) + mBonus;
+    const stats = [
+      {
+        k: "P.Def",
+        v: String(pTot) + (pBonus > 0 ? " (+" + pBonus + ")" : ""),
+      },
+      {
+        k: "M.Def",
+        v: String(mTot) + (mBonus > 0 ? " (+" + mBonus + ")" : ""),
+      },
+    ];
+    if (it.craftOpt && typeof formatCraftOpt === "function") {
+      stats.push({ k: "Редкий крафт", v: formatCraftOpt(it.craftOpt), rare: true });
+    }
     return itemTipShellHtml({
       icon: def.icon,
       title: def.name,
@@ -278,16 +309,8 @@ function itemTooltipHtmlFromInvItem(it, ctx) {
       grade: itemTipGradeLabel(def) || "?",
       gradeClass: "g-" + (def.grade || "C"),
       subtitle: "Броня",
-      stats: [
-        {
-          k: "P.Def",
-          v: String(pTot) + (pBonus > 0 ? " (+" + pBonus + ")" : ""),
-        },
-        {
-          k: "M.Def",
-          v: String(mTot) + (mBonus > 0 ? " (+" + mBonus + ")" : ""),
-        },
-      ],
+      craftRare: !!(it.craftOpt && it.craftOpt.rarity === "rare"),
+      stats,
       meta,
       actions: Array.isArray(ctx.actions)
         ? ctx.actions

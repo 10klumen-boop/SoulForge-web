@@ -103,16 +103,20 @@ function iterJewelryBonusPieces(cb) {
     if (typeof isArmorItem === "function" && isArmorItem(item)) return;
     const def = accessoryDef(item);
     if (!def || def.epic) return;
-    cb(def);
+    cb(def, item);
   });
 }
 
 /** Множитель КД скиллов от обычной бижутерии (1 = без бонуса). */
 function avatarJewelrySkillCdMult() {
   let m = 1;
-  iterJewelryBonusPieces((def) => {
+  iterJewelryBonusPieces((def, item) => {
     const v = def.bonuses?.skillCdMult;
     if (v != null && v > 0) m *= v;
+    if (item?.craftOpt?.key === "skillCdMult") {
+      const cv = Number(item.craftOpt.value);
+      if (cv > 0 && cv < 1) m *= cv;
+    }
   });
   const set = avatarJewelrySetBonuses();
   if (set.skillCdMult > 0) m *= set.skillCdMult;
@@ -124,8 +128,11 @@ function avatarJewelrySkillCdMult() {
 /** Суммарный резист дебаффов от обычной бижутерии (0..cap). */
 function avatarJewelryDebuffResist() {
   let r = 0;
-  iterJewelryBonusPieces((def) => {
+  iterJewelryBonusPieces((def, item) => {
     if (def.bonuses?.debuffResist) r += def.bonuses.debuffResist;
+    if (item?.craftOpt?.key === "debuffResist") {
+      r += Math.max(0, Number(item.craftOpt.value) || 0);
+    }
   });
   r += avatarJewelrySetBonuses().debuffResist || 0;
   const cap =
@@ -159,18 +166,14 @@ function jewelryFragIdsForZone(zoneId) {
   if (!setIds) return [];
   if (typeof setIds === "string") setIds = [setIds];
   if (!Array.isArray(setIds) || !setIds.length) return [];
-  if (typeof JEWELRY_SETS === "undefined" || !JEWELRY_SETS) return [];
-  const pieceIds = {};
+  if (typeof JEWELRY_FRAGS === "undefined" || !JEWELRY_FRAGS) return [];
+  const out = [];
   setIds.forEach((setId) => {
-    (JEWELRY_SETS[setId]?.pieces || []).forEach((pid) => {
-      pieceIds[pid] = true;
-    });
+    const fragId =
+      typeof jewelrySetPieceId === "function" ? jewelrySetPieceId(setId) : setId + "_piece";
+    if (JEWELRY_FRAGS[fragId]) out.push(fragId);
   });
-  const frags = typeof JEWELRY_FRAGS !== "undefined" ? JEWELRY_FRAGS : {};
-  return Object.keys(frags).filter((fid) => {
-    const accId = frags[fid]?.accessoryId;
-    return accId && pieceIds[accId];
-  });
+  return out;
 }
 
 function farmZoneIdForJewelrySet(setId) {
@@ -262,4 +265,74 @@ function jewelrySetBonusPreviewLines(setId, pieces) {
     if (parts.length) lines.push(th + " шт.: " + parts.join(", "));
   });
   return lines;
+}
+
+/** Legacy `{accessoryId}_piece` → `{setId}_piece`. */
+function resolveJewelryFragId(fragId) {
+  const id = String(fragId || "");
+  if (!id) return id;
+  if (typeof JEWELRY_FRAGS !== "undefined" && JEWELRY_FRAGS[id]) return id;
+  if (typeof ACCESSORY_FRAGS !== "undefined" && ACCESSORY_FRAGS[id] && !LEGACY_JEWELRY_FRAG_TO_SET?.[id]) {
+    return id; // epic shard etc.
+  }
+  const setId =
+    typeof LEGACY_JEWELRY_FRAG_TO_SET !== "undefined" ? LEGACY_JEWELRY_FRAG_TO_SET[id] : null;
+  if (setId && typeof jewelrySetPieceId === "function") return jewelrySetPieceId(setId);
+  return id;
+}
+
+/** Слияние legacy слот-кусков бижи в set-piece (inventory shards + materials). */
+function migrateJewelrySetPieces() {
+  if (typeof LEGACY_JEWELRY_FRAG_TO_SET === "undefined" || !LEGACY_JEWELRY_FRAG_TO_SET) return;
+
+  if (state.materials) {
+    ProgressStore.update("materials", (m) => {
+      const next = { ...(m || {}) };
+      Object.keys(LEGACY_JEWELRY_FRAG_TO_SET).forEach((legacyId) => {
+        const qty = Math.max(0, Math.floor(Number(next[legacyId]) || 0));
+        if (!qty) return;
+        const neo = resolveJewelryFragId(legacyId);
+        next[neo] = (next[neo] || 0) + qty;
+        delete next[legacyId];
+      });
+      return next;
+    });
+  }
+
+  const inv = Array.isArray(state.inventory) ? state.inventory.slice() : [];
+  if (!inv.length) return;
+  const keep = [];
+  const addQty = {};
+  let changed = false;
+  inv.forEach((it) => {
+    if (!it || it.kind !== "shard") {
+      keep.push(it);
+      return;
+    }
+    const legacy = LEGACY_JEWELRY_FRAG_TO_SET[it.id];
+    if (!legacy) {
+      keep.push(it);
+      return;
+    }
+    const neo = resolveJewelryFragId(it.id);
+    const qty = Math.max(0, Math.floor(Number(it.qty) || 0));
+    if (qty > 0) addQty[neo] = (addQty[neo] || 0) + qty;
+    changed = true;
+  });
+  if (!changed) return;
+  Object.keys(addQty).forEach((neo) => {
+    const existing = keep.find((it) => it && it.kind === "shard" && it.id === neo);
+    if (existing) {
+      existing.qty = Math.max(0, Math.floor(Number(existing.qty) || 0)) + addQty[neo];
+    } else {
+      keep.push({
+        uid: typeof uid === "function" ? uid() : "shard-" + neo,
+        id: neo,
+        kind: "shard",
+        qty: addQty[neo],
+      });
+    }
+  });
+  ProgressStore.set("inventory", keep);
+  if (typeof save === "function") save();
 }

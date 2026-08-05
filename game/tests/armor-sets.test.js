@@ -134,6 +134,7 @@ global.renderAvatarScreen = () => {};
 loadScripts([
   "src/data/avatar-stats-data.js",
   "src/data/armor-sets-data.js",
+  "src/data/craft-quality-balance.js",
   "src/avatar-gear-core.js",
   "src/armor-sets-core.js",
   "src/avatar-math.js",
@@ -335,16 +336,27 @@ function runTests() {
     state.avatar.gear = defaultAvatarGear();
     state.inventory = [];
     state.adena = 100000;
-    state.materials = { soul: 100, spirit: 0, mithril_boots_piece: 10 };
+    state.materials = { soul: 100, spirit: 0, mithril_material: 10 };
     state.crystals = { D: 10, C: 0, B: 0, A: 0 };
     const it = craftArmor("mithril_boots");
     assert.ok(it);
     assert.strictEqual(it.id, "mithril_boots");
-    assert.strictEqual(state.materials.mithril_boots_piece, 4);
+    assert.strictEqual(state.materials.mithril_material, 4);
     assert.strictEqual(state.materials.soul, 90);
     assert.strictEqual(state.crystals.D, 8);
     assert.strictEqual(state.adena, 90000);
     assert.strictEqual(state.inventory.length, 1);
+  });
+
+  test("craftArmor shares set material across slots", () => {
+    state.inventory = [];
+    state.adena = 100000;
+    state.materials = { soul: 100, spirit: 0, bone_material: 20 };
+    state.crystals = { D: 20, C: 0, B: 0, A: 0 };
+    assert.ok(craftArmor("bone_boots"));
+    assert.strictEqual(state.materials.bone_material, 16);
+    assert.ok(craftArmor("bone_helmet"));
+    assert.strictEqual(state.materials.bone_material, 11);
   });
 
   test("rollArmorFragDrop is zone-scoped to set pool", () => {
@@ -353,9 +365,9 @@ function runTests() {
     try {
       assert.strictEqual(rollArmorFragDrop("elven_ruins", "boss"), null);
       const dPool = armorFragIdsForZone("wasteland");
-      assert.ok(dPool.length === 10, "wasteland bone+brigandine ×5, got " + dPool.length);
+      assert.ok(dPool.length === 2, "wasteland bone+brigandine set mats, got " + dPool.length);
       const coalPool = armorFragIdsForZone("abandoned_coal_low");
-      assert.ok(coalPool.length === 10, "coal mithril+chain ×5, got " + coalPool.length);
+      assert.ok(coalPool.length === 2, "coal mithril+chain set mats, got " + coalPool.length);
       const scrap = rollArmorFragDrop("wasteland", "boss");
       assert.ok(scrap && scrap.fragId && dPool.indexOf(scrap.fragId) >= 0);
       const forge = rollArmorFragDrop("abandoned_coal_low", "boss");
@@ -365,10 +377,10 @@ function runTests() {
       assert.strictEqual(ARMOR_SETS.mithril.grade, "D");
       assert.strictEqual(ARMOR_SETS.chain.grade, "D");
       // сеты разведены: orc = bone, ant = plated+drake
-      assert.strictEqual(armorFragIdsForZone("orc_barracks_hunt").length, 5);
-      assert.strictEqual(armorFragIdsForZone("ant_nest").length, 10);
-      assert.ok(armorFragIdsForZone("langk_lizardman").length === 5, "manticore home");
-      assert.ok(armorFragIdsForZone("blazing_swamp").length === 5, "demon home");
+      assert.strictEqual(armorFragIdsForZone("orc_barracks_hunt").length, 1);
+      assert.strictEqual(armorFragIdsForZone("ant_nest").length, 2);
+      assert.ok(armorFragIdsForZone("langk_lizardman").length === 1, "manticore home");
+      assert.ok(armorFragIdsForZone("blazing_swamp").length === 1, "demon home");
     } finally {
       Math.random = orig;
     }
@@ -377,13 +389,13 @@ function runTests() {
   test("craftArmor D-grade uses D crystals", () => {
     state.inventory = [];
     state.adena = 50000;
-    state.materials = { soul: 50, spirit: 0, bone_boots_piece: 10 };
+    state.materials = { soul: 50, spirit: 0, bone_material: 10 };
     state.crystals = { D: 5, C: 0, B: 0, A: 0 };
     const it = craftArmor("bone_boots");
     assert.ok(it);
     assert.strictEqual(it.id, "bone_boots");
     assert.strictEqual(state.crystals.D, 4);
-    assert.ok(state.materials.bone_boots_piece < 10);
+    assert.ok(state.materials.bone_material < 10);
   });
 
   test("twenty armor sets spread across hunting zones", () => {
@@ -415,13 +427,14 @@ function runTests() {
     const fragIcons = new Set();
     const craftSets = Object.keys(ARMOR_SETS).filter((id) => !String(id).startsWith("ng_"));
     craftSets.forEach((setId) => {
-      const piece = ARMOR_SETS[setId].pieces[0];
-      const frag = ARMOR_FRAGS[piece + "_piece"];
+      const frag = ARMOR_FRAGS[armorSetMaterialId(setId)];
       assert.ok(frag?.icon, setId);
       fragIcons.add(frag.icon);
       assert.strictEqual(frag.icon, ARMOR_SET_FRAG_ICONS[setId]);
+      assert.strictEqual(frag.setId, setId);
     });
     assert.strictEqual(fragIcons.size, 17);
+    assert.strictEqual(Object.keys(ARMOR_FRAGS).length, 17);
     assert.ok(String(formatArmorEnchantBonus(0.001)).includes("100"));
     const mithrilHelm = AMAP.mithril_helmet.icon;
     const chainHelm = AMAP.chain_helmet.icon;
