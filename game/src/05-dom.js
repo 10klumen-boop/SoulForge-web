@@ -114,6 +114,15 @@ function show(screen) {
       startPlayerMailBadgePoll();
     }
   }
+  // Страховка: дроп/дофарм на body не должны торчать на title/hub
+  if (
+    screen !== "mine" &&
+    (typeof mineSessionLootOpen !== "undefined" && mineSessionLootOpen ||
+      typeof mineResourceFavOpen !== "undefined" && mineResourceFavOpen)
+  ) {
+    if (typeof closeMineSessionLootDrawer === "function") closeMineSessionLootDrawer();
+    if (typeof closeMineResourceFavDrawer === "function") closeMineResourceFavDrawer();
+  }
   if (screen === "login" && typeof syncCloudUI === "function") syncCloudUI();
   if (typeof syncCharacterSessionOverlays === "function") syncCharacterSessionOverlays();
   if (

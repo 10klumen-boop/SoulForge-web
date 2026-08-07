@@ -186,7 +186,7 @@ body {
 #questTile:hover .tile-ico,
 #invTile:hover .tile-ico,
 #shopTile:hover .tile-ico,
-#achTile:hover .tile-ico { filter: drop-shadow(0 4px 10px rgba(138, 40, 40, 0.25)) brightness(1.08); }
+#achTile:hover .tile-ico { filter: brightness(1.08); }
 
 /* —— Panels —— */
 .panel-head {

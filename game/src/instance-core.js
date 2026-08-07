@@ -1216,6 +1216,18 @@ function syncInstanceEncounter(st) {
     mineSkillRuntime.buffs = mineSkillRuntime.buffs || {};
     mineSkillRuntime.buffs.partyDamageMult = st.partyDamageBuff.mult || 1;
     mineSkillRuntime.buffs.partyDamageUntil = st.partyDamageBuff.until;
+    if (typeof noteMineSkillBuff === "function") {
+      noteMineSkillBuff(
+        "partyDamage",
+        {
+          id: st.partyDamageBuff.skillId || "partyDamage",
+          name: st.partyDamageBuff.name || "Бафф группы",
+          icon: "icons/skill0176.png?v=2",
+        },
+        st.partyDamageBuff.until
+      );
+    }
+    if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
   }
   if (st && st.lastEvent && st.lastEvent !== instanceLastEventSeen) {
     instanceLastEventSeen = st.lastEvent;
@@ -1742,6 +1754,7 @@ async function enterInstanceMine(st) {
     adena0: Math.max(0, Math.floor(Number(state.adena) || 0)),
     kills: 0,
     weapons: 0,
+    xp: 0,
     zoneId,
     loot: {},
     instance: true,

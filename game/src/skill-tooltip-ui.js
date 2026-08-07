@@ -65,6 +65,75 @@ function combatSkillTooltipHtml(skill) {
   });
 }
 
+/** Тултип активного баффа на поле фарма. */
+function mineSkillBuffTooltipHtml(buff) {
+  if (!buff || typeof itemTipShellHtml !== "function") return "";
+  let skill = null;
+  if (buff.skillId && typeof combatSkillsForAvatar === "function") {
+    skill = combatSkillsForAvatar().find((s) => s.id === buff.skillId) || null;
+  }
+  const typeLabel =
+    skill && typeof combatSkillEffectLabel === "function"
+      ? combatSkillEffectLabel(skill.effect)
+      : "Бафф скилла";
+  const desc =
+    skill && typeof combatSkillGameplayDesc === "function"
+      ? combatSkillGameplayDesc(skill)
+      : skill?.desc || "";
+  const timeLine = buff.sticky
+    ? "Длится до следующего удара"
+    : buff.leftMs > 0
+      ? "Осталось: " + Math.ceil(buff.leftMs / 1000) + " с"
+      : "Активен";
+  const stats = [
+    { k: "Статус", v: "Активен" },
+    { k: "Длительность", v: timeLine },
+    { k: "Тип", v: typeLabel },
+  ];
+  const meta = [];
+  if (desc) meta.push(desc);
+  if (skill?.adenaHitBonus > 0) {
+    meta.push("Бонус адены на усиленный удар: +" + skill.adenaHitBonus + "%");
+  }
+  const actions = [
+    "Бафф со скилла на поле задания",
+    skill?.hotkey ? "Источник: [" + skill.hotkey + "] " + skill.name : "Источник: " + (buff.name || "скилл"),
+  ];
+  return itemTipShellHtml({
+    icon: buff.icon || skill?.icon,
+    title: buff.name || skill?.name || "Бафф",
+    subtitle: "Активный бафф",
+    stats: stats,
+    meta: meta,
+    actions: actions,
+  });
+}
+
+/**
+ * @param {HTMLElement} el
+ * @param {() => object|null} getBuff
+ */
+function wireMineSkillBuffTooltip(el, getBuff) {
+  if (!el || typeof wireItemTooltip !== "function") return;
+  if (el.dataset.buffTipWired) return;
+  el.dataset.buffTipWired = "1";
+  const plain = (() => {
+    const buff = typeof getBuff === "function" ? getBuff() : null;
+    if (!buff) return "";
+    return buff.sticky
+      ? buff.name + " · до следующего удара"
+      : buff.name + (buff.leftMs > 0 ? " · " + Math.ceil(buff.leftMs / 1000) + " с" : "");
+  })();
+  wireItemTooltip(
+    el,
+    () => {
+      const buff = typeof getBuff === "function" ? getBuff() : null;
+      return buff ? mineSkillBuffTooltipHtml(buff) : "";
+    },
+    plain
+  );
+}
+
 /**
  * @param {HTMLElement} el
  * @param {() => object|null} getSkill

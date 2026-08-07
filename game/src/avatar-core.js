@@ -275,9 +275,9 @@ function createAvatar(name, raceId, classId, genderId) {
 
 function grantAvatarXp(amount, opts) {
   opts = opts || {};
-  if (!amount || amount <= 0) return;
+  if (!amount || amount <= 0) return 0;
   migrateAvatar();
-  if (!state.avatar.created) return;
+  if (!state.avatar.created) return 0;
   if (!opts.noClanBuff && typeof clanBuffXpPct === "function") {
     let xpPct = clanBuffXpPct();
     if (!opts.noClanTerritory && typeof clanTerritoryXpBonusPct === "function") {
@@ -300,6 +300,10 @@ function grantAvatarXp(amount, opts) {
     if (holderXp > 0) amount = Math.round(amount * (1 + holderXp / 100));
   }
   if (typeof avatarGearXpMult === "function") amount = Math.round(amount * avatarGearXpMult());
+  if ((state.avatar.level || 1) >= AVATAR_MAX_LEVEL) {
+    renderAvatarHub();
+    return 0;
+  }
   let leveled = false;
   ProgressStore.update("avatar", (a) => {
     const next = { ...a };
@@ -315,6 +319,11 @@ function grantAvatarXp(amount, opts) {
     if (next.level >= AVATAR_MAX_LEVEL) next.xp = 0;
     return next;
   });
+  if (typeof mineSession !== "undefined" && mineSession && !opts.noSession) {
+    mineSession.xp = (mineSession.xp || 0) + amount;
+    const xpEl = document.getElementById("mineXp");
+    if (xpEl) xpEl.textContent = typeof fmt === "function" ? fmt(mineSession.xp) : String(mineSession.xp);
+  }
   const a = state.avatar;
   if (leveled && typeof Audio2 !== "undefined" && Audio2.levelup) Audio2.levelup();
   if (leveled && !opts.silent) {
@@ -348,6 +357,7 @@ function grantAvatarXp(amount, opts) {
   if (typeof refreshZoneStoryUnlocks === "function") refreshZoneStoryUnlocks();
   if (typeof $ === "function" && $("#screen-avatar")?.classList.contains("active")) renderAvatarScreen();
   if (typeof renderAvatarSkillsPanel === "function") renderAvatarSkillsPanel();
+  return amount;
 }
 
 function onEnchantAvatarXp(win, plus, behavior, broken) {

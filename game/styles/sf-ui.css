@@ -150,6 +150,15 @@
   font-size: 12px;
   font-weight: 800;
 }
+.topbar-hub-home {
+  min-height: 32px;
+  padding: 5px 12px !important;
+  font-size: 11px;
+  font-weight: 700;
+  border: none !important;
+  border-radius: 8px !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
 .back {
   min-height: 34px;
   padding: 7px 14px !important;
@@ -176,11 +185,12 @@
   filter: grayscale(0.35);
 }
 
-/* —— Плитки меню: чистый слот (без border-image с кнопки) —— */
+/* —— Плитки меню: единый слот, иконка на всю ячейку —— */
 .tile .tile-hit {
   border: 1px solid rgba(201, 168, 106, 0.42) !important;
   border-radius: 10px !important;
   border-image: none !important;
+  overflow: hidden !important;
   background:
     linear-gradient(180deg, rgba(46, 34, 22, 0.95), rgba(18, 12, 8, 0.98)) !important;
   box-shadow:
@@ -188,6 +198,17 @@
     inset 0 0 0 1px rgba(0, 0, 0, 0.45),
     0 4px 12px rgba(0, 0, 0, 0.4) !important;
   filter: none !important;
+}
+.tile .tile-ico {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  filter: none !important;
+  border-radius: inherit !important;
+}
+#clanTile .tile-ico {
+  filter: sepia(0.45) hue-rotate(-28deg) saturate(1.25) brightness(1.05) !important;
 }
 .tile:hover .tile-hit {
   border-color: rgba(232, 207, 149, 0.75) !important;
@@ -727,10 +748,10 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   height: 100%;
   min-height: 0;
-  padding: 11% 11% 12%;
+  padding: 10.5% 11% 13%;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -739,18 +760,18 @@
   align-items: center !important;
   justify-content: center !important;
   width: 100%;
-  min-height: 36px;
+  min-height: 30px;
   margin: 0 !important;
-  padding: 7px 14px !important;
+  padding: 5px 12px !important;
   border: none !important;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   background-color: transparent !important;
   background-image: var(--sf-btn-ghost-n) !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
   color: #e8dcc0 !important;
   font-family: var(--font-display), Georgia, serif !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
   letter-spacing: 0.05em;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
@@ -768,7 +789,7 @@
 .char-menu-hint {
   margin: 0 !important;
   font-family: var(--font-display), Georgia, serif;
-  font-size: 11px !important;
+  font-size: 10px !important;
   color: rgba(230, 214, 180, 0.82) !important;
   text-align: center;
   letter-spacing: 0.04em;
@@ -781,7 +802,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -789,34 +810,37 @@
 #screen-characters .char-slot-row {
   flex: 1 1 0;
   min-height: 0;
-  gap: 6px;
+  gap: 4px;
 }
 #screen-characters .char-slot-card {
-  padding: 5px 8px !important;
-  gap: 8px !important;
+  padding: 3px 6px !important;
+  gap: 6px !important;
   min-height: 0;
   height: 100%;
   box-sizing: border-box;
+  border-radius: 8px !important;
 }
 #screen-characters .char-slot-portrait,
 #screen-characters .char-slot-portrait-ph {
-  flex: 0 0 30px !important;
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 6px !important;
+  flex: 0 0 26px !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 5px !important;
 }
-#screen-characters .char-slot-name { font-size: 13px !important; line-height: 1.2 !important; }
-#screen-characters .char-slot-meta { font-size: 10px !important; line-height: 1.2 !important; }
-#screen-characters .char-slot-badge { font-size: 9px !important; padding: 1px 5px !important; }
+#screen-characters .char-slot-portrait-ph { font-size: 14px !important; }
+#screen-characters .char-slot-name { font-size: 12px !important; line-height: 1.15 !important; }
+#screen-characters .char-slot-meta { font-size: 9px !important; line-height: 1.15 !important; }
+#screen-characters .char-slot-badge { font-size: 8px !important; padding: 0 4px !important; margin-top: 1px !important; }
 #screen-characters .char-slot-del {
-  flex: 0 0 34px !important;
-  width: 34px !important;
-  min-width: 34px !important;
+  flex: 0 0 28px !important;
+  width: 28px !important;
+  min-width: 28px !important;
   height: auto !important;
   min-height: 0 !important;
   align-self: stretch;
   padding: 0 !important;
-  font-size: 12px !important;
+  font-size: 11px !important;
+  border-radius: 8px !important;
 }
 .char-slot-card {
   border: 1px solid rgba(201, 168, 106, 0.35) !important;
@@ -835,19 +859,19 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin: 2px 0 0 !important;
+  margin: 1px 0 0 !important;
   width: 100% !important;
-  min-height: 40px;
-  padding: 9px 20px 10px !important;
+  min-height: 32px;
+  padding: 5px 16px 6px !important;
   border: none !important;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   background-color: transparent !important;
   background-image: var(--sf-btn-primary-n) !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
   color: #f0e2c0 !important;
   font-family: var(--font-display), Georgia, serif !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.85), 0 0 10px rgba(201, 168, 106, 0.25);

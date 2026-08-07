@@ -28,8 +28,60 @@ function resetMineSkillRuntime() {
       pendingAdenaHitBonus: 0,
       partyDamageMult: 1,
       partyDamageUntil: 0,
+      meta: {},
     },
   };
+  if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
+}
+
+/** Метаданные бафа для UI (иконка / имя). */
+function noteMineSkillBuff(key, skill, until) {
+  if (!mineSkillRuntime.buffs) mineSkillRuntime.buffs = {};
+  if (!mineSkillRuntime.buffs.meta) mineSkillRuntime.buffs.meta = {};
+  const name = (skill && skill.name) || (typeof combatSkillEffectLabel === "function" ? combatSkillEffectLabel(key) : key);
+  mineSkillRuntime.buffs.meta[key] = {
+    skillId: (skill && skill.id) || key,
+    name: name,
+    icon: (skill && skill.icon) || "icons/skill0029.png?v=2",
+    until: until || 0,
+  };
+}
+
+function clearMineSkillBuff(key) {
+  if (mineSkillRuntime.buffs && mineSkillRuntime.buffs.meta) {
+    delete mineSkillRuntime.buffs.meta[key];
+  }
+}
+
+/** Активные бафы скиллов на поле (для HUD). */
+function listMineSkillActiveBuffs() {
+  const now = Date.now();
+  const b = mineSkillRuntime.buffs || {};
+  const meta = b.meta || {};
+  const out = [];
+  const push = (key, active, until) => {
+    if (!active) return;
+    const m = meta[key] || {};
+    const left = until > now ? until - now : 0;
+    out.push({
+      id: key,
+      skillId: m.skillId || key,
+      name: m.name || key,
+      icon: m.icon || "icons/skill0029.png?v=2",
+      until: until || 0,
+      leftMs: left,
+      sticky: !(until > now),
+    });
+  };
+  push("nextHit", (b.nextHitMult || 1) > 1, 0);
+  push("timerSlow", (b.timerSlowUntil || 0) > now, b.timerSlowUntil || 0);
+  push("timerFreeze", (b.timerFreezeUntil || 0) > now, b.timerFreezeUntil || 0);
+  push("damageBuff", (b.damageUntil || 0) > now, b.damageUntil || 0);
+  push("partyDamage", (b.partyDamageUntil || 0) > now, b.partyDamageUntil || 0);
+  if ((b.farmAdenaUntil || 0) > now && !((b.damageUntil || 0) > now)) {
+    push("farmAdena", true, b.farmAdenaUntil || 0);
+  }
+  return out;
 }
 
 function combatSkillsForClass(classId) {
@@ -320,6 +372,8 @@ function mineSkillClickMult() {
       mineSkillRuntime.buffs.adenaHitBonus = 0;
     }
     mineSkillRuntime.buffs.nextHitMult = 1;
+    clearMineSkillBuff("nextHit");
+    if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
   }
   if (mineSkillRuntime.buffs.damageUntil > Date.now()) {
     m *= mineSkillRuntime.buffs.damageMult || 1;
@@ -467,12 +521,17 @@ function useCombatSkill(skillId) {
   if (skill.effect === "nextHit") {
     mineSkillRuntime.buffs.nextHitMult = skill.mult || 2;
     mineSkillRuntime.buffs.adenaHitBonus = skill.adenaHitBonus || 0;
+    noteMineSkillBuff("nextHit", skill, 0);
     if (typeof toast === "function") toast(skill.name + ": следующий удар усилен", "info");
   } else if (skill.effect === "timerSlow") {
-    mineSkillRuntime.buffs.timerSlowUntil = Date.now() + skillBuffDuration(skill.duration || 4000);
+    const until = Date.now() + skillBuffDuration(skill.duration || 4000);
+    mineSkillRuntime.buffs.timerSlowUntil = until;
+    noteMineSkillBuff("timerSlow", skill, until);
     if (typeof toast === "function") toast(skill.name + ": таймер замедлен", "info");
   } else if (skill.effect === "timerFreeze" || skill.effect === "freezeMulti") {
-    mineSkillRuntime.buffs.timerFreezeUntil = Date.now() + skillBuffDuration(skill.duration || 2500);
+    const until = Date.now() + skillBuffDuration(skill.duration || 2500);
+    mineSkillRuntime.buffs.timerFreezeUntil = until;
+    noteMineSkillBuff("timerFreeze", skill, until);
     if (skill.effect === "freezeMulti" && mob) {
       const hits = skill.hits || 4;
       const mult = skill.mult || 0.45;
@@ -485,17 +544,21 @@ function useCombatSkill(skillId) {
     }
     if (typeof toast === "function") toast(skill.name + ": время остановилось", "info");
   } else if (skill.effect === "damageBuff") {
+    const until = Date.now() + skillBuffDuration(skill.duration || 6000);
     mineSkillRuntime.buffs.damageMult = skill.mult || 1.5;
-    mineSkillRuntime.buffs.damageUntil = Date.now() + skillBuffDuration(skill.duration || 6000);
+    mineSkillRuntime.buffs.damageUntil = until;
+    noteMineSkillBuff("damageBuff", skill, until);
     if (skill.farmAdenaMult > 1) {
       mineSkillRuntime.buffs.farmAdenaMult = skill.farmAdenaMult;
-      mineSkillRuntime.buffs.farmAdenaUntil = mineSkillRuntime.buffs.damageUntil;
+      mineSkillRuntime.buffs.farmAdenaUntil = until;
     }
     if (typeof toast === "function") toast(skill.name + ": урон усилен", "info");
   } else if (skill.effect === "partyDamageBuff") {
     if (combatSkillPartyContextActive()) {
+      const until = Date.now() + skillBuffDuration(skill.duration || 6000);
       mineSkillRuntime.buffs.partyDamageMult = skill.mult || 1.15;
-      mineSkillRuntime.buffs.partyDamageUntil = Date.now() + skillBuffDuration(skill.duration || 6000);
+      mineSkillRuntime.buffs.partyDamageUntil = until;
+      noteMineSkillBuff("partyDamage", skill, until);
       if (
         typeof isInstanceSessionActive === "function" &&
         isInstanceSessionActive() &&
@@ -550,6 +613,7 @@ function useCombatSkill(skillId) {
     }
   }
   renderMineSkillBar();
+  if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
   renderAvatarSkillsPanel();
   return true;
 }

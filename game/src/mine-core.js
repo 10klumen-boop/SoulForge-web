@@ -284,6 +284,7 @@ function openMineContinue(zoneId, zone) {
     adena0: Math.max(0, Math.floor(Number(state.adena) || 0)),
     kills: 0,
     weapons: 0,
+    xp: 0,
     zoneId: state.farmZone || "banana_mine",
     loot: {},
   };
@@ -294,6 +295,8 @@ function openMineContinue(zoneId, zone) {
   $("#mineEarned").textContent = "0";
   $("#mineCaught").textContent = "0";
   $("#mineMissed").textContent = "0";
+  const mineXpEl = document.getElementById("mineXp");
+  if (mineXpEl) mineXpEl.textContent = "0";
   const farmStats = document.querySelector("#screen-mine .mine-farm-stats");
   if (farmStats) farmStats.hidden = false;
   const mineHud = document.querySelector("#screen-mine .mine-hud");
@@ -362,6 +365,7 @@ function stopMine() {
       zoneId: mineSession.zoneId,
       kills: mineSession.kills || 0,
       weapons: mineSession.weapons || 0,
+      xpGain: mineSession.xp || 0,
       adenaGain: Math.max(0, adenaNow - (mineSession.adena0 || 0)),
       durationMs: Date.now() - (mineSession.startedAt || Date.now()),
       loot: mineSession.loot ? Object.values(mineSession.loot).map((r) => ({
@@ -375,6 +379,10 @@ function stopMine() {
     });
   }
   mineSession = null;
+  // Панели дропа/дофарма живут на document.body — закрыть при любом выходе с фарма
+  if (typeof closeMineSessionLootDrawer === "function") closeMineSessionLootDrawer();
+  if (typeof closeMineResourceFavDrawer === "function") closeMineResourceFavDrawer();
+  if (typeof renderMineSessionLoot === "function") renderMineSessionLoot();
   if (typeof afterInventorySpaceFreed === "function") afterInventorySpaceFreed();
   // Immediate local + cloud flush — debounce must not leave combat loot on an old cloud seq.
   if (typeof save === "function") save();

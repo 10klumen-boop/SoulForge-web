@@ -2477,11 +2477,11 @@ const COMBAT_SKILL_KITS = {
       "cdMs": 17000,
       "hotkey": "F",
       "hotkeyCode": "KeyF",
-      "desc": "8 с усиления ×1,75 · КД 17 с",
-      "fxColor": "#ffb07a",
-      "effect": "damageBuff",
-      "duration": 8000,
-      "mult": 1.75
+      "desc": "Удар ×2,15 и таймер врага +3,5 с · КД 17 с",
+      "fxColor": "#c8a0ff",
+      "effect": "drainHit",
+      "mult": 2.15,
+      "healMs": 3500
     }
   ],
   "elven_knight": [
@@ -2645,11 +2645,11 @@ const COMBAT_SKILL_KITS = {
       "cdMs": 17000,
       "hotkey": "F",
       "hotkeyCode": "KeyF",
-      "desc": "8 с усиления ×1,7 · КД 17 с",
-      "fxColor": "#ffb07a",
-      "effect": "damageBuff",
-      "duration": 8000,
-      "mult": 1.7
+      "desc": "Удар ×2,1 и таймер врага +3,5 с · КД 17 с",
+      "fxColor": "#c8a0ff",
+      "effect": "drainHit",
+      "mult": 2.1,
+      "healMs": 3500
     }
   ],
   "knight": [

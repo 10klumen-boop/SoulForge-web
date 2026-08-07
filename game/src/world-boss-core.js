@@ -504,6 +504,7 @@ function openWorldBossMine(payload) {
     adena0: Math.max(0, Math.floor(Number(state.adena) || 0)),
     kills: 0,
     weapons: 0,
+    xp: 0,
     zoneId: zoneId,
     worldBoss: true,
     loot: {},
@@ -514,9 +515,11 @@ function openWorldBossMine(payload) {
   const earned = document.getElementById("mineEarned");
   const caught = document.getElementById("mineCaught");
   const missed = document.getElementById("mineMissed");
+  const mineXp = document.getElementById("mineXp");
   if (earned) earned.textContent = "0";
   if (caught) caught.textContent = "0";
   if (missed) missed.textContent = "0";
+  if (mineXp) mineXp.textContent = "0";
   if (typeof renderMineSessionLoot === "function") renderMineSessionLoot();
   if (typeof renderMineHudStats === "function") renderMineHudStats();
   if (typeof renderMineSkillBar === "function") renderMineSkillBar();

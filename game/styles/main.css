@@ -1880,6 +1880,7 @@
   }
   .hero-panel::before { top: 10px; left: 10px; border-right: none; border-bottom: none; border-radius: 6px 0 0 0; }
   .hero-panel::after { bottom: 10px; right: 10px; border-left: none; border-top: none; border-radius: 0 0 6px 0; }
+
   .hero-crest {
     display: none;
   }
@@ -2093,6 +2094,7 @@
     display: grid;
     place-items: center;
     position: relative;
+    overflow: hidden;
     transition: border-color .15s, transform .15s, box-shadow .15s;
   }
   .tile:hover .tile-hit {
@@ -2103,24 +2105,25 @@
   .tile:active .tile-hit { transform: scale(0.96); }
   .tile .emoji { font-size: 36px; line-height: 48px; height: 48px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
   .tile .tile-ico {
-    width: 48px;
-    height: 48px;
+    width: 100%;
+    height: 100%;
     flex-shrink: 0;
     margin: 0;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: center;
     image-rendering: auto;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    filter: none;
     display: block;
+    border-radius: inherit;
   }
   #clanTile .tile-ico {
-    filter: sepia(0.45) hue-rotate(-28deg) saturate(1.25) brightness(1.05)
-      drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    filter: sepia(0.45) hue-rotate(-28deg) saturate(1.25) brightness(1.05);
   }
   #avatarTile:hover .tile-ico,
   #questTile:hover .tile-ico,
   #invTile:hover .tile-ico,
   #shopTile:hover .tile-ico,
-  #achTile:hover .tile-ico { filter: drop-shadow(0 4px 12px rgba(201,168,106,.45)) brightness(1.12); }
+  #achTile:hover .tile-ico { filter: brightness(1.1); }
   #avatarTile:active .tile-ico,
   #questTile:active .tile-ico,
   #invTile:active .tile-ico,
@@ -2151,8 +2154,9 @@
   }
   .tile .tile-badge {
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: 2px;
+    right: 2px;
+    z-index: 2;
     min-width: 18px;
     height: 18px;
     padding: 0 4px;
@@ -2178,12 +2182,7 @@
   #screen-menu[data-hub-mode="worldboss"] .story-arc-bar {
     display: none;
   }
-  /* Во вложенном хабе — только ← Назад, без «Главное меню» рядом */
-  #screen-menu[data-hub-mode="story"] .hub-top-row,
-  #screen-menu[data-hub-mode="farm"] .hub-top-row,
-  #screen-menu[data-hub-mode="worldboss"] .hub-top-row {
-    display: none;
-  }
+  /* Во вложенном хабе «Главное меню» в топбаре скрыто (см. .topbar-hub-home) */
   #screen-menu[data-hub-mode="story"] .farm-hub,
   #screen-menu[data-hub-mode="farm"] .farm-hub,
   #screen-menu[data-hub-mode="worldboss"] .farm-hub {
@@ -2211,8 +2210,8 @@
   }
   #homeGrid[data-hub-mode="story"] .tile-ico,
   #homeGrid[data-hub-mode="farm"] .tile-ico {
-    width: 38px;
-    height: 38px;
+    width: 100%;
+    height: 100%;
   }
   #homeGrid[data-hub-mode="story"] .tname,
   #homeGrid[data-hub-mode="farm"] .tname {
@@ -4881,6 +4880,49 @@
   }
   .story-backdrop.story-prelude-finale .story-title { color: var(--gold-soft); }
   .prelude-chaos-tease { margin-top: 10px; color: var(--text-dim); font-size: 13px; }
+  .mine-skill-buffs {
+    position: absolute;
+    z-index: 41;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: min(240px, 46%);
+    pointer-events: none;
+  }
+  .mine-skill-buffs[hidden] { display: none !important; }
+  .mine-skill-buff {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 7px;
+    border: 1px solid rgba(201, 168, 106, 0.5);
+    background: linear-gradient(180deg, rgba(36, 26, 16, 0.95), rgba(12, 8, 5, 0.96));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 220, 160, 0.12);
+    overflow: hidden;
+    pointer-events: auto;
+  }
+  .mine-skill-buff img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .mine-skill-buff-time {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1px 0 2px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    color: #f3e2b8;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72));
+  }
   .mine-skill-bar {
     --mine-skill-scale: 1;
     --mine-skill-slot: calc(52px * var(--mine-skill-scale));
@@ -9336,14 +9378,6 @@
     transition: border-color .15s, background .15s;
   }
   .story-arc-btn:hover { border-color: var(--gold); background: rgba(201,168,106,.08); }
-  .story-arc-label { font-size: 12px; font-weight: 700; text-align: left; display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-  .story-arc-main { display: block; line-height: 1.25; }
-  .story-arc-sub { display: block; font-size: 10px; font-weight: 500; color: var(--txt-dim); letter-spacing: 0; text-transform: none; }
-  .story-arc-dots { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
-  .story-arc-dot {
-    width: 10px; height: 10px; border-radius: 50%; padding: 0; cursor: pointer;
-    background: rgba(201,168,106,.25); border: 1px solid rgba(201,168,106,.35);
-  }
   .story-arc-dot:hover { transform: scale(1.15); }
   .story-arc-dot.done { background: var(--green); border-color: rgba(120,200,120,.6); }
   .story-arc-dot.open { background: var(--gold); box-shadow: 0 0 6px rgba(201,168,106,.5); }
@@ -10188,7 +10222,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .hub-top-row { padding: 4px 4px 12px; flex-shrink: 0; }
   .hub-back-btn {
     padding: 8px 14px; border-radius: 8px; border: 1px solid var(--edge2);
     background: linear-gradient(180deg, #2a2014, #161008);
@@ -10196,6 +10229,19 @@
     transition: border-color .15s, filter .15s;
   }
   .hub-back-btn:hover { border-color: var(--gold); filter: brightness(1.08); }
+  /* «← Главное меню» живёт в топбаре, только entry-хаб */
+  .topbar-hub-home {
+    display: none !important;
+    order: -1;
+    flex: 0 0 auto;
+    margin-right: auto;
+    align-self: center;
+  }
+  .app.hub-screen:has(#screen-menu[data-hub-mode="entry"]) .topbar-hub-home {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
 
   #screen-settings.active,
   #screen-patch.active,
@@ -10602,11 +10648,19 @@
     }
     .topbar-xp-track { height: 6px; }
     .topbar-xp-label { font-size: 10px; }
-    .hub-top-row { padding: 2px 8px 8px; }
     .hub-back-btn {
       min-height: 40px;
       padding: 8px 12px;
       touch-action: manipulation;
+    }
+    .topbar-hub-home {
+      min-height: 32px;
+      padding: 5px 10px !important;
+      font-size: 11px;
+      max-width: 42%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* ?? ????? / ??????? / ????????? ? ??? ???? */
@@ -10641,7 +10695,7 @@
     .tile:hover .tile-hit { transform: none; }
     .tile:active .tile-hit { transform: scale(0.96); filter: brightness(1.06); }
     .tile .tile-hit { width: 56px; height: 56px; }
-    .tile .tile-ico,
+    .tile .tile-ico { width: 100%; height: 100%; }
     .tile .emoji { width: 42px; height: 42px; line-height: 42px; font-size: 30px; }
     .tile .tname { font-size: 10px; }
     .tile .tcount { font-size: 10px; }
@@ -10806,6 +10860,17 @@
       z-index: 40;
       pointer-events: none;
     }
+    .mine-skill-buffs {
+      top: 8px;
+      left: 8px;
+      gap: 5px;
+      max-width: min(200px, 52%);
+    }
+    .mine-skill-buff {
+      width: 34px;
+      height: 34px;
+    }
+    .mine-skill-buff-time { font-size: 9px; }
     .mine-skill-drag { display: none !important; }
     .mine-skill-toolbar { justify-content: flex-end; }
     .mine-skill-dock {
@@ -11082,7 +11147,7 @@
     #homeGrid { gap: 10px 12px; padding: 10px 8px 14px; }
     .tile { width: 72px; }
     .tile .tile-hit { width: 52px; height: 52px; }
-    .tile .tile-ico,
+    .tile .tile-ico { width: 100%; height: 100%; }
     .tile .emoji { width: 38px; height: 38px; line-height: 38px; font-size: 28px; }
     .stage { min-height: 240px; padding: 12px 8px; }
     .wname { font-size: 17px; }

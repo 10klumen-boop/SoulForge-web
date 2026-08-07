@@ -71,12 +71,14 @@ function renderMineSkillBar() {
   if (!bar) return;
   if (!mineActive || !state.avatar?.created) {
     bar.hidden = true;
+    if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
     return;
   }
   const skills = combatSkillsForAvatar();
   const unlocked = skills.filter(isCombatSkillUnlocked);
   if (!unlocked.length) {
     bar.hidden = true;
+    if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
     return;
   }
   bar.hidden = false;
@@ -116,12 +118,88 @@ function renderMineSkillBar() {
       syncMineSkillBtn(btn, skill);
       inner.appendChild(btn);
     });
+    if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
     return;
   }
 
   skills.forEach((skill) => {
     const btn = inner.querySelector('[data-skill-id="' + skill.id + '"]');
     if (btn) syncMineSkillBtn(btn, skill);
+  });
+  if (typeof renderMineSkillBuffs === "function") renderMineSkillBuffs();
+}
+
+/** Иконки активных бафов скиллов на поле фарма. */
+function renderMineSkillBuffs() {
+  const host = document.getElementById("mineSkillBuffs");
+  if (!host) return;
+  if (!mineActive || !state.avatar?.created) {
+    host.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+  const buffs = typeof listMineSkillActiveBuffs === "function" ? listMineSkillActiveBuffs() : [];
+  if (!buffs.length) {
+    host.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+  host.hidden = false;
+  const idSig = buffs.map((b) => b.id + (b.sticky ? ":s" : "")).join("|");
+  if (host.dataset.sig !== idSig) {
+    host.dataset.sig = idSig;
+    host.innerHTML = "";
+    buffs.forEach((b) => {
+      const timeLabel = b.sticky
+        ? "удар"
+        : b.leftMs > 0
+          ? String(Math.ceil(b.leftMs / 1000))
+          : "";
+      const node = document.createElement("div");
+      node.className = "mine-skill-buff";
+      node.dataset.buffId = b.id;
+      node.innerHTML =
+        '<img src="' +
+        b.icon +
+        '" alt="" draggable="false">' +
+        '<span class="mine-skill-buff-time"' +
+        (timeLabel ? "" : " hidden") +
+        ">" +
+        (timeLabel || "") +
+        "</span>";
+      if (typeof wireMineSkillBuffTooltip === "function") {
+        const buffId = b.id;
+        wireMineSkillBuffTooltip(node, () => {
+          const list =
+            typeof listMineSkillActiveBuffs === "function" ? listMineSkillActiveBuffs() : [];
+          return list.find((x) => x.id === buffId) || null;
+        });
+      } else {
+        node.title = b.sticky
+          ? b.name + " · до следующего удара"
+          : b.name + (timeLabel ? " · " + timeLabel + " с" : "");
+      }
+      host.appendChild(node);
+    });
+    return;
+  }
+  buffs.forEach((b) => {
+    const node = host.querySelector('.mine-skill-buff[data-buff-id="' + b.id + '"]');
+    if (!node) return;
+    const timeEl = node.querySelector(".mine-skill-buff-time");
+    if (!timeEl) return;
+    const timeLabel = b.sticky
+      ? "удар"
+      : b.leftMs > 0
+        ? String(Math.ceil(b.leftMs / 1000))
+        : "";
+    if (timeLabel) {
+      timeEl.hidden = false;
+      timeEl.textContent = timeLabel;
+    } else {
+      timeEl.hidden = true;
+      timeEl.textContent = "";
+    }
   });
 }
 
@@ -195,6 +273,8 @@ function wireCombatSkills() {
   setInterval(() => {
     if (mineActive && document.getElementById("mineSkillBar") && !document.getElementById("mineSkillBar").hidden) {
       renderMineSkillBar();
+    } else if (mineActive && typeof renderMineSkillBuffs === "function") {
+      renderMineSkillBuffs();
     }
   }, 400);
 }
