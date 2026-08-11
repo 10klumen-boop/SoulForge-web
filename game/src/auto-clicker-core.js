@@ -1,6 +1,9 @@
 // ===== Автокликер: core (покупка на время, tick на поле) =====
 
 let _autoClickerTimer = null;
+let _autoClickerWorker = null;
+let _autoClickerLoopActive = false;
+let _autoClickerHudTick = 0;
 let _autoClickerLastHitAt = 0;
 
 function ensureAutoClickerState() {
@@ -385,25 +388,111 @@ function autoClickerTick() {
   }
 }
 
-function startAutoClickerLoop() {
-  if (_autoClickerTimer) return;
-  let _hudTick = 0;
-  _autoClickerTimer = setInterval(() => {
-    try {
-      autoClickerTick();
-      // HUD раз в ~200мс: только таймер/классы; кнопки пакетов не пересоздаём зря
-      _hudTick += 1;
-      if (_hudTick % 4 === 0 && typeof renderAutoClickerHud === "function") {
-        renderAutoClickerHud();
-      }
-    } catch (e) {
-      console.error("autoClickerTick failed:", e);
-    }
-  }, 50);
+function autoClickerPollIntervalMs() {
+  return 50;
 }
 
-function stopAutoClickerLoop() {
+function resolveAutoClickerWorkerUrl() {
+  try {
+    if (typeof document !== "undefined") {
+      const scripts = document.getElementsByTagName("script");
+      for (let i = scripts.length - 1; i >= 0; i--) {
+        const src = scripts[i].getAttribute("src") || "";
+        if (src.indexOf("auto-clicker-core.js") >= 0) {
+          return src.replace("auto-clicker-core.js", "auto-clicker-worker.js");
+        }
+      }
+    }
+  } catch (_) {}
+  return "src/auto-clicker-worker.js";
+}
+
+function autoClickerLoopPulse() {
+  try {
+    autoClickerTick();
+    _autoClickerHudTick += 1;
+    // HUD раз в ~200мс при poll 50мс
+    if (_autoClickerHudTick % 4 === 0 && typeof renderAutoClickerHud === "function") {
+      renderAutoClickerHud();
+    }
+  } catch (e) {
+    console.error("autoClickerTick failed:", e);
+  }
+}
+
+function stopAutoClickerIntervalFallback() {
   if (!_autoClickerTimer) return;
   clearInterval(_autoClickerTimer);
   _autoClickerTimer = null;
+}
+
+function startAutoClickerIntervalFallback() {
+  if (_autoClickerTimer) return;
+  _autoClickerTimer = setInterval(() => {
+    if (!_autoClickerLoopActive) return;
+    autoClickerLoopPulse();
+  }, autoClickerPollIntervalMs());
+}
+
+function destroyAutoClickerWorker() {
+  if (!_autoClickerWorker) return;
+  try {
+    _autoClickerWorker.postMessage({ type: "stop" });
+  } catch (_) {}
+  try {
+    _autoClickerWorker.terminate();
+  } catch (_) {}
+  _autoClickerWorker = null;
+}
+
+function startAutoClickerWorkerLoop() {
+  if (typeof Worker === "undefined") return false;
+  try {
+    if (!_autoClickerWorker) {
+      _autoClickerWorker = new Worker(resolveAutoClickerWorkerUrl());
+      _autoClickerWorker.onmessage = (e) => {
+        const data = e && e.data;
+        if (!data || data.type !== "tick") return;
+        if (!_autoClickerLoopActive) return;
+        autoClickerLoopPulse();
+        try {
+          _autoClickerWorker.postMessage({
+            type: "ack",
+            intervalMs: autoClickerPollIntervalMs(),
+          });
+        } catch (_) {}
+      };
+      _autoClickerWorker.onerror = () => {
+        destroyAutoClickerWorker();
+        if (_autoClickerLoopActive) startAutoClickerIntervalFallback();
+      };
+    }
+    _autoClickerWorker.postMessage({
+      type: "start",
+      intervalMs: autoClickerPollIntervalMs(),
+    });
+    return true;
+  } catch (e) {
+    console.warn("autoClicker worker unavailable, using setInterval", e);
+    destroyAutoClickerWorker();
+    return false;
+  }
+}
+
+function startAutoClickerLoop() {
+  if (_autoClickerLoopActive) return;
+  _autoClickerLoopActive = true;
+  _autoClickerHudTick = 0;
+  if (startAutoClickerWorkerLoop()) return;
+  startAutoClickerIntervalFallback();
+}
+
+function stopAutoClickerLoop() {
+  _autoClickerLoopActive = false;
+  stopAutoClickerIntervalFallback();
+  if (_autoClickerWorker) {
+    try {
+      _autoClickerWorker.postMessage({ type: "stop" });
+    } catch (_) {}
+  }
 }
