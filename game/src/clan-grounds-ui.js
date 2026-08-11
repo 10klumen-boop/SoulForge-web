@@ -178,7 +178,7 @@ function clanGroundsFarmDetailHtml(farm) {
       claimHint =
         '<p class="clan-grounds-claim-hint"><b>Захват (казна)</b> · свободный узел: ' +
         claimTxt +
-        " adena со склада · защита 2 ч</p>";
+        " adena со склада · защита 24 ч</p>";
     } else if (st.isMine) {
       actions +=
         '<button type="button" class="party-panel-btn ghost" data-clan-release="' +
@@ -207,7 +207,7 @@ function clanGroundsFarmDetailHtml(farm) {
                   ? clanFormatRemainRu(win.startAt - Date.now())
                   : "")
               : "") +
-          " · защитник +15% силы</p>";
+          " · защитник +25% силы</p>";
         if (win && win.open) {
           actions +=
             '<button type="button" class="party-panel-btn party-inst-primary" data-clan-siege-bid="' +
@@ -230,6 +230,27 @@ function clanGroundsFarmDetailHtml(farm) {
             '<p class="clan-grounds-claim-hint"><b>Флагман</b> · топ-2 после окна: дуэль на арене (можно без matchId — подхватится последний)</p>';
         }
       }
+      // Active assault on our node
+      if (st.holder && st.holder.assault && st.holder.assault.status === "active") {
+        const a = st.holder.assault;
+        claimHint =
+          (claimHint || "") +
+          '<p class="clan-grounds-claim-hint"><b>Идёт штурм</b> · ' +
+          (a.atkScore != null ? a.atkScore : "?") +
+          " vs " +
+          (a.defScore != null ? a.defScore : "?") +
+          " · ещё " +
+          (typeof clanFormatRemainRu === "function"
+            ? clanFormatRemainRu(Math.max(0, (a.endAt || 0) - Date.now()))
+            : "") +
+          " · фармите узел за печати</p>";
+        if ((a.endAt || 0) <= Date.now()) {
+          actions +=
+            '<button type="button" class="party-panel-btn party-inst-primary" data-clan-assault-resolve="' +
+            farm.id +
+            '">Исход штурма</button>';
+        }
+      }
     } else {
       const isElite =
         typeof clanTerritoryIsEliteWar === "function" && clanTerritoryIsEliteWar(farm);
@@ -249,42 +270,80 @@ function clanGroundsFarmDetailHtml(farm) {
           (typeof clanTerritoryIsFlagship === "function" && clanTerritoryIsFlagship(farm)
             ? " / арена"
             : "") +
-          " · eco-отбитие закрыто · ещё " +
+          " · штурм казной закрыт · ещё " +
           (typeof clanFormatRemainRu === "function"
             ? clanFormatRemainRu(win.endAt - Date.now())
             : "") +
           "</p>";
-      } else {
-        const cost =
-          typeof clanTerritoryContestCost === "function"
-            ? clanTerritoryContestCost(farm, st.holder)
-            : Math.max(10_000_000, Number(farm.rentPerDay) || 0) * 200;
-        const costTxt = typeof fmt === "function" ? fmt(cost) : String(cost);
-        const powerRu = st.holder.siegePowerRu || st.holder.siegePower || "";
-        const score = st.holder.siegeScore != null ? st.holder.siegeScore : null;
-        actions +=
-          '<button type="button" class="party-panel-btn party-inst-primary" data-clan-contest="' +
-          farm.id +
-          '">Отбить (казна)</button>';
+      } else if (isElite) {
         claimHint =
-          '<p class="clan-grounds-claim-hint"><b>Отбить казной</b> · «' +
+          '<p class="clan-grounds-claim-hint"><b>Только осада</b> · «' +
           clanGroundsEsc(st.ownerName) +
-          '»' +
-          (powerRu
-            ? " · сила: " +
-              clanGroundsEsc(powerRu) +
-              (score != null ? " (" + score + ")" : "")
-            : "") +
-          " · " +
-          costTxt +
-          " adena · защита 2 ч · до 3 отбитий/сутки" +
-          (isElite && win
-            ? " · осада через " +
+          '» · сила держателя ' +
+          (st.holder.rosterPower != null ? st.holder.rosterPower : "—") +
+          (win
+            ? " · окно через " +
               (typeof clanFormatRemainRu === "function"
                 ? clanFormatRemainRu(win.startAt - Date.now())
                 : "")
             : "") +
           "</p>";
+      } else {
+        const a = st.holder && st.holder.assault;
+        const prev = st.holder && st.holder.assaultPreview;
+        const fee =
+          (prev && prev.feeAdena) ||
+          st.holder.assaultFee ||
+          (typeof clanAssaultFeeFor === "function" ? clanAssaultFeeFor(farm) : 5_000_000);
+        const feeTxt = typeof fmt === "function" ? fmt(fee) : String(fee);
+        const defP =
+          prev && prev.defenderPower != null
+            ? prev.defenderPower
+            : st.holder.rosterPower != null
+              ? st.holder.rosterPower
+              : null;
+        const atkP = prev && prev.attackerPower != null ? prev.attackerPower : null;
+        if (a && a.status === "active") {
+          claimHint =
+            '<p class="clan-grounds-claim-hint"><b>Штурм идёт</b> · ' +
+            (a.atkScore != null ? a.atkScore : "?") +
+            " vs " +
+            (a.defScore != null ? a.defScore : "?") +
+            " · ещё " +
+            (typeof clanFormatRemainRu === "function"
+              ? clanFormatRemainRu(Math.max(0, (a.endAt || 0) - Date.now()))
+              : "") +
+            "</p>";
+          if ((a.endAt || 0) <= Date.now()) {
+            actions +=
+              '<button type="button" class="party-panel-btn party-inst-primary" data-clan-assault-resolve="' +
+              farm.id +
+              '">Исход штурма</button>';
+          }
+        } else if (prev && prev.canAssault === false) {
+          claimHint =
+            '<p class="clan-grounds-claim-hint"><b>Штурм недоступен</b> · «' +
+            clanGroundsEsc(st.ownerName) +
+            "» · " +
+            clanGroundsEsc(prev.message || prev.denyReason || "—") +
+            (defP != null ? " · сила держателя " + defP : "") +
+            (atkP != null ? " · ваша " + atkP : "") +
+            "</p>";
+        } else {
+          actions +=
+            '<button type="button" class="party-panel-btn party-inst-primary" data-clan-assault="' +
+            farm.id +
+            '">Штурм (сила)</button>';
+          claimHint =
+            '<p class="clan-grounds-claim-hint"><b>Штурм</b> · «' +
+            clanGroundsEsc(st.ownerName) +
+            '»' +
+            (defP != null ? " · сила " + defP + " (+25% защ.)" : "") +
+            (atkP != null ? " · ваша " + atkP : "") +
+            " · вход " +
+            feeTxt +
+            " · 4 ч · побеждает сила + печати</p>";
+        }
       }
       if (
         typeof clanTerritoryIsFlagship === "function" &&
@@ -799,21 +858,41 @@ function wireClanGroundsFarmActions(box) {
       await clanGroundsAfterMutation(r, { claimed: true });
     };
   });
-  box.querySelectorAll("[data-clan-contest]").forEach((btn) => {
+  box.querySelectorAll("[data-clan-contest], [data-clan-assault]").forEach((btn) => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      btn.disabled = true;
+      let r = { ok: false, message: "Ошибка" };
+      const tid = btn.getAttribute("data-clan-assault") || btn.getAttribute("data-clan-contest");
+      try {
+        r =
+          typeof clanStartAssault === "function"
+            ? await clanStartAssault(tid)
+            : typeof clanContestTerritory === "function"
+              ? await clanContestTerritory(tid)
+              : { ok: false, message: "Штурм только онлайн" };
+      } catch (_) {
+        r = { ok: false, message: "Нет связи с облаком" };
+      }
+      btn.disabled = false;
+      await clanGroundsAfterMutation(r, { contested: true });
+    };
+  });
+  box.querySelectorAll("[data-clan-assault-resolve]").forEach((btn) => {
     btn.onclick = async (e) => {
       e.stopPropagation();
       btn.disabled = true;
       let r = { ok: false, message: "Ошибка" };
       try {
         r =
-          typeof clanContestTerritory === "function"
-            ? await clanContestTerritory(btn.getAttribute("data-clan-contest"))
-            : { ok: false, message: "Отбитие только онлайн" };
+          typeof clanResolveAssault === "function"
+            ? await clanResolveAssault(btn.getAttribute("data-clan-assault-resolve"))
+            : { ok: false, message: "Нет API" };
       } catch (_) {
         r = { ok: false, message: "Нет связи с облаком" };
       }
       btn.disabled = false;
-      await clanGroundsAfterMutation(r, { contested: true });
+      await clanGroundsAfterMutation(r);
     };
   });
   box.querySelectorAll("[data-clan-release]").forEach((btn) => {

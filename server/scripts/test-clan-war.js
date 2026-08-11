@@ -20,7 +20,7 @@ assert.strictEqual(warTierOf({ warTier: "flagship" }), "flagship");
 assert.ok(isEliteWar({ warTier: "elite" }));
 assert.ok(isFlagship({ warTier: "flagship" }));
 assert.ok(!isFlagship({ warTier: "elite" }));
-assert.ok(DEFENDER_BONUS_PCT >= 0.1);
+assert.ok(DEFENDER_BONUS_PCT >= 0.25);
 assert.ok(WEEK_TASK.sealsTarget > 0);
 
 const meta = {

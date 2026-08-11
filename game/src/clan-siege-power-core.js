@@ -93,7 +93,7 @@ function clanSiegePowerCardHtml(opts) {
       '<div class="clan-siege-power' +
       (compact ? " is-compact" : "") +
       '">' +
-      "<strong>Сила осады</strong>" +
+      "<strong>Сила клана</strong>" +
       '<p class="party-panel-hint">Нужен клан. Сила растёт от состава, профессий и вложений.</p>' +
       "</div>"
     );
@@ -103,7 +103,7 @@ function clanSiegePowerCardHtml(opts) {
       '<div class="clan-siege-power is-compact">' +
       '<div class="clan-siege-power-head">' +
       "<strong>" +
-      (p.labels.titleRu || "Сила осады") +
+      (p.labels.titleRu || "Сила клана") +
       '</strong><span class="clan-siege-power-total">' +
       p.total +
       "</span></div>" +
@@ -131,7 +131,7 @@ function clanSiegePowerCardHtml(opts) {
     '<div class="clan-siege-power">' +
     '<div class="clan-siege-power-head">' +
     "<strong>" +
-    (p.labels.titleRu || "Сила осады") +
+    (p.labels.titleRu || "Сила клана") +
     '</strong><span class="clan-siege-power-total">' +
     p.total +
     "</span></div>" +

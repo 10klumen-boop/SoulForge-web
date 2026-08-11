@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles/main.css?v=m323" />
+<link rel="stylesheet" href="styles/main.css?v=m335" />
 <link rel="stylesheet" href="styles/dark-fantasy.css?v=d26" />
-<link rel="stylesheet" href="styles/sf-ui.css?v=63" />
+<link rel="stylesheet" href="styles/sf-ui.css?v=65" />
 <link rel="stylesheet" href="styles/banana-casino.css?v=16" />
 <script src="cloud-config.js"></script>
 
@@ -77,6 +77,7 @@
     <div class="game-chat-resize-corner" id="gameChatResize" title="Размер чата" aria-hidden="true"></div>
   </div>
 </aside>
+<div class="social-invite-host" id="socialInviteHost" aria-live="polite" aria-relevant="additions"></div>
 <div class="app login-screen">
   <div class="topbar">
     <button type="button" class="hub-back-btn topbar-hub-home" id="hubHomeBtn" title="Главное меню">← Главное меню</button>
@@ -111,6 +112,23 @@
   </div>
 
   <div class="card">
+
+    <div class="title-ost" id="titleOst" hidden role="group" aria-label="Саундтрек Lineage II">
+      <div class="title-ost-main">
+        <button type="button" class="title-ost-nav" id="titleOstPrev" title="Предыдущий трек" aria-label="Предыдущий трек">‹</button>
+        <div class="title-ost-meta">
+          <span class="title-ost-label">OST</span>
+          <span class="title-ost-title" id="titleOstTitle">The Call of Destiny</span>
+          <span class="title-ost-album" id="titleOstAlbum">Chaotic Chronicle</span>
+        </div>
+        <button type="button" class="title-ost-nav" id="titleOstNext" title="Следующий трек" aria-label="Следующий трек">›</button>
+      </div>
+      <div class="title-ost-seek">
+        <span class="title-ost-time" id="titleOstTime">0:00</span>
+        <input type="range" class="title-ost-range" id="titleOstSeek" min="0" max="1000" value="0" step="1" aria-label="Перемотка" />
+        <span class="title-ost-time" id="titleOstDur">0:00</span>
+      </div>
+    </div>
 
     <section class="screen active" id="screen-login">
       <button type="button" class="login-olympiad" id="loginOlympiadBtn" title="Монумент героев — рейтинг">
@@ -231,11 +249,7 @@
         </div>
         <div class="sett-hint">Музыка — «The Call of Destiny» на экране входа · M — быстрый mute</div>
         <div class="settings-divider">Интерфейс</div>
-        <div class="settings-row">
-          <span>Чат на телефоне</span>
-          <button type="button" class="sett-toggle" id="settChatMobile">Выкл</button>
-        </div>
-        <div class="sett-hint">На ПК чат справа (клавиша C). На телефоне по умолчанию скрыт — включите здесь, если нужен.</div>
+        <div class="sett-hint">Чат: на ПК — панель справа (клавиша C). На телефоне — плитка «Чат» в игровом меню.</div>
         <div class="settings-row">
           <span>Обучение Ючи</span>
           <button type="button" class="sett-toggle" id="settMentorEnabled">Вкл</button>
@@ -304,10 +318,20 @@
         <h2>Что нового</h2>
       </div>
       <div class="patch-body sf-scroll sub-screen-body">
+        <p class="patch-ver">v0.69</p>
+        <ul>
+          <li><b>Кланы · штурм</b> — занятый обычный farm больше нельзя купить казной. Лидер/офицер объявляет штурм: взнос со склада, окно 4 часа — обе стороны фармят печати. Победа: сила клана + печати (держатель +25%). Слабый клан не отбирает у сильного. После проигрыша — пауза 12 ч на тот же узел. Защита после захвата — 24 ч.</li>
+          <li><b>Кланы · осада</b> — elite и флагманы по-прежнему только по расписанию. Свободный узел можно захватить казной (для elite/флагмана нужен порог силы клана).</li>
+          <li><b>Чат · телефон</b> — отдельный экран из меню (плитка «Чат»), без оверлея поверх боя. На ПК панель справа как раньше (C).</li>
+          <li><b>Музыка</b> — на логине и в главном меню плеер OST: несколько треков Lineage 2, листание и перемотка; треки идут по очереди.</li>
+          <li><b>Приглашения</b> — группа, инстанс, клан и дуэль приходят баннером сверху (Принять / Позже / Отклонить) и больше не стопорят автофарм.</li>
+          <li><b>Мировые боссы</b> — у Закена и Королевы муравьёв кнопка «Лор» со сказанием по главам.</li>
+          <li><b>Арена / почта</b> — цель и адресат ищутся по имени персонажа или логину аккаунта; проще попасть в нужный слот при одинаковых никах.</li>
+        </ul>
         <p class="patch-ver">v0.61.3</p>
         <ul>
-          <li><b>Кланы · угодья</b> — война за землю: захват/отбитие казной, осады elite по расписанию, флагманы (сила/арена), печати угодий, рейтинг, история узла.</li>
-          <li><b>Кланы</b> — авторезолв осады, уведомления об окне/потере узла, недельное задание на печати; защита после захвата 2 ч, лимит отбитий.</li>
+          <li><b>Кланы · угодья</b> — война за землю: захват свободных узлов, осады elite по расписанию, флагманы (сила/арена), печати угодий, рейтинг, история узла. (Отбитие занятого farm казной заменено штурмом в v0.69.)</li>
+          <li><b>Кланы</b> — авторезолв осады, уведомления об окне/потере узла, недельное задание на печати; лимит узлов.</li>
         </ul>
         <p class="patch-ver">v0.61.2</p>
         <ul>
@@ -822,7 +846,7 @@
         </ul>
         <p class="patch-ver">v0.42.1</p>
         <ul>
-          <li><b>Чат</b> — глобальный чат игроков справа (C). На телефоне скрыт по умолчанию; включение в Настройках.</li>
+          <li><b>Чат</b> — глобальный чат игроков справа (C). На телефоне — экран из меню.</li>
         </ul>
         <p class="patch-ver">v0.42</p>
         <ul>
@@ -1166,77 +1190,109 @@
         </button>
       </div>
       <div class="grid menu-dock" id="homeGrid">
-        <div class="tile" id="avatarTile" role="button" tabindex="0">
-          <span class="tile-hit"><img class="tile-ico" src="icons/char_menu.png?v=10" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Персонаж</span><span class="tcount" id="avatarTileMeta">Создать</span></span>
-        </div>
-        <div class="tile" id="questTile" role="button" tabindex="0" data-mentor="menu-quests">
-          <span class="tile-hit"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Квесты</span><span class="tcount" id="questJournalMeta">Prelude</span></span>
-        </div>
-        <div class="tile" id="engagementTile" role="button" tabindex="0">
-          <span class="tile-hit">
-            <img class="tile-ico" src="icons/engagement/quest.png?v=1" alt="" aria-hidden="true">
-            <span class="tile-badge" id="engagementTileBadge" hidden>0</span>
-          </span>
-          <span class="tile-cap"><span class="tname">Поручения</span><span class="tcount" id="engagementTileMeta">День</span></span>
-        </div>
-        <div class="tile" id="invTile" role="button" tabindex="0" data-mentor="menu-inv">
-          <span class="tile-hit"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Инвентарь</span><span class="tcount" id="invCount">0 / 120</span></span>
-        </div>
-        <div class="tile" id="accountStorageTile" role="button" tabindex="0">
-          <span class="tile-hit"><img class="tile-ico" src="icons/account_warehouse.png?v=1" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Склад</span><span class="tcount" id="accountStorageMeta">0/40</span></span>
-        </div>
-        <div class="tile" id="playerMailTile" role="button" tabindex="0">
-          <span class="tile-hit">
-            <img class="tile-ico" src="icons/etc_letter_envelope_i00.png?v=1" alt="" aria-hidden="true">
-            <span class="tile-badge" id="playerMailBadge" hidden>0</span>
-          </span>
-          <span class="tile-cap"><span class="tname">Почта</span><span class="tcount" id="playerMailMeta" hidden></span></span>
-        </div>
-        <div class="tile" id="partyTile" role="button" tabindex="0">
-          <span class="tile-hit">
-            <img class="tile-ico" src="icons/party_menu.png?v=2" alt="" aria-hidden="true">
-            <span class="tile-badge" id="partyTileBadge" hidden>0</span>
-          </span>
-          <span class="tile-cap"><span class="tname">Группа</span><span class="tcount" id="partyTileMeta">Собрать</span></span>
-        </div>
-        <div class="tile" id="clanTile" role="button" tabindex="0">
-          <span class="tile-hit">
-            <img class="tile-ico" src="icons/party_menu.png?v=2" alt="" aria-hidden="true">
-            <span class="tile-badge" id="clanTileBadge" hidden>0</span>
-          </span>
-          <span class="tile-cap"><span class="tname">Клан</span><span class="tcount" id="clanTileMeta">Создать</span></span>
-        </div>
-        <div class="tile" id="shopTile" role="button" tabindex="0" data-mentor="menu-workshop">
-          <span class="tile-hit"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Мастерская</span></span>
-        </div>
-        <div class="tile" id="marketTile" role="button" tabindex="0">
-          <span class="tile-hit"><img class="tile-ico" src="icons/warehouse_chest.png?v=1" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Рынок</span></span>
-        </div>
-        <div class="tile" id="bananaCasinoTile" role="button" tabindex="0">
-          <span class="tile-hit"><img class="tile-ico" src="icons/banana_casino_menu.png?v=1" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Казино Банана</span><span class="tcount" id="bananaCasinoTileMeta">0 жет.</span></span>
-        </div>
-        <div class="tile" id="pvpArenaTile" role="button" tabindex="0">
-          <span class="tile-hit">
-            <img class="tile-ico" src="icons/arena_menu.png?v=1" alt="" aria-hidden="true">
-            <span class="tile-badge" id="pvpArenaBadge" hidden>0</span>
-          </span>
-          <span class="tile-cap"><span class="tname">Арена</span><span class="tcount">Дуэль</span></span>
-        </div>
-        <div class="tile" id="achTile" role="button" tabindex="0">
-          <span class="tile-hit"><img class="tile-ico" src="assets/ui/bloodhood_icon02_crop.png" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Достижения</span><span class="tcount" id="achCount">0 / 43</span></span>
-        </div>
-        <div class="tile" id="glossaryTile" role="button" tabindex="0">
-          <span class="tile-hit"><img class="tile-ico" src="icons/glossary_menu.png?v=1" alt="" aria-hidden="true"></span>
-          <span class="tile-cap"><span class="tname">Глоссарий</span><span class="tcount" id="glossaryTileMeta">Словарь</span></span>
-        </div>
+        <section class="menu-dock-section" data-menu-cat="hero" aria-labelledby="menuDockHero">
+          <h3 class="menu-dock-label" id="menuDockHero">Герой</h3>
+          <div class="menu-dock-row">
+            <div class="tile" id="avatarTile" role="button" tabindex="0">
+              <span class="tile-hit"><img class="tile-ico" src="icons/char_menu.png?v=10" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Персонаж</span><span class="tcount" id="avatarTileMeta">Создать</span></span>
+            </div>
+            <div class="tile" id="questTile" role="button" tabindex="0" data-mentor="menu-quests">
+              <span class="tile-hit"><img class="tile-ico" src="icons/quest_journal.png?v=10" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Квесты</span><span class="tcount" id="questJournalMeta">Prelude</span></span>
+            </div>
+            <div class="tile" id="engagementTile" role="button" tabindex="0">
+              <span class="tile-hit">
+                <img class="tile-ico" src="icons/engagement/quest.png?v=1" alt="" aria-hidden="true">
+                <span class="tile-badge" id="engagementTileBadge" hidden>0</span>
+              </span>
+              <span class="tile-cap"><span class="tname">Поручения</span><span class="tcount" id="engagementTileMeta">День</span></span>
+            </div>
+            <div class="tile" id="achTile" role="button" tabindex="0">
+              <span class="tile-hit"><img class="tile-ico" src="assets/ui/bloodhood_icon02_crop.png" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Достижения</span><span class="tcount" id="achCount">0 / 43</span></span>
+            </div>
+          </div>
+        </section>
+        <section class="menu-dock-section" data-menu-cat="gear" aria-labelledby="menuDockGear">
+          <h3 class="menu-dock-label" id="menuDockGear">Вещи</h3>
+          <div class="menu-dock-row">
+            <div class="tile" id="invTile" role="button" tabindex="0" data-mentor="menu-inv">
+              <span class="tile-hit"><img class="tile-ico" src="assets/ui/menubutton2_crop.png?v=10" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Инвентарь</span><span class="tcount" id="invCount">0 / 120</span></span>
+            </div>
+            <div class="tile" id="accountStorageTile" role="button" tabindex="0">
+              <span class="tile-hit"><img class="tile-ico" src="icons/account_warehouse.png?v=1" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Склад</span><span class="tcount" id="accountStorageMeta">0/40</span></span>
+            </div>
+            <div class="tile" id="shopTile" role="button" tabindex="0" data-mentor="menu-workshop">
+              <span class="tile-hit"><img class="tile-ico" src="assets/ui/inventory_book_crop.png?v=10" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Мастерская</span></span>
+            </div>
+            <div class="tile" id="marketTile" role="button" tabindex="0">
+              <span class="tile-hit"><img class="tile-ico" src="icons/warehouse_chest.png?v=1" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Рынок</span></span>
+            </div>
+          </div>
+        </section>
+        <section class="menu-dock-section" data-menu-cat="social" aria-labelledby="menuDockSocial">
+          <h3 class="menu-dock-label" id="menuDockSocial">Социум</h3>
+          <div class="menu-dock-row">
+            <div class="tile" id="playerMailTile" role="button" tabindex="0">
+              <span class="tile-hit">
+                <img class="tile-ico" src="icons/etc_letter_envelope_i00.png?v=1" alt="" aria-hidden="true">
+                <span class="tile-badge" id="playerMailBadge" hidden>0</span>
+              </span>
+              <span class="tile-cap"><span class="tname">Почта</span><span class="tcount" id="playerMailMeta" hidden></span></span>
+            </div>
+            <div class="tile" id="chatTile" role="button" tabindex="0">
+              <span class="tile-hit">
+                <img class="tile-ico" src="icons/etc_letter_white_i00.png?v=1" alt="" aria-hidden="true">
+                <span class="tile-badge" id="chatTileBadge" hidden>0</span>
+              </span>
+              <span class="tile-cap"><span class="tname">Чат</span><span class="tcount" id="chatTileMeta">Мир</span></span>
+            </div>
+            <div class="tile" id="partyTile" role="button" tabindex="0">
+              <span class="tile-hit">
+                <img class="tile-ico" src="icons/party_menu.png?v=2" alt="" aria-hidden="true">
+                <span class="tile-badge" id="partyTileBadge" hidden>0</span>
+              </span>
+              <span class="tile-cap"><span class="tname">Группа</span><span class="tcount" id="partyTileMeta">Собрать</span></span>
+            </div>
+            <div class="tile" id="clanTile" role="button" tabindex="0">
+              <span class="tile-hit">
+                <img class="tile-ico" src="icons/party_menu.png?v=2" alt="" aria-hidden="true">
+                <span class="tile-badge" id="clanTileBadge" hidden>0</span>
+              </span>
+              <span class="tile-cap"><span class="tname">Клан</span><span class="tcount" id="clanTileMeta">Создать</span></span>
+            </div>
+          </div>
+        </section>
+        <section class="menu-dock-section" data-menu-cat="play" aria-labelledby="menuDockPlay">
+          <h3 class="menu-dock-label" id="menuDockPlay">Активности</h3>
+          <div class="menu-dock-row">
+            <div class="tile" id="pvpArenaTile" role="button" tabindex="0">
+              <span class="tile-hit">
+                <img class="tile-ico" src="icons/arena_menu.png?v=1" alt="" aria-hidden="true">
+                <span class="tile-badge" id="pvpArenaBadge" hidden>0</span>
+              </span>
+              <span class="tile-cap"><span class="tname">Арена</span><span class="tcount">Дуэль</span></span>
+            </div>
+            <div class="tile" id="bananaCasinoTile" role="button" tabindex="0">
+              <span class="tile-hit"><img class="tile-ico" src="icons/banana_casino_menu.png?v=1" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Казино Банана</span><span class="tcount" id="bananaCasinoTileMeta">0 жет.</span></span>
+            </div>
+          </div>
+        </section>
+        <section class="menu-dock-section" data-menu-cat="help" aria-labelledby="menuDockHelp">
+          <h3 class="menu-dock-label" id="menuDockHelp">Справка</h3>
+          <div class="menu-dock-row">
+            <div class="tile" id="glossaryTile" role="button" tabindex="0">
+              <span class="tile-hit"><img class="tile-ico" src="icons/glossary_menu.png?v=1" alt="" aria-hidden="true"></span>
+              <span class="tile-cap"><span class="tname">Глоссарий</span><span class="tcount" id="glossaryTileMeta">Словарь</span></span>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -1383,6 +1439,33 @@
         </div>
       </div>
       <div class="account-storage-body sf-scroll" id="playerMailBody"></div>
+    </section>
+
+    <section class="screen" id="screen-chat">
+      <div class="panel-head">
+        <button class="back" data-to="menu">← В меню</button>
+        <h2>Чат <span class="game-chat-title" id="screenChatTitle">Мир</span></h2>
+      </div>
+      <div class="chat-screen" id="screenChatBody">
+        <div class="game-chat-channels" id="screenChatChannels" role="tablist" aria-label="Каналы чата">
+          <button type="button" class="game-chat-chan sel" data-channel="world" role="tab">Мир</button>
+          <button type="button" class="game-chat-chan" data-channel="trade" role="tab">Торг</button>
+          <button type="button" class="game-chat-chan" data-channel="party" role="tab">Гр.</button>
+          <button type="button" class="game-chat-chan" data-channel="clan" role="tab">Клан</button>
+          <button type="button" class="game-chat-chan" data-channel="whisper" role="tab">ЛС</button>
+        </div>
+        <div class="game-chat-social" id="screenChatSocial" hidden></div>
+        <div class="game-chat-to-wrap" id="screenChatToWrap" hidden>
+          <label class="game-chat-to-label" for="screenChatToNick">Кому</label>
+          <input type="text" id="screenChatToNick" class="game-chat-to-nick" maxlength="16" placeholder="Ник аккаунта" spellcheck="false" autocomplete="off" />
+        </div>
+        <p class="game-chat-status" id="screenChatStatus" hidden></p>
+        <div class="game-chat-feed" id="screenChatFeed"></div>
+        <form class="game-chat-form" id="screenChatForm" autocomplete="off">
+          <input type="text" id="screenChatInput" class="game-chat-input" maxlength="200" placeholder="Сообщение…" aria-label="Сообщение в чат" />
+          <button type="submit" class="game-chat-send" id="screenChatSend" title="Отправить">➤</button>
+        </form>
+      </div>
     </section>
 
     <section class="screen" id="screen-party">
@@ -1921,13 +2004,13 @@
 <div class="toast" id="toast"></div>
 
 <script src="weapons-data.js?v=2"></script>
-<script src="src/01-constants.js?v=519"></script>
+<script src="src/01-constants.js?v=521"></script>
 <script src="src/28-starter-weapons.js?v=2"></script>
-<script src="src/02-state.js?v=55"></script>
-<script src="src/data/audio-data.js?v=5"></script>
-<script src="src/03-audio.js?v=7"></script>
+<script src="src/data/audio-data.js?v=7"></script>
+<script src="src/02-state.js?v=56"></script>
+<script src="src/03-audio.js?v=9"></script>
 <script src="src/04-settings.js?v=3"></script>
-<script src="src/05-dom.js?v=67"></script>
+<script src="src/05-dom.js?v=68"></script>
 <script src="src/data/enchant-balance.js?v=11"></script>
 <script src="src/data/armor-sets-data.js?v=16"></script>
 <script src="src/data/jewelry-sets-data.js?v=8"></script>
@@ -1939,17 +2022,17 @@
 <script src="src/07-workshop.js?v=29"></script>
 <script src="src/data/farm-balance.js?v=10"></script>
 <script src="src/data/farm-zones-balance.js?v=20"></script>
-<script src="src/data/clan-territories-data.js?v=19"></script>
+<script src="src/data/clan-territories-data.js?v=20"></script>
 <script src="src/data/clan-hunting-catalog-data.js?v=7"></script>
 <script src="src/data/clan-map-regions-data.js?v=4"></script>
 <script src="src/data/clan-buffs-balance.js?v=9"></script>
-<script src="src/data/clan-siege-power-balance.js?v=3"></script>
+<script src="src/data/clan-siege-power-balance.js?v=4"></script>
 <script src="src/data/oath-symbol-data.js?v=1"></script>
 <script src="src/data/clan-seals-data.js?v=1"></script>
 <script src="src/data/clan-boss-data.js?v=8"></script>
 <script src="src/data/scroll-drop-balance.js?v=7"></script>
 <script src="src/scroll-core.js?v=9"></script>
-<script src="src/08-menu.js?v=13"></script>
+<script src="src/08-menu.js?v=14"></script>
 <script src="src/09-inventory.js?v=73"></script>
 <script src="src/enchant-ui.js?v=11"></script>
 <script src="src/item-tooltip-ui.js?v=8"></script>
@@ -1968,19 +2051,20 @@
 <script src="src/market-ui.js?v=14"></script>
 <script src="src/player-mail-core.js?v=9"></script>
 <script src="src/player-mail-ui.js?v=7"></script>
-<script src="src/chat-core.js?v=16"></script>
-<script src="src/clan-core.js?v=25"></script>
-<script src="src/clan-siege-power-core.js?v=3"></script>
+<script src="src/chat-core.js?v=17"></script>
+<script src="src/social-invite-ui.js?v=1"></script>
+<script src="src/clan-core.js?v=27"></script>
+<script src="src/clan-siege-power-core.js?v=4"></script>
 <script src="src/clan-boss-core.js?v=18"></script>
-<script src="src/clan-map-ui.js?v=13"></script>
-<script src="src/clan-grounds-ui.js?v=19"></script>
+<script src="src/clan-map-ui.js?v=14"></script>
+<script src="src/clan-grounds-ui.js?v=20"></script>
 <script src="src/clan-ui.js?v=47"></script>
-<script src="src/chat-ui.js?v=5"></script>
-<script src="src/data/party-content-data.js?v=39"></script>
-<script src="src/party-core.js?v=22"></script>
+<script src="src/chat-ui.js?v=6"></script>
+<script src="src/data/party-content-data.js?v=41"></script>
+<script src="src/party-core.js?v=23"></script>
 <script src="src/party-farm-core.js?v=5"></script>
 <script src="src/instance-core.js?v=48"></script>
-<script src="src/world-boss-core.js?v=35"></script>
+<script src="src/world-boss-core.js?v=38"></script>
 <script src="src/progress-store.js?v=8"></script>
 <script src="src/15-game-log.js?v=2"></script>
 <script src="src/16-accessory.js?v=5"></script>
@@ -1989,14 +2073,14 @@
 <script src="src/achievements-core.js?v=9"></script>
 <script src="src/18-achievements.js?v=9"></script>
 <script src="src/19-mine-guard.js"></script>
-<script src="src/19-home.js?v=5"></script>
+<script src="src/19-home.js?v=7"></script>
 <script src="src/20-author.js"></script>
 <script src="src/data/prologue-data.js?v=2"></script>
 <script src="src/data/glossary-data.js?v=4"></script>
 <script src="src/glossary-core.js?v=2"></script>
 <script src="src/glossary-ui.js?v=4"></script>
 <script src="src/intro-core.js"></script>
-<script src="src/21-intro.js?v=13"></script>
+<script src="src/21-intro.js?v=14"></script>
 <script src="src/data/mentor-npc.js?v=11"></script>
 <script src="src/data/mentor-kit-balance.js?v=2"></script>
 <script src="src/data/mentor-ng-gear.js?v=1"></script>
@@ -2004,7 +2088,7 @@
 <script src="src/mentor-core.js?v=15"></script>
 <script src="src/mentor-kit-core.js?v=6"></script>
 <script src="src/mentor-ui.js?v=21"></script>
-<script src="src/33-ui-icons.js?v=28"></script>
+<script src="src/33-ui-icons.js?v=29"></script>
 <script src="src/data/avatar-set-portraits-data.js?v=1"></script>
 <script src="src/34-avatar-portraits.js?v=5"></script>
 <script src="src/35-characters.js?v=48"></script>
@@ -2041,8 +2125,8 @@
 <script src="src/31-combat-skills.js?v=16"></script>
 <script src="src/data/pvp-balance.js?v=5"></script>
 <script src="src/pvp-combat-core.js?v=17"></script>
-<script src="src/pvp-social-core.js?v=4"></script>
-<script src="src/pvp-combat-ui.js?v=23"></script>
+<script src="src/pvp-social-core.js?v=5"></script>
+<script src="src/pvp-combat-ui.js?v=25"></script>
 <script src="src/32-debug-log.js"></script>
 <script src="src/avatar-math.js?v=32"></script>
 <script src="src/avatar-stats-core.js?v=18"></script>
@@ -2060,7 +2144,7 @@
 <script src="src/banana-casino-core.js?v=9"></script>
 <script src="src/banana-casino-ui.js?v=14"></script>
 <script src="src/data-loader.js?v=40"></script>
-<script src="src/99-bootstrap.js?v=83"></script>
+<script src="src/99-bootstrap.js?v=85"></script>
 
 </body>
 </html>

@@ -48,11 +48,12 @@
   background:
     radial-gradient(1000px 520px at 50% 0%, rgba(48, 32, 18, 0.4) 0%, transparent 60%),
     linear-gradient(180deg, rgba(6, 4, 3, 0.35), rgba(4, 3, 2, 0.78)),
-    var(--sf-panel-leather) center 20% / cover no-repeat;
+    var(--sf-panel-leather) center / cover no-repeat;
+  background-color: #0a0806;
 }
 #homeGrid {
-  margin: 8px 16px 12px;
-  padding: 14px 14px 16px;
+  margin: 4px 16px 8px;
+  padding: 8px 10px 10px;
   border-radius: 14px;
   border: 1px solid rgba(201, 168, 106, 0.32);
   background:

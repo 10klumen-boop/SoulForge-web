@@ -74,7 +74,7 @@ function show(screen) {
   }
 
   const app = gameDoc().querySelector(".app");
-  const subScreens = new Set(["mine", "ach", "avatar", "quests", "engagement", "inv", "shop", "ench", "acc", "account-storage", "player-mail", "market", "pvp-arena", "party", "clan", "clan-grounds", "clan-warehouse", "clan-buffs", "clan-raid", "clan-rank", "aden-map", "glossary", "banana-casino"]);
+  const subScreens = new Set(["mine", "ach", "avatar", "quests", "engagement", "inv", "shop", "ench", "acc", "account-storage", "player-mail", "chat", "market", "pvp-arena", "party", "clan", "clan-grounds", "clan-warehouse", "clan-buffs", "clan-raid", "clan-rank", "aden-map", "glossary", "banana-casino"]);
   if (app) {
     const titleScreens = ["home", "settings", "patch", "author", "characters"];
     app.classList.toggle("hub-screen", screen === "menu");
@@ -94,6 +94,14 @@ function show(screen) {
   }
   if (screen !== "inv" && typeof exitInvCrySelectMode === "function") {
     exitInvCrySelectMode();
+  }
+  if (screen === "chat") {
+    if (typeof chatUnreadByChannel !== "undefined" && typeof chatActiveChannel !== "undefined") {
+      chatUnreadByChannel[chatActiveChannel] = 0;
+    }
+    if (typeof updateChatTabBadges === "function") updateChatTabBadges();
+    if (typeof scrollChatFeedToEnd === "function") scrollChatFeedToEnd();
+    if (typeof chatPollNow === "function") chatPollNow();
   }
   if (screen === "settings") {
     const pop = document.getElementById("settingsPop");

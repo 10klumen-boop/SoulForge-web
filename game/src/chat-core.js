@@ -2,7 +2,6 @@
 
 const CHAT_POLL_MS = 3000;
 const CHAT_COLLAPSE_KEY = "sf-chat-collapsed";
-const CHAT_MOBILE_KEY = "sf-chat-mobile";
 const CHAT_CHANNEL_KEY = "sf-chat-channel";
 const CHAT_SIZE_KEY = "sf-chat-size";
 const CHAT_MAX_LEN = 200;
@@ -33,6 +32,55 @@ let chatBootstrapped = Object.create(null);
 
 function chatPanelEl() {
   return document.getElementById("gameChatPanel");
+}
+
+function isChatNarrowViewport() {
+  try {
+    return !!(window.matchMedia && window.matchMedia("(max-width: 640px)").matches);
+  } catch (_) {
+    return false;
+  }
+}
+
+/** Активный DOM-маунт: экран чата (телефон или плитка) либо сайдбар на ПК. */
+function chatUiEls() {
+  if (isChatNarrowViewport() || isChatScreenOpen()) {
+    return {
+      title: document.getElementById("screenChatTitle"),
+      channels: document.getElementById("screenChatChannels"),
+      social: document.getElementById("screenChatSocial"),
+      toWrap: document.getElementById("screenChatToWrap"),
+      toNick: document.getElementById("screenChatToNick"),
+      status: document.getElementById("screenChatStatus"),
+      feed: document.getElementById("screenChatFeed"),
+      form: document.getElementById("screenChatForm"),
+      input: document.getElementById("screenChatInput"),
+      send: document.getElementById("screenChatSend"),
+    };
+  }
+  return {
+    title: document.getElementById("gameChatTitle"),
+    channels: document.getElementById("gameChatChannels"),
+    social: document.getElementById("gameChatSocial"),
+    toWrap: document.getElementById("gameChatToWrap"),
+    toNick: document.getElementById("gameChatToNick"),
+    status: document.getElementById("gameChatStatus"),
+    feed: document.getElementById("gameChatFeed"),
+    form: document.getElementById("gameChatForm"),
+    input: document.getElementById("gameChatInput"),
+    send: document.getElementById("gameChatSend"),
+  };
+}
+
+function isChatScreenOpen() {
+  return !!document.getElementById("screen-chat")?.classList.contains("active");
+}
+
+/** Чат «открыт» для unread/scroll: экран на мобилке или развёрнутая панель на ПК. */
+function isChatUiOpen() {
+  if (isChatScreenOpen()) return true;
+  if (isChatNarrowViewport()) return false;
+  return !isChatCollapsed();
 }
 
 function isChatCollapsed() {
@@ -88,36 +136,6 @@ function applyChatSize(size) {
   return next;
 }
 
-function isChatMobileEnabled() {
-  try {
-    return localStorage.getItem(CHAT_MOBILE_KEY) === "1";
-  } catch (_) {
-    return false;
-  }
-}
-
-function setChatMobileEnabled(on) {
-  try {
-    localStorage.setItem(CHAT_MOBILE_KEY, on ? "1" : "0");
-  } catch (_) {}
-  document.body.classList.toggle("sf-chat-mobile", !!on);
-  syncChatMobileSettingUi();
-  if (typeof refreshChatPolling === "function") refreshChatPolling();
-}
-
-function syncChatMobileSettingUi() {
-  const btn = document.getElementById("settChatMobile");
-  if (!btn) return;
-  const on = isChatMobileEnabled();
-  btn.textContent = on ? "Вкл" : "Выкл";
-  btn.classList.toggle("on", on);
-}
-
-function applyChatMobilePreference() {
-  document.body.classList.toggle("sf-chat-mobile", isChatMobileEnabled());
-  syncChatMobileSettingUi();
-}
-
 function loadChatChannel() {
   try {
     const raw = localStorage.getItem(CHAT_CHANNEL_KEY);
@@ -140,17 +158,38 @@ function totalChatUnread() {
   return Object.values(chatUnreadByChannel).reduce((s, n) => s + (Number(n) || 0), 0);
 }
 
+function syncChatMenuTileBadge() {
+  const badge = document.getElementById("chatTileBadge");
+  const meta = document.getElementById("chatTileMeta");
+  const n = totalChatUnread();
+  if (badge) {
+    if (n <= 0) {
+      badge.hidden = true;
+      badge.textContent = "0";
+    } else {
+      badge.hidden = false;
+      badge.textContent = n > 99 ? "99+" : String(n);
+    }
+  }
+  if (meta) {
+    const ch = chatChannelMeta(chatActiveChannel);
+    meta.textContent = ch ? ch.short || ch.label : "Мир";
+  }
+}
+
 function updateChatBadge() {
   const badge = document.getElementById("gameChatBadge");
   chatUnread = totalChatUnread();
-  if (!badge) return;
-  if (!isChatCollapsed() || chatUnread <= 0) {
-    badge.hidden = true;
-    badge.textContent = "0";
-    return;
+  if (badge) {
+    if (isChatUiOpen() || chatUnread <= 0) {
+      badge.hidden = true;
+      badge.textContent = "0";
+    } else {
+      badge.hidden = false;
+      badge.textContent = chatUnread > 99 ? "99+" : String(chatUnread);
+    }
   }
-  badge.hidden = false;
-  badge.textContent = chatUnread > 99 ? "99+" : String(chatUnread);
+  syncChatMenuTileBadge();
 }
 
 function updateChatTabBadges() {
@@ -181,8 +220,18 @@ function setChatCollapsed(collapsed) {
   if (toggle) toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   saveChatCollapsed(!!collapsed);
   if (!collapsed) {
+    if (!isChatNarrowViewport() && !isChatScreenOpen()) {
+      const ch = chatActiveChannel;
+      chatKnownIdsByChannel[ch] = new Set();
+      chatBootstrapped[ch] = false;
+      chatLastIdByChannel[ch] = 0;
+      const desk = document.getElementById("gameChatFeed");
+      if (desk) desk.innerHTML = "";
+    }
     chatUnreadByChannel[chatActiveChannel] = 0;
     updateChatTabBadges();
+    syncChatChannelTabs();
+    syncChatComposeUi();
     scrollChatFeedToEnd();
     if (typeof chatPollNow === "function") chatPollNow();
   }
@@ -190,11 +239,56 @@ function setChatCollapsed(collapsed) {
 }
 
 function toggleGameChat() {
+  if (isChatNarrowViewport()) {
+    if (isChatScreenOpen()) {
+      if (typeof show === "function") show("menu");
+    } else {
+      openChatScreen();
+    }
+    return;
+  }
   setChatCollapsed(!isChatCollapsed());
 }
 
+function openChatScreen() {
+  if (typeof Audio2 !== "undefined" && Audio2.click) Audio2.click();
+  const ch = chatActiveChannel;
+  chatKnownIdsByChannel[ch] = new Set();
+  chatBootstrapped[ch] = false;
+  chatLastIdByChannel[ch] = 0;
+  const mob = document.getElementById("screenChatFeed");
+  if (mob) mob.innerHTML = "";
+  chatUnreadByChannel[ch] = 0;
+  if (typeof show === "function") show("chat");
+  syncChatChannelTabs();
+  syncChatComposeUi();
+  updateChatTabBadges();
+  const input = chatUiEls().input;
+  if (input) {
+    setTimeout(() => {
+      try {
+        input.focus();
+      } catch (_) {}
+    }, 60);
+  }
+}
+
+function onChatViewportChange() {
+  const ch = chatActiveChannel;
+  chatKnownIdsByChannel[ch] = new Set();
+  chatBootstrapped[ch] = false;
+  chatLastIdByChannel[ch] = 0;
+  const desk = document.getElementById("gameChatFeed");
+  const mob = document.getElementById("screenChatFeed");
+  if (desk) desk.innerHTML = "";
+  if (mob) mob.innerHTML = "";
+  syncChatChannelTabs();
+  syncChatComposeUi();
+  if (typeof refreshChatPolling === "function") refreshChatPolling();
+}
+
 function scrollChatFeedToEnd() {
-  const feed = document.getElementById("gameChatFeed");
+  const feed = chatUiEls().feed;
   if (feed) feed.scrollTop = feed.scrollHeight;
 }
 
@@ -222,7 +316,7 @@ function chatFormatTime(ts) {
 }
 
 function clearChatFeed() {
-  const feed = document.getElementById("gameChatFeed");
+  const feed = chatUiEls().feed;
   if (feed) feed.innerHTML = "";
 }
 
@@ -234,7 +328,7 @@ function ensureKnownSet(channel) {
 function appendChatMessage(msg, opts) {
   const channel = msg.channel || chatActiveChannel;
   if (channel !== chatActiveChannel) return;
-  const feed = document.getElementById("gameChatFeed");
+  const feed = chatUiEls().feed;
   if (!feed || !msg || msg.id == null) return;
   const known = ensureKnownSet(channel);
   if (known.has(msg.id)) return;
@@ -332,7 +426,7 @@ function announceWorldEvent(type, payload) {
         chatBootstrapped.world = true;
         // Сразу показать себе, не дожидаясь poll
         if (chatActiveChannel === "world") {
-          appendChatMessage(r.message, { scroll: !isChatCollapsed() });
+          appendChatMessage(r.message, { scroll: isChatUiOpen() });
         } else {
           chatUnreadByChannel.world = (chatUnreadByChannel.world || 0) + 1;
           updateChatTabBadges();
@@ -344,7 +438,7 @@ function announceWorldEvent(type, payload) {
 }
 
 function setChatStatus(text, kind) {
-  const el = document.getElementById("gameChatStatus");
+  const el = chatUiEls().status;
   if (!el) return;
   el.textContent = text || "";
   el.hidden = !text;
@@ -353,16 +447,19 @@ function setChatStatus(text, kind) {
 
 function setChatWhisperTarget(nick) {
   chatWhisperTarget = String(nick || "").trim();
-  const input = document.getElementById("gameChatToNick");
-  if (input) input.value = chatWhisperTarget;
+  const desk = document.getElementById("gameChatToNick");
+  const mob = document.getElementById("screenChatToNick");
+  if (desk) desk.value = chatWhisperTarget;
+  if (mob) mob.value = chatWhisperTarget;
   syncChatComposeUi();
 }
 
 function syncChatComposeUi() {
-  const toWrap = document.getElementById("gameChatToWrap");
-  const social = document.getElementById("gameChatSocial");
-  const input = document.getElementById("gameChatInput");
-  const send = document.getElementById("gameChatSend");
+  const ui = chatUiEls();
+  const toWrap = ui.toWrap;
+  const social = ui.social;
+  const input = ui.input;
+  const send = ui.send;
   const ch = chatActiveChannel;
 
   if (toWrap) toWrap.hidden = ch !== "whisper";
@@ -389,10 +486,9 @@ function syncChatComposeUi() {
 }
 
 function renderChatSocialBar() {
-  const social = document.getElementById("gameChatSocial");
+  const social = chatUiEls().social;
   if (!social) return;
   const ch = chatActiveChannel;
-  const myNick = chatMyNick();
   social.innerHTML = "";
 
   if (ch === "party") {
@@ -498,12 +594,15 @@ function setChatChannel(id) {
 }
 
 function syncChatChannelTabs() {
-  const title = document.getElementById("gameChatTitle");
   const meta = chatChannelMeta(chatActiveChannel);
-  if (title) title.textContent = meta.label;
+  const deskTitle = document.getElementById("gameChatTitle");
+  const screenTitle = document.getElementById("screenChatTitle");
+  if (deskTitle) deskTitle.textContent = meta.label;
+  if (screenTitle) screenTitle.textContent = meta.label;
   document.querySelectorAll(".game-chat-chan[data-channel]").forEach((btn) => {
     btn.classList.toggle("sel", btn.dataset.channel === chatActiveChannel);
   });
+  syncChatMenuTileBadge();
 }
 
 async function chatFetchMessages(channel, after) {
@@ -519,7 +618,7 @@ async function chatFetchMessages(channel, after) {
 
 function bumpUnread(channel, count) {
   if (!count) return;
-  if (channel === chatActiveChannel && !isChatCollapsed()) return;
+  if (channel === chatActiveChannel && isChatUiOpen()) return;
   chatUnreadByChannel[channel] = (chatUnreadByChannel[channel] || 0) + count;
 }
 
@@ -537,7 +636,7 @@ async function chatPollChannel(channel, opts) {
     if (id > (chatLastIdByChannel[channel] || 0)) chatLastIdByChannel[channel] = id;
     msg.channel = channel;
     if (channel === chatActiveChannel && opts?.render !== false) {
-      appendChatMessage(msg, { scroll: opts?.scroll !== false && !isChatCollapsed() });
+      appendChatMessage(msg, { scroll: opts?.scroll !== false && isChatUiOpen() });
     }
     if (wasBoot) newCount += 1;
   }
@@ -623,7 +722,7 @@ async function chatSendMessage(text) {
     setChatWhisperTarget(toNick);
     if (chatActiveChannel !== "whisper") setChatChannel("whisper");
   } else if (channel === "whisper") {
-    const toEl = document.getElementById("gameChatToNick");
+    const toEl = chatUiEls().toNick;
     toNick = (toEl?.value || chatWhisperTarget || "").trim();
     if (!toNick) {
       setChatStatus("Укажите ник для шёпота", "warn");
@@ -669,22 +768,8 @@ function stopChatPolling() {
 
 function refreshChatPolling() {
   stopChatPolling();
-  const panel = chatPanelEl();
-  if (!panel || panel.hidden) return;
   if (!chatCanUse()) return;
-  if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
-    if (!isChatMobileEnabled()) return;
-  }
+  if (typeof isInCharacterSession === "function" && !isInCharacterSession()) return;
   chatPollNow();
   chatPollTimer = setInterval(() => chatPollNow(), CHAT_POLL_MS);
-}
-
-function wireChatMobileSetting() {
-  const btn = document.getElementById("settChatMobile");
-  if (!btn || btn.dataset.wired) return;
-  btn.dataset.wired = "1";
-  btn.addEventListener("click", () => {
-    if (typeof Audio2 !== "undefined") Audio2.click();
-    setChatMobileEnabled(!isChatMobileEnabled());
-  });
 }

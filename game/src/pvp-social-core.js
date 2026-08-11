@@ -72,13 +72,20 @@ async function pvpFetchOnlineList() {
   return pvpSocialApi("/pvp/online");
 }
 
-async function pvpChallengeName(toName) {
+async function pvpChallengeName(toName, opts) {
+  opts = opts || {};
   const sheet = pvpCurrentSheet();
   const cid = pvpSocialCharacterId();
   if (!sheet || !cid) return { ok: false, error: "Нет персонажа" };
+  const body = {
+    characterId: cid,
+    toName: String(toName || "").trim(),
+    sheet,
+  };
+  if (opts.toCharacterId) body.toCharacterId = String(opts.toCharacterId).trim();
   return pvpSocialApi("/duel/challenge", {
     method: "POST",
-    body: { characterId: cid, toName: String(toName || "").trim(), sheet },
+    body,
   });
 }
 
@@ -124,13 +131,20 @@ async function pvpSubmitMatchAction(matchId, action) {
   });
 }
 
-async function pvpAsyncAttackName(toName) {
+async function pvpAsyncAttackName(toName, opts) {
+  opts = opts || {};
   const sheet = pvpCurrentSheet();
   const cid = pvpSocialCharacterId();
   if (!sheet || !cid) return { ok: false, error: "Нет персонажа" };
+  const body = {
+    characterId: cid,
+    toName: String(toName || "").trim(),
+    sheet,
+  };
+  if (opts.toCharacterId) body.toCharacterId = String(opts.toCharacterId).trim();
   return pvpSocialApi("/pvp/async/attack", {
     method: "POST",
-    body: { characterId: cid, toName: String(toName || "").trim(), sheet },
+    body,
   });
 }
 

@@ -1,6 +1,6 @@
-// ===== Сила осады клана (для будущих войн за узлы) =====
+// ===== Сила осады / штурма клана =====
 // Отдельно от недельного activity-score баффов (CLAN_ACTIVITY).
-// Осада = состав × профессии × вложения. Пока UI/формула; бой later.
+// Штурм farm = сила ростера + печати за окно; elite = окно осады по силе.
 
 const CLAN_SIEGE_POWER = {
   /** База за каждого участника в ростере. */
@@ -39,16 +39,49 @@ const CLAN_SIEGE_POWER = {
   activityPerScore: 0.25,
   activityCap: 120,
 
-  /** Бонус силы для текущего держателя узла при resolve осады. */
-  defenderBonusPct: 0.15,
+  /** Бонус силы для текущего держателя узла при resolve осады / штурма. */
+  defenderBonusPct: 0.25,
 
   /** Подписи для UI. */
   labels: {
-    titleRu: "Сила осады",
+    titleRu: "Сила клана",
     hintRu:
-      "Состав × профессии × вложения. Держатель +15% к силе в осаде. Elite — по силе; флагман — арена (или сила). Не путать с клан-баффами.",
+      "Состав × профессии × вложения. Штурм farm: сила + печати за 4 ч (держатель +25%). Elite — только осада по расписанию. Не путать с клан-баффами.",
   },
 };
+
+/** Штурм обычных (normal) farm-узлов. */
+const CLAN_ASSAULT = {
+  windowMs: 4 * 60 * 60 * 1000,
+  feeFloor: 5_000_000,
+  feeRentDays: 50,
+  sealDiv: 5,
+  sealScoreCap: 20,
+  /** Ниже 50% силы держателя — отказ без списания (если не abandoned). */
+  powerGateMin: 0.5,
+  abandonedWeekScore: 50,
+  loseCdMs: 12 * 60 * 60 * 1000,
+  lockMs: 24 * 60 * 60 * 1000,
+  claimMinPower: { normal: 0, elite: 48, flagship: 72 },
+  labels: {
+    titleRu: "Штурм",
+    hintRu:
+      "Вход из казны · 4 часа · побеждает сила клана + печати (с капом). Казна исход не решает.",
+  },
+};
+
+function clanAssaultFeeFor(tOrMeta) {
+  const rent = Math.max(0, Math.floor(Number(tOrMeta?.rentPerDay) || 0));
+  const floor = (CLAN_ASSAULT && CLAN_ASSAULT.feeFloor) || 5_000_000;
+  const days = (CLAN_ASSAULT && CLAN_ASSAULT.feeRentDays) || 50;
+  return Math.max(floor, rent * days);
+}
+
+function clanAssaultSealScore(seals) {
+  const div = (CLAN_ASSAULT && CLAN_ASSAULT.sealDiv) || 5;
+  const cap = (CLAN_ASSAULT && CLAN_ASSAULT.sealScoreCap) || 80;
+  return Math.min(cap, Math.floor(Math.max(0, Number(seals) || 0) / div));
+}
 
 function clanSiegeRoleWeight(role) {
   const map = CLAN_SIEGE_POWER.roleWeight || {};

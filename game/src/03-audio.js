@@ -124,7 +124,13 @@ const Audio2 = (() => {
 
   function allSamplePaths() {
     const all = [];
-    Object.values(FILES.music).forEach((p) => all.push(p));
+    if (typeof MENU_MUSIC_TRACKS !== "undefined") {
+      MENU_MUSIC_TRACKS.forEach((t) => {
+        if (typeof menuMusicSrc === "function") all.push(menuMusicSrc(t.id));
+      });
+    } else {
+      Object.values(FILES.music).forEach((p) => all.push(p));
+    }
     Object.values(FILES.ui).forEach((p) => all.push(p));
     Object.values(FILES.sfx).forEach((p) => {
       if (Array.isArray(p)) p.forEach((x) => all.push(x));
@@ -135,12 +141,32 @@ const Audio2 = (() => {
     return all;
   }
 
+  function currentMenuMusicSrc() {
+    if (typeof menuMusicSrc === "function") return menuMusicSrc();
+    return FILES.music.menu;
+  }
+
+  function currentMenuTrackMeta() {
+    if (typeof resolveMenuMusicTrack === "function") return resolveMenuMusicTrack();
+    return {
+      id: "call_of_destiny",
+      title: "The Call of Destiny",
+      album: "Chaotic Chronicle",
+    };
+  }
+
+  function normalizeMenuMusicId(id) {
+    if (typeof resolveMenuMusicTrack === "function") return resolveMenuMusicTrack(id).id;
+    return id || "call_of_destiny";
+  }
+
   function preloadAll() {
     primeMusic();
+    const current = currentMenuMusicSrc();
     allSamplePaths().forEach((src) => {
       if (preloadStarted[src]) return;
       preloadStarted[src] = true;
-      if (src === FILES.music.menu) return;
+      if (src === current) return;
       probeSample(src);
     });
   }
@@ -181,11 +207,96 @@ const Audio2 = (() => {
   let musicEl = null;
   let musicCache = null;
   let musicToken = 0;
+  let musicSeeking = false;
+  let musicProgressTimer = null;
+  let sessionRandomPicked = false;
   let ambEl = null;
   let ambKey = null;
   let dwarfVoice = null;
   let dwarfRewardTimer = null;
   let dwarfCatchToken = 0;
+
+  function formatMusicTime(sec) {
+    const s = Math.max(0, Math.floor(Number(sec) || 0));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return m + ":" + String(r).padStart(2, "0");
+  }
+
+  function stopMusicProgressTick() {
+    if (musicProgressTimer) {
+      clearInterval(musicProgressTimer);
+      musicProgressTimer = null;
+    }
+  }
+
+  function updateOstSeekUi() {
+    const seek = document.getElementById("titleOstSeek");
+    const timeEl = document.getElementById("titleOstTime");
+    const durEl = document.getElementById("titleOstDur");
+    const el = musicEl;
+    const dur = el && isFinite(el.duration) && el.duration > 0 ? el.duration : 0;
+    const cur = el && isFinite(el.currentTime) ? el.currentTime : 0;
+    if (timeEl) timeEl.textContent = formatMusicTime(cur);
+    if (durEl) durEl.textContent = formatMusicTime(dur);
+    if (seek && !musicSeeking) {
+      const max = Number(seek.max) || 1000;
+      const pct = dur > 0 ? cur / dur : 0;
+      seek.value = String(Math.round(pct * max));
+      seek.style.setProperty("--ost-pct", Math.round(pct * 1000) / 10 + "%");
+      seek.disabled = !(dur > 0);
+    }
+  }
+
+  function startMusicProgressTick() {
+    stopMusicProgressTick();
+    updateOstSeekUi();
+    musicProgressTimer = setInterval(updateOstSeekUi, 250);
+  }
+
+  function bindMusicElEvents(el) {
+    if (!el || el.dataset.ostBound === "1") return;
+    el.dataset.ostBound = "1";
+    el.addEventListener("timeupdate", () => {
+      if (!musicSeeking) updateOstSeekUi();
+    });
+    el.addEventListener("loadedmetadata", updateOstSeekUi);
+    el.addEventListener("durationchange", updateOstSeekUi);
+    el.addEventListener("ended", () => {
+      if (el !== musicEl) return;
+      if (!shouldPlayMusic() || isSilent()) return;
+      cycleMenuTrack(1);
+    });
+  }
+
+  function seekMusic(ratioOrSec, asSeconds) {
+    if (!musicEl) return false;
+    const dur = musicEl.duration;
+    if (!isFinite(dur) || dur <= 0) return false;
+    let t;
+    if (asSeconds) t = Number(ratioOrSec) || 0;
+    else t = (Math.max(0, Math.min(1, Number(ratioOrSec) || 0))) * dur;
+    t = Math.max(0, Math.min(dur - 0.05, t));
+    try {
+      musicEl.currentTime = t;
+      updateOstSeekUi();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function shouldShowOstPlayer(screen) {
+    const id = screen || activeScreenId();
+    if (typeof OST_PLAYER_SCREENS !== "undefined") return OST_PLAYER_SCREENS.has(id);
+    return id === "login" || id === "home";
+  }
+
+  function syncOstPlayerVisibility(screen) {
+    const root = document.getElementById("titleOst");
+    if (!root) return;
+    root.hidden = !shouldShowOstPlayer(screen);
+  }
 
   function fadeElVolume(el, target, timerRef, step = 0.022) {
     if (!el) return;
@@ -223,6 +334,7 @@ const Audio2 = (() => {
 
   function stopMusicImmediate() {
     musicToken++;
+    stopMusicProgressTick();
     if (musicFade.current) {
       clearInterval(musicFade.current);
       musicFade.current = null;
@@ -237,6 +349,7 @@ const Audio2 = (() => {
       } catch (_) {}
     }
     pauseMusicCache();
+    updateOstSeekUi();
   }
 
   function stopMusic() {
@@ -277,9 +390,17 @@ const Audio2 = (() => {
   }
 
   function primeMusic() {
-    const src = FILES.music.menu;
-    if (preloadStarted[src]) return;
+    const src = currentMenuMusicSrc();
+    if (!src) return;
+    if (preloadStarted[src] && musicCache && musicCache.dataset.src === src) return;
     preloadStarted[src] = true;
+    if (musicCache && musicCache.dataset.src !== src) {
+      try {
+        musicCache.pause();
+        musicCache.src = "";
+      } catch (_) {}
+      musicCache = null;
+    }
     if (musicCache && musicCache.dataset.src === src) return;
     const el = new Audio(src);
     el.dataset.src = src;
@@ -294,7 +415,8 @@ const Audio2 = (() => {
 
   function playMusicEl(el, src, target, token) {
     el.dataset.src = src;
-    el.loop = true;
+    el.loop = false;
+    bindMusicElEvents(el);
     const startVol = Math.min(target, Math.max(0.12, target * 0.45));
     el.volume = startVol;
     return el.play()
@@ -310,6 +432,8 @@ const Audio2 = (() => {
         markSample(src, true);
         musicEl = el;
         fadeElVolume(el, target, musicFade, 0.04);
+        startMusicProgressTick();
+        syncOstPlayerUi();
         return true;
       });
   }
@@ -324,7 +448,7 @@ const Audio2 = (() => {
       stopMusicImmediate();
       return;
     }
-    const src = FILES.music.menu;
+    const src = currentMenuMusicSrc();
     const target = eff(BASE.music, "music");
     if (musicEl && musicEl.dataset.src === src && !musicEl.paused) {
       fadeElVolume(musicEl, target, musicFade, 0.04);
@@ -348,6 +472,91 @@ const Audio2 = (() => {
       return;
     }
     attempt(new Audio(src));
+  }
+
+  function setMenuTrack(id, opts) {
+    const next = normalizeMenuMusicId(id);
+    const force = !!(opts && opts.force);
+    const persist = !(opts && opts.persist === false);
+    if (typeof state !== "undefined" && state) {
+      if (!force && state.menuMusicId === next) {
+        syncOstPlayerUi();
+        return currentMenuTrackMeta();
+      }
+      state.menuMusicId = next;
+      if (persist && typeof save === "function") save();
+    }
+    if (musicCache) {
+      try {
+        musicCache.pause();
+        musicCache.src = "";
+      } catch (_) {}
+      musicCache = null;
+    }
+    Object.keys(preloadStarted).forEach((k) => {
+      if (k.indexOf("assets/sounds/music/") >= 0) delete preloadStarted[k];
+    });
+    if (shouldPlayMusic()) startMusic();
+    else stopMusicImmediate();
+    syncOstPlayerUi();
+    return currentMenuTrackMeta();
+  }
+
+  function cycleMenuTrack(dir) {
+    const list =
+      typeof MENU_MUSIC_TRACKS !== "undefined" && MENU_MUSIC_TRACKS.length
+        ? MENU_MUSIC_TRACKS
+        : [{ id: "call_of_destiny" }];
+    const cur = currentMenuTrackMeta();
+    const idx = Math.max(0, list.findIndex((t) => t.id === cur.id));
+    const step = dir < 0 ? -1 : 1;
+    const next = list[(idx + step + list.length) % list.length];
+    return setMenuTrack(next.id, { force: true });
+  }
+
+  function pickRandomMenuTrack(opts) {
+    const list =
+      typeof MENU_MUSIC_TRACKS !== "undefined" && MENU_MUSIC_TRACKS.length
+        ? MENU_MUSIC_TRACKS
+        : [{ id: "call_of_destiny" }];
+    if (!list.length) return null;
+    const cur = typeof state !== "undefined" && state ? state.menuMusicId : null;
+    let pool = list;
+    if (list.length > 1 && cur) {
+      const others = list.filter((t) => t.id !== cur);
+      if (others.length) pool = others;
+    }
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    sessionRandomPicked = true;
+    return setMenuTrack(pick.id, {
+      force: true,
+      persist: !(opts && opts.persist === false),
+    });
+  }
+
+  function ensureSessionRandomTrack() {
+    if (sessionRandomPicked) return currentMenuTrackMeta();
+    return pickRandomMenuTrack({ persist: true });
+  }
+
+  function syncOstPlayerUi() {
+    const titleEl = document.getElementById("titleOstTitle");
+    const albumEl = document.getElementById("titleOstAlbum");
+    const meta = currentMenuTrackMeta();
+    if (titleEl) titleEl.textContent = meta.title || "OST";
+    if (albumEl) albumEl.textContent = meta.album || "Lineage II";
+    const root = document.getElementById("titleOst");
+    if (root) {
+      root.setAttribute("data-track", meta.id || "");
+      root.setAttribute("aria-label", "OST: " + (meta.title || ""));
+    }
+    syncOstPlayerVisibility();
+    updateOstSeekUi();
+  }
+
+  // alias for older call sites
+  function syncLoginMusicUi() {
+    syncOstPlayerUi();
   }
 
   function startAmbience(key) {
@@ -402,9 +611,12 @@ const Audio2 = (() => {
     if (shouldPlayMusic(screen)) {
       startMusic(screen);
       stopAmbience();
+      syncOstPlayerVisibility(screen);
+      syncOstPlayerUi();
       return;
     }
     stopMusicImmediate();
+    syncOstPlayerVisibility(screen);
     if (SCREEN_AMB[screen]) {
       startAmbience(currentMineAmbKey());
     } else {
@@ -454,6 +666,30 @@ const Audio2 = (() => {
     refreshVolumes,
     setScreen,
     currentMineAmbKey,
+    getMenuTracks() {
+      return typeof MENU_MUSIC_TRACKS !== "undefined" ? MENU_MUSIC_TRACKS.slice() : [];
+    },
+    getMenuTrack() {
+      return currentMenuTrackMeta();
+    },
+    setMenuTrack(id) {
+      return setMenuTrack(id, { force: true });
+    },
+    cycleMenuTrack,
+    pickRandomMenuTrack,
+    ensureSessionRandomTrack,
+    seekMusic(ratio) {
+      return seekMusic(ratio, false);
+    },
+    seekMusicTo(sec) {
+      return seekMusic(sec, true);
+    },
+    syncOstPlayerUi,
+    syncLoginMusicUi,
+    setOstSeeking(on) {
+      musicSeeking = !!on;
+      if (!musicSeeking) updateOstSeekUi();
+    },
     stopAmbience() { stopAmbience(); },
     stopMusic() { stopMusicImmediate(); },
     charge() { playOrSynth(FILES.sfx.charge, eff(BASE.sfx, "sfx"), synth.charge); },

@@ -34,8 +34,20 @@ const ARENA_GRACE_MS = 2 * 60 * 60 * 1000;
 const SEAL_PER_HIT = 1;
 const SEAL_HIT_BATCH_MAX = 40;
 const SEAL_HOUR_CAP = 120;
-/** +15% силы текущему держателю при resolve осады. */
-const DEFENDER_BONUS_PCT = 0.15;
+/** +25% силы текущему держателю при resolve осады / штурма. */
+const DEFENDER_BONUS_PCT = 0.25;
+
+/** Штурм обычных farm-узлов (не elite eco-buy). */
+const ASSAULT_WINDOW_MS = 4 * 60 * 60 * 1000;
+const ASSAULT_FEE_FLOOR = 5_000_000;
+const ASSAULT_FEE_RENT_DAYS = 50;
+const ASSAULT_SEAL_DIV = 5;
+const ASSAULT_SEAL_SCORE_CAP = 20;
+/** Атакующий слабее 50% силы держателя (не abandoned) — отказ без списания. */
+const ASSAULT_POWER_GATE_MIN = 0.5;
+const ASSAULT_ABANDONED_WEEK_SCORE = 50;
+const ASSAULT_LOSE_CD_MS = 12 * 60 * 60 * 1000;
+const CLAIM_MIN_POWER = { normal: 0, elite: 48, flagship: 72 };
 
 const RANK_POINTS = {
   holdHourNormal: 2,
@@ -246,6 +258,32 @@ function attachClanWarMethods(db, store, deps) {
     );
     CREATE INDEX IF NOT EXISTS idx_clan_rating_log
       ON chat_clan_rating_log(clan_id, created_at DESC);
+    CREATE TABLE IF NOT EXISTS chat_clan_assaults (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      territory_id TEXT NOT NULL,
+      attacker_clan_id TEXT NOT NULL,
+      defender_clan_id TEXT NOT NULL,
+      fee_adena INTEGER NOT NULL,
+      start_at INTEGER NOT NULL,
+      end_at INTEGER NOT NULL,
+      atk_seals INTEGER NOT NULL DEFAULT 0,
+      def_seals INTEGER NOT NULL DEFAULT 0,
+      atk_power INTEGER NOT NULL DEFAULT 0,
+      def_power INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
+      winner_clan_id TEXT,
+      resolved_at INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS idx_clan_assault_terr_status
+      ON chat_clan_assaults(territory_id, status);
+    CREATE INDEX IF NOT EXISTS idx_clan_assault_end
+      ON chat_clan_assaults(status, end_at);
+    CREATE TABLE IF NOT EXISTS chat_clan_assault_cd (
+      clan_id TEXT NOT NULL,
+      territory_id TEXT NOT NULL,
+      until_at INTEGER NOT NULL,
+      PRIMARY KEY (clan_id, territory_id)
+    );
     CREATE TABLE IF NOT EXISTS chat_clan_week_task (
       clan_id TEXT NOT NULL,
       week_key TEXT NOT NULL,
@@ -427,6 +465,44 @@ function attachClanWarMethods(db, store, deps) {
     ORDER BY id ASC
     LIMIT 40
   `);
+  const stmtAssaultActiveByTerr = db.prepare(
+    `SELECT * FROM chat_clan_assaults WHERE territory_id = ? AND status = 'active' LIMIT 1`
+  );
+  const stmtAssaultActiveDue = db.prepare(
+    `SELECT * FROM chat_clan_assaults WHERE status = 'active' AND end_at <= ?`
+  );
+  const stmtAssaultIns = db.prepare(`
+    INSERT INTO chat_clan_assaults (
+      territory_id, attacker_clan_id, defender_clan_id, fee_adena,
+      start_at, end_at, atk_seals, def_seals, atk_power, def_power, status
+    ) VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?, ?, 'active')
+  `);
+  const stmtAssaultAddSeals = db.prepare(`
+    UPDATE chat_clan_assaults
+    SET atk_seals = atk_seals + ?, def_seals = def_seals + ?
+    WHERE id = ? AND status = 'active'
+  `);
+  const stmtAssaultResolve = db.prepare(`
+    UPDATE chat_clan_assaults
+    SET status = ?, winner_clan_id = ?, resolved_at = ?,
+        atk_seals = ?, def_seals = ?
+    WHERE id = ? AND status = 'active'
+  `);
+  const stmtAssaultCdGet = db.prepare(
+    `SELECT until_at FROM chat_clan_assault_cd WHERE clan_id = ? AND territory_id = ?`
+  );
+  const stmtAssaultCdUpsert = db.prepare(`
+    INSERT INTO chat_clan_assault_cd (clan_id, territory_id, until_at) VALUES (?, ?, ?)
+    ON CONFLICT(clan_id, territory_id) DO UPDATE SET until_at = excluded.until_at
+  `);
+  const stmtWeekDonateSum = db.prepare(`
+    SELECT COALESCE(SUM(amount), 0) AS total
+    FROM chat_clan_warehouse_log
+    WHERE clan_id = ? AND kind = 'donate' AND created_at >= ?
+  `);
+  const stmtTerrByClan = db.prepare(
+    `SELECT * FROM chat_clan_territories WHERE clan_id = ?`
+  );
 
   const { CLAN_TERRITORIES } = require("./clan-warehouse");
 
@@ -438,6 +514,65 @@ function attachClanWarMethods(db, store, deps) {
     const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
     const week = Math.ceil(((utc - yearStart) / 86400000 + 1) / 7);
     return utc.getUTCFullYear() + "-W" + String(week).padStart(2, "0");
+  }
+
+  /** UTC Monday 00:00 of current ISO week (aligned with isoWeekKey). */
+  function isoWeekStartMs(now) {
+    const d = new Date(Number(now) || Date.now());
+    const utc = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    const day = utc.getUTCDay() || 7;
+    utc.setUTCDate(utc.getUTCDate() - (day - 1));
+    return utc.getTime();
+  }
+
+  function assaultFeeFor(meta) {
+    const rent = Math.max(0, Math.floor(Number(meta?.rentPerDay) || 0));
+    return Math.max(ASSAULT_FEE_FLOOR, rent * ASSAULT_FEE_RENT_DAYS);
+  }
+
+  function assaultSealScore(seals) {
+    return Math.min(
+      ASSAULT_SEAL_SCORE_CAP,
+      Math.floor(Math.max(0, Number(seals) || 0) / ASSAULT_SEAL_DIV)
+    );
+  }
+
+  function claimMinPowerFor(meta) {
+    const tier = warTierOf(meta);
+    if (meta && meta.claimMinPower != null) {
+      return Math.max(0, Math.floor(Number(meta.claimMinPower) || 0));
+    }
+    return CLAIM_MIN_POWER[tier] != null ? CLAIM_MIN_POWER[tier] : 0;
+  }
+
+  function publicAssaultRow(row) {
+    if (!row) return null;
+    const atkSealScore = assaultSealScore(row.atk_seals);
+    const defSealScore = assaultSealScore(row.def_seals);
+    const atkScore = Math.floor(Number(row.atk_power) || 0) + atkSealScore;
+    const defScore = Math.floor(Number(row.def_power) || 0) + defSealScore;
+    return {
+      id: row.id,
+      territoryId: row.territory_id,
+      attackerClanId: row.attacker_clan_id,
+      defenderClanId: row.defender_clan_id,
+      attackerClanName: clanNameOf(row.attacker_clan_id),
+      defenderClanName: clanNameOf(row.defender_clan_id),
+      feeAdena: row.fee_adena,
+      startAt: row.start_at,
+      endAt: row.end_at,
+      atkSeals: row.atk_seals,
+      defSeals: row.def_seals,
+      atkPower: row.atk_power,
+      defPower: row.def_power,
+      atkSealScore,
+      defSealScore,
+      atkScore,
+      defScore,
+      status: row.status,
+      winnerClanId: row.winner_clan_id || null,
+      resolvedAt: row.resolved_at || null,
+    };
   }
 
   function getClanId(userId) {
@@ -559,19 +694,40 @@ function attachClanWarMethods(db, store, deps) {
     return out;
   }
 
+  function weekDepositAdena(clanId, now) {
+    try {
+      const since = isoWeekStartMs(now);
+      return Math.max(0, Math.floor(Number(stmtWeekDonateSum.get(clanId, since)?.total) || 0));
+    } catch (_) {
+      return 0;
+    }
+  }
+
   function siegePowerForClan(clanId, now) {
     const members = stmtClanMembers.all(clanId);
     const professions = professionsForClan(clanId);
     const score = weekScore(clanId, now);
-    // Approximate week deposits from warehouse log if available — soft: score*10k
-    const weekDepositAdena = score * 10000;
     return computeSiegePower({
       memberCount: members.length,
       professions,
-      weekDepositAdena,
+      weekDepositAdena: weekDepositAdena(clanId, now),
       weekScore: score,
     });
   }
+
+  store.clanRosterSiegePower = function clanRosterSiegePower(clanId, opts = {}) {
+    const now = Number(opts.now) || Date.now();
+    if (!clanId) return { total: 0, members: 0, professionPts: 0, investPts: 0, activityPts: 0 };
+    return siegePowerForClan(clanId, now);
+  };
+
+  store.clanClaimMinPower = function clanClaimMinPower(territoryId) {
+    return claimMinPowerFor(CLAN_TERRITORIES[territoryId]);
+  };
+
+  store.clanAssaultFee = function clanAssaultFee(territoryId) {
+    return assaultFeeFor(CLAN_TERRITORIES[territoryId]);
+  };
 
   store.clanWarMeta = function clanWarMeta() {
     return {
@@ -581,6 +737,14 @@ function attachClanWarMethods(db, store, deps) {
       bidFloor: SIEGE_BID_FLOOR,
       refundPct: SIEGE_REFUND_PCT,
       arenaGraceMs: ARENA_GRACE_MS,
+      defenderBonusPct: DEFENDER_BONUS_PCT,
+      assaultWindowMs: ASSAULT_WINDOW_MS,
+      assaultFeeFloor: ASSAULT_FEE_FLOOR,
+      assaultSealScoreCap: ASSAULT_SEAL_SCORE_CAP,
+      assaultPowerGateMin: ASSAULT_POWER_GATE_MIN,
+      assaultAbandonedWeekScore: ASSAULT_ABANDONED_WEEK_SCORE,
+      assaultLoseCdMs: ASSAULT_LOSE_CD_MS,
+      claimMinPower: CLAIM_MIN_POWER,
     };
   };
 
@@ -613,11 +777,22 @@ function attachClanWarMethods(db, store, deps) {
       return { ok: false, error: "zone", message: "Нет угодья" };
     }
     const hold = stmtTerrGet.get(territoryId);
-    if (!hold || hold.clan_id !== clanId) {
+    const assault = stmtAssaultActiveByTerr.get(territoryId);
+    const isHolder = !!(hold && hold.clan_id === clanId);
+    const isAssaultSide =
+      !!assault &&
+      (assault.attacker_clan_id === clanId || assault.defender_clan_id === clanId);
+    if (!isHolder && !isAssaultSide) {
       return { ok: false, error: "holder", message: "Угодье не ваше" };
     }
     let hits = Math.max(0, Math.min(SEAL_HIT_BATCH_MAX, Math.floor(Number(opts.hits) || 0)));
-    if (!hits) return { ok: true, gained: 0, amount: stmtSealGet.get(clanId, territoryId)?.amount || 0 };
+    if (!hits) {
+      return {
+        ok: true,
+        gained: 0,
+        amount: stmtSealGet.get(clanId, territoryId)?.amount || 0,
+      };
+    }
 
     const hourKey = new Date(now).toISOString().slice(0, 13);
     const tick = stmtTickGet.get(clanId, territoryId, hourKey);
@@ -638,7 +813,15 @@ function attachClanWarMethods(db, store, deps) {
     const next = cur + gain;
     stmtSealUpsert.run(clanId, territoryId, next, now);
     bumpWeekSeals(clanId, gain, now);
-    return { ok: true, gained: gain, amount: next };
+
+    // Печати штурма: идут в счётчик окна, если клан участник active assault
+    if (assault && isAssaultSide && now < assault.end_at) {
+      const atkAdd = assault.attacker_clan_id === clanId ? gain : 0;
+      const defAdd = assault.defender_clan_id === clanId ? gain : 0;
+      if (atkAdd || defAdd) stmtAssaultAddSeals.run(atkAdd, defAdd, assault.id);
+    }
+
+    return { ok: true, gained: gain, amount: next, assault: !!assault && isAssaultSide };
   };
 
   store.clanSpendSeals = function clanSpendSeals(user, opts = {}) {
@@ -1207,6 +1390,400 @@ function attachClanWarMethods(db, store, deps) {
   };
 
   // Hook helpers for claim/contest rating (called from warehouse after success)
+  function countFarmHoldings(clanId) {
+    const owned = stmtTerrByClan.all(clanId);
+    let farm = 0;
+    for (const o of owned) {
+      const m = CLAN_TERRITORIES[o.territory_id];
+      if (m?.kind !== "city") farm += 1;
+    }
+    return farm;
+  }
+
+  function assaultPreview(territoryId, attackerClanId, now) {
+    now = Number(now) || Date.now();
+    const meta = CLAN_TERRITORIES[territoryId];
+    if (!meta || !meta.capturable || !meta.siegeEnabled) {
+      return { canAssault: false, denyReason: "zone", message: "Зона не захватывается" };
+    }
+    if (isEliteWar(meta)) {
+      return {
+        canAssault: false,
+        denyReason: "siege_only",
+        message: "Elite/флагман — только окно осады по расписанию",
+      };
+    }
+    const hold = stmtTerrGet.get(territoryId);
+    if (!hold) {
+      return { canAssault: false, denyReason: "free", message: "Узел свободен — захватите казной" };
+    }
+    if (attackerClanId && hold.clan_id === attackerClanId) {
+      return { canAssault: false, denyReason: "own", message: "Уже ваш узел" };
+    }
+    const active = stmtAssaultActiveByTerr.get(territoryId);
+    if (active) {
+      return {
+        canAssault: false,
+        denyReason: "active",
+        message: "Уже идёт штурм",
+        assault: publicAssaultRow(active),
+      };
+    }
+    const claimedAt = Math.max(0, Number(hold.claimed_at) || 0);
+    const lockMs =
+      typeof store.clanContestLockMs === "function"
+        ? store.clanContestLockMs()
+        : 24 * 60 * 60 * 1000;
+    const unlockAt = claimedAt + lockMs;
+    if (now < unlockAt) {
+      return {
+        canAssault: false,
+        denyReason: "lock",
+        message:
+          "Защита после захвата ещё " +
+          Math.max(1, Math.ceil((unlockAt - now) / 60000)) +
+          " мин",
+        unlockAt,
+      };
+    }
+    if (attackerClanId) {
+      const cd = stmtAssaultCdGet.get(attackerClanId, territoryId);
+      if (cd && Number(cd.until_at) > now) {
+        return {
+          canAssault: false,
+          denyReason: "cooldown",
+          message:
+            "КД после поражения ещё " +
+            Math.max(1, Math.ceil((cd.until_at - now) / 60000)) +
+            " мин",
+          cooldownUntil: cd.until_at,
+        };
+      }
+      if (countFarmHoldings(attackerClanId) >= 2) {
+        return {
+          canAssault: false,
+          denyReason: "cap",
+          message: "Лимит: 2 farm-узла — сначала снимите один",
+        };
+      }
+    }
+
+    const defPower = siegePowerForClan(hold.clan_id, now);
+    const atkPower = attackerClanId
+      ? siegePowerForClan(attackerClanId, now)
+      : { total: 0 };
+    const defWeek = weekScore(hold.clan_id, now);
+    const abandoned = defWeek < ASSAULT_ABANDONED_WEEK_SCORE;
+    const defEff = Math.floor(
+      defPower.total * (abandoned ? 1 : 1 + DEFENDER_BONUS_PCT)
+    );
+    const fee = assaultFeeFor(meta);
+    const needMin = Math.ceil(defPower.total * ASSAULT_POWER_GATE_MIN);
+    if (
+      attackerClanId &&
+      !abandoned &&
+      atkPower.total < needMin
+    ) {
+      return {
+        canAssault: false,
+        denyReason: "too_weak",
+        message:
+          "Слишком слабы для штурма: ваша сила " +
+          atkPower.total +
+          ", у держателя " +
+          defPower.total +
+          " (нужно ≥ " +
+          needMin +
+          ")",
+        attackerPower: atkPower.total,
+        defenderPower: defPower.total,
+        defenderEffective: defEff,
+        abandoned,
+        feeAdena: fee,
+        assaultWindowMs: ASSAULT_WINDOW_MS,
+      };
+    }
+    return {
+      canAssault: true,
+      denyReason: null,
+      message: null,
+      attackerPower: atkPower.total,
+      defenderPower: defPower.total,
+      defenderEffective: defEff,
+      abandoned,
+      feeAdena: fee,
+      assaultWindowMs: ASSAULT_WINDOW_MS,
+    };
+  }
+
+  function resolveAssaultRow(row, now) {
+    if (!row || row.status !== "active") return null;
+    now = Number(now) || Date.now();
+    const fresh = stmtAssaultActiveByTerr.get(row.territory_id);
+    const cur = fresh && fresh.id === row.id ? fresh : row;
+    if (cur.status !== "active") return null;
+    if (now < cur.end_at) {
+      return { ok: false, error: "early", message: "Окно штурма ещё не закончилось", assault: publicAssaultRow(cur) };
+    }
+
+    const atkSealScore = assaultSealScore(cur.atk_seals);
+    const defSealScore = assaultSealScore(cur.def_seals);
+    const atkScore = Math.floor(Number(cur.atk_power) || 0) + atkSealScore;
+    const defScore = Math.floor(Number(cur.def_power) || 0) + defSealScore;
+    const attackerWins = atkScore > defScore;
+    const winnerId = attackerWins ? cur.attacker_clan_id : cur.defender_clan_id;
+    const status = attackerWins ? "won" : "lost";
+    const meta = CLAN_TERRITORIES[cur.territory_id];
+    const label = meta?.labelRu || cur.territory_id;
+
+    const tx = db.transaction(() => {
+      stmtAssaultResolve.run(
+        status,
+        winnerId,
+        now,
+        cur.atk_seals,
+        cur.def_seals,
+        cur.id
+      );
+      if (attackerWins) {
+        assignTerritory(cur.territory_id, cur.attacker_clan_id, now, {
+          event: "assault",
+          note: "штурм · сила " + atkScore + " > " + defScore,
+        });
+        addRating(cur.attacker_clan_id, RANK_POINTS.contest, now, "contest");
+        if (typeof store.clanAddActivityScore === "function") {
+          try {
+            store.clanAddActivityScore(cur.attacker_clan_id, 75, { now });
+          } catch (_) {}
+        }
+        emitNotice(
+          cur.attacker_clan_id,
+          "assault_win",
+          "Штурм успешен: «" + label + "» (" + atkScore + " > " + defScore + ")",
+          cur.territory_id,
+          now
+        );
+        emitNotice(
+          cur.defender_clan_id,
+          "assault_lose",
+          "Узел «" + label + "» потерян в штурме",
+          cur.territory_id,
+          now
+        );
+      } else {
+        stmtAssaultCdUpsert.run(
+          cur.attacker_clan_id,
+          cur.territory_id,
+          now + ASSAULT_LOSE_CD_MS
+        );
+        emitNotice(
+          cur.attacker_clan_id,
+          "assault_fail",
+          "Штурм «" + label + "» отбит (" + atkScore + " ≤ " + defScore + ")",
+          cur.territory_id,
+          now
+        );
+        emitNotice(
+          cur.defender_clan_id,
+          "assault_hold",
+          "Удержали «" + label + "» в штурме",
+          cur.territory_id,
+          now
+        );
+      }
+    });
+    tx();
+
+    return {
+      ok: true,
+      attackerWins,
+      atkScore,
+      defScore,
+      winnerClanId: winnerId,
+      assault: publicAssaultRow({
+        ...cur,
+        status,
+        winner_clan_id: winnerId,
+        resolved_at: now,
+      }),
+      message: attackerWins
+        ? "Штурм успешен: узел ваш"
+        : "Штурм отбит — узел у держателя",
+      holders:
+        typeof store.clanListTerritories === "function"
+          ? store.clanListTerritories({ skipResolve: true }).holders
+          : [],
+    };
+  }
+
+  store.clanResolveDueAssaults = function clanResolveDueAssaults(opts = {}) {
+    const now = Number(opts.now) || Date.now();
+    const due = stmtAssaultActiveDue.all(now);
+    const results = [];
+    for (const row of due) {
+      const r = resolveAssaultRow(row, now);
+      if (r) results.push(r);
+    }
+    return { ok: true, resolved: results.length, results };
+  };
+
+  store.clanAssaultPreview = function clanAssaultPreview(territoryId, opts = {}) {
+    const now = Number(opts.now) || Date.now();
+    if (!opts.skipResolve) store.clanResolveDueAssaults({ now });
+    const attackerClanId = opts.clanId || (opts.user ? getClanId(opts.user.id) : null);
+    return {
+      ok: true,
+      territoryId,
+      ...assaultPreview(territoryId, attackerClanId, now),
+      assault: publicAssaultRow(stmtAssaultActiveByTerr.get(territoryId)),
+    };
+  };
+
+  store.clanStartAssault = function clanStartAssault(user, opts = {}) {
+    const now = Number(opts.now) || Date.now();
+    store.clanResolveDueAssaults({ now });
+    const territoryId = String(opts.territoryId || "").trim();
+    const meta = CLAN_TERRITORIES[territoryId];
+    if (!meta) return { ok: false, error: "zone", message: "Нет зоны" };
+    const clanId = getClanId(user.id);
+    if (!clanId) return { ok: false, error: "clan", message: "Нужен клан" };
+    const role = clanRole(clanId, user.id);
+    if (role !== "leader" && role !== "officer") {
+      return { ok: false, error: "role", message: "Штурм объявляет лидер или офицер" };
+    }
+
+    const preview = assaultPreview(territoryId, clanId, now);
+    if (!preview.canAssault) {
+      return {
+        ok: false,
+        error: preview.denyReason || "denied",
+        message: preview.message || "Штурм недоступен",
+        ...preview,
+      };
+    }
+
+    const hold = stmtTerrGet.get(territoryId);
+    const fee = preview.feeAdena;
+    const atkPower = preview.attackerPower;
+    const defEff = preview.defenderEffective;
+
+    return db.transaction(() => {
+      const again = stmtAssaultActiveByTerr.get(territoryId);
+      if (again) {
+        return { ok: false, error: "active", message: "Уже идёт штурм", assault: publicAssaultRow(again) };
+      }
+      const wh = ensureWh(clanId, now);
+      const have = Math.max(0, Math.floor(Number(wh.adena) || 0));
+      if (have < fee) {
+        return {
+          ok: false,
+          error: "funds",
+          message:
+            "Штурм: на складе нужно " +
+            fee.toLocaleString("ru-RU") +
+            " adena (есть " +
+            have.toLocaleString("ru-RU") +
+            ")",
+          feeAdena: fee,
+          warehouseAdena: have,
+        };
+      }
+      const nextAdena = have - fee;
+      stmtWhUpsert.run(clanId, nextAdena, now);
+      stmtWhLog.run(
+        clanId,
+        user.id,
+        "assault",
+        fee,
+        JSON.stringify({ territoryId, defenderClanId: hold.clan_id }),
+        now
+      );
+      const endAt = now + ASSAULT_WINDOW_MS;
+      const info = stmtAssaultIns.run(
+        territoryId,
+        clanId,
+        hold.clan_id,
+        fee,
+        now,
+        endAt,
+        atkPower,
+        defEff
+      );
+      const row = stmtAssaultActiveByTerr.get(territoryId);
+      const label = meta.labelRu || territoryId;
+      emitNotice(
+        clanId,
+        "assault_start",
+        "Штурм «" + label + "» начат · 4 ч · сила " + atkPower + " vs " + defEff,
+        territoryId,
+        now
+      );
+      emitNotice(
+        hold.clan_id,
+        "assault_defend",
+        "На «" + label + "» объявлен штурм · защищайте печатями 4 ч",
+        territoryId,
+        now
+      );
+      logTerritory(
+        territoryId,
+        "assault_start",
+        clanId,
+        hold.clan_id,
+        "штурм начат",
+        now
+      );
+      return {
+        ok: true,
+        started: true,
+        feeAdena: fee,
+        warehouseAdena: nextAdena,
+        assault: publicAssaultRow(row),
+        assaultId: info.lastInsertRowid,
+        message:
+          "Штурм объявлен: «" +
+          label +
+          "» · 4 часа · сила " +
+          atkPower +
+          " vs " +
+          defEff +
+          " (−" +
+          fee.toLocaleString("ru-RU") +
+          " со склада)",
+        holders:
+          typeof store.clanListTerritories === "function"
+            ? store.clanListTerritories({ skipResolve: true }).holders
+            : [],
+      };
+    })();
+  };
+
+  store.clanResolveAssault = function clanResolveAssault(user, opts = {}) {
+    const now = Number(opts.now) || Date.now();
+    const territoryId = String(opts.territoryId || "").trim();
+    if (!territoryId) {
+      return store.clanResolveDueAssaults({ now });
+    }
+    const row = stmtAssaultActiveByTerr.get(territoryId);
+    if (!row) {
+      store.clanResolveDueAssaults({ now });
+      return { ok: false, error: "none", message: "Нет активного штурма" };
+    }
+    if (now < row.end_at) {
+      return {
+        ok: false,
+        error: "early",
+        message: "Окно штурма ещё не закончилось",
+        assault: publicAssaultRow(row),
+      };
+    }
+    return resolveAssaultRow(row, now) || { ok: false, error: "none" };
+  };
+
+  store.clanGetActiveAssault = function clanGetActiveAssault(territoryId) {
+    return publicAssaultRow(stmtAssaultActiveByTerr.get(String(territoryId || "")));
+  };
+
   store.clanOnTerritoryClaimed = function clanOnTerritoryClaimed(clanId, territoryId, now) {
     addRating(clanId, RANK_POINTS.claim, now, "claim");
     logTerritory(territoryId, "claim", clanId, null, "захват казной", now);
@@ -1344,4 +1921,10 @@ module.exports = {
   DEFENDER_BONUS_PCT,
   CLAN_SIEGE_DAILY_TEST,
   siegePeriodMs,
+  ASSAULT_WINDOW_MS,
+  ASSAULT_POWER_GATE_MIN,
+  ASSAULT_ABANDONED_WEEK_SCORE,
+  ASSAULT_SEAL_SCORE_CAP,
+  ASSAULT_LOSE_CD_MS,
+  CLAIM_MIN_POWER,
 };

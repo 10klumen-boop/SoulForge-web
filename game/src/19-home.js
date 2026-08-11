@@ -84,7 +84,65 @@ function setTitleBackToLogin(screenId, label) {
   };
 }
 
+function wireTitleOstPlayer() {
+  const prev = document.getElementById("titleOstPrev");
+  const next = document.getElementById("titleOstNext");
+  const seek = document.getElementById("titleOstSeek");
+
+  if (prev && !prev.dataset.wired) {
+    prev.dataset.wired = "1";
+    prev.onclick = () => {
+      if (typeof Audio2 === "undefined") return;
+      if (Audio2.click) Audio2.click();
+      if (Audio2.cycleMenuTrack) Audio2.cycleMenuTrack(-1);
+    };
+  }
+  if (next && !next.dataset.wired) {
+    next.dataset.wired = "1";
+    next.onclick = () => {
+      if (typeof Audio2 === "undefined") return;
+      if (Audio2.click) Audio2.click();
+      if (Audio2.cycleMenuTrack) Audio2.cycleMenuTrack(1);
+    };
+  }
+  if (seek && !seek.dataset.wired) {
+    seek.dataset.wired = "1";
+    const applySeek = () => {
+      if (typeof Audio2 === "undefined" || !Audio2.seekMusic) return;
+      const max = Number(seek.max) || 1000;
+      const ratio = Math.max(0, Math.min(1, (Number(seek.value) || 0) / max));
+      seek.style.setProperty("--ost-pct", Math.round(ratio * 1000) / 10 + "%");
+      Audio2.seekMusic(ratio);
+    };
+    seek.addEventListener("pointerdown", () => {
+      if (Audio2.setOstSeeking) Audio2.setOstSeeking(true);
+    });
+    seek.addEventListener("pointerup", () => {
+      applySeek();
+      if (Audio2.setOstSeeking) Audio2.setOstSeeking(false);
+    });
+    seek.addEventListener("pointercancel", () => {
+      if (Audio2.setOstSeeking) Audio2.setOstSeeking(false);
+    });
+    seek.addEventListener("input", () => {
+      if (typeof Audio2 === "undefined") return;
+      if (Audio2.setOstSeeking) Audio2.setOstSeeking(true);
+      const max = Number(seek.max) || 1000;
+      const ratio = Math.max(0, Math.min(1, (Number(seek.value) || 0) / max));
+      seek.style.setProperty("--ost-pct", Math.round(ratio * 1000) / 10 + "%");
+      if (Audio2.seekMusic) Audio2.seekMusic(ratio);
+    });
+    seek.addEventListener("change", () => {
+      applySeek();
+      if (typeof Audio2 !== "undefined" && Audio2.setOstSeeking) Audio2.setOstSeeking(false);
+    });
+  }
+  if (typeof Audio2 !== "undefined" && Audio2.syncOstPlayerUi) Audio2.syncOstPlayerUi();
+  else if (typeof Audio2 !== "undefined" && Audio2.syncLoginMusicUi) Audio2.syncLoginMusicUi();
+}
+
 function wireLoginCornerMenu() {
+  wireTitleOstPlayer();
   const settingsBtn = document.getElementById("loginSettingsBtn");
   if (settingsBtn && !settingsBtn.dataset.wired) {
     settingsBtn.dataset.wired = "1";

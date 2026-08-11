@@ -58,22 +58,12 @@ function wireChatResize() {
   });
 }
 
-function initGameChat() {
-  applyChatMobilePreference();
-  wireChatMobileSetting();
-  chatActiveChannel = loadChatChannel();
-  applyChatSize(loadChatSize());
-  wireChatResize();
-  syncChatChannelTabs();
-  syncChatComposeUi();
-  setChatCollapsed(loadChatCollapsed());
-
-  const toggle = document.getElementById("gameChatToggle");
-  const collapse = document.getElementById("gameChatCollapse");
-  const form = document.getElementById("gameChatForm");
-  const input = document.getElementById("gameChatInput");
-  const toNick = document.getElementById("gameChatToNick");
-  const channels = document.getElementById("gameChatChannels");
+function wireChatMount(channelsId, formId, inputId, toNickId, opts) {
+  opts = opts || {};
+  const channels = document.getElementById(channelsId);
+  const form = document.getElementById(formId);
+  const input = document.getElementById(inputId);
+  const toNick = document.getElementById(toNickId);
 
   if (channels && !channels.dataset.wired) {
     channels.dataset.wired = "1";
@@ -85,20 +75,6 @@ function initGameChat() {
     });
   }
 
-  if (toggle && !toggle.dataset.wired) {
-    toggle.dataset.wired = "1";
-    toggle.addEventListener("click", () => {
-      if (typeof Audio2 !== "undefined") Audio2.click();
-      toggleGameChat();
-    });
-  }
-  if (collapse && !collapse.dataset.wired) {
-    collapse.dataset.wired = "1";
-    collapse.addEventListener("click", () => {
-      if (typeof Audio2 !== "undefined") Audio2.click();
-      setChatCollapsed(true);
-    });
-  }
   if (form && !form.dataset.wired) {
     form.dataset.wired = "1";
     form.addEventListener("submit", async (e) => {
@@ -112,22 +88,82 @@ function initGameChat() {
       }
     });
   }
+
   if (toNick && !toNick.dataset.wired) {
     toNick.dataset.wired = "1";
     toNick.addEventListener("change", () => {
       chatWhisperTarget = toNick.value.trim();
+      const other =
+        toNickId === "gameChatToNick"
+          ? document.getElementById("screenChatToNick")
+          : document.getElementById("gameChatToNick");
+      if (other && other.value !== chatWhisperTarget) other.value = chatWhisperTarget;
     });
     toNick.addEventListener("input", () => {
       chatWhisperTarget = toNick.value.trim();
     });
   }
-  if (input) {
+
+  if (input && !input.dataset.wired) {
+    input.dataset.wired = "1";
     input.maxLength = typeof CHAT_MAX_LEN !== "undefined" ? CHAT_MAX_LEN : 200;
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setChatCollapsed(true);
-      }
+    if (opts.escapeCollapse) {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setChatCollapsed(true);
+        }
+      });
+    }
+  }
+}
+
+function wireChatTile() {
+  const tile = document.getElementById("chatTile");
+  if (!tile || tile.dataset.wired) return;
+  tile.dataset.wired = "1";
+  tile.addEventListener("click", () => {
+    openChatScreen();
+  });
+  tile.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openChatScreen();
+    }
+  });
+}
+
+function initGameChat() {
+  chatActiveChannel = loadChatChannel();
+  applyChatSize(loadChatSize());
+  wireChatResize();
+  syncChatChannelTabs();
+  syncChatComposeUi();
+  setChatCollapsed(loadChatCollapsed());
+
+  const toggle = document.getElementById("gameChatToggle");
+  const collapse = document.getElementById("gameChatCollapse");
+
+  wireChatMount("gameChatChannels", "gameChatForm", "gameChatInput", "gameChatToNick", {
+    escapeCollapse: true,
+  });
+  wireChatMount("screenChatChannels", "screenChatForm", "screenChatInput", "screenChatToNick", {
+    escapeCollapse: false,
+  });
+  wireChatTile();
+
+  if (toggle && !toggle.dataset.wired) {
+    toggle.dataset.wired = "1";
+    toggle.addEventListener("click", () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      toggleGameChat();
+    });
+  }
+  if (collapse && !collapse.dataset.wired) {
+    collapse.dataset.wired = "1";
+    collapse.addEventListener("click", () => {
+      if (typeof Audio2 !== "undefined") Audio2.click();
+      setChatCollapsed(true);
     });
   }
 
@@ -144,7 +180,10 @@ function initGameChat() {
 
   if (typeof matchMedia === "function") {
     try {
-      matchMedia("(max-width: 640px)").addEventListener("change", () => refreshChatPolling());
+      matchMedia("(max-width: 640px)").addEventListener("change", () => {
+        if (typeof onChatViewportChange === "function") onChatViewportChange();
+        else refreshChatPolling();
+      });
     } catch (_) {}
   }
 

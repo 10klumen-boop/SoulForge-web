@@ -370,7 +370,7 @@ function clanMapDetailHtml(id) {
         t.id +
         '">Захватить (казна)</button>';
       actions +=
-        '<p class="party-panel-hint">Захват (казна): ' + claimTxt + " со склада · защита 30 мин</p>";
+        '<p class="party-panel-hint">Захват (казна): ' + claimTxt + " со склада · защита 24 ч</p>";
     } else if (isMine) {
       actions +=
         '<button type="button" class="party-panel-btn ghost" data-clan-release="' +
@@ -388,27 +388,53 @@ function clanMapDetailHtml(id) {
         t.id +
         '">Заявка на осаду</button>';
       actions +=
-        '<p class="party-panel-hint">Осада (расписание) · eco-отбитие закрыто · исход по силе' +
+        '<p class="party-panel-hint">Осада (расписание) · штурм закрыт · исход по силе' +
         (typeof clanTerritoryIsFlagship === "function" && clanTerritoryIsFlagship(t)
           ? " / арена"
           : "") +
         "</p>";
+    } else if (isElite) {
+      actions +=
+        '<p class="party-panel-hint">Только осада · сила держателя ' +
+        (holder.rosterPower != null ? holder.rosterPower : "—") +
+        "</p>";
     } else {
-      const cost =
-        typeof clanTerritoryContestCost === "function"
-          ? clanTerritoryContestCost(t, holder)
-          : Math.max(10_000_000, Number(t.rentPerDay) || 0) * 200;
-      const costTxt = typeof fmt === "function" ? fmt(cost) : String(cost);
-      const powerRu = holder.siegePowerRu ? " · " + holder.siegePowerRu : "";
-      actions +=
-        '<button type="button" class="party-panel-btn party-inst-primary" data-clan-contest="' +
-        t.id +
-        '">Отбить (казна)</button>';
-      actions +=
-        '<p class="party-panel-hint">Захват (казна) · ' +
-        costTxt +
-        powerRu +
-        " · защита 30 мин</p>";
+      const prev = holder.assaultPreview;
+      const a = holder.assault;
+      const fee =
+        (prev && prev.feeAdena) ||
+        holder.assaultFee ||
+        (typeof clanAssaultFeeFor === "function" ? clanAssaultFeeFor(t) : 5_000_000);
+      const feeTxt = typeof fmt === "function" ? fmt(fee) : String(fee);
+      if (a && a.status === "active") {
+        actions +=
+          '<p class="party-panel-hint">Штурм: ' +
+          (a.atkScore != null ? a.atkScore : "?") +
+          " vs " +
+          (a.defScore != null ? a.defScore : "?") +
+          "</p>";
+        if ((a.endAt || 0) <= Date.now()) {
+          actions +=
+            '<button type="button" class="party-panel-btn party-inst-primary" data-clan-assault-resolve="' +
+            t.id +
+            '">Исход штурма</button>';
+        }
+      } else if (prev && prev.canAssault === false) {
+        actions +=
+          '<p class="party-panel-hint">' +
+          (prev.message || "Штурм недоступен") +
+          "</p>";
+      } else {
+        actions +=
+          '<button type="button" class="party-panel-btn party-inst-primary" data-clan-assault="' +
+          t.id +
+          '">Штурм (сила)</button>';
+        actions +=
+          '<p class="party-panel-hint">Штурм · вход ' +
+          feeTxt +
+          (holder.rosterPower != null ? " · сила " + holder.rosterPower : "") +
+          " · 4 ч · защита 24 ч</p>";
+      }
     }
   } else if (me && t.siegeEnabled && !officerOk) {
     actions += '<p class="party-panel-hint">Заявляет лидер или офицер</p>';
@@ -655,20 +681,39 @@ function wireAdenMapDetailActions(box) {
       await clanMapAfterTerritoryMutation(r, { claimed: true });
     };
   });
-  box.querySelectorAll("[data-clan-contest]").forEach((btn) => {
+  box.querySelectorAll("[data-clan-contest], [data-clan-assault]").forEach((btn) => {
     btn.onclick = async () => {
       btn.disabled = true;
       let r = { ok: false, message: "Ошибка" };
+      const tid = btn.getAttribute("data-clan-assault") || btn.getAttribute("data-clan-contest");
       try {
         r =
-          typeof clanContestTerritory === "function"
-            ? await clanContestTerritory(btn.getAttribute("data-clan-contest"))
-            : { ok: false, message: "Отбитие только онлайн" };
+          typeof clanStartAssault === "function"
+            ? await clanStartAssault(tid)
+            : typeof clanContestTerritory === "function"
+              ? await clanContestTerritory(tid)
+              : { ok: false, message: "Штурм только онлайн" };
       } catch (_) {
         r = { ok: false, message: "Нет связи с облаком" };
       }
       btn.disabled = false;
       await clanMapAfterTerritoryMutation(r, { contested: true });
+    };
+  });
+  box.querySelectorAll("[data-clan-assault-resolve]").forEach((btn) => {
+    btn.onclick = async () => {
+      btn.disabled = true;
+      let r = { ok: false, message: "Ошибка" };
+      try {
+        r =
+          typeof clanResolveAssault === "function"
+            ? await clanResolveAssault(btn.getAttribute("data-clan-assault-resolve"))
+            : { ok: false, message: "Нет API" };
+      } catch (_) {
+        r = { ok: false, message: "Нет связи с облаком" };
+      }
+      btn.disabled = false;
+      await clanMapAfterTerritoryMutation(r);
     };
   });
   box.querySelectorAll("[data-clan-release]").forEach((btn) => {

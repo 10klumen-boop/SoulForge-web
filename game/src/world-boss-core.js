@@ -399,6 +399,9 @@ async function renderWorldBossHub() {
           : "") +
         (isCurrent && ended ? resultHtml : "") +
         '<div class="party-panel-actions world-boss-card-actions">' +
+        '<button type="button" class="party-panel-btn ghost world-boss-lore-btn" data-boss-id="' +
+        (boss.id || "") +
+        '">Лор</button>' +
         (canEnter
           ? '<button type="button" class="party-panel-btn party-inst-primary world-boss-enter-btn" data-boss-id="' +
             boss.id +
@@ -422,6 +425,9 @@ async function renderWorldBossHub() {
     "</div>";
   body.querySelectorAll(".world-boss-enter-btn").forEach((btn) => {
     btn.onclick = () => enterWorldBossArena(btn.getAttribute("data-boss-id"));
+  });
+  body.querySelectorAll(".world-boss-lore-btn").forEach((btn) => {
+    btn.onclick = () => showWorldBossLore(btn.getAttribute("data-boss-id"));
   });
   const claimBtn = document.getElementById("worldBossClaimBtn");
   if (claimBtn) claimBtn.onclick = () => claimWorldBossLoot();
@@ -1096,6 +1102,114 @@ function dismissWorldBossResultModal() {
   else if (typeof setGamePaused === "function") setGamePaused(false);
 }
 
+function worldBossEscapeAttr(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function worldBossLoreBodyHtml(lore) {
+  const chapters = Array.isArray(lore?.chapters) ? lore.chapters : [];
+  const parts = ['<div class="world-boss-lore">'];
+  if (lore && lore.cover) {
+    parts.push(
+      '<figure class="world-boss-lore-cover">' +
+        '<img src="' +
+        worldBossEscapeAttr(lore.cover) +
+        '" alt="" decoding="async" loading="eager" />' +
+        "</figure>"
+    );
+  }
+  chapters.forEach((ch, idx) => {
+    const title = ch && ch.title ? String(ch.title) : "";
+    const paras = Array.isArray(ch?.paragraphs) ? ch.paragraphs : [];
+    const img = ch && ch.image ? String(ch.image) : "";
+    const alt = ch && ch.imageAlt ? String(ch.imageAlt) : title;
+    parts.push('<section class="world-boss-lore-block">');
+    if (img) {
+      parts.push(
+        '<figure class="world-boss-lore-illust">' +
+          '<img src="' +
+          worldBossEscapeAttr(img) +
+          '" alt="' +
+          worldBossEscapeAttr(alt) +
+          '" decoding="async" loading="lazy" />' +
+          "</figure>"
+      );
+    }
+    parts.push('<div class="world-boss-lore-copy">');
+    if (title) {
+      parts.push(
+        '<h4 class="world-boss-lore-chapter">' +
+          (idx + 1) +
+          ". " +
+          worldBossEscapeAttr(title) +
+          "</h4>"
+      );
+    }
+    paras.forEach((p) => {
+      parts.push("<p>" + String(p || "") + "</p>");
+    });
+    parts.push("</div></section>");
+  });
+  parts.push("</div>");
+  return parts.join("");
+}
+
+function showWorldBossLore(bossId) {
+  const boss =
+    (typeof worldBossById === "function" && worldBossById(bossId)) ||
+    (typeof WORLD_BOSSES !== "undefined" &&
+      Array.isArray(WORLD_BOSSES) &&
+      WORLD_BOSSES.find((b) => b.id === bossId)) ||
+    null;
+  const lore = boss && boss.lore;
+  if (!lore || !Array.isArray(lore.chapters) || !lore.chapters.length) {
+    if (typeof toast === "function") toast("Лор этого босса ещё не записан", "info");
+    return;
+  }
+  const backdrop = document.getElementById("storyBackdrop");
+  if (!backdrop || typeof renderStoryPanel !== "function") {
+    if (typeof toast === "function") toast(lore.lead || lore.title || boss.name, "info");
+    return;
+  }
+  if (typeof Audio2 !== "undefined") Audio2.click();
+  renderStoryPanel({
+    title: lore.title || boss.name || "Лор",
+    eyebrow: lore.eyebrow || "Сказание",
+    lead: lore.lead || "",
+    chapter: "",
+    icon: "",
+    bodyHtml: worldBossLoreBodyHtml(lore),
+    cta: "Закрыть",
+  });
+  backdrop.dataset.storyMode = "world_boss_lore";
+  backdrop.dataset.bossId = boss.id || "";
+  backdrop.className =
+    "story-backdrop race-" +
+    ((state.avatar && state.avatar.raceId) || "human") +
+    " story-world-boss-lore";
+  backdrop.hidden = false;
+  if (typeof setGamePaused === "function") setGamePaused(true);
+  if (typeof armStoryOkButton === "function") armStoryOkButton();
+  const btn = document.getElementById("storyOk");
+  if (btn) btn.focus();
+}
+
+function dismissWorldBossLoreModal() {
+  const backdrop = document.getElementById("storyBackdrop");
+  if (backdrop) {
+    delete backdrop.dataset.storyMode;
+    delete backdrop.dataset.bossId;
+    backdrop.hidden = true;
+  }
+  if (typeof Audio2 !== "undefined") Audio2.click();
+  if (typeof syncGamePauseState === "function") syncGamePauseState();
+  else if (typeof setGamePaused === "function") setGamePaused(false);
+}
+
 /** Выход с арены Закена → хаб «Мировой босс» в меню фарма. */
 function leaveWorldBossArena() {
   if (typeof stopMine === "function") {
@@ -1246,6 +1360,8 @@ if (typeof window !== "undefined") {
   window.devStartZaken = () => devForceWorldBossStart("world_zaken");
   window.devStartQueenAnt = () => devForceWorldBossStart("world_queen_ant");
   window.syncWorldBossFarmEntryBtn = syncWorldBossFarmEntryBtn;
+  window.showWorldBossLore = showWorldBossLore;
+  window.dismissWorldBossLoreModal = dismissWorldBossLoreModal;
 }
 
 

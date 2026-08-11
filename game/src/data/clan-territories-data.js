@@ -54,7 +54,7 @@ function clanTerritoryWarTierLabelRu(t) {
   const w = clanTerritoryWarTier(t);
   if (w === "flagship") return "флагман · арена";
   if (w === "elite") return "осада (расписание)";
-  return "захват (казна)";
+  return "штурм (сила)";
 }
 
 function clanSiegeSlotMeta(slotId) {
@@ -1013,9 +1013,16 @@ function applyClanTerritoryHolders(holders) {
       contestCost: h.contestCost != null ? Number(h.contestCost) : null,
       contestBase: h.contestBase != null ? Number(h.contestBase) : null,
       claimCost: h.claimCost != null ? Number(h.claimCost) : null,
+      claimMinPower: h.claimMinPower != null ? Number(h.claimMinPower) : 0,
+      contestLockMs: h.contestLockMs != null ? Number(h.contestLockMs) : null,
+      contestUnlockAt: h.contestUnlockAt != null ? Number(h.contestUnlockAt) : null,
       siegeScore: h.siegeScore != null ? Number(h.siegeScore) : 0,
       siegeTier: h.siegeTier != null ? Number(h.siegeTier) : 0,
       siegePowerRu: h.siegePowerRu ? String(h.siegePowerRu) : "",
+      rosterPower: h.rosterPower != null ? Number(h.rosterPower) : null,
+      assault: h.assault || null,
+      assaultPreview: h.assaultPreview || null,
+      assaultFee: h.assaultFee != null ? Number(h.assaultFee) : null,
     };
   });
 }

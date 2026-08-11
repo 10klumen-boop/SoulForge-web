@@ -646,6 +646,7 @@ function createSqliteStore(opts) {
 
     /**
      * Глобальная уникальность имени персонажа (case-insensitive).
+     * Одинаковые ники нельзя ни между аккаунтами, ни между слотами одного аккаунта.
      * @param {string} name
      * @param {{ excludeUserId?: number, excludeSlotId?: string }} [opts]
      */
@@ -658,8 +659,14 @@ function createSqliteStore(opts) {
       const rows = stmtFindCharsByName.all(n);
       const exUser = opts.excludeUserId != null ? Number(opts.excludeUserId) : null;
       const exSlot = opts.excludeSlotId != null ? String(opts.excludeSlotId) : null;
+      // Исключаем только конкретный слот (проверка при rename/создании того же персонажа).
       const conflict = rows.find((r) => {
-        if (exUser != null && Number(r.user_id) === exUser && (!exSlot || String(r.slot_id) === exSlot)) {
+        if (
+          exUser != null &&
+          exSlot != null &&
+          Number(r.user_id) === exUser &&
+          String(r.slot_id) === exSlot
+        ) {
           return false;
         }
         return true;
@@ -676,19 +683,65 @@ function createSqliteStore(opts) {
       return { ok: true, available: true, name: n };
     },
 
-    /** Конфликт имён в сейве с чужими персонажами (для PUT /save). */
+    /**
+     * Конфликт имён в сейве:
+     * 1) два слота в одном сейве с одинаковым именем (без учёта регистра);
+     * 2) имя занято другим аккаунтом;
+     * 3) имя занято другим живым слотом этого же аккаунта (тоже в сейве).
+     */
     findCharacterNameConflict(userId, data) {
       const chars = Array.isArray(data?.characters) ? data.characters : [];
+      const created = [];
       for (const slot of chars) {
         if (!slot?.id || !slot.progress?.avatar?.created) continue;
         const name = String(slot.progress.avatar.name || "").trim();
         if (name.length < 2) continue;
-        const check = this.isCharacterNameAvailable(name, {
-          excludeUserId: userId,
-          excludeSlotId: String(slot.id),
-        });
-        if (check.ok && !check.available) {
-          return { name, takenByNick: check.takenByNick };
+        created.push({ id: String(slot.id), name });
+      }
+
+      const byLower = new Map();
+      for (const c of created) {
+        const key = c.name.toLowerCase();
+        if (byLower.has(key)) {
+          return {
+            name: c.name,
+            takenByNick: null,
+            reason: "duplicate",
+            message:
+              "Имена персонажей должны быть уникальными (без учёта регистра). «" +
+              c.name +
+              "» повторяется на аккаунте.",
+          };
+        }
+        byLower.set(key, c);
+      }
+
+      const saveSlotIds = new Set(created.map((c) => c.id));
+      for (const c of created) {
+        const rows = stmtFindCharsByName.all(c.name);
+        for (const r of rows) {
+          if (Number(r.user_id) === Number(userId)) {
+            if (String(r.slot_id) === c.id) continue;
+            // Слот из БД, которого нет в новом сейве, будет удалён — не конфликт.
+            if (!saveSlotIds.has(String(r.slot_id))) continue;
+            return {
+              name: c.name,
+              takenByNick: r.nick || null,
+              reason: "duplicate",
+              message:
+                "Имена персонажей должны быть уникальными (без учёта регистра). «" +
+                c.name +
+                "» и «" +
+                (r.name || c.name) +
+                "» считаются одним именем.",
+            };
+          }
+          return {
+            name: c.name,
+            takenByNick: r.nick || null,
+            reason: "taken",
+            message: "Имя «" + c.name + "» уже занято",
+          };
         }
       }
       return null;
@@ -888,7 +941,9 @@ function createSqliteStore(opts) {
     persistPlayerSave(user, seq, savedAt, clientVersion, data) {
       const conflict = this.findCharacterNameConflict(user.id, data);
       if (conflict) {
-        const err = new Error("Имя «" + conflict.name + "» уже занято другим игроком");
+        const err = new Error(
+          conflict.message || "Имя «" + conflict.name + "» уже занято другим игроком"
+        );
         err.code = "name_taken";
         err.nameTaken = conflict.name;
         throw err;

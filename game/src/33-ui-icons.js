@@ -49,6 +49,7 @@ const UI_MENU_ICONS = {
   inventory: "assets/ui/menubutton2_crop.png?v=10",
   warehouse: "icons/account_warehouse.png?v=1",
   mail: "icons/etc_letter_envelope_i00.png?v=1",
+  chat: "icons/etc_letter_white_i00.png?v=1",
   party: "icons/party_menu.png?v=2",
   clan: "icons/party_menu.png?v=2",
   arena: "icons/arena_menu.png?v=1",
@@ -480,6 +481,7 @@ function syncMenuTileIcons() {
   const questIco = document.querySelector("#questTile .tile-ico");
   const whIco = document.querySelector("#accountStorageTile .tile-ico");
   const mailIco = document.querySelector("#playerMailTile .tile-ico");
+  const chatIco = document.querySelector("#chatTile .tile-ico");
   const partyIco = document.querySelector("#partyTile .tile-ico");
   const clanIco = document.querySelector("#clanTile .tile-ico");
   const marketIco = document.querySelector("#marketTile .tile-ico");
@@ -489,6 +491,7 @@ function syncMenuTileIcons() {
   if (questIco) questIco.src = UI_MENU_ICONS.quest;
   if (whIco && UI_MENU_ICONS.warehouse) whIco.src = UI_MENU_ICONS.warehouse;
   if (mailIco && UI_MENU_ICONS.mail) mailIco.src = UI_MENU_ICONS.mail;
+  if (chatIco && UI_MENU_ICONS.chat) chatIco.src = UI_MENU_ICONS.chat;
   if (partyIco && UI_MENU_ICONS.party) partyIco.src = UI_MENU_ICONS.party;
   if (clanIco && UI_MENU_ICONS.clan) clanIco.src = UI_MENU_ICONS.clan;
   if (marketIco && UI_MENU_ICONS.market) marketIco.src = UI_MENU_ICONS.market;

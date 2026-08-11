@@ -30,6 +30,8 @@ function defaultState() {
     totals: { tries: 0, fails: 0, earned: 0 },
     muted: false,
     audioVol: defaultAudioVol(),
+    menuMusicId:
+      typeof DEFAULT_MENU_MUSIC_ID !== "undefined" ? DEFAULT_MENU_MUSIC_ID : "call_of_destiny",
     alwaysOnTop: false,
     storySeen: false,
     characters: [],
@@ -133,6 +135,12 @@ function applyBalanceResetIfNeeded(st) {
 
   const keepMuted = !!st.muted;
   const keepAudio = st.audioVol && typeof st.audioVol === "object" ? st.audioVol : defaultAudioVol();
+  const keepMenuMusic =
+    typeof st.menuMusicId === "string" && st.menuMusicId
+      ? st.menuMusicId
+      : typeof DEFAULT_MENU_MUSIC_ID !== "undefined"
+        ? DEFAULT_MENU_MUSIC_ID
+        : "call_of_destiny";
   const keepTop = !!st.alwaysOnTop;
   const roster = Array.isArray(st.characters) ? st.characters : [];
   const activeId = st.activeCharacterId || null;
@@ -161,6 +169,7 @@ function applyBalanceResetIfNeeded(st) {
 
   st.muted = keepMuted;
   st.audioVol = keepAudio;
+  st.menuMusicId = keepMenuMusic;
   st.alwaysOnTop = keepTop;
   st.devTune = {};
   st.accountWarehouse = { items: [], stacks: [] };
@@ -232,6 +241,12 @@ function mergeSavedData(data) {
     for (const k of Object.keys(dv)) {
       if (typeof st.audioVol[k] !== "number") st.audioVol[k] = dv[k];
     }
+  }
+  if (typeof resolveMenuMusicTrack === "function") {
+    st.menuMusicId = resolveMenuMusicTrack(st.menuMusicId).id;
+  } else if (typeof st.menuMusicId !== "string" || !st.menuMusicId) {
+    st.menuMusicId =
+      typeof DEFAULT_MENU_MUSIC_ID !== "undefined" ? DEFAULT_MENU_MUSIC_ID : "call_of_destiny";
   }
   if (!st.mentor || typeof st.mentor !== "object") {
     st.mentor = typeof defaultMentorProgress === "function"

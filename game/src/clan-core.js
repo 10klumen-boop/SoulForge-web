@@ -8,7 +8,6 @@ let clanRightTab = "grounds"; // grounds | warehouse | content (map → grounds)
 /** @type {object[]} */
 let clanIncomingInvites = [];
 let clanPollTimer = null;
-let clanInvitePromptBusy = false;
 let clanLastPromptedInviteId = "";
 
 function getChatClan() {
@@ -157,76 +156,62 @@ async function refreshClanInvites() {
 }
 
 async function maybePromptClanInvite() {
-  if (clanInvitePromptBusy || !clanCloudReady()) return;
+  if (!clanCloudReady()) return;
   if (typeof getChatClan === "function" && getChatClan()) {
     // уже в клане — входящие не показываем (сервер всё равно отклонит accept)
     return;
   }
-  const backdrop = document.getElementById("modalBackdrop");
-  if (backdrop && !backdrop.hidden) return;
   const inv = (clanIncomingInvites || [])[0];
   if (!inv || !inv.id) {
     clanLastPromptedInviteId = "";
     return;
   }
   if (inv.id === clanLastPromptedInviteId) return;
-  if (typeof showConfirm !== "function") return;
+  const bannerId = "clan:" + inv.id;
+  if (typeof hasSocialInviteBanner === "function" && hasSocialInviteBanner(bannerId)) return;
+  if (typeof showSocialInviteBanner !== "function") return;
 
-  clanInvitePromptBusy = true;
   clanLastPromptedInviteId = inv.id;
-  try {
-    const from = inv.fromName || inv.fromNick || "Игрок";
-    const clanName = inv.clanName || "Клан";
-    const esc =
-      typeof escHtml === "function"
-        ? escHtml
-        : (s) =>
-            String(s == null ? "" : s)
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;");
-    const ok = await showConfirm({
-      title: "Приглашение в клан",
-      html:
-        '<div class="clan-invite-modal">' +
-        '<p class="clan-invite-modal-kicker">Вас приглашают вступить</p>' +
-        '<p class="clan-invite-modal-clan">' +
-        esc(clanName) +
-        "</p>" +
-        '<p class="clan-invite-modal-from">от <b>' +
-        esc(from) +
-        "</b></p>" +
-        '<p class="clan-invite-modal-hint">Принять — станете участником. Отклонить — приглашение сгорит.</p>' +
-        "</div>",
-      okText: "Принять",
-      cancelText: "Отклонить",
-    });
-    const r = await clanRespondInvite(inv.id, !!ok);
-    if (ok) {
-      if (r && r.ok) {
-        if (typeof toast === "function") toast("Вы вступили в клан «" + clanName + "»", "success");
-        if (typeof clanSetStatus === "function") clanSetStatus("Вы вступили в клан");
-      } else if (typeof toast === "function") {
-        toast((r && (r.message || r.error)) || "Не удалось принять", "warn");
-      }
-    } else if (typeof toast === "function") {
-      toast("Приглашение отклонено", "info");
-    }
+  const from = inv.fromName || inv.fromNick || "Игрок";
+  const clanName = inv.clanName || "Клан";
+
+  function afterRespond() {
     if (typeof syncChatComposeUi === "function") syncChatComposeUi();
     if (document.getElementById("screen-clan")?.classList.contains("active")) {
       if (typeof renderClanScreen === "function") renderClanScreen();
     }
-  } finally {
-    clanInvitePromptBusy = false;
     clanLastPromptedInviteId = "";
-    // следующее приглашение в очереди
     if ((clanIncomingInvites || []).length) {
       setTimeout(() => {
         if (typeof maybePromptClanInvite === "function") maybePromptClanInvite();
       }, 80);
     }
   }
+
+  showSocialInviteBanner({
+    id: bannerId,
+    kind: "clan",
+    title: "Приглашение в клан",
+    message: "«" + clanName + "»\nот " + from + "\nПринять — станете участником. Отклонить — приглашение сгорит.",
+    acceptText: "Принять",
+    laterText: "Позже",
+    rejectText: "Отклонить",
+    onAccept: async () => {
+      const r = await clanRespondInvite(inv.id, true);
+      if (r && r.ok) {
+        if (typeof toast === "function") toast("Вы вступили в клан «" + clanName + "»", "success");
+        if (typeof clanSetStatus === "function") clanSetStatus("Вы вступили в клан");
+      } else if (typeof toast === "function") {
+        toast((r && (r.message || r.error)) || "Не удалось принять", "warn");
+      }
+      afterRespond();
+    },
+    onReject: async () => {
+      await clanRespondInvite(inv.id, false);
+      if (typeof toast === "function") toast("Приглашение отклонено", "info");
+      afterRespond();
+    },
+  });
 }
 
 async function clanCreate(name) {
@@ -366,15 +351,47 @@ async function clanClaimTerritory(territoryId) {
 }
 
 async function clanContestTerritory(territoryId) {
+  // Alias → штурм (сервер больше не покупает узел казной)
+  return clanStartAssault(territoryId);
+}
+
+async function clanStartAssault(territoryId) {
   if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
-  const r = await clanApi("/chat/clan/territories/contest", {
+  const r = await clanApi("/chat/clan/territories/assault/start", {
     method: "POST",
     body: { territoryId },
   });
-  if (r && r.ok && typeof applyClanTerritoryHolders === "function") {
+  if (r && r.ok && typeof applyClanTerritoryHolders === "function" && r.holders) {
+    applyClanTerritoryHolders(r.holders || []);
+  }
+  if (r && r.ok && r.warehouseAdena != null) {
+    clanWarehouseState = Object.assign({}, clanWarehouseState || {}, {
+      adena: r.warehouseAdena,
+    });
+  }
+  return r;
+}
+
+async function clanResolveAssault(territoryId) {
+  if (!clanCloudReady()) return { ok: false, error: "auth", message: "Нужен вход в облако" };
+  const body = {};
+  if (territoryId) body.territoryId = territoryId;
+  const r = await clanApi("/chat/clan/territories/assault/resolve", {
+    method: "POST",
+    body,
+  });
+  if (r && r.ok && typeof applyClanTerritoryHolders === "function" && r.holders) {
     applyClanTerritoryHolders(r.holders || []);
   }
   return r;
+}
+
+async function clanAssaultStatus(territoryId) {
+  if (!clanCloudReady()) return { ok: false };
+  return clanApi(
+    "/chat/clan/territories/assault?territoryId=" + encodeURIComponent(territoryId || ""),
+    { method: "GET" }
+  );
 }
 
 async function clanReleaseTerritory(territoryId) {

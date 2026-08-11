@@ -472,9 +472,9 @@ const HOLD_MAX = { farm: 2, city: 1 };
 /** Safe JS integer — раньше 50ккк резало крупные взносы. */
 const DEPOSIT_MAX = Number.MAX_SAFE_INTEGER;
 const MS_DAY = 24 * 60 * 60 * 1000;
-/** После захвата узел нельзя отбить сразу (антиснайп). */
-const CONTEST_LOCK_MS = 2 * 60 * 60 * 1000;
-/** Лимит eco-отбитий одним кланом за UTC-сутки. */
+/** После захвата узел нельзя штурмовать сразу (антиснайп). */
+const CONTEST_LOCK_MS = 24 * 60 * 60 * 1000;
+/** @deprecated eco-отбитие снято; штурм по силе. */
 const CONTEST_DAY_CAP = 3;
 /** База отбития: max(floor, rent × дней). */
 const CONTEST_COST_FLOOR = 10_000_000;
@@ -688,16 +688,63 @@ function attachClanEconomyMethods(db, store, deps) {
 
   function holdersPublic(now) {
     now = Number(now) || Date.now();
+    let myClanId = null;
+    // optional: set via store._holdersViewerClanId for canAssault
+    if (store._holdersViewerClanId) myClanId = store._holdersViewerClanId;
+
     return stmtTerrAll.all().map((row) => {
       const meta = CLAN_TERRITORIES[row.territory_id] || {};
       const clan = stmtClanGet.get(row.clan_id);
-      const quote = contestCostFor(meta, row.clan_id, null, now);
+      const quote = contestCostFor(meta, row.clan_id, myClanId, now);
       const power = siegePower(row.clan_id, now);
+      let rosterPower = null;
+      if (typeof store.clanRosterSiegePower === "function") {
+        try {
+          rosterPower = store.clanRosterSiegePower(row.clan_id, { now });
+        } catch (_) {}
+      }
       const warTier = meta.warTier || "normal";
       let siegeWindow = null;
       if (typeof store.clanSiegeWindowInfo === "function") {
         try {
           siegeWindow = store.clanSiegeWindowInfo(row.territory_id, now);
+        } catch (_) {}
+      }
+      let assault = null;
+      let assaultPreview = null;
+      if (typeof store.clanGetActiveAssault === "function") {
+        try {
+          assault = store.clanGetActiveAssault(row.territory_id);
+        } catch (_) {}
+      }
+      if (typeof store.clanAssaultPreview === "function" && myClanId) {
+        try {
+          // While listing holders, skip nested resolve (assaultPreviewSafe).
+          const prev = store.clanAssaultPreview(row.territory_id, {
+            clanId: myClanId,
+            now,
+            skipResolve: assaultPreviewSafe,
+          });
+          if (prev && prev.ok) {
+            assaultPreview = {
+              canAssault: !!prev.canAssault,
+              denyReason: prev.denyReason || null,
+              message: prev.message || null,
+              attackerPower: prev.attackerPower,
+              defenderPower: prev.defenderPower,
+              defenderEffective: prev.defenderEffective,
+              abandoned: !!prev.abandoned,
+              feeAdena: prev.feeAdena,
+            };
+          }
+        } catch (_) {}
+      }
+      const claimedAt = Math.max(0, Number(row.claimed_at) || 0);
+      const unlockAt = claimedAt + CONTEST_LOCK_MS;
+      let claimMinPower = 0;
+      if (typeof store.clanClaimMinPower === "function") {
+        try {
+          claimMinPower = store.clanClaimMinPower(row.territory_id);
         } catch (_) {}
       }
       return {
@@ -716,15 +763,32 @@ function attachClanEconomyMethods(db, store, deps) {
         contestCost: quote.cost,
         contestBase: quote.base,
         claimCost: claimCostFor(meta),
+        claimMinPower,
         contestLockMs: CONTEST_LOCK_MS,
+        contestUnlockAt: unlockAt,
         contestDayCap: CONTEST_DAY_CAP,
         siegeScore: power.score,
         siegeTier: power.tier,
         siegePowerRu: power.labelRu,
+        rosterPower: rosterPower ? rosterPower.total : null,
+        rosterPowerBreak: rosterPower || null,
         siegeWindow,
+        assault,
+        assaultPreview,
+        assaultFee:
+          typeof store.clanAssaultFee === "function"
+            ? store.clanAssaultFee(row.territory_id)
+            : null,
       };
     });
   }
+
+  // Avoid nested preview→resolve→list recursion when building holder cards.
+  let assaultPreviewSafe = false;
+
+  store.clanContestLockMs = function clanContestLockMs() {
+    return CONTEST_LOCK_MS;
+  };
 
   /** Accrue rent into warehouse for one clan; returns { added, adena }. */
   function accrueRentForClan(clanId, now) {
@@ -758,8 +822,28 @@ function attachClanEconomyMethods(db, store, deps) {
     return { added: 0, adena: Math.max(0, Math.floor(Number(wh.adena) || 0)) };
   }
 
-  store.clanListTerritories = function clanListTerritories() {
-    return { ok: true, holders: holdersPublic(), meta: CLAN_TERRITORIES };
+  store.clanListTerritories = function clanListTerritories(opts = {}) {
+    const now = Number(opts.now) || Date.now();
+    if (!opts.skipResolve && typeof store.clanResolveDueAssaults === "function") {
+      try {
+        store.clanResolveDueAssaults({ now });
+      } catch (_) {}
+    }
+    if (opts.user && opts.user.id) {
+      store._holdersViewerClanId =
+        stmtMemberClan.get(opts.user.id)?.clan_id || null;
+    } else if (opts.clanId) {
+      store._holdersViewerClanId = opts.clanId;
+    } else {
+      store._holdersViewerClanId = null;
+    }
+    assaultPreviewSafe = true;
+    try {
+      return { ok: true, holders: holdersPublic(now), meta: CLAN_TERRITORIES };
+    } finally {
+      assaultPreviewSafe = false;
+      store._holdersViewerClanId = null;
+    }
   };
 
   store.clanClaimTerritory = function clanClaimTerritory(user, opts = {}) {
@@ -787,6 +871,24 @@ function attachClanEconomyMethods(db, store, deps) {
     }
     const now = Number(opts.now) || Date.now();
     const cost = claimCostFor(meta);
+    // Минимальная сила клана для claim по тиру узла
+    if (typeof store.clanRosterSiegePower === "function" && typeof store.clanClaimMinPower === "function") {
+      const need = store.clanClaimMinPower(territoryId);
+      const mine = store.clanRosterSiegePower(clanId, { now });
+      if (need > 0 && (mine.total || 0) < need) {
+        return {
+          ok: false,
+          error: "too_weak",
+          message:
+            "Слабый клан для этого узла: сила " +
+            (mine.total || 0) +
+            ", нужно ≥ " +
+            need,
+          claimMinPower: need,
+          rosterPower: mine.total || 0,
+        };
+      }
+    }
     return db.transaction(() => {
       const cur = stmtTerrGet.get(territoryId);
       if (cur && cur.clan_id === clanId) {
@@ -800,7 +902,7 @@ function attachClanEconomyMethods(db, store, deps) {
           message:
             "Занято «" +
             (other?.name || "?") +
-            "» — отбейте кнопкой «Отбить узел» (адена со склада)",
+            "» — объявите штурм (сила клана, не покупка казной)",
         };
       }
       const counts = countHoldings(clanId);
@@ -850,7 +952,10 @@ function attachClanEconomyMethods(db, store, deps) {
     })();
   };
 
-  /** Отбить занятый узел: цена от силы осады владельца, адена со склада атакующего. */
+  /**
+   * Бывший eco-contest: мгновенная покупка снята.
+   * Alias → штурм по силе (clanStartAssault). Elite → только осада.
+   */
   store.clanContestTerritory = function clanContestTerritory(user, opts = {}) {
     const territoryId = String(opts.territoryId || "").trim();
     const meta = CLAN_TERRITORIES[territoryId];
@@ -867,143 +972,21 @@ function attachClanEconomyMethods(db, store, deps) {
             : "Осада этой зоны ещё не включена",
       };
     }
-    const clanId = getClanId(user.id);
-    if (!clanId) return { ok: false, error: "clan", message: "Нужен клан" };
-    const role = clanRole(clanId, user.id);
-    if (role !== "leader" && role !== "officer") {
-      return { ok: false, error: "role", message: "Отбивает лидер или офицер" };
-    }
-    const now = Number(opts.now) || Date.now();
-
-    // Elite/flagship: during siege window eco-contest is closed
-    if (
-      (meta.warTier === "elite" || meta.warTier === "flagship") &&
-      typeof store.clanIsSiegeWindowOpen === "function" &&
-      store.clanIsSiegeWindowOpen(territoryId, now)
-    ) {
+    if (meta.warTier === "elite" || meta.warTier === "flagship") {
       return {
         ok: false,
-        error: "siege_window",
-        message: "Окно осады: eco-отбитие закрыто — подайте заявку на осаду",
+        error: "siege_only",
+        message: "Elite/флагман — только окно осады (не штурм казной)",
       };
     }
-
-    return db.transaction(() => {
-      const cur = stmtTerrGet.get(territoryId);
-      if (!cur) {
-        return {
-          ok: false,
-          error: "free",
-          message: "Узел свободен — нажмите «Захватить узел»",
-        };
-      }
-      if (cur.clan_id === clanId) {
-        return { ok: true, message: "Уже ваш узел", holders: holdersPublic(now) };
-      }
-
-      const quote = contestCostFor(meta, cur.clan_id, clanId, now);
-      const cost = quote.cost;
-
-      const claimedAt = Math.max(0, Number(cur.claimed_at) || 0);
-      const unlockAt = claimedAt + CONTEST_LOCK_MS;
-      if (now < unlockAt) {
-        const mins = Math.max(1, Math.ceil((unlockAt - now) / 60000));
-        return {
-          ok: false,
-          error: "lock",
-          message: "Защита после захвата ещё " + mins + " мин",
-          unlockAt,
-          ...quote,
-          contestCost: cost,
-        };
-      }
-
-      const dayStart = Date.UTC(
-        new Date(now).getUTCFullYear(),
-        new Date(now).getUTCMonth(),
-        new Date(now).getUTCDate()
-      );
-      const usedToday = Number(stmtContestDayCount.get(clanId, dayStart)?.n) || 0;
-      if (usedToday >= CONTEST_DAY_CAP) {
-        return {
-          ok: false,
-          error: "day_cap",
-          message:
-            "Лимит отбитий казной: " + CONTEST_DAY_CAP + " / сутки UTC (уже " + usedToday + ")",
-          contestsUsedToday: usedToday,
-          contestDayCap: CONTEST_DAY_CAP,
-        };
-      }
-
-      const counts = countHoldings(clanId);
-      if (meta.kind === "city" && counts.city >= HOLD_MAX.city) {
-        return { ok: false, error: "cap", message: "Лимит: 1 город — сначала снимите свой" };
-      }
-      if (meta.kind !== "city" && counts.farm >= HOLD_MAX.farm) {
-        return {
-          ok: false,
-          error: "cap",
-          message: "Лимит: 2 farm-узла — сначала снимите один свой",
-        };
-      }
-
-      // Рента защитнику до передачи
-      accrueRentForClan(cur.clan_id, now);
-
-      const wh = ensureWarehouse(clanId, now);
-      const have = Math.max(0, Math.floor(Number(wh.adena) || 0));
-      if (have < cost) {
-        return {
-          ok: false,
-          error: "funds",
-          message:
-            "Отбитие («" +
-            quote.defenderPowerRu +
-            "», ×" +
-            quote.costMult +
-            "): нужно " +
-            cost.toLocaleString("ru-RU") +
-            " adena на складе (есть " +
-            have.toLocaleString("ru-RU") +
-            ")",
-          ...quote,
-          contestCost: cost,
-          warehouseAdena: have,
-        };
-      }
-
-      const nextAdena = have - cost;
-      stmtWhUpsert.run(clanId, nextAdena, now);
-      stmtWhLog.run(clanId, user.id, "contest", cost, territoryId, now);
-      stmtTerrTransfer.run(clanId, now, now, territoryId);
-
-      if (typeof store.clanAddActivityScore === "function") {
-        store.clanAddActivityScore(clanId, 75, { now });
-      }
-      if (typeof store.clanOnTerritoryContested === "function") {
-        store.clanOnTerritoryContested(clanId, territoryId, now, cur.clan_id);
-      }
-
-      const other = stmtClanGet.get(cur.clan_id);
+    if (typeof store.clanStartAssault !== "function") {
       return {
-        ok: true,
-        contested: true,
-        ...quote,
-        contestCost: cost,
-        warehouseAdena: nextAdena,
-        message:
-          "Отбито: " +
-          meta.labelRu +
-          " у «" +
-          (other?.name || "?") +
-          "» [" +
-          quote.defenderPowerRu +
-          "] (−" +
-          cost.toLocaleString("ru-RU") +
-          " со склада)",
-        holders: holdersPublic(now),
+        ok: false,
+        error: "unavailable",
+        message: "Штурм временно недоступен",
       };
-    })();
+    }
+    return store.clanStartAssault(user, opts);
   };
 
   store.clanReleaseTerritory = function clanReleaseTerritory(user, opts = {}) {

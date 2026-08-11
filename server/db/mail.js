@@ -496,11 +496,18 @@ function attachMailMethods(db, store, deps) {
     "SELECT * FROM mail_parcels WHERE status = 'escrow' AND expires_at <= ? LIMIT ?"
   );
   const stmtFindByName = db.prepare(`
-    SELECT user_id, slot_id, name, nick
+    SELECT user_id, slot_id, name, nick, level
     FROM player_characters
     WHERE created = 1 AND name IS NOT NULL AND name != ''
       AND name = ? COLLATE NOCASE
   `);
+  const stmtCharsByUser = db.prepare(`
+    SELECT user_id, slot_id, name, nick, level
+    FROM player_characters
+    WHERE user_id = ? AND created = 1 AND name IS NOT NULL AND name != ''
+    ORDER BY level DESC, slot_id ASC
+  `);
+  const stmtActiveName = db.prepare("SELECT active_name FROM player_saves WHERE user_id = ?");
   const stmtUserById = db.prepare("SELECT id, nick FROM users WHERE id = ?");
 
   function loadUserData(userId) {
@@ -524,18 +531,62 @@ function attachMailMethods(db, store, deps) {
     };
   }
 
+  /**
+   * Разруливает коллизии COLLATE NOCASE (RiDDLe vs Riddle) и выбор среди слотов аккаунта.
+   * Приоритет: точный регистр → больший level → active_name сейва → slot_id.
+   */
+  function pickCharacterRow(rows, typedName) {
+    if (!rows || !rows.length) return null;
+    if (rows.length === 1) return rows[0];
+    const typed = String(typedName || "");
+    const exact = rows.filter((r) => String(r.name) === typed);
+    if (exact.length === 1) return exact[0];
+    const pool = exact.length ? exact : rows;
+    if (pool.length === 1) return pool[0];
+
+    const userIds = [];
+    for (const r of pool) {
+      const id = Number(r.user_id);
+      if (!userIds.includes(id)) userIds.push(id);
+    }
+    if (userIds.length === 1) {
+      const save = stmtActiveName.get(userIds[0]);
+      const active = save?.active_name != null ? String(save.active_name) : "";
+      return pool.slice().sort((a, b) => {
+        const ld = (Number(b.level) || 0) - (Number(a.level) || 0);
+        if (ld) return ld;
+        if (active) {
+          const aAct = String(a.name) === active ? 1 : 0;
+          const bAct = String(b.name) === active ? 1 : 0;
+          if (bAct !== aAct) return bAct - aAct;
+        }
+        return String(a.slot_id).localeCompare(String(b.slot_id));
+      })[0];
+    }
+
+    // Разные аккаунты с одинаковым именем (без точного регистра) — неоднозначно
+    return null;
+  }
+
   function resolveRecipientByName(rawName) {
     const name = String(rawName || "").trim().slice(0, 48);
     if (name.length < 2) return { ok: false, error: "Укажи имя персонажа" };
-    const rows = stmtFindByName.all(name);
+    let rows = stmtFindByName.all(name);
+
+    // Fallback: логин аккаунта → активный / лучший персонаж (как в party invite)
+    if (!rows.length && typeof store.getUserByNick === "function") {
+      const user = store.getUserByNick(name);
+      if (user) rows = stmtCharsByUser.all(user.id);
+    }
+
     if (!rows.length) return { ok: false, error: "Персонаж «" + name + "» не найден" };
-    if (rows.length > 1) {
+    const r = pickCharacterRow(rows, name);
+    if (!r) {
       return {
         ok: false,
         error: "Несколько персонажей с именем «" + name + "». Нужна уникальность имени.",
       };
     }
-    const r = rows[0];
     return {
       ok: true,
       userId: r.user_id,

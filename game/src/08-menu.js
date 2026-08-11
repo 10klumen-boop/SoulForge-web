@@ -30,6 +30,7 @@ function renderMenu() {
     mailMeta.hidden = true;
     mailMeta.textContent = "";
   }
+  if (typeof syncChatMenuTileBadge === "function") syncChatMenuTileBadge();
   const achEl = document.getElementById("achCount");
   if (achEl && typeof achievementsProgress === "function") {
     const { done, total } = achievementsProgress();

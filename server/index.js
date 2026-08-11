@@ -1291,7 +1291,7 @@ app.get("/chat/clan/territories", (req, res) => {
   const user = authUser(req);
   if (!user) return jsonError(res, 401, "Войдите в аккаунт");
   try {
-    res.json(store.clanListTerritories());
+    res.json(store.clanListTerritories({ user, now: Date.now() }));
   } catch (e) {
     console.error("GET /chat/clan/territories", e);
     return jsonError(res, 500, "Ошибка территорий");
@@ -1327,6 +1327,50 @@ app.post("/chat/clan/territories/contest", (req, res) => {
   } catch (e) {
     console.error("POST /chat/clan/territories/contest", e);
     return jsonError(res, 500, "Ошибка территорий");
+  }
+});
+
+app.post("/chat/clan/territories/assault/start", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanStartAssault(user, {
+      territoryId: req.body?.territoryId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/territories/assault/start", e);
+    return jsonError(res, 500, "Ошибка штурма");
+  }
+});
+
+app.post("/chat/clan/territories/assault/resolve", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const result = store.clanResolveAssault(user, {
+      territoryId: req.body?.territoryId,
+      now: Date.now(),
+    });
+    if (!result.ok) return jsonError(res, 400, result.message || "Ошибка");
+    res.json(result);
+  } catch (e) {
+    console.error("POST /chat/clan/territories/assault/resolve", e);
+    return jsonError(res, 500, "Ошибка штурма");
+  }
+});
+
+app.get("/chat/clan/territories/assault", (req, res) => {
+  const user = authUser(req);
+  if (!user) return jsonError(res, 401, "Войдите в аккаунт");
+  try {
+    const territoryId = String(req.query?.territoryId || "");
+    res.json(store.clanAssaultPreview(territoryId, { user, now: Date.now() }));
+  } catch (e) {
+    console.error("GET /chat/clan/territories/assault", e);
+    return jsonError(res, 500, "Ошибка штурма");
   }
 });
 

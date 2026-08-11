@@ -171,7 +171,7 @@ document.addEventListener("keydown", (e) => {
     if (typeof exitInvCrySelectMode === "function") exitInvCrySelectMode();
     if (typeof renderInventory === "function") renderInventory();
   }
-  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-engagement")?.classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-market")?.classList.contains("active") || $("#screen-glossary")?.classList.contains("active"))) { show("menu"); }
+  else if (e.key === "Escape" && ($("#screen-inv").classList.contains("active") || $("#screen-ach").classList.contains("active") || $("#screen-shop").classList.contains("active") || $("#screen-avatar").classList.contains("active") || $("#screen-quests").classList.contains("active") || $("#screen-engagement")?.classList.contains("active") || $("#screen-pvp-arena")?.classList.contains("active") || $("#screen-party")?.classList.contains("active") || $("#screen-clan")?.classList.contains("active") || $("#screen-player-mail")?.classList.contains("active") || $("#screen-chat")?.classList.contains("active") || $("#screen-market")?.classList.contains("active") || $("#screen-glossary")?.classList.contains("active"))) { show("menu"); }
   if (e.key.toLowerCase() === "m" && document.activeElement.id !== "devSearchInput") toggleMute();
 });
 
@@ -223,7 +223,9 @@ if (typeof tryResumeCloudSession === "function") {
   tryResumeCloudSession().catch((e) => console.error("tryResumeCloudSession failed:", e));
 }
 if (typeof Audio2 !== "undefined") {
+  if (Audio2.ensureSessionRandomTrack) Audio2.ensureSessionRandomTrack();
   if (Audio2.preload) Audio2.preload();
+  if (Audio2.syncOstPlayerUi) Audio2.syncOstPlayerUi();
 }
 if (typeof refreshZoneStoryUnlocks === "function") refreshZoneStoryUnlocks();
 if (typeof updateHomeCharsSubtitle === "function") updateHomeCharsSubtitle();

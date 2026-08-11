@@ -126,13 +126,19 @@ function attachPvpMethods(db, store) {
     "SELECT * FROM combat_sheets WHERE user_id = ? AND character_id = ?"
   );
   const stmtSheetByName = db.prepare(`
-    SELECT cs.*, pc.nick
+    SELECT cs.*, pc.nick, pc.level AS char_level, pc.name AS pc_name
     FROM combat_sheets cs
     JOIN player_characters pc
       ON pc.user_id = cs.user_id AND pc.slot_id = cs.character_id
     WHERE cs.char_name = ? COLLATE NOCASE
+  `);
+  const stmtCharBySlot = db.prepare(`
+    SELECT user_id, slot_id, name, nick, level
+    FROM player_characters
+    WHERE slot_id = ? AND created = 1 AND name IS NOT NULL AND name != ''
     LIMIT 2
   `);
+  const stmtActiveName = db.prepare("SELECT active_name FROM player_saves WHERE user_id = ?");
   const stmtOnlineSheets = db.prepare(`
     SELECT
       cs.user_id,
@@ -270,9 +276,60 @@ function attachPvpMethods(db, store) {
     return { ok: true, characterId: id };
   }
 
-  function resolveTarget(toName) {
+  function pickSheetRow(rows, typedName) {
+    if (!rows || !rows.length) return null;
+    if (rows.length === 1) return rows[0];
+    const typed = String(typedName || "");
+    const exact = rows.filter((r) => String(r.char_name) === typed);
+    const pool = exact.length ? exact : rows;
+    if (pool.length === 1) return pool[0];
+    const userIds = [];
+    for (const r of pool) {
+      const id = Number(r.user_id);
+      if (!userIds.includes(id)) userIds.push(id);
+    }
+    if (userIds.length === 1) {
+      const save = stmtActiveName.get(userIds[0]);
+      const active = save?.active_name != null ? String(save.active_name) : "";
+      if (active) {
+        const byActive = pool.filter((r) => String(r.char_name) === active);
+        if (byActive.length === 1) return byActive[0];
+      }
+      return pool.slice().sort((a, b) => {
+        const pd = (Number(b.power_score) || 0) - (Number(a.power_score) || 0);
+        if (pd) return pd;
+        const ld = (Number(b.char_level) || 0) - (Number(a.char_level) || 0);
+        if (ld) return ld;
+        return String(a.character_id).localeCompare(String(b.character_id));
+      })[0];
+    }
+    if (exact.length === 1) return exact[0];
+    return null;
+  }
+
+  function resolveTarget(body) {
+    body = body && typeof body === "object" ? body : { toName: body };
+    const toCid = String(body.toCharacterId || body.to_character_id || "")
+      .trim()
+      .slice(0, 64);
+    if (toCid) {
+      const hits = stmtCharBySlot.all(toCid);
+      if (hits.length === 1) {
+        const r = hits[0];
+        return {
+          ok: true,
+          userId: r.user_id,
+          characterId: r.slot_id,
+          name: r.name,
+          nick: r.nick,
+        };
+      }
+      if (hits.length > 1) {
+        return { ok: false, error: "Неоднозначный characterId" };
+      }
+    }
     if (typeof store.mailResolveName === "function") {
-      return store.mailResolveName(toName);
+      return store.mailResolveName(body.toName || body.to || body.name);
     }
     return { ok: false, error: "Резолв имён недоступен" };
   }
@@ -387,20 +444,88 @@ function attachPvpMethods(db, store) {
     return { ok: true, power: sheetPower(sheet), name: sheet.name };
   };
 
-  store.pvpLookupSheet = function pvpLookupSheet(toName) {
+  store.pvpLookupSheet = function pvpLookupSheet(toName, opts) {
+    opts = opts || {};
+    const toCid = String(opts.toCharacterId || "").trim().slice(0, 64);
+    if (toCid) {
+      const hits = stmtCharBySlot.all(toCid);
+      if (hits.length === 1) {
+        const ch = hits[0];
+        const row = stmtSheetByKey.get(ch.user_id, ch.slot_id);
+        if (!row) {
+          return {
+            ok: false,
+            error: "У «" + (ch.name || toCid) + "» нет опубликованного листа. Пусть откроет Арену.",
+          };
+        }
+        const sheet = sanitizeSheet(parseJson(row.sheet_json, null));
+        if (!sheet) return { ok: false, error: "Лист повреждён" };
+        return {
+          ok: true,
+          preview: {
+            name: sheet.name,
+            level: sheet.level,
+            atkType: sheet.atkType,
+            patk: sheet.patk,
+            matk: sheet.matk,
+            pdef: sheet.pdef,
+            mdef: sheet.mdef,
+            hpMax: sheet.hpMax,
+            power: row.power_score,
+            publishedAt: row.published_at,
+          },
+          userId: row.user_id,
+          characterId: row.character_id,
+          sheet,
+        };
+      }
+    }
     const name = String(toName || "").trim().slice(0, 48);
     if (name.length < 2) return { ok: false, error: "Укажи имя персонажа" };
     const rows = stmtSheetByName.all(name);
     if (!rows.length) {
+      // Fallback через общий резолв (ник аккаунта / точный регистр)
+      if (typeof store.mailResolveName === "function") {
+        const dest = store.mailResolveName(name);
+        if (dest.ok) {
+          const row = stmtSheetByKey.get(dest.userId, dest.characterId);
+          if (!row) {
+            return {
+              ok: false,
+              error: "У «" + (dest.name || name) + "» нет опубликованного листа. Пусть откроет Арену.",
+            };
+          }
+          const sheet = sanitizeSheet(parseJson(row.sheet_json, null));
+          if (!sheet) return { ok: false, error: "Лист повреждён" };
+          return {
+            ok: true,
+            preview: {
+              name: sheet.name,
+              level: sheet.level,
+              atkType: sheet.atkType,
+              patk: sheet.patk,
+              matk: sheet.matk,
+              pdef: sheet.pdef,
+              mdef: sheet.mdef,
+              hpMax: sheet.hpMax,
+              power: row.power_score,
+              publishedAt: row.published_at,
+            },
+            userId: row.user_id,
+            characterId: row.character_id,
+            sheet,
+          };
+        }
+      }
       return {
         ok: false,
         error: "У «" + name + "» нет опубликованного листа. Пусть откроет Арену.",
       };
     }
-    if (rows.length > 1) {
+    const row = pickSheetRow(rows, name);
+    if (!row) {
       return { ok: false, error: "Несколько листов с этим именем" };
     }
-    const row = rows[0];
     const sheet = sanitizeSheet(parseJson(row.sheet_json, null));
     if (!sheet) return { ok: false, error: "Лист повреждён" };
     return {
@@ -458,7 +583,7 @@ function attachPvpMethods(db, store) {
     if (!c.ok) return c;
     const sheet = sanitizeSheet(body.sheet);
     if (!sheet) return { ok: false, error: "Сначала опубликуй лист (открой Арену)" };
-    const target = resolveTarget(body.toName);
+    const target = resolveTarget(body);
     if (!target.ok) return target;
     if (target.userId === user.id && target.characterId === c.characterId) {
       return { ok: false, error: "Нельзя вызвать самого себя" };
@@ -751,7 +876,9 @@ function attachPvpMethods(db, store) {
       return { ok: false, error: "Подождите " + left + " с перед следующей атакой" };
     }
 
-    const looked = store.pvpLookupSheet(body.toName);
+    const looked = store.pvpLookupSheet(body.toName, {
+      toCharacterId: body.toCharacterId || body.to_character_id,
+    });
     if (!looked.ok) return looked;
     if (looked.userId === user.id && looked.characterId === c.characterId) {
       return { ok: false, error: "Нельзя атаковать свою тень" };

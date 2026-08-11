@@ -59,17 +59,17 @@ assert(depSeed.ok && depSeed.adena === 10_000_000, "seed warehouse " + JSON.stri
 assert(depSeed.save.data.characters[0].progress.adena === 40_000_000, "char paid seed");
 assert(depSeed.xpGained === 120, "seed donation xp " + depSeed.xpGained);
 
-const claim = store.clanClaimTerritory(lead, { territoryId: "wasteland", now: now + 6 });
-assert(claim.ok, "claim wasteland: " + (claim.message || claim.error));
+const claim = store.clanClaimTerritory(lead, { territoryId: "abandoned_camp", now: now + 6 });
+assert(claim.ok, "claim abandoned_camp: " + (claim.message || claim.error));
 assert(claim.warehouseAdena === 5_000_000, "wh after claim " + claim.warehouseAdena);
 
 const list = store.clanListTerritories();
 assert(
-  list.holders.some((h) => h.territoryId === "wasteland" && h.clanId === created.clan.id),
+  list.holders.some((h) => h.territoryId === "abandoned_camp" && h.clanId === created.clan.id),
   "holder listed"
 );
 
-// Contest lock: right after claim
+// Contest/assault lock: right after claim
 const rivDep = store.clanWarehouseDeposit(rival, {
   amount: 100_000_000,
   characterId: "riv1",
@@ -77,10 +77,10 @@ const rivDep = store.clanWarehouseDeposit(rival, {
 });
 assert(rivDep.ok, "rival seed wh");
 const locked = store.clanContestTerritory(rival, {
-  territoryId: "wasteland",
+  territoryId: "abandoned_camp",
   now: now + 8,
 });
-assert(!locked.ok && locked.error === "lock", "contest lock right after claim: " + JSON.stringify(locked));
+assert(!locked.ok && locked.error === "lock", "assault lock right after claim: " + JSON.stringify(locked));
 
 const badAmt = store.clanWarehouseDeposit(lead, {
   amount: 100_000,
@@ -114,12 +114,12 @@ const wh = store.clanGetWarehouse(lead, { now: now + 13 });
 assert(wh.ok && wh.adena === 6_000_000, "warehouse get");
 assert(wh.canWithdraw === false, "withdraw disabled");
 assert(Array.isArray(wh.donations) && wh.donations.length >= 4, "donation tiers");
-assert(wh.holdings.some((h) => h.territoryId === "wasteland"), "holdings");
+assert(wh.holdings.some((h) => h.territoryId === "abandoned_camp"), "holdings");
 
 const rentNow = now + 13 + 24 * 60 * 60 * 1000;
 const wh2 = store.clanGetWarehouse(lead, { now: rentNow });
-assert(wh2.ok && wh2.rentAdded === 50000, "rent day " + wh2.rentAdded);
-assert(wh2.adena === 6_050_000, "adena after rent " + wh2.adena);
+assert(wh2.ok && wh2.rentAdded === 45000, "rent day " + wh2.rentAdded);
+assert(wh2.adena === 6_045_000, "adena after rent " + wh2.adena);
 
 const wd = store.clanWarehouseWithdraw(lead, {
   amount: 25_000,
@@ -128,28 +128,52 @@ const wd = store.clanWarehouseWithdraw(lead, {
 });
 assert(!wd.ok && wd.error === "disabled", "withdraw permanently disabled");
 
-const cap2 = store.clanClaimTerritory(lead, { territoryId: "abandoned_camp", now: rentNow + 6 });
-assert(cap2.ok, "second farm abandoned_camp: " + (cap2.message || cap2.error));
-const cap3 = store.clanClaimTerritory(lead, { territoryId: "ruins_agony", now: rentNow + 7 });
+const already = store.clanClaimTerritory(lead, { territoryId: "abandoned_camp", now: rentNow + 6 });
+assert(already.ok, "already owned abandoned_camp ok");
+const cap2 = store.clanClaimTerritory(lead, { territoryId: "wasteland", now: rentNow + 7 });
+assert(cap2.ok, "second farm wasteland: " + (cap2.message || cap2.error));
+const cap3 = store.clanClaimTerritory(lead, { territoryId: "ruins_agony", now: rentNow + 8 });
 assert(!cap3.ok && cap3.error === "cap", "farm cap 2 blocks third");
-const city = store.clanClaimTerritory(lead, { territoryId: "gludio", now: rentNow + 8 });
+const city = store.clanClaimTerritory(lead, { territoryId: "gludio", now: rentNow + 9 });
 assert(!city.ok && (city.error === "siege_off" || city.error === "zone"), "city hub not claimable in MVP");
-const farmCap = store.clanClaimTerritory(lead, { territoryId: "wasteland", now: rentNow + 9 });
-assert(farmCap.ok, "already owned wasteland ok");
 const execFree = store.clanClaimTerritory(lead, { territoryId: "execution_grounds", now: rentNow + 10 });
 assert(!execFree.ok && execFree.error === "cap", "cannot take 3rd while holding 2");
 
-// Unlock + contest wasteland (lead still holds it + abandoned_camp)
-const unlockedAt = rentNow + 11;
-const contested = store.clanContestTerritory(rival, {
+// Elite → siege_only; assault normal farm after 24h shield
+const unlockedAt = rentNow + 11 + 24 * 60 * 60 * 1000;
+const eliteBlock = store.clanContestTerritory(rival, {
   territoryId: "wasteland",
   now: unlockedAt,
 });
-assert(contested.ok && contested.contested, "contest ok: " + (contested.message || contested.error));
-const holders2 = store.clanListTerritories().holders;
 assert(
-  holders2.some((h) => h.territoryId === "wasteland" && h.clanId !== created.clan.id),
-  "holder switched"
+  !eliteBlock.ok && eliteBlock.error === "siege_only",
+  "elite no eco: " + JSON.stringify(eliteBlock)
+);
+
+const rel = store.clanReleaseTerritory(lead, {
+  territoryId: "wasteland",
+  now: unlockedAt + 1,
+});
+assert(rel.ok, "release wasteland for assault test");
+
+const assaulted = store.clanStartAssault(rival, {
+  territoryId: "abandoned_camp",
+  now: unlockedAt + 2,
+});
+assert(assaulted.ok && assaulted.started, "assault start: " + (assaulted.message || assaulted.error));
+assert(assaulted.assault && assaulted.assault.status === "active", "assault active");
+
+const { ASSAULT_WINDOW_MS } = require("../db/clan-war");
+const resolved = store.clanResolveAssault(rival, {
+  territoryId: "abandoned_camp",
+  now: unlockedAt + 2 + ASSAULT_WINDOW_MS + 1000,
+});
+assert(resolved.ok, "assault resolve: " + (resolved.message || resolved.error));
+assert(!resolved.attackerWins, "weak rival loses assault");
+const holders2 = store.clanListTerritories({ skipResolve: true }).holders;
+assert(
+  holders2.some((h) => h.territoryId === "abandoned_camp" && h.clanId === created.clan.id),
+  "holder kept after failed assault"
 );
 
 console.log("clan-warehouse: ok");

@@ -12,8 +12,6 @@ let partyOutgoingInvites = [];
 let partyFarmInfo = null;
 /** @type {object|null} */
 let partyInstanceInfo = null;
-let partyInvitePromptBusy = false;
-let partyInstancePromptBusy = false;
 let partyLastPromptedInviteId = "";
 let partyLastPromptedInstanceId = "";
 /** @type {"inst"|"lfg"} */
@@ -761,54 +759,60 @@ async function partyRespondInvite(inviteId, accept) {
 }
 
 async function maybePromptPartyInvite() {
-  if (partyInvitePromptBusy || !partyCloudReady()) return;
+  if (!partyCloudReady()) return;
   const inv = (partyIncomingInvites || [])[0];
   if (!inv || !inv.id) return;
   if (inv.id === partyLastPromptedInviteId) return;
-  if (typeof showConfirm !== "function") return;
-  partyInvitePromptBusy = true;
+  const bannerId = "party:" + inv.id;
+  if (typeof hasSocialInviteBanner === "function" && hasSocialInviteBanner(bannerId)) return;
+  if (typeof showSocialInviteBanner !== "function") return;
+
   partyLastPromptedInviteId = inv.id;
-  try {
-    const from = inv.fromName || inv.fromNick || "Игрок";
-    const ok = await showConfirm({
-      title: "Приглашение в группу",
-      message: from + " приглашает вас в группу.\nПринять?",
-      okText: "Принять",
-      cancelText: "Отклонить",
-    });
-    await partyRespondInvite(inv.id, !!ok);
-  } finally {
-    partyInvitePromptBusy = false;
-  }
+  const from = inv.fromName || inv.fromNick || "Игрок";
+  showSocialInviteBanner({
+    id: bannerId,
+    kind: "party",
+    title: "Приглашение в группу",
+    message: from + " приглашает вас в группу",
+    acceptText: "Принять",
+    laterText: "Позже",
+    rejectText: "Отклонить",
+    onAccept: () => partyRespondInvite(inv.id, true),
+    onReject: () => partyRespondInvite(inv.id, false),
+  });
 }
 
 async function maybePromptPartyInstance() {
-  if (partyInstancePromptBusy || !partyCloudReady()) return;
+  if (!partyCloudReady()) return;
   const inst = partyInstanceInfo;
   if (!inst || !inst.runId) return;
   if (inst.status !== "ready" && inst.status !== "active") return;
   if (typeof mineActive !== "undefined" && mineActive && instanceRunState?.runId === inst.runId) return;
   if (inst.runId === partyLastPromptedInstanceId) return;
   if (partyAmLeader() && instanceRunState?.runId === inst.runId) return;
-  partyInstancePromptBusy = true;
+
+  const bannerId = "instance:" + inst.runId;
+  if (typeof hasSocialInviteBanner === "function" && hasSocialInviteBanner(bannerId)) return;
+
   partyLastPromptedInstanceId = inst.runId;
-  try {
-    if (typeof showConfirm !== "function") {
-      if (typeof joinPartyInstance === "function") await joinPartyInstance(inst);
-      return;
-    }
-    const ok = await showConfirm({
-      title: "Инстанс группы",
-      message:
-        (inst.dungeonName || "Инстанс") +
-        " уже запущен.\nВойти вместе с группой?",
-      okText: "Войти",
-      cancelText: "Позже",
-    });
-    if (ok && typeof joinPartyInstance === "function") await joinPartyInstance(inst);
-  } finally {
-    partyInstancePromptBusy = false;
+  const dungeonName = inst.dungeonName || "Инстанс";
+
+  if (typeof showSocialInviteBanner !== "function") {
+    if (typeof joinPartyInstance === "function") await joinPartyInstance(inst);
+    return;
   }
+
+  showSocialInviteBanner({
+    id: bannerId,
+    kind: "instance",
+    title: "Инстанс группы",
+    message: dungeonName + " уже запущен.\nВойти вместе с группой?",
+    acceptText: "Войти",
+    laterText: "Позже",
+    onAccept: () => {
+      if (typeof joinPartyInstance === "function") return joinPartyInstance(inst);
+    },
+  });
 }
 
 function partyMemberIsMe(m, myNick) {
