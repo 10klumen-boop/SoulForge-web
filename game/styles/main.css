@@ -7590,8 +7590,14 @@
       align-items: center;
     }
   }
-  @media (max-width: 560px) {
-    .farm-hub-entry { grid-template-columns: 1fr; }
+  @media (max-width: 640px) {
+    .farm-hub-entry {
+      grid-template-columns: 1fr 1fr;
+    }
+    .farm-hub-entry-wb,
+    #farmEntryWorldBoss {
+      grid-column: 1 / -1;
+    }
   }
 
   /* Party screen (меню «Группа») */
@@ -11248,6 +11254,45 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* Entry-хаб: карточки не сжимаются поверх дока, экран скроллится */
+    #screen-menu[data-hub-mode="entry"].active,
+    #screen-menu[data-hub-mode="entry"].is-leaving {
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    #screen-menu[data-hub-mode="entry"] .hero,
+    #screen-menu[data-hub-mode="entry"] .farm-hub,
+    #screen-menu[data-hub-mode="entry"] .story-arc-bar,
+    #screen-menu[data-hub-mode="entry"] #homeGrid {
+      flex: 0 0 auto;
+      min-height: auto;
+    }
+    #screen-menu[data-hub-mode="entry"] .farm-hub {
+      overflow: visible;
+      margin-bottom: 8px;
+    }
+    #screen-menu[data-hub-mode="entry"] .farm-hub-entry-btn {
+      min-height: 58px;
+      padding: 6px 8px;
+      gap: 8px;
+    }
+    #screen-menu[data-hub-mode="entry"] .farm-hub-entry-ico {
+      width: 36px;
+      height: 36px;
+    }
+    #screen-menu[data-hub-mode="entry"] .farm-hub-entry-btn:not(.farm-hub-entry-wb) small {
+      display: none;
+    }
+    #screen-menu[data-hub-mode="entry"] .farm-hub-entry-wb,
+    #screen-menu[data-hub-mode="entry"] #farmEntryWorldBoss {
+      min-height: 52px;
+    }
+    #screen-menu[data-hub-mode="entry"] #homeGrid {
+      margin-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     }
 
     /* ?? ????? / ??????? / ????????? ? ??? ???? */

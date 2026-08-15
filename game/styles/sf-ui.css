@@ -276,6 +276,15 @@
     0 10px 26px rgba(0, 0, 0, 0.5),
     0 0 24px rgba(var(--wb-entry-accent), 0.28);
 }
+@media (max-width: 640px) {
+  .farm-hub-entry-btn {
+    min-height: 58px !important;
+  }
+  .farm-hub-entry-wb,
+  #farmEntryWorldBoss.farm-hub-entry-btn {
+    min-height: 52px !important;
+  }
+}
 .farm-field {
   border: 1px solid rgba(201, 168, 106, 0.35) !important;
   background:
